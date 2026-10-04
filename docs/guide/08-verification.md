@@ -139,6 +139,12 @@ file carries a status column; for the others the status is taken from the decisi
 | DAB | model calibrated against Wolfspeed's measured CRD efficiency; ngspice switching cross-check | [dab_design report §5, §11](../../sim/out/dab_design/report.md) |
 | PCS study | self-check passes on an independent re-run ([D-053](../requirements/DECISIONS.md)) | [pcs_design report](../../sim/out/pcs_design/report.md) |
 
+**What the self-checks caught.** The magnetics script's own inductance comparison caught a data fault in the tool
+([D-060](../requirements/DECISIONS.md)): OpenMagnetics' data for the amorphous core material gives a permeability of 1
+at 20, 24 and 30 kHz, so it modelled an air core there and flattered every amorphous inductor at those frequencies. It
+showed only when the inverter's design point changed (a factor of 300 between the script's inductance and the tool's);
+the trade study was re-run and the design point moved from 24 kHz back to 32 kHz.
+
 The three-way magnetics verification (designer / OpenMagnetics / own calculation) is described on
 [06 · Magnetics](06-magnetics.md); the insulation coordination on
 [04 · Protection and safety](04-protection-and-safety.md#insulation-coordination-summary).

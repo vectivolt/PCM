@@ -367,7 +367,7 @@ def block_cost_summary(page_dir, costs, pcs, bm):
                  p100["k5"] / bm["eq"]("PV-P100-110", 100), p100["k5"] / bm["eq"]("PV-P100-110", 110))]
     for key in ("3-wire", "4-wire"):
         t = pcs[key]
-        lines.append("| **PCS-P125** | design study, %s (%s), no boards · design point D-059 | 125 | %s | %.1f | %s | %.1f | %s | see note |" % (
+        lines.append("| **PCS-P125** | design study, %s (%s), no boards · design point D-060 | 125 | %s | %.1f | %s | %.1f | %s | see note |" % (
             key, pcs["topology"].split(",")[0], usd(t["cat"]), t["cat"] / 125, usd(t["k5"]), t["k5"] / 125,
             "%.0f %% of 5k on published prices" % t["real"] if t["real"] is not None else "not stated for 4-wire"))
     for name, t, m, kw in (("PV-P75 earlier platform", f75, "PV-P75-FULL", 75), ("DAB-D60 earlier platform", dab, "DAB-D60-FULL", 60)):

@@ -134,13 +134,13 @@ The table above describes the cost-first design. This is what changed when the e
 | Product | Our figure | Against the benchmark | Source |
 |---|---|---|---|
 | PV-P75 (DC/DC, drawn boards) | BOM per kW in [the cost table](07-sourcing-and-cost.md#-the-costs-in-one-table) | about twice the current-adjusted benchmark BOM at 5,000 units | [bom/COST.md](../../bom/COST.md) |
-| PCS-P125 (DC/AC, design study, no boards) | BOM per kW in [the cost table](07-sourcing-and-cost.md#-the-costs-in-one-table), read from `pcs_spec.json` | about 1.6 × the ≈ 690 USD current-adjusted benchmark BOM at 5,000 units: 1,092 USD, 8.7 USD/kW (our arithmetic) | [D-059](../requirements/DECISIONS.md), [ARCHITECTURE-PCS §12](../requirements/ARCHITECTURE-PCS.md#12-cost--both-products-catalogue-and-5000-units-against-the-benchmark) |
+| PCS-P125 (DC/AC, design study, no boards) | BOM per kW in [the cost table](07-sourcing-and-cost.md#-the-costs-in-one-table), read from `pcs_spec.json` | about 1.6 × the ≈ 690 USD current-adjusted benchmark BOM at 5,000 units: 1,131 USD, 9.0 USD/kW (our arithmetic) | [D-060](../requirements/DECISIONS.md), [ARCHITECTURE-PCS §12](../requirements/ARCHITECTURE-PCS.md#12-cost--both-products-catalogue-and-5000-units-against-the-benchmark) |
 | DAB-D60 (isolated DC/DC) | earlier platform only; the cost-first outline estimates ≈ 1,140 USD (≈ 19 USD/kW) | well above, as expected for an isolated converter with a liquid cold plate | [ARCHITECTURE-COSTFIRST §16](../requirements/ARCHITECTURE-COSTFIRST.md#16-dab-d60-on-the-same-principles) |
 
-The PCS-P125 design point also sits next to its own competitor: a calculated peak efficiency of 99.09 % (98.42 % at
-125 kW and 750 V; [D-059](../requirements/DECISIONS.md), which replaced the study's 99.20 % and the 98.9–99.1 % of
-D-057) against the 98.5 % maximum efficiency that the PMA0125 publishes (AC-02) — a calculation against a published
-figure, not a measurement
+The PCS-P125 design point also sits next to its own competitor: a calculated peak efficiency of 98.99 % (98.30 % at
+125 kW and 750 V; [D-060](../requirements/DECISIONS.md), which replaced the study's 99.20 %, the 98.9–99.1 % of D-057
+and the 99.09 % of D-059) against the 98.5 % maximum efficiency that the PMA0125 publishes (AC-02) — a calculation
+against a published figure, not a measurement
 ([pcs_design/report.md](../../sim/out/pcs_design/report.md)).
 
 ---

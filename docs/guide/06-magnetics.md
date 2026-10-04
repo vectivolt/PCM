@@ -121,26 +121,28 @@ Against the 51.2 W budget of the cell design the chosen inductor adds about 33 W
 ## 🧲 PCS-P125 filter magnetics
 
 The inverter's LCL filter is the largest block of its bill of materials. At the design point of
-[D-059](../requirements/DECISIONS.md) (24 kHz) the three L1, the three L2 and the common-mode choke were designed by the
-same `sim/magnetics.py` model inside the trade study — each against its own current peaks, trip level and thermal
-screen — and cost 374 USD at 5,000 units of the filter's 404 USD (the rest is C<sub>f</sub> and damping):
+[D-060](../requirements/DECISIONS.md) (32 kHz) the three L1, the three L2 and the common-mode choke are the trade study's
+selections, designed by `sim/magnetics.py` — each against its own current peaks, trip level and thermal screen — and
+together cost 419 USD at 5,000 units of the filter's 443 USD (the rest is C<sub>f</sub>, damping and the choke's Y1
+capacitors):
 
-| Part | Construction (calculated) | Loss at 180 A, 750 V (198 A, 950 V) | Hot spot at 60 °C inlet | Mass | USD each, catalogue / 5,000 units |
+| Part | Construction (calculated) | Loss at 180 A, 750 V (198 A, 950 V) | Hot spot at 45 / 60 °C inlet | Mass | USD each, catalogue / 5,000 units |
 |---|---|---|---|---|---|
-| L1, 130 µH (× 3, plus L<sub>N</sub> in the four-wire version) | gapped amorphous C-core, 26 turns of 0.8 mm aluminium foil | 165 W (261 W) | 140 °C, at its limit | 8.6 kg | 105.7 / 84.9 |
-| L2, 6 µH (× 3) | gapped amorphous C-core, 4 turns of 1.5 mm aluminium foil | 11.3 W | not reported | 1.2 kg | 38.6 / 29.7 |
-| AC common-mode choke, ≥ 150 µH (one set) | 3 nanocrystalline rectangular cores, flat-µ grade, N = 1, stacked over the phase bars | < 1 W | no winding | 1.2 kg (3 cores) | 35.9 / 29.9 (the set) |
+| L1, 120 µH (× 3, plus L<sub>N</sub> in the four-wire version) | gapped amorphous C-core, 20 turns of 0.8 mm aluminium foil | 169 W (285 W) | 125 / 140 °C (140 °C is its limit) | 11.6 kg | 126.6 / 103.1 |
+| L2, 6 µH (× 3) | gapped amorphous C-core, 4 turns of 1.5 mm aluminium foil | 11.4 W (13.7 W) | 71 / 86 °C | 1.2 kg | 38.6 / 29.7 |
+| AC common-mode choke, ≥ 126 µH (one set) | 2 nanocrystalline rectangular cores, flat-µ grade, N = 1, stacked over the phase bars | 0.5 W | no winding | 0.8 kg (2 cores) | 24.8 / 20.6 (the set) |
 
-<sub>Source: [pcs_spec.json](../../sim/out/pcs_design/pcs_spec.json) `inductors` and [tradeoff.md](../../sim/out/pcs_design/tradeoff.md)
-(row "A2 24 kHz"); the choke's construction from [design_pcs_cm_choke.json](../../sim/out/magnetics/design_pcs_cm_choke.json)
-(rev M1: the same three cores and mass). [design_pcs_l1.json](../../sim/out/magnetics/design_pcs_l1.json) and
-[design_pcs_l2.json](../../sim/out/magnetics/design_pcs_l2.json) (rev M1, [D-057](../requirements/DECISIONS.md)) still
-hold the earlier 97.2 µH and 15 µH designs and have not been regenerated for the 24 kHz point, so they are not the source
-of this table. Core and conductor prices are estimates per kilogram; nothing is quoted.</sub>
+<sub>Source: [design_pcs_l1.json](../../sim/out/magnetics/design_pcs_l1.json),
+[design_pcs_l2.json](../../sim/out/magnetics/design_pcs_l2.json) and
+[design_pcs_cm_choke.json](../../sim/out/magnetics/design_pcs_cm_choke.json) (rev M1, regenerated for the D-060 design
+point; the checks `pcs_l1_spec` and `pcs_l2_spec` compare them with the study's selection in
+[pcs_spec.json](../../sim/out/pcs_design/pcs_spec.json) `inductors` on every run) and the section "PCS-P125 filter
+magnetics" of [report.md](../../sim/out/magnetics/report.md). Losses are the higher of the own and OpenMagnetics models,
+copper and core separately. Core and conductor prices are estimates per kilogram; nothing is quoted.</sub>
 
 **Powder cores were not searched.** The inductor search covers gapped nanocrystalline and amorphous C-cores only. Powder
 block cores (FeSiAl, high flux) roll off softly and could be sized for the overload peak instead of the trip point; they
-are the remaining cost lever for a filter that is 37 % of the inverter's bill of materials, and they need a search of
+are the remaining cost lever for a filter that is 39 % of the inverter's bill of materials, and they need a search of
 their own before the filter is frozen.
 
 ## 📚 Comparison with the reference designs
@@ -226,6 +228,13 @@ What the tool could not do, and how it was handled:
   winding.
 - **Its own winding geometry for rectangular wire on a toroid:** the orientation is the tool's own, which is part of the
   27 % disagreement above.
+
+**A data fault that a change of design point exposed ([D-060](../requirements/DECISIONS.md)).** OpenMagnetics' data for
+the amorphous core material gives a permeability of 1 at 20, 24 and 30 kHz, so it modelled an air core there and
+flattered every amorphous inductor at those frequencies; with the core modelled properly the 24 kHz inductor of D-059
+loses 263 W instead of 165 W and reaches 198 °C against its 140 °C limit. The script's own inductance comparison caught
+it, at a factor of 300, when the inverter's design point changed. The trade study was re-run with the corrected model
+and the design point moved from 24 kHz back to 32 kHz.
 
 ---
 

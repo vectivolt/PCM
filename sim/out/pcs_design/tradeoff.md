@@ -11,16 +11,16 @@
 | A1 L1 80 uH | 36 | 32 | 80 / 50 / 6 | 450 / 450 | **1194** (1482) | 506 | 28 | 424 | 99.10 / 98.40 | 123 C, 100 % | 5 | nano alfoil 0.8 mm N16, 7.8 kg, 121 USD, 130 W | 0.16 | yes |
 | A1 L1 120 uH | 36 | 32 | 120 / 50 / 6 | 450 / 450 | **1131** (1409) | 443 | 39 | 543 | 98.99 / 98.30 | 123 C, 100 % | 5 | amor alfoil 0.8 mm N20, 11.6 kg, 103 USD, 170 W | 0.16 | yes |
 | A1 L1 150 uH | 36 | 32 | 150 / 30 / 10 | 450 / 450 | **1165** (1451) | 478 | 44 | 520 | 99.01 / 98.31 | 123 C, 100 % | 5 | amor alfoil 0.8 mm N22, 11.8 kg, 105 USD, 162 W | 0.16 | yes |
-| A2 16 kHz | 36 | 16 | 194 / 75 / 15 | 450 / 450 | **1202** (1499) | 515 | 43 | 563 | 99.19 / 98.49 | 106 C, 105 % | 5 | amor alfoil 0.8 mm N34, 11.2 kg, 105 USD, 176 W | 0.16 | yes |
-| A2 24 kHz | 36 | 24 | 130 / 75 / 6 | 450 / 450 | **1092** (1365) | 404 | 30 | 528 | 99.09 / 98.42 | 115 C, 105 % | 5 | amor alfoil 0.8 mm N26, 8.6 kg, 85 USD, 165 W | 0.16 | yes |
+| A2 16 kHz | 36 | 16 | 194 / 75 / 15 | 450 / 450 | **1282** (1589) | 594 | 57 | 606 | 99.17 / 98.46 | 106 C, 105 % | 5 | amor alfoil 0.8 mm N22, 15.7 kg, 131 USD, 190 W | 0.16 | yes |
+| A2 24 kHz | 36 | 24 | 130 / 75 / 6 | 450 / 450 | **1182** (1469) | 495 | 45 | 574 | 99.05 / 98.38 | 115 C, 105 % | 5 | amor alfoil 0.8 mm N20, 13.3 kg, 115 USD, 180 W | 0.16 | yes |
 | A2 48 kHz | 42 | 48 | 65 / 30 / 6 | 450 / 450 | **1156** (1438) | 437 | 23 | 361 | 98.92 / 98.36 | 121 C, 100 % | 5 | nano alfoil 0.8 mm N16, 6.3 kg, 103 USD, 109 W | 0.18 | yes |
-| A1xA2 20 kHz, L1 117 uH | 36 | 20 | 117 / 100 / 6 | 450 / 450 | **1120** (1397) | 433 | 33 | 504 | 99.12 / 98.49 | 110 C, 105 % | 5 | amor alfoil 0.8 mm N20, 9.4 kg, 89 USD, 157 W | 0.16 | yes |
-| A1xA2 20 kHz, L1 155 uH | 36 | 20 | 155 / 100 / 6 | 450 / 450 | **1137** (1418) | 449 | 35 | 482 | 99.16 / 98.50 | 111 C, 105 % | 5 | amor alfoil 0.8 mm N26, 10.0 kg, 95 USD, 149 W | 0.16 | yes |
-| A1xA2 20 kHz, L1 194 uH | 36 | 20 | 194 / 100 / 6 | 450 / 450 | **1159** (1447) | 472 | 38 | 549 | 99.16 / 98.45 | 111 C, 105 % | 5 | amor alfoil 0.8 mm N34, 11.2 kg, 105 USD, 172 W | 0.16 | yes |
-| A1xA2 20 kHz, L1 233 uH | 36 | 20 | 233 / 50 / 15 | 450 / 450 | **1209** (1504) | 522 | 48 | 550 | 99.17 / 98.45 | 111 C, 105 % | 5 | amor alfoil 0.8 mm N24, 13.1 kg, 115 USD, 171 W | 0.16 | yes |
-| A1xA2 24 kHz, L1 97 uH | 36 | 24 | 97 / 75 / 6 | 450 / 450 | **1120** (1397) | 433 | 35 | 530 | 99.06 / 98.42 | 114 C, 105 % | 5 | amor alfoil 0.8 mm N20, 9.8 kg, 92 USD, 165 W | 0.16 | yes |
-| A1xA2 24 kHz, L1 162 uH | 36 | 24 | 162 / 75 / 6 | 450 / 450 | **1126** (1406) | 439 | 35 | 481 | 99.12 / 98.45 | 115 C, 105 % | 5 | amor alfoil 0.8 mm N28, 10.2 kg, 96 USD, 149 W | 0.16 | yes |
-| A1xA2 24 kHz, L1 194 uH | 36 | 24 | 194 / 30 / 15 | 450 / 450 | **1172** (1463) | 485 | 42 | 540 | 99.11 / 98.40 | 115 C, 105 % | 5 | amor alfoil 0.8 mm N34, 11.2 kg, 105 USD, 168 W | 0.16 | yes |
+| A1xA2 20 kHz, L1 117 uH | 36 | 20 | 117 / 100 / 6 | 450 / 450 | **1299** (1606) | 612 | 61 | 587 | 99.10 / 98.42 | 110 C, 105 % | 5 | amor alfoil 0.8 mm N16, 18.6 kg, 149 USD, 184 W | 0.16 | yes |
+| A1xA2 20 kHz, L1 155 uH | 36 | 20 | 155 / 100 / 6 | 450 / 450 | **1235** (1531) | 547 | 51 | 593 | 99.11 / 98.42 | 111 C, 105 % | 5 | amor alfoil 0.8 mm N18, 15.3 kg, 127 USD, 186 W | 0.16 | yes |
+| A1xA2 20 kHz, L1 194 uH | 36 | 20 | 194 / 100 / 6 | 450 / 450 | **1230** (1525) | 543 | 51 | 539 | 99.14 / 98.46 | 111 C, 105 % | 5 | amor alfoil 0.8 mm N16, 15.5 kg, 129 USD, 168 W | 0.16 | yes |
+| A1xA2 20 kHz, L1 233 uH | 36 | 20 | 233 / 50 / 15 | 450 / 450 | **1264** (1568) | 577 | 56 | 543 | 99.16 / 98.45 | 111 C, 105 % | 5 | amor alfoil 0.8 mm N24, 16.0 kg, 133 USD, 169 W | 0.16 | yes |
+| A1xA2 24 kHz, L1 97 uH | 36 | 24 | 97 / 75 / 6 | 450 / 450 | **1244** (1542) | 557 | 54 | 633 | 99.02 / 98.34 | 114 C, 105 % | 5 | amor alfoil 0.8 mm N16, 16.3 kg, 133 USD, 200 W | 0.16 | yes |
+| A1xA2 24 kHz, L1 162 uH | 36 | 24 | 162 / 75 / 6 | 450 / 450 | **1162** (1446) | 474 | 42 | 567 | 99.08 / 98.38 | 115 C, 105 % | 5 | amor alfoil 0.8 mm N22, 12.3 kg, 108 USD, 177 W | 0.16 | yes |
+| A1xA2 24 kHz, L1 194 uH | 36 | 24 | 194 / 30 / 15 | 450 / 450 | **1205** (1499) | 517 | 48 | 610 | 99.08 / 98.35 | 115 C, 105 % | 5 | amor alfoil 0.8 mm N26, 13.2 kg, 116 USD, 191 W | 0.16 | yes |
 | A1xA2 28 kHz, L1 83 uH | 36 | 28 | 83 / 75 / 6 | 450 / 450 | **1207** (1497) | 520 | 49 | 576 | 98.98 / 98.33 | 119 C, 100 % | 5 | amor alfoil 0.8 mm N14, 14.8 kg, 123 USD, 181 W | 0.16 | yes |
 | A1xA2 28 kHz, L1 111 uH | 36 | 28 | 111 / 75 / 6 | 450 / 450 | **1142** (1421) | 454 | 40 | 561 | 99.01 / 98.34 | 119 C, 100 % | 5 | amor alfoil 0.8 mm N18, 11.8 kg, 104 USD, 176 W | 0.16 | yes |
 | A1xA2 28 kHz, L1 139 uH | 36 | 28 | 139 / 30 / 15 | 450 / 450 | **1183** (1472) | 495 | 45 | 579 | 99.03 / 98.32 | 119 C, 100 % | 5 | amor alfoil 0.8 mm N22, 12.3 kg, 108 USD, 181 W | 0.16 | yes |
@@ -31,11 +31,11 @@
 | A4 trip from protection need | 36 | 32 | 97 / 50 / 6 | 425 / 434 | **1194** (1482) | 506 | 48 | 538 | 98.98 / 98.30 | 123 C, 100 % | 5 | amor alfoil 0.8 mm N16, 14.5 kg, 121 USD, 168 W | 0.16 | yes |
 | B SiC T-type 1200 V (cross-check) | 72 | 32 | 49 / 50 / 6 | 465 / 483 | **1236** (1599) | 439 | 22 | 320 | 99.49 / 98.84 | 111 C, 105 % | 5 | nano alfoil 0.8 mm N10, 5.7 kg, 96 USD, 95 W | 66.25 | no: peak |
 | B rule kept: 1700 V outer | 72 | 32 | 49 / 50 / 6 | 465 / 483 | **1279** (1619) | 439 | 22 | 320 | 99.46 / 98.64 | 122 C, 100 % | 5 | nano alfoil 0.8 mm N10, 5.7 kg, 96 USD, 95 W | 0.14 | yes |
-| B-IGBT T-type 16 kHz (competitor class) | 126 | 16 | 97 / 30 / 47 | 465 / 474 | **1607** (2091) | 636 | 50 | 470 | 98.99 / 98.37 | 113 C, 100 % | 5 | amor alfoil 0.8 mm N16, 10.7 kg, 96 USD, 100 W | 357.69 | no: peak |
-| A* two-level, levers combined | 36 | 24 | 130 / 75 / 6 | 450 / 450 | **1092** (1365) | 404 | 30 | 509 | 99.09 / 98.43 | 115 C, 105 % | 5 | amor alfoil 0.8 mm N26, 8.6 kg, 85 USD, 158 W | 0.16 | yes |
-| A* two-level, same, sinusoidal PWM (no A3) | 36 | 24 | 130 / 75 / 6 | 450 / 450 | **1092** (1365) | 404 | 30 | 528 | 99.09 / 98.42 | 115 C, 105 % | 5 | amor alfoil 0.8 mm N26, 8.6 kg, 85 USD, 165 W | 0.16 | yes |
+| B-IGBT T-type 16 kHz (competitor class) | 126 | 16 | 97 / 30 / 47 | 465 / 474 | **1790** (2308) | 820 | 50 | 491 | 99.07 / 98.36 | 113 C, 100 % | 5 | nano alfoil 0.8 mm N18, 10.8 kg, 157 USD, 107 W | 357.69 | no: peak |
+| A* two-level, levers combined | 36 | 32 | 120 / 50 / 6 | 450 / 450 | **1131** (1409) | 443 | 39 | 518 | 98.99 / 98.32 | 123 C, 100 % | 5 | amor alfoil 0.8 mm N20, 11.6 kg, 103 USD, 161 W | 0.16 | yes |
+| A* two-level, same, sinusoidal PWM (no A3) | 36 | 32 | 120 / 50 / 6 | 450 / 450 | **1131** (1409) | 443 | 39 | 543 | 98.99 / 98.30 | 123 C, 100 % | 5 | amor alfoil 0.8 mm N20, 11.6 kg, 103 USD, 170 W | 0.16 | yes |
 
-**Recommendation: A2 24 kHz** - 1092 USD at 5,000 units (1365 catalogue), 29 USD below the runner-up (A1xA2 20 kHz, L1 117 uH).
+**Recommendation: A1 L1 120 uH** - 1131 USD at 5,000 units (1409 catalogue), 11 USD below the runner-up (A1xA2 28 kHz, L1 111 uH).
 
 ## A1 L1 inductance and A2 switching frequency
 
@@ -46,22 +46,22 @@
 | A1 L1 80 uH | 80 | 93 | 450 / 450 | nano alfoil 0.8 mm: 121, 7.8, 130 | 1383 | 10.6 | 131 / 5 | 6 | 9.5 / 2.6 vs 10.7, 2.0 | 3 | 1194 |
 | A1 L1 120 uH | 120 | 62 | 450 / 450 | amor alfoil 0.8 mm: 103, 11.6, 170 | 1389 | 7.2 | 129 / 5 | 6 | 9.4 / 2.2 vs 10.7, 2.0 | 2 | 1131 |
 | A1 L1 150 uH | 150 | 49 | 450 / 450 | amor alfoil 0.8 mm: 105, 11.8, 162 | 1393 | 5.7 | 129 / 5 | 10 | 9.5 / 2.6 vs 10.7, 2.0 | 3 | 1165 |
-| A2 16 kHz | 194 | 76 | 450 / 450 | amor alfoil 0.8 mm: 105, 11.2, 176 | 1121 | 6.1 | 130 / 5 | 15 | 4.9 / 1.5 vs 5.3, 1.0 | 6 | 1202 |
-| A2 24 kHz | 130 | 76 | 450 / 450 | amor alfoil 0.8 mm: 85, 8.6, 165 | 1253 | 6.1 | 130 / 5 | 6 | 7.7 / 1.7 vs 8.0, 1.5 | 3 | 1092 |
+| A2 16 kHz | 194 | 76 | 450 / 450 | amor alfoil 0.8 mm: 131, 15.7, 190 | 1121 | 6.1 | 130 / 5 | 15 | 4.9 / 1.5 vs 5.3, 1.0 | 6 | 1282 |
+| A2 24 kHz | 130 | 76 | 450 / 450 | amor alfoil 0.8 mm: 115, 13.3, 180 | 1253 | 6.1 | 130 / 5 | 6 | 7.7 / 1.7 vs 8.0, 1.5 | 3 | 1182 |
 | A2 48 kHz | 65 | 76 | 450 / 450 | nano alfoil 0.8 mm: 103, 6.3, 109 | 1487 | 8.7 | 130 / 5 | 6 | 12.4 / 3.7 vs 16.0, 3.0 | 2 | 1156 |
-| A1xA2 20 kHz, L1 117 uH | 117 | 102 | 450 / 450 | amor alfoil 0.8 mm: 89, 9.4, 157 | 1186 | 6.1 | 132 / 5 | 6 | 6.7 / 1.6 vs 6.7, 1.2 | 4 | 1120 |
-| A1xA2 20 kHz, L1 155 uH | 155 | 76 | 450 / 450 | amor alfoil 0.8 mm: 95, 10.0, 149 | 1187 | 4.8 | 130 / 5 | 6 | 6.6 / 1.4 vs 6.7, 1.2 | 4 | 1137 |
-| A1xA2 20 kHz, L1 194 uH | 194 | 61 | 450 / 450 | amor alfoil 0.8 mm: 105, 11.2, 172 | 1188 | 4.0 | 129 / 5 | 6 | 6.6 / 1.3 vs 6.7, 1.2 | 3 | 1159 |
-| A1xA2 20 kHz, L1 233 uH | 233 | 51 | 450 / 450 | amor alfoil 0.8 mm: 115, 13.1, 171 | 1189 | 6.1 | 129 / 5 | 15 | 6.0 / 1.7 vs 6.7, 1.2 | 4 | 1209 |
-| A1xA2 24 kHz, L1 97 uH | 97 | 102 | 450 / 450 | amor alfoil 0.8 mm: 92, 9.8, 165 | 1251 | 7.9 | 132 / 5 | 6 | 7.7 / 2.0 vs 8.0, 1.5 | 4 | 1120 |
-| A1xA2 24 kHz, L1 162 uH | 162 | 61 | 450 / 450 | amor alfoil 0.8 mm: 96, 10.2, 149 | 1255 | 5.0 | 129 / 5 | 6 | 7.6 / 1.6 vs 8.0, 1.5 | 3 | 1126 |
-| A1xA2 24 kHz, L1 194 uH | 194 | 51 | 450 / 450 | amor alfoil 0.8 mm: 105, 11.2, 168 | 1257 | 5.9 | 129 / 5 | 15 | 7.8 / 2.3 vs 8.0, 1.5 | 4 | 1172 |
+| A1xA2 20 kHz, L1 117 uH | 117 | 102 | 450 / 450 | amor alfoil 0.8 mm: 149, 18.6, 184 | 1186 | 6.1 | 132 / 5 | 6 | 6.7 / 1.6 vs 6.7, 1.2 | 4 | 1299 |
+| A1xA2 20 kHz, L1 155 uH | 155 | 76 | 450 / 450 | amor alfoil 0.8 mm: 127, 15.3, 186 | 1187 | 4.8 | 130 / 5 | 6 | 6.6 / 1.4 vs 6.7, 1.2 | 4 | 1235 |
+| A1xA2 20 kHz, L1 194 uH | 194 | 61 | 450 / 450 | amor alfoil 0.8 mm: 129, 15.5, 168 | 1188 | 4.0 | 129 / 5 | 6 | 6.6 / 1.3 vs 6.7, 1.2 | 3 | 1230 |
+| A1xA2 20 kHz, L1 233 uH | 233 | 51 | 450 / 450 | amor alfoil 0.8 mm: 133, 16.0, 169 | 1189 | 6.1 | 129 / 5 | 15 | 6.0 / 1.7 vs 6.7, 1.2 | 4 | 1264 |
+| A1xA2 24 kHz, L1 97 uH | 97 | 102 | 450 / 450 | amor alfoil 0.8 mm: 133, 16.3, 200 | 1251 | 7.9 | 132 / 5 | 6 | 7.7 / 2.0 vs 8.0, 1.5 | 4 | 1244 |
+| A1xA2 24 kHz, L1 162 uH | 162 | 61 | 450 / 450 | amor alfoil 0.8 mm: 108, 12.3, 177 | 1255 | 5.0 | 129 / 5 | 6 | 7.6 / 1.6 vs 8.0, 1.5 | 3 | 1162 |
+| A1xA2 24 kHz, L1 194 uH | 194 | 51 | 450 / 450 | amor alfoil 0.8 mm: 116, 13.2, 191 | 1257 | 5.9 | 129 / 5 | 15 | 7.8 / 2.3 vs 8.0, 1.5 | 4 | 1205 |
 | A1xA2 28 kHz, L1 83 uH | 83 | 102 | 450 / 450 | amor alfoil 0.8 mm: 123, 14.8, 181 | 1316 | 7.9 | 132 / 5 | 6 | 7.8 / 2.1 vs 9.3, 1.8 | 3 | 1207 |
 | A1xA2 28 kHz, L1 111 uH | 111 | 76 | 450 / 450 | amor alfoil 0.8 mm: 104, 11.8, 176 | 1319 | 6.1 | 130 / 5 | 6 | 7.7 / 1.9 vs 9.3, 1.8 | 2 | 1142 |
 | A1xA2 28 kHz, L1 139 uH | 139 | 61 | 450 / 450 | amor alfoil 0.8 mm: 108, 12.3, 181 | 1322 | 7.0 | 129 / 5 | 15 | 7.9 / 2.7 vs 9.3, 1.8 | 4 | 1183 |
 | A1xA2 28 kHz, L1 167 uH | 167 | 51 | 450 / 450 | amor alfoil 0.8 mm: 112, 12.8, 152 | 1324 | 5.9 | 129 / 5 | 15 | 7.8 / 2.5 vs 9.3, 1.8 | 3 | 1186 |
-| A* two-level, levers combined | 130 | 76 | 450 / 450 | amor alfoil 0.8 mm: 85, 8.6, 158 | 1253 | 6.0 | 130 / 5 | 6 | 7.7 / 1.7 vs 8.0, 1.5 | 3 | 1092 |
-| A* two-level, same, sinusoidal PWM (no A3) | 130 | 76 | 450 / 450 | amor alfoil 0.8 mm: 85, 8.6, 165 | 1253 | 6.1 | 130 / 5 | 6 | 7.7 / 1.7 vs 8.0, 1.5 | 3 | 1092 |
+| A* two-level, levers combined | 120 | 62 | 450 / 450 | amor alfoil 0.8 mm: 103, 11.6, 161 | 1390 | 7.1 | 129 / 5 | 6 | 9.4 / 2.2 vs 10.7, 2.0 | 2 | 1131 |
+| A* two-level, same, sinusoidal PWM (no A3) | 120 | 62 | 450 / 450 | amor alfoil 0.8 mm: 103, 11.6, 170 | 1389 | 7.2 | 129 / 5 | 6 | 9.4 / 2.2 vs 10.7, 2.0 | 2 | 1131 |
 
 ## A3 reduced common-mode PWM (32 kHz, 97 uH)
 
@@ -82,23 +82,23 @@ Protection needs: the window must clear the largest operating peak - the 200 ms 
 
 - **B SiC T-type 1200 V (cross-check)**: 72 devices (T1 6 x SG2M035120LJ, T4 6 x SG2M035120LJ, T2 6 x SG2M035120LJ, T3 6 x SG2M035120LJ), 12 channels, 5 bias supplies; L1 49 uH (nano alfoil 0.8 mm, 5.7 kg, 96 USD); two-level corner (where min-max PWM alone would ripple the 5 + 5 bank's midpoint by more than 60 V pp): V_dc 590-950 V at |PF angle| 15-165 deg; there the L1 sees full-V_dc steps (ripple 153 A pp, trip 465 A); balancing the midpoint actively instead (ideal carrier-based control) would put up to 232 V rms of 150 Hz on the battery (1095 mA at 5 uF); devices block 0.88 of their rating at the 1050 V trip before overshoot (rule 0.85); FIT 66.3 at 950 V; 1236 USD at 5k, peak 99.49 %; fails: peak.
 - **B rule kept: 1700 V outer**: 72 devices (T1 6 x SG2M040170HJ, T4 6 x SG2M040170HJ, T2 6 x SG2M035120LJ, T3 6 x SG2M035120LJ), 12 channels, 5 bias supplies; L1 49 uH (nano alfoil 0.8 mm, 5.7 kg, 96 USD); two-level corner (where min-max PWM alone would ripple the 5 + 5 bank's midpoint by more than 60 V pp): V_dc 590-950 V at |PF angle| 15-165 deg; there the L1 sees full-V_dc steps (ripple 153 A pp, trip 465 A); balancing the midpoint actively instead (ideal carrier-based control) would put up to 232 V rms of 150 Hz on the battery (1095 mA at 5 uF); devices block 0.62 of their rating at the 1050 V trip before overshoot (rule 0.85); FIT 0.1 at 950 V; 1279 USD at 5k, peak 99.46 %; meets every acceptance limit.
-- **B-IGBT T-type 16 kHz (competitor class)**: 126 devices (T1 14 x CRG40T120BK3SD, T4 14 x CRG40T120BK3SD, T2 7 x CRG50T60AK3SD, T3 7 x CRG50T60AK3SD), 12 channels, 5 bias supplies; L1 97 uH (amor alfoil 0.8 mm, 10.7 kg, 96 USD); two-level corner (where min-max PWM alone would ripple the 5 + 5 bank's midpoint by more than 60 V pp): V_dc 590-950 V at |PF angle| 15-165 deg; there the L1 sees full-V_dc steps (ripple 153 A pp, trip 465 A); balancing the midpoint actively instead (ideal carrier-based control) would put up to 229 V rms of 150 Hz on the battery (1078 mA at 5 uF); devices block 0.89 of their rating at the 1050 V trip before overshoot (rule 0.85); FIT 357.7 at 950 V; 1607 USD at 5k, peak 98.99 %; fails: peak.
+- **B-IGBT T-type 16 kHz (competitor class)**: 126 devices (T1 14 x CRG40T120BK3SD, T4 14 x CRG40T120BK3SD, T2 7 x CRG50T60AK3SD, T3 7 x CRG50T60AK3SD), 12 channels, 5 bias supplies; L1 97 uH (nano alfoil 0.8 mm, 10.8 kg, 157 USD); two-level corner (where min-max PWM alone would ripple the 5 + 5 bank's midpoint by more than 60 V pp): V_dc 590-950 V at |PF angle| 15-165 deg; there the L1 sees full-V_dc steps (ripple 153 A pp, trip 465 A); balancing the midpoint actively instead (ideal carrier-based control) would put up to 229 V rms of 150 Hz on the battery (1078 mA at 5 uF); devices block 0.89 of their rating at the 1050 V trip before overshoot (rule 0.85); FIT 357.7 at 950 V; 1790 USD at 5k, peak 99.07 %; fails: peak.
 
 **Cost of the 0.67 rule:** two-level - none: 1200 V devices at the 1050 V DC trip would exceed the 0.85 x V_DSS peak rule before any overshoot, so the 1700 V part is needed anyway.  T-type - 1700 V outer devices cost +43 USD at 5k and take the FIT per unit from 66.3 to 0.14 (950 V, 25 C, sea level; Wolfspeed Gen 3 curve as proxy - no Chinese maker publishes cosmic-ray data).
 
-## What the efficiency rules cost (L1 re-picked, A2 24 kHz)
+## What the efficiency rules cost (L1 re-picked, A1 L1 120 uH)
 
-Cheapest L1 that passes magnetics' own thermal screen: 85 USD; the chosen part's hot spot is 140 C at 60 C inlet (limit 140 C, OpenMagnetics-verified losses).
+Cheapest L1 that passes magnetics' own thermal screen: 85 USD; the chosen part's hot spot is 138 C at 60 C inlet (limit 140 C, OpenMagnetics-verified losses).
 
 | rule | L1 part | L1 5k USD each | 3 x L1 vs chosen |
 |---|---|---|---|
-| chosen: peak >= 98.7 %, full load >= 98.0 % | amor alfoil N26, 8.6 kg | 85 | +0 |
-| peak >= 98.5 % (no model margin), full load >= 98.0 % | amor alfoil N26, 8.6 kg | 85 | +0 |
-| peak >= 98.5 %, no full-load floor | amor alfoil N26, 8.6 kg | 85 | +0 |
+| chosen: peak >= 98.7 %, full load >= 98.0 % | amor alfoil N20, 11.6 kg | 103 | +0 |
+| peak >= 98.5 % (no model margin), full load >= 98.0 % | amor alfoil N20, 11.6 kg | 103 | +0 |
+| peak >= 98.5 %, no full-load floor | amor alfoil N20, 11.6 kg | 103 | +0 |
 
 ## Conclusion
 
-**Recommended: A2 24 kHz**, 1092 USD at 5,000 units (1365 catalogue), 29 USD (2.6 %) below the runner-up A1xA2 20 kHz, L1 117 uH; peak efficiency 99.09 %, filter 404 USD / 30 kg.  The D-053 design corrected (A0) costs 1194 USD.
-Same design point, other settings: A* two-level, levers combined (minmax, trip 450 A) 1092 USD; A* two-level, same, sinusoidal PWM (no A3) (policy, trip 450 A) 1092 USD - at this point the L1 is already the cheapest part that passes the thermal screen, so a flatter reference buys nothing and D-053's sinusoidal policy stays.
-Cheapest acceptable T-type: B rule kept: 1700 V outer, 1279 USD (+187 USD against the best two-level).  The sweep's resolution is about +-20 USD: the magnetics grid is discrete and the cheapest part that meets the efficiency rules jumps between amorphous and nanocrystalline designs.
-pcs_design.py carries this design (A2 24 kHz): f_sw 24 kHz, L1 130 uH, C_f 75 uF, L2 6 uH, trip 450 A, modulation policy; inductor cost, mass and loss from sim/magnetics.py.
+**Recommended: A1 L1 120 uH**, 1131 USD at 5,000 units (1409 catalogue), 11 USD (1.0 %) below the runner-up A1xA2 28 kHz, L1 111 uH; peak efficiency 98.99 %, filter 443 USD / 39 kg.  The D-053 design corrected (A0) costs 1194 USD.
+Same design point, other settings: A* two-level, levers combined (minmax, trip 450 A) 1131 USD; A* two-level, same, sinusoidal PWM (no A3) (policy, trip 450 A) 1131 USD - at this point the L1 is already the cheapest part that passes the thermal screen, so a flatter reference buys nothing and D-053's sinusoidal policy stays.
+Cheapest acceptable T-type: B rule kept: 1700 V outer, 1279 USD (+148 USD against the best two-level).  The sweep's resolution is about +-20 USD: the magnetics grid is discrete and the cheapest part that meets the efficiency rules jumps between amorphous and nanocrystalline designs.
+pcs_design.py carries this design (A1 L1 120 uH): f_sw 32 kHz, L1 120 uH, C_f 50 uF, L2 6 uH, trip 450 A, modulation policy; inductor cost, mass and loss from sim/magnetics.py.

@@ -1441,7 +1441,7 @@ def assemble(specs, own, om, des):
 MG_IDS = {"dab_cu": "MG-01", "dab_thermal": "MG-02", "dab_core_set": "MG-03", "dab_leak": "MG-04", "lser_loss": "MG-05",
           "pv_window": "MG-06", "pv_temp": "MG-07", "pv_core": "MG-08", "om_kmm_bias": "MG-09", "cmc_lf": "MG-10",
           "aux_cu": "MG-11", "aux_blim": "MG-12", "aux_ins": "MG-13", "dab_ins": "MG-14",
-          "lser_isat": "MG-15", "dab_imax": "MG-16", "pv_p110_thermal": "MG-17"}   # fixed: rows keep their id
+          "lser_isat": "MG-15", "dab_imax": "MG-16", "pv_p110_thermal": "MG-17", "pcs_l1_sel": "MG-18"}   # fixed: rows keep their id
 
 
 def findings(specs, own, des, om, asia):
@@ -2192,6 +2192,28 @@ def main():
     checks += c_new
     pcs = pcs_designs(ins)                         # PCS-P125 filter magnetics (D-057): design_pcs_*.json + spec sheets
     c_pcs = pcs_checks(pcs)
+    bad = [c_ for c_ in c_pcs if not c_["ok"] and c_.get("tag") == "pcs_l1_sel"]
+    if bad:                                        # the study's L1 does not hold under the design rule - reported, not hidden
+        r1, sp1 = pcs["rec1"], pcs["P"]["L1"]["selected_part"]
+        d1 = r1["design"]["budget: 180 A, 750 V"]
+        alt = pcs["sens"][min(pcs["sens"], key=lambda k: abs(k - pcs["P"]["L1"]["inductance_uH"]))]["picks"].get("cheapest")
+        F.append(dict(id=MG_IDS["pcs_l1_sel"], tag="pcs_l1_sel", severity="major",
+                      where="sim/out/pcs_design/pcs_spec.json inductors.L1.selected_part (sim/pcs_tradeoff.py) vs "
+                            "sim/out/magnetics/design_pcs_l1.json",
+                      finding=f"The study's L1 ({_cc_desc(r1)}) was rated {sp1['P_180A_750V_W']:.0f} W at 180 A / 750 V and "
+                              f"{sp1['T_hot_60C']:.0f} C at 60 C inlet with an OpenMagnetics run in which MAS 'Metglas 2605SA1' had mu = 1 at "
+                              f"{pcs['P']['f']/1e3:.0f} kHz (three interleaved mu(f) curves, interpolation fails at 20-30 kHz) - OM modelled an "
+                              f"air core. With the core modelled, OM's foil copper loss is {d1['om_cu']:.0f} W against the own model's "
+                              f"{d1['own_cu']:.0f} W; design loss (higher of the two) {r1['P_budget_d']:.0f} W, {r1['P_worst_d']:.0f} W at 198 A / "
+                              f"950 V, hot spot {r1['T60_d']:.0f} C at 60 C inlet (limit 140 C)",
+                      evidence="; ".join(f"{c_['id']} {c_['value']} ({c_['limit']})" for c_ in bad),
+                      recommendation="Re-run sim/pcs_tradeoff.py with the corrected om_cc_ind of sim/magnetics.py; on the same rule (cheapest "
+                                     "that meets temperature) the corrected flow picks " + (f"{_cc_desc(alt)}: {alt['cost']['total_usd']} / "
+                                     f"{alt['cost']['build_5k_usd']} USD, {alt['P_budget_d']:.0f} W at 180 A / 750 V, {alt['T60_d']:.0f} C, "
+                                     f"{alt['mass']:.1f} kg" if alt else "nothing on the grid") + "; or confirm the foil copper loss on a "
+                                     "sample (the two models differ by about 1.8 x on foil windings)"))
+        for c_ in bad:
+            c_["exc"] = MG_IDS["pcs_l1_sel"]
     checks += c_pcs
     write_report(specs, own, om, om_info, des, T, asia, refc, F, checks, ins, own_flat)
     report_designs(designs, c_new, closed, dab_cost_first(D, xd))
@@ -4680,11 +4702,19 @@ def om_cc_ind(P, r, i_lf, i_hf, f=None):
         v = L_coil * pp * 2 * f
         exc = [{"current": _om_wave([0, T / 2, T], [i_lf - pp / 2, i_lf + pp / 2, i_lf - pp / 2]),
                 "voltage": _om_wave([0, T / 2, T / 2, T], [v, v, -v, -v])}]
-        core, coil, mag, inp = _om_build(core_fd, wnd, exc, f, 60.0, l_target=L_coil, wall=CC_RULES["t_f"] + CC_RULES["spacer"],
-                                         margin=CC_RULES["flange"] + CC_RULES["margin"])
+        mat_om, sub = CC_MAT[r["mat"]]["om"], None
+        if PyOM.get_material_permeability(mat_om, 25.0, 0.0, f) < 100.0:
+            # MAS 'Metglas 2605SA1' holds three interleaved, unsorted mu(f) curves; the interpolation returns mu = 1 at 20, 24 and
+            # 30 kHz, so OM would model the core as air (L ~ 0.02 uH). L and the winding field are then taken with a tape material
+            # whose mu(f) is defined (gap-dominated part: le/mu << g), the core loss stays with the amorphous Steinmetz data
+            sub = "Yunlu YNB"
+        core, coil, mag, inp = _om_build(dict(core_fd, material=sub or mat_om), wnd, exc, f, 60.0, l_target=L_coil,
+                                         wall=CC_RULES["t_f"] + CC_RULES["spacer"], margin=CC_RULES["flange"] + CC_RULES["margin"])
         o = _om_eval(core, coil, mag, inp, 110.0)
-        return {"L_H": 2 * (_num(o.get("L"), "magnetizingInductance") or 0), "P_core_W": _num(o.get("core"), "coreLosses"),
-                "P_cu_W": 2 * (_num(o.get("winding"), "windingLosses") or 0), "material": CC_MAT[r["mat"]]["om"],
+        return {"L_H": 2 * (_num(o.get("L"), "magnetizingInductance") or 0),
+                "P_core_W": None if sub else _num(o.get("core"), "coreLosses"),     # OM's amorphous core loss needs the same mu(f)
+                "P_cu_W": 2 * (_num(o.get("winding"), "windingLosses") or 0), "material": mat_om,
+                "material_for_L_and_winding": sub or mat_om,
                 "I_lf_A": i_lf, "I_hf_A": i_hf,
                 "note": "one coil (N/2) on one leg with that leg's gaps (same B); OM winding loss x 2; triangle ripple of the HF rms on a DC "
                         "offset equal to the fundamental rms (same copper heating); core loss for that ripple (no envelope)"}
@@ -4750,12 +4780,12 @@ def pcs_l1_options(P, rq, rows):
 L1_GRID_MAIN = dict(a=(20e-3, 30e-3, 40e-3, 50e-3), H=(40e-3, 60e-3, 80e-3, 100e-3), wl=(80e-3, 120e-3, 160e-3),
                     ws=(30e-3, 40e-3, 50e-3, 60e-3), N=tuple(range(10, 37, 2)))
 L1_WIRES = (("litz", 0.2e-3), ("foil", 0.5e-3), ("alfoil", 0.8e-3))
-L1_SENS_uH = (60.0, 80.0, 97.2, 120.0, 150.0)
+L1_SENS_FACTORS = (0.6, 0.8, 1.0, 1.2, 1.5)     # x the spec's L1 (the sensitivity follows the spec value)
 
 
-def pcs_l1_sensitivity(P, sens=L1_SENS_uH):
+def pcs_l1_sensitivity(P, factors=L1_SENS_FACTORS):
     out = {}
-    for luh in sens:
+    for luh in (round(x * P["L1"]["inductance_uH"], 1) for x in factors):
         rq = pcs_L1_req(P, luh * 1e-6)
         rows = pcs_search(P, rq, mats=("nano", "amor"), wires=L1_WIRES, grid=L1_GRID_MAIN)
         pk = pcs_l1_options(P, rq, rows)
@@ -4963,9 +4993,12 @@ def pcs_designs(ins):
     study = {r["function"][:2]: r for r in P["spec"]["cost_usd"]["rows"] if r["block"] == "LCL FILTER"}
     cm_row = next((r for r in P["spec"]["cost_usd"]["rows"] if "common-mode choke" in r["function"]), {})
     sens = pcs_l1_sensitivity(P)
-    rq1 = sens[97.2]["rq"]
-    pk1 = sens[97.2]["picks"]
-    rec = pk1["recommended"]
+    L1u = P["L1"]["inductance_uH"]
+    key = min(sens, key=lambda k: abs(k - L1u))
+    rq1 = sens[key]["rq"]
+    sel1 = P["L1"]["selected_part"]
+    rec = pcs_selected(P, rq1, sel1["part"])               # the inverter study's selection (pcs_spec inductors.L1.selected_part)
+    pk1 = dict(selected_by_study=rec, **sens[key]["picks"])
     for r in pk1.values():
         r["_rq"] = rq1
     refs = pcs_refs(P, pk1)
@@ -4976,8 +5009,8 @@ def pcs_designs(ins):
                  note="pcs_spec inductors.L1.insulation (ARCHITECTURE-PCS section 3)")]
     tests1 = ("winding-core AC 2.2 kV rms 1 s (60 s type), PD <= 10 pC at 1.5 kV pk; L at 0 A and at 300 A DC bias; R_dc",
               "impulse 6 kV 1.2/50; L(I) to 450 A (pulsed); thermal run at 198 A + 32 kHz ripple in the duct air")
-    prev1 = dict(study_usd_cat=study["L1"]["unit_cat_usd"], study_usd_5k=study["L1"]["unit_5k_usd"], basis=study["L1"]["basis_cat"],
-                 loss_budget_W=rq1["budget"])
+    prev1 = dict(study_selected_part=sel1, study_usd_cat=study["L1"]["unit_cat_usd"], study_usd_5k=study["L1"]["unit_5k_usd"],
+                 basis=study["L1"]["basis_cat"], loss_budget_note=P["L1"]["loss_budget_W"].get("note"))
     sens_rows = []
     for luh, v in sens.items():
         for k in ("cheapest", "recommended", "within_budget"):
@@ -4993,8 +5026,10 @@ def pcs_designs(ins):
         neutral_inductor="Four-wire L_N: same electrical requirement as L1 (pcs_spec LN_four_wire) - same part. Its 50 Hz current is the "
                          "zero-sequence sum (about 0 A balanced, 216 A at 100 % unbalance), so its copper loss is lower than L1's in "
                          "normal operation; its HF current depends on the four-wire modulation (if the three phases' common-mode ripple "
-                         "returns through L_N it carries about 3 x 16 A rms at 32 kHz and needs its own design) - converter engineer to state",
-        common_mode_ripple=f"16.1 of the 17.2 A rms HF current in L1 is common mode (C_f star tied to the DC midpoint). With the DM part "
+                         f"returns through L_N it carries about 3 x {P['L1']['current']['of_which_common_mode_rms_A_950V']:.0f} A rms at {P['f']/1e3:.0f} kHz "
+                         "and needs its own design) - converter engineer to state",
+        common_mode_ripple=f"{P['L1']['current']['of_which_common_mode_rms_A_950V']} of the {rq1['hf'][950.0]:.1f} A rms HF current in L1 "
+                           "is common mode (C_f star tied to the DC midpoint). With the DM part "
                            f"only ({dhf:.1f} A rms) the recommended L1's copper loss at 198 A / 950 V would be "
                            f"{max(w_dm['P_cu'], (o_dm.get('P_cu_W') or 0)):.0f} W instead of "
                            f"{rec['design']['continuous: 198 A, 950 V']['P_cu']:.0f} W; the core loss is set by the leg voltage and does not change",
@@ -5004,11 +5039,16 @@ def pcs_designs(ins):
                     "not by the ripple: with a tape core that saturates sharply the 450 A point must stay below the knee")
     opts = _opt_rows(pk1)
     extra = dict(sensitivity=sens_rows, references=refs, notes=notes,
-                 sensitivity_basis="each L re-optimised on the same grid and rules (ripple and HF current x 97.2/L, the L(I) minima x L/97.2, "
-                                   "same 450 A trip and 57 W budget); recommended = cheapest within 2 x the budget at 180 A / 750 V")
+                 sensitivity_basis=f"each L re-optimised on the same grid and rules (ripple and HF current x {L1u}/L, the L(I) minima x "
+                                   f"L/{L1u}, same {rq1['I_trip']:.0f} A trip; 'recommended' = cheapest within 2 x the superseded "
+                                   f"{rq1['budget']:.0f} W budget at 180 A / 750 V); the file's part is the study's selection",
+                 selection=dict(source="pcs_spec.json inductors.L1.selected_part (sim/pcs_tradeoff.py)", part=sel1["part"],
+                                study_figures={k: v for k, v in sel1.items() if k != "part"}))
     d1 = _cc_json(P, rq1, rec, "pcs_l1", l1_ins, lev1, tests1, prev1, opts, extra)
     rq2, rows2, pk2 = pcs_l2_options(P)
-    rec2 = pk2["within_budget"] or pk2["cheapest"]
+    sel2 = P["L2"]["selected_part"]
+    rec2 = pcs_selected(P, rq2, sel2["part"])               # the inverter study's selection (pcs_spec inductors.L2.selected_part)
+    pk2 = dict(selected_by_study=rec2, **{k: v for k, v in pk2.items() if v})
     l2_ins = ("basic winding - core/PE (mains side, OVC III): 2.5 mm GF-PPS formers, 5 mm margins, VPI; 4 kV impulse (6 kV if the AC "
               "SPD is not credited), 1.5 kV rms test")
     lev2 = [dict(label="winding - core/PE, basic (mains, OVC III)", u_w=460.0 * math.sqrt(2 / 3), imp=6000.0, ac=1500.0,
@@ -5017,7 +5057,9 @@ def pcs_designs(ins):
                  loss_budget_W=rq2["budget"])
     d2 = _cc_json(P, rq2, rec2, "pcs_l2", l2_ins, lev2, ("winding-core AC 1.5 kV rms 1 s; L at 0 A and 300 A DC; R_dc",
                                                          "impulse 6 kV; L(I) to 367 A; thermal at 198 A"), prev2,
-                  _opt_rows({k: v for k, v in pk2.items() if v}), dict(notes=dict(hf="HF current taken as 0.5 % of rated (spec: < 0.5 %)")))
+                  _opt_rows(pk2), dict(notes=dict(hf="HF current taken as 0.5 % of rated (spec: < 0.5 %)"),
+                                       selection=dict(source="pcs_spec.json inductors.L2.selected_part", part=sel2["part"],
+                                                      study_figures={k: v for k, v in sel2.items() if k != "part"})))
     cm = pcs_cm_design(P)
     c = CMC_PCS
     d3 = dict(part="pcs_cm_choke", revision="M1", status="proposed construction - calculated, not built or measured",
@@ -5041,8 +5083,9 @@ def pcs_designs(ins):
                                                                                                height_m=16e-3 + 2 * c["sleeve"]),
                        window_m=list(c["window"])),
               insulation=dict(system="sleeved bars (>= 1 mm, rated 1.5 kV rms) inside cased cores; mains side basic (OVC III) as L2", levels=lev2,
-                              routine_tests="L_cm at 32 kHz, 1 V; bar-core 1.5 kV rms 1 s", type_tests="impulse 6 kV; L_cm with 1.25 A rms 150 Hz CM bias"),
-              loss_model=dict(core={"formula": "negligible (B_HF ~ 0.04 T at 32 kHz on a flat nanocrystalline grade)"},
+                              routine_tests=f"L_cm at {P['f']/1e3:.0f} kHz, 1 V; bar-core 1.5 kV rms 1 s",
+                              type_tests=f"impulse 6 kV; L_cm with {cm['i_lf']:.2f} A rms 150 Hz CM bias"),
+              loss_model=dict(core={"formula": f"negligible (B_HF ~ {cm['b_hf']:.2f} T at {P['f']/1e3:.0f} kHz on a flat nanocrystalline grade)"},
                               winding={"R_ac_per_harmonic": None, "referred_to": "the bars (busbar loss counted with the AC port)", "temperature_C": 90.0,
                                        "formula": "-"}),
               loss_table=[dict(point="any", P_core_W=0.5, P_cu_W=0.0, P_total_W=0.5)],
@@ -5066,17 +5109,24 @@ def pcs_designs(ins):
 def pcs_checks(pc):
     C = []
 
-    def chk(cid, what, value, limit, good):
-        C.append(dict(id=cid, what=what, value=value, limit=limit, ok=bool(good), exc=""))
+    def chk(cid, what, value, limit, good, tag=""):
+        C.append(dict(id=cid, what=what, value=value, limit=limit, ok=bool(good), exc="", tag=tag))
 
     for tag, r, rq in (("pcs_l1", pc["rec1"], pc["rq1"]), ("pcs_l2", pc["rec2"], pc["rq2"])):
+        sp = pc["P"]["L1" if tag == "pcs_l1" else "L2"]["selected_part"]
+        p_sp = sp.get("P_180A_750V_W", sp.get("P_180A_W"))
+        chk(f"{tag}_spec", f"{tag} design file = the study's selection (pcs_spec inductors): cost cat / 5k, loss at 180 A",
+            f"{r['cost']['total_usd']} / {r['cost']['build_5k_usd']} USD, {r['P_budget_d']:.1f} W",
+            f"{sp['usd'][0]} / {sp['usd'][1]} USD, {p_sp:.1f} W (+/-2 %)",
+            abs(rel(r["cost"]["total_usd"], sp["usd"][0])) <= 0.02 and abs(rel(r["cost"]["build_5k_usd"], sp["usd"][1])) <= 0.02
+            and abs(rel(r["P_budget_d"], p_sp)) <= 0.02, "pcs_l1_sel" if tag == "pcs_l1" else "")
         chk(f"{tag}_L", f"{tag} L(I) of the -10 % part against the required minima", _v({f"{k:.0f}A": round(v * 0.9e6, 1) for k, v in r["L_I"].items()}),
             _v({f"{k:.0f}A": round(v * 1e6, 1) for k, v in rq["L_min_tab"].items()}), r["L_ok"])
         chk(f"{tag}_B", f"{tag} B at {rq['I_trip']:.0f} A (L + 5 %) / B_sat(100 C)", f"{abs(r['B_trip'])/CC_MAT[r['mat']]['bsat_hot']:.2f}", "<= 0.98",
             abs(r["B_trip"]) <= 0.98 * CC_MAT[r["mat"]]["bsat_hot"])
         chk(f"{tag}_fit", f"{tag} coils fit the window", f"{r['w']['b_c']*1e3:.1f} mm build", "> 0, foil layers inside", r["w"]["fits"])
         chk(f"{tag}_hot", f"{tag} hot spot at 60 C inlet (design loss, 198 A 950 V)", f"{r['T60_d']:.0f} C", f"<= {rq['T_hot_max']:.0f} C",
-            r["T60_d"] <= rq["T_hot_max"])
+            r["T60_d"] <= rq["T_hot_max"], "pcs_l1_sel" if tag == "pcs_l1" else "")
         d = r["design"]["continuous: 198 A, 950 V"]
         chk(f"{tag}_higher", f"{tag} design loss covers own and OpenMagnetics (198 A 950 V)", f"{d['P_total']:.1f} W",
             f">= own {d['own_cu'] + d['own_core']:.1f} / OM {(d['om_cu'] or 0) + (d['om_core'] or 0):.1f} W",
@@ -5084,16 +5134,12 @@ def pcs_checks(pc):
         lom = r["design"]["budget: 180 A, 750 V"]["om_L"]
         if lom:
             chk(f"{tag}_om_L", f"{tag} L own (gap set) vs OpenMagnetics", pct(rel(rq["L"], lom)), "<= 15 %", abs(rel(rq["L"], lom)) <= 0.15)
-    chk("pcs_l1_rule", "L1 recommended within 2 x the study's loss budget at 180 A / 750 V (selection rule)", f"{pc['rec1']['P_budget_d']:.0f} W",
-        f"<= {2 * pc['rq1']['budget']:.0f} W", pc["rec1"]["P_budget_d"] <= 2 * pc["rq1"]["budget"])
-    chk("pcs_l2_budget", "L2 within the study's loss budget at 180 A", f"{pc['rec2']['P_budget_d']:.1f} W", f"<= {pc['rq2']['budget']:.0f} W",
-        pc["rec2"]["P_budget_d"] <= pc["rq2"]["budget"])
     chk("pcs_l1_sens", "L1 sensitivity has a feasible design at every inductance", _v([k for k, v in pc["sens"].items() if v["picks"]]),
-        _v(list(L1_SENS_uH)), all(v["picks"] for v in pc["sens"].values()))
+        _v(list(pc["sens"])), all(v["picks"] for v in pc["sens"].values()))
     cm = pc["cm"]
-    chk("pcs_cm_L", "AC CM choke L at 32 kHz at -25 % mu", f"{cm['L_min']*1e6:.0f} uH", f">= {cm['L_req']*1e6:.0f} uH", cm["L_min"] >= cm["L_req"])
+    chk("pcs_cm_L", f"AC CM choke L at {pc['P']['f']/1e3:.0f} kHz at -25 % mu", f"{cm['L_min']*1e6:.0f} uH", f">= {cm['L_req']*1e6:.0f} uH", cm["L_min"] >= cm["L_req"])
     bt = cm["b_lf"] + cm["b_dm"] * 198 * math.sqrt(2) / pc["P"]["L1"]["current"]["peak_A"]["200 ms"] + cm["b_hf"]
-    chk("pcs_cm_B", "AC CM choke B: 150 Hz CM (24 uF, +25 % mu) + DM leakage (198 A) + HF", f"{bt:.2f} T", f"<= {cm['b_allow']:.2f} T", bt <= cm["b_allow"])
+    chk("pcs_cm_B", f"AC CM choke B: 150 Hz CM ({cm['cbe']*1e6:.0f} uF, +25 % mu) + DM leakage (198 A) + HF at {pc['P']['f']/1e3:.0f} kHz", f"{bt:.2f} T", f"<= {cm['b_allow']:.2f} T", bt <= cm["b_allow"])
     chk("pcs_cm_fit", "AC CM choke bars fit (three-wire flat, four-wire on edge)", _v(cm["fits"]) + ", on edge 30.5 x 18 mm", "window 31 x 19.6 mm usable",
         cm["fits"]["three-wire"] and 4 * (4.5e-3 + 2e-3) + 4.5e-3 <= 31e-3 and 18e-3 <= 19.6e-3)
     return C
@@ -5102,28 +5148,32 @@ def pcs_checks(pc):
 def pcs_report(pc, C):
     r1, r2, cm, st = pc["rec1"], pc["rec2"], pc["cm"], pc["study"]
     n = 3
-    lcl_cat = n * (r1["cost"]["total_usd"] + r2["cost"]["total_usd"]) + 6 * 3.0 + 3 * 3.0      # + C_f and damping (study's rows)
-    lcl_5k = n * (r1["cost"]["build_5k_usd"] + r2["cost"]["build_5k_usd"]) + 6 * 2.55 + 3 * 2.55
     P = pc["P"]
+    rows = [x for x in P["spec"]["cost_usd"]["rows"] if x["block"] == "LCL FILTER" and not x["function"].startswith(("L1", "L2"))]
+    lcl_cat = n * (r1["cost"]["total_usd"] + r2["cost"]["total_usd"]) + sum(x["ext_cat_usd"] for x in rows)   # + C_f and damping rows
+    lcl_5k = n * (r1["cost"]["build_5k_usd"] + r2["cost"]["build_5k_usd"]) + sum(x["ext_5k_usd"] for x in rows)
+    blk = P["spec"]["cost_usd"]["blocks"]["LCL FILTER"]
     L = ["", "## PCS-P125 filter magnetics (D-057; MAG-1 / MAG-2 for the inverter)", "",
          f"Inputs: `{PCS_SPEC}` ({P['mtime']}), blocks inductors / ports_and_common_mode. Airflow: {P['air']['basis']}. Everything "
          "CALCULATED; losses are the higher of the own model and OpenMagnetics (copper and core separately).", "",
          table([dict(part="L1 (x3, + L_N)", c=_cc_desc(r1), loss=f"{r1['P_budget_d']:.0f} / {r1['P_worst_d']:.0f}", t=f"{r1['T45_d']:.0f} / {r1['T60_d']:.0f}",
                      m=f"{r1['mass']:.1f}", usd=f"{r1['cost']['total_usd']:.0f} / {r1['cost']['build_5k_usd']:.0f}",
-                     s=f"{st['L1']['unit_cat_usd']:.0f} / {st['L1']['unit_5k_usd']:.0f}, budget {pc['rq1']['budget']:.0f} W"),
+                     s=f"{st['L1']['unit_cat_usd']:.0f} / {st['L1']['unit_5k_usd']:.0f}, {P['L1']['selected_part']['P_180A_750V_W']:.0f} W"),
                 dict(part="L2 (x3)", c=_cc_desc(r2), loss=f"{r2['P_budget_d']:.1f} / {r2['P_worst_d']:.1f}", t=f"{r2['T45_d']:.0f} / {r2['T60_d']:.0f}",
                      m=f"{r2['mass']:.1f}", usd=f"{r2['cost']['total_usd']:.0f} / {r2['cost']['build_5k_usd']:.0f}",
-                     s=f"{st['L2']['unit_cat_usd']:.0f} / {st['L2']['unit_5k_usd']:.0f}, budget {pc['rq2']['budget']:.0f} W"),
+                     s=f"{st['L2']['unit_cat_usd']:.0f} / {st['L2']['unit_5k_usd']:.0f}, {P['L2']['selected_part']['P_180A_W']:.1f} W"),
                 dict(part="AC CM choke", c=pc["files"]["pcs_cm_choke"]["construction"], loss="< 1", t="-", m=f"{cm['mass']:.1f}",
                      usd=f"{cm['cost']['total_usd']:.0f} / {cm['cost']['build_5k_usd']:.0f}",
-                     s=f"{st['cm'].get('unit_cat_usd', 0):.0f} / {st['cm'].get('unit_5k_usd', 0):.0f} (incl. 3 Y1)")],
+                     s=f"{st['cm'].get('unit_cat_usd', 0):.1f} / {st['cm'].get('unit_5k_usd', 0):.1f}")],
                [("part", lambda r: r["part"]), ("construction", lambda r: r["c"]), ("loss W (180 A 750 V / 198 A 950 V)", lambda r: r["loss"]),
                 ("hot spot C (45 / 60 C inlet)", lambda r: r["t"]), ("kg", lambda r: r["m"]), ("USD cat / 5k", lambda r: r["usd"]),
                 ("study USD cat / 5k", lambda r: r["s"])]), "",
          f"**LCL filter (3 x L1 + 3 x L2 + C_f and damping as the study): {lcl_cat:.0f} USD catalogue / {lcl_5k:.0f} USD at 5,000 units** against "
-         f"the study's 207 / 167; L1 + L2 loss at 198 A / 950 V: {n * (r1['P_worst_d'] + r2['P_worst_d']):.0f} W, at 180 A / 750 V: "
-         f"{n * (r1['P_budget_d'] + r2['P_budget_d']):.0f} W against the study's {n * (pc['rq1']['budget'] + pc['rq2']['budget']):.0f} W.", "",
-         "### L1 options (97.2 uH)", "", _rows(pc["files"]["pcs_l1"]["options"]), "",
+         f"the study's LCL block {blk['catalogue']:.0f} / {blk['5k']:.0f}; L1 + L2 loss at 198 A / 950 V: {n * (r1['P_worst_d'] + r2['P_worst_d']):.0f} W, "
+         f"at 180 A / 750 V: {n * (r1['P_budget_d'] + r2['P_budget_d']):.0f} W against the study's "
+         f"{n * (P['L1']['selected_part']['P_180A_750V_W'] + P['L2']['selected_part']['P_180A_W']):.0f} W. The parts on file are the study's "
+         f"selections (pcs_spec inductors.*.selected_part, {P['f']/1e3:.0f} kHz, L1 {P['L1']['inductance_uH']} uH, L2 {P['L2']['inductance_uH']} uH).", "",
+         f"### L1 options ({P['L1']['inductance_uH']} uH, {P['f']/1e3:.0f} kHz)", "", _rows(pc["files"]["pcs_l1"]["options"]), "",
          "### L1 sensitivity to its inductance (filter re-optimisation input; values not changed here)", "",
          _rows([dict(L_uH=x["L_uH"], pick=x["pick"], ripple_pp_A=round(x["ripple_pp_A"], 1), P_budget_W=x["P_budget_W"], P_worst_W=x["P_worst_W"],
                      T60=x["T_hot_60_C"], kg=x["mass_kg"], usd=x["cost_usd"], usd_5k=x["cost_5k_usd"]) for x in pc["files"]["pcs_l1"]["sensitivity"]]), "",
@@ -5162,6 +5212,15 @@ def pv_thermal_limits(d, rth, t_air, p_tot):
                                             f"inlet (local air {t_air:.0f} C ASSUMED); Rth scaled from {rth:.3f} K/W at 150 m3/h with "
                                             "(mass flow)^-0.6 as sim/pv_module.py")
 
+
+
+def pcs_selected(P, rq, part):
+    """evaluate the construction the inverter study selected (pcs_spec inductors.*.selected_part) with the same model"""
+    a, H, wl, ws = part["geom_m"]
+    r = pcs_ind_eval(P, rq, part["mat"], a, H, wl, ws, part["N"], tuple(part["wire"]))
+    if r is None:
+        raise ValueError(f"pcs_spec selected part fails the flux / fit pre-checks: {part}")
+    return pcs_verify(P, rq, r)
 
 if __name__ == "__main__":
     try:

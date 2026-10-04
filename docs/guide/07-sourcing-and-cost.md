@@ -25,8 +25,8 @@
 |---|---|---:|---:|---:|---:|---:|---|---:|
 | **PV-P75** | BOM of drawn boards (PV-PWR + PV-CTL) | 75 | **952** | 12.7 | **796** | 10.6 | 78 % of catalogue on estimates · 16 % of 5k on published breaks | 1.9× (≈ 410 USD) |
 | **PV-P100/110** | BOM of drawn boards (PV-PWR-4 + PV-CTL) | 100 / 110 | 1,135 | 11.4 / 10.3 | 949 | 9.5 / 8.6 | 77 % of catalogue on estimates · 15 % of 5k on published breaks | 1.7× / 1.7× |
-| **PCS-P125** | design study, 3-wire (two-level), no boards · design point D-059 | 125 | 1,365 | 10.9 | 1,092 | 8.7 | 5 % of 5k on published prices | see note |
-| **PCS-P125** | design study, 4-wire (two-level), no boards · design point D-059 | 125 | 1,629 | 13.0 | 1,304 | 10.4 | not stated for 4-wire | see note |
+| **PCS-P125** | design study, 3-wire (two-level), no boards · design point D-060 | 125 | 1,409 | 11.3 | 1,131 | 9.0 | 5 % of 5k on published prices | see note |
+| **PCS-P125** | design study, 4-wire (two-level), no boards · design point D-060 | 125 | 1,694 | 13.6 | 1,361 | 10.9 | not stated for 4-wire | see note |
 | PV-P75 earlier platform | BOM of drawn boards (8 boards) | 75 | 2,812 | 37.5 | 2,254 | 30.1 | 55 % of catalogue on estimates · 17 % of 5k on published breaks | 5.5× |
 | DAB-D60 earlier platform | BOM of drawn boards (5 boards) | 60 | 3,615 | 60.2 | 2,927 | 48.8 | 48 % of catalogue on estimates · 12 % of 5k on published breaks | 7.5× |
 | PCS-P125 | three-level T-type estimate, **withdrawn by D-053** | 125 | 1,037 | 8.3 | 801 | 6.4 | — | — |
@@ -44,7 +44,7 @@ by line, is [`bom/COST.md`](../../bom/COST.md).
 **Note on the PCS ratio.** `gen/cost.py` adjusts the benchmark for current only for the DC/DC modules. For PCS-P125 the
 current adjustment is in [ARCHITECTURE-PCS.md §12](../requirements/ARCHITECTURE-PCS.md#12-cost--both-products-catalogue-and-5000-units-against-the-benchmark):
 the benchmark corresponds to a BOM of about 690 USD for a 125 kW / 400 V unit. The 5,000-unit figure of the design point
-in the table (three-wire, [D-059](../requirements/DECISIONS.md)) is about 1.6 × that (our arithmetic on the two records).
+in the table (three-wire, [D-060](../requirements/DECISIONS.md)) is about 1.6 × that (our arithmetic on the two records).
 
 ---
 
@@ -179,7 +179,7 @@ prices of mostly isolated storage modules, none a non-isolated PV tracker ([bom/
 | Lever | Expected effect | Cost in function | Record |
 |---|---|---|---|
 | Supplier quotations for SiC devices, inductors, contactors, film capacitors | turns the largest estimates into numbers | none | [D-052](../requirements/DECISIONS.md) |
-| Powder-core inductors for the inverter's filter | the filter is 404 USD of the 1,092 USD (37 %); powder cores saturate softly and could be sized for the overload peak instead of the trip point | a magnetics search that does not exist yet; L1 already runs at its 140 °C hot-spot limit | [D-059](../requirements/DECISIONS.md) |
+| Powder-core inductors for the inverter's filter | the filter is 443 USD of the 1,131 USD (39 %); powder cores saturate softly and could be sized for the overload peak instead of the trip point | a magnetics search that does not exist yet; L1 already runs at its 140 °C hot-spot limit | [D-060](../requirements/DECISIONS.md) |
 | The PV-P100/110 inductor | the four-phase build is derated (full power to 35 °C inlet): its inductor hot spot is 5.3 K over the 155 °C limit at 114 m³/h per phase and 45 °C inlet (calculated) | a litz-wound inductor (about +17 USD per phase) or more airflow | [D-056](../requirements/DECISIONS.md), MG-17 |
 | AlN → Al₂O₃ 0.635 mm device pads | about −18 USD (architect's list) | junction +2–3 K; partial-discharge test again | [ARCHITECTURE-COSTFIRST §14](../requirements/ARCHITECTURE-COSTFIRST.md#14-cost-summary-from-gendatacostfirst_bomcsv) |
 | Standard panel terminals instead of custom stud feed-throughs | about −16 USD | none if creepage is kept | §14 |
@@ -191,7 +191,7 @@ prices of mostly isolated storage modules, none a non-isolated PV tracker ([bom/
 
 - [`bom/COST.md`](../../bom/COST.md) still prints the PCS-P125 three-level T-type estimate of the architect's list
   (`gen/data/costfirst_pcs_bom.csv`), which [D-053](../requirements/DECISIONS.md) withdrew. The current PCS figure is the
-  design point of [D-059](../requirements/DECISIONS.md) ([`pcs_spec.json`](../../sim/out/pcs_design/pcs_spec.json)); the
+  design point of [D-060](../requirements/DECISIONS.md) ([`pcs_spec.json`](../../sim/out/pcs_design/pcs_spec.json)); the
   table above shows both and labels them.
 - The PV-P75 5,000-unit figure differs between the architect's list (731 USD, [ARCHITECTURE-PCS.md §12](../requirements/ARCHITECTURE-PCS.md#12-cost--both-products-catalogue-and-5000-units-against-the-benchmark))
   and the drawn boards ([bom/COST.md](../../bom/COST.md)): the list set a volume price per row, the BOM uses published

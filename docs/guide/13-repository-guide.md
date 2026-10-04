@@ -87,7 +87,7 @@ layout, parasitics, real component behaviour — is in [Verification](08-verific
 | `sim/insulation.py` | `insulation/` | insulation coordination and the barrier audit |
 | `sim/dab_design.py` · `sim/dab_control.py` | `dab_design/` · `dab_control/` | DAB-D60 power stage, derating map; control |
 | `sim/pcs_design.py` | `pcs_design/` | PCS-P125 power stage |
-| `sim/pcs_tradeoff.py` | `pcs_design/tradeoff.md` | PCS-P125 stage and filter re-optimisation with the designed inductors (D-059) |
+| `sim/pcs_tradeoff.py` | `pcs_design/tradeoff.md` | PCS-P125 stage and filter re-optimisation with the designed inductors (D-059, corrected by D-060) |
 | `sim/pcs_crosscheck.py` | `pcs_design/crosscheck_wolfspeed.md` | independent check of the inverter topology against Wolfspeed's reference designs (D-057) |
 | `sim/compare_megarevo.py` | `compare_megarevo/` | the row-by-row comparison with the PMD-75-G3 |
 | `sim/pv_devices.py` · `sim/dab_devices.py` · `sim/pcs_devices.py` | `audit/` | device data with datasheet page references; device audits |

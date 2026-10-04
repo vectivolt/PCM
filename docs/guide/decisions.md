@@ -2,9 +2,9 @@
 
 # 📐 Decisions
 
-> A readable digest of the decision register, D-001 to D-058, grouped by theme — what was decided, why, and whether it still holds.
+> A readable digest of the decision register, D-001 to D-059, grouped by theme — what was decided, why, and whether it still holds.
 
-![range](https://img.shields.io/badge/register-D--001%E2%80%A6D--058-0B1F33?style=flat-square)
+![range](https://img.shields.io/badge/register-D--001%E2%80%A6D--059-0B1F33?style=flat-square)
 ![as of](https://img.shields.io/badge/as%20of-2026--10--05-5B6B7A?style=flat-square)
 ![authority](https://img.shields.io/badge/authority-DECISIONS.md-00A99D?style=flat-square)
 
@@ -125,8 +125,9 @@
 | ID | Decision · why | Today |
 |---|---|---|
 | D-047 | **PCS-P125 architecture:** three-level T-type with discrete Chinese IGBTs at 16 kHz.<br/><sub>Withdrawn by D-053: its devices overheat and its DC link cannot hold the midpoint at power factor 0.</sub> | ![superseded](https://img.shields.io/badge/-withdrawn%20by%20D--053-8FA3B5?style=flat-square) |
-| D-053 | **PCS-P125 power stage: two-level on 1700 V SiC,** 6 × Sichain SG2M040170HJ per switch, 32 kHz, LCL filter.<br/><sub>Every device at ≤ 0.56 of its rating; confirmed by the cross-check of D-057, which corrected its cost and efficiency.</sub> | ![baseline](https://img.shields.io/badge/-baseline-00A99D?style=flat-square) |
-| D-057 | **Two-level stands after an independent cross-check** against Wolfspeed's T-type and two-level reference designs - on robustness and simplicity, not on cost.<br/><sub>Inductors were priced at half their material cost (about 979–1,028 USD at 5,000 units, not 869); peak efficiency about 98.9–99.1 %, not 99.20 %; threshold binning is required for six paralleled devices; AC-02 now states full current at any power factor.</sub> | ![frozen](https://img.shields.io/badge/-topology%20frozen-00A99D?style=flat-square) |
+| D-053 | **PCS-P125 power stage: two-level on 1700 V SiC,** 6 × Sichain SG2M040170HJ per switch, 32 kHz, LCL filter.<br/><sub>Every device at ≤ 0.56 of its rating; confirmed by the cross-check of D-057. Its frequency, filter, cost and efficiency are replaced by the design point of D-059.</sub> | ![baseline](https://img.shields.io/badge/-baseline-00A99D?style=flat-square) |
+| D-057 | **Two-level stands after an independent cross-check** against Wolfspeed's T-type and two-level reference designs - on robustness and simplicity, not on cost.<br/><sub>Inductors were priced at half their material cost (about 979–1,028 USD at 5,000 units, not 869); peak efficiency about 98.9–99.1 %, not 99.20 %; threshold binning is required for six paralleled devices; AC-02 now states full current at any power factor. The cost and efficiency figures are replaced by D-059.</sub> | ![frozen](https://img.shields.io/badge/-topology%20frozen-00A99D?style=flat-square) |
+| D-059 | **PCS-P125 design point after re-optimisation with real inductor designs: the two-level SiC stage stays, at 24 kHz** — 36 × SG2M040170HJ (6 per switch), L1 130 µH, C<sub>f</sub> 75 µF, L2 6 µH, hardware trip ±450 A.<br/><sub>Calculated: peak efficiency 99.09 %, 98.42 % at full load; three-wire 1,365 USD at catalogue prices and 1,092 USD at 5,000 units (8.7 USD/kW), four-wire 1,629 / 1,304 USD; the filter is 404 USD and 30 kg of that. More than twenty candidates were compared with their inductors designed, not priced by a rule: the earlier design corrected costs 1,194 USD, a SiC T-type 1,236 USD (1,279 USD with 1700 V outer devices), an IGBT T-type at 16 kHz 1,607 USD. Open: powder-core inductors were not searched (the filter is 37 % of the BOM), L1 sits at its 140 °C hot-spot limit, the stiff-grid resonance is 7.7 kHz against 8.0 kHz, the current-loop bandwidth falls to 0.75 kHz with THDi not simulated, and nothing is quoted.</sub> | ![frozen](https://img.shields.io/badge/-frozen%2C%20with%20conditions-00A99D?style=flat-square) |
 
 ## 🔬 Reviews
 

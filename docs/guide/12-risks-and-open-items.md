@@ -7,7 +7,7 @@
 ![as of](https://img.shields.io/badge/as%20of-2026--10--05-5B6B7A?style=flat-square)
 ![bench](https://img.shields.io/badge/bench%20data-none-E4572E?style=flat-square)
 ![quotes](https://img.shields.io/badge/supplier%20quotes-none-E4572E?style=flat-square)
-![register](https://img.shields.io/badge/decisions-D--001%E2%80%A6D--058-0B1F33?style=flat-square)
+![register](https://img.shields.io/badge/decisions-D--001%E2%80%A6D--059-0B1F33?style=flat-square)
 
 ---
 
@@ -110,7 +110,7 @@ board's battery-side film bank now has seven capacitors, 315 µF against 278.5 �
 
 | ID | Priority | Risk | Consequence | What closes it | Source |
 |---|:---:|---|---|---|---|
-| E1 | 2 | **PCS-P125 control is not simulated**: current loop, PLL, grid forming, four-wire neutral control, THDi < 3 % at rated power | the power-stage design may need changes once the loops are designed | the control simulation (next step) | [D-053](../requirements/DECISIONS.md), [ARCHITECTURE-PCS §9](../requirements/ARCHITECTURE-PCS.md#9-simulations-needed-before-boards-are-drawn-in-this-order) |
+| E1 | 2 | **PCS-P125 control is not simulated**: current loop, PLL, grid forming, four-wire neutral control, THDi < 3 % at rated power; the filter holds the current-loop bandwidth to 0.75 kHz, and its stiff-grid resonance (7.7 kHz) is close to the 8.0 kHz limit | the power-stage design may need changes once the loops are designed; THDi < 3 % is unproven at that bandwidth | the control simulation (next step) | [D-053](../requirements/DECISIONS.md), [D-059](../requirements/DECISIONS.md), [ARCHITECTURE-PCS §9](../requirements/ARCHITECTURE-PCS.md#9-simulations-needed-before-boards-are-drawn-in-this-order) |
 | E2 | 3 | **Firmware duplicates every hardware protection** and owns sequencing; a firmware error ends in a DESAT trip, a blown fuse or a watchdog reset | a damaged or stopped unit, not a hazard (by design) | the firmware safety-requirement list, with a start-up self-test of each trip path (firmware is out of scope here) | [D-050](../requirements/DECISIONS.md) |
 | E3 | 3 | **Controller budget**: F280039C at 120 MHz for four phases; for the four-wire PCS 16 of 16 PWM and 23–24 of 25 ADC channels | control timing or a larger part (F28P550SJ, +0.39 USD) | a firmware timing estimate before the pin plan | R-14, [ARCHITECTURE-PCS §11](../requirements/ARCHITECTURE-PCS.md#11-open-risks) |
 | E4 | 3 | **PV outer-loop phase margin** about 40° at the 250 V / 135 A constant-power-load corner (rule of thumb 45°) | adequate, with less margin than usual | a larger port capacitance or the inverter's own DC link raises it | [pv_control report §13](../../sim/out/pv_control/report.md) |
@@ -121,7 +121,7 @@ board's battery-side film bank now has seven capacitors, 315 µF against 278.5 �
 |---|:---:|---|---|---|---|
 | F1 | 2 | **Three-wire version on an earthed-neutral grid**: the battery's capacitance to earth (assumed 1–20 µF) limits operation below about 680 V | an installation limit or a transformer | the battery data; the common-mode study | [D-053](../requirements/DECISIONS.md) |
 | F2 | 2 | **Grid-code and safety clauses** (EN 50549-1, IEC 62109-2, GB/T 34120, IEC 62116) are quoted from memory | relay redundancy, residual-current monitoring and anti-islanding details may change | buy the standards | D-053, ARCHITECTURE-PCS R-07 |
-| F3 | 2 | **Inverter cost and efficiency are provisional.** The cross-check against Wolfspeed's reference designs confirmed the two-level stage but found the filter inductors priced at about half their material cost and the turn-on loss understated | about 1,300 USD at 5,000 units instead of 869 USD with the inductors now designed (the filter alone 611 USD); peak efficiency below 99 % | the trade study of stage and filter now running, which re-tests the two-level choice against a SiC T-type on real inductor costs | [D-057](../requirements/DECISIONS.md), [cross-check report](../../sim/out/pcs_design/crosscheck_wolfspeed.md) |
+| F3 | 2 | **The inverter's filter is 37 % of its BOM and powder-core inductors were not searched.** The filter is 404 USD and 30 kg of the 1,092 USD at 5,000 units; the inductor search covered gapped nanocrystalline and amorphous C-cores only, L1 runs at its 140 °C hot-spot limit at 60 °C inlet, and no inductor price is quoted | powder block cores, which saturate softly and could be sized for the overload peak instead of the trip point, may be cheaper; a wrong inductor price moves the largest block; L1 has no thermal margin | add powder cores to the magnetics search before the filter is frozen; quotes; a wound L1 sample with a thermal run | [D-059](../requirements/DECISIONS.md), [tradeoff.md](../../sim/out/pcs_design/tradeoff.md) |
 | F4 | 2 | **Threshold-voltage spread** of the SiC device (2.5–4.0 V) across six paralleled parts | at a 1.30 current share the hottest junction reaches 163 °C at 60 °C inlet, over the limit | threshold binning or one lot per switch, a Kelvin-source resistor per device, derating re-run | [D-057](../requirements/DECISIONS.md) |
 
 ---

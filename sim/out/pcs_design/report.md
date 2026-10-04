@@ -4,11 +4,11 @@
 
 ## Summary
 
-- **Topology: two-level, 1700 V SiC (6 x SG2M040170HJ per switch, 36 devices, 6 gate channels), 32 kHz** - replaces the architecture's three-level T-type with 1200 V IGBTs.  Every device at <= 0.56 of its rating at 950 V (rule 0.67); the T-type's outer IGBTs sit at 0.79 and would fail by cosmic rays 104 FIT per unit at 950 V (25 C, sea level; Semikron AN 17-003 data) against 0.16 FIT here.  The two-level design is also the cheapest: three-level legs need a 3.5 mF per-half midpoint bank for PF 0 that two-level does not.
-- **Efficiency (calculated):** peak 99.20 % (>= 98.5 % met), 98.65 % at 125 kW / 750 V; worst Tj 116 C at 110 % / 45 C inlet, 138 C at 60 C, 151 C after 1.2 x 216 A for 200 ms (175 C rating).
-- **Filter:** L1 97 uH, C_f 50 uF (star on the DC midpoint), L2 15 uH; resonance 2.4-6.2 kHz; PWM THDi < 0.1 % (the 3 % is the controller's).
+- **Topology: two-level, 1700 V SiC (6 x SG2M040170HJ per switch, 36 devices, 6 gate channels), 24 kHz** - replaces the architecture's three-level T-type with 1200 V IGBTs.  Every device at <= 0.56 of its rating at 950 V (rule 0.67); the T-type's outer IGBTs sit at 0.79 and would fail by cosmic rays 104 FIT per unit at 950 V (25 C, sea level; Semikron AN 17-003 data) against 0.16 FIT here.  With the real inductor designs (section h) it is also the cheapest: 1092 USD at 5k against 1279 USD for the cheapest compliant T-type (B rule kept: 1700 V outer); B SiC T-type 1200 V (cross-check) (1236 USD) puts its 1200 V outer devices at 0.88 of rating at the 1050 V trip.
+- **Efficiency (calculated):** peak 99.09 % (>= 98.5 % met), 98.42 % at 125 kW / 750 V; worst Tj 115 C at 110 % / 45 C inlet, 136 C at 60 C, 149 C after 1.2 x 216 A for 200 ms (175 C rating).
+- **Filter:** L1 130 uH, C_f 75 uF (star on the DC midpoint), L2 6 uH; resonance 1.7-7.7 kHz; PWM THDi < 0.1 % (the 3 % is the controller's); inductors from sim/magnetics.py: 3 x L1 amorphous 8.6 kg, 3 x L2 1.2 kg, CM choke 3 cores - filter 505 / 404 USD, 30 kg, 528 W at 125 kW / 750 V.
 - **DC link:** 5 + 5 x Faratronic C3D1U147 film, > 100 kh at 60 C inlet; electrolytics would need 208 cans and last 8 kh.
-- **Cost:** 1086 / 869 USD (catalogue / 5,000 units) three-wire, 1289 / 1032 USD four-wire, against the architecture's 1,037 / 801 and 1,194 / 919 USD - which become about 1015 USD at 5k for its own T-type once its IGBT count and midpoint bank are corrected.
+- **Cost:** 1365 / 1092 USD (catalogue / 5,000 units) three-wire, 1629 / 1304 USD four-wire, against the architecture's 1,037 / 801 and 1,194 / 919 USD, whose filter is priced at 10 + 6 USD/J; with the real inductors and its corrected IGBT count the architecture's T-type comes to 1607 USD at 5k (section h).
 
 ## (a) Topology and devices
 
@@ -16,54 +16,54 @@
 
 | candidate | f_sw kHz | devices per position | dev | ch | device loss 125 kW @750 / 900 V (W) | module loss 125 kW (est.) | eta full / peak (est.) | USD cat / 5k (4W: +5k) | V/V_rated @950 V | FIT 900 / 950 V |
 |---|---|---|---|---|---|---|---|---|---|---|
-| TT-IGBT (architect) | 16 | T1 6xCRG40T120BK3SD, T4 6xCRG40T120BK3SD, T2 6xCRG50T60AK3SD, T3 6xCRG50T60AK3SD | 72 | 12 | 1734 / 1973 | 2198 | 98.24 / 98.57 % | 747 / 565 (+99) | 0.80 | 59.53 / 158.70 |
-| TT-IGBT (best documented) | 16 | T1 4xNCE40TD120VT, T4 4xNCE40TD120VT, T2 6xNCE80TD65BT, T3 6xNCE80TD65BT | 60 | 12 | 1584 / 1779 | 2048 | 98.36 / 98.57 % | 738 / 548 (+93) | 0.80 | 46.89 / 113.00 |
-| TT-SiC 1200/1200 (rule check) | 32 | T1 5xSG2M035120LJ, T4 5xSG2M035120LJ, T2 6xSG2M035120LJ, T3 6xSG2M035120LJ | 66 | 12 | 992 / 1077 | 1364 | 98.91 / 99.30 % | 709 / 535 (+95) | 0.79 | 25.01 / 55.22 |
-| TT-SiC 1700/1200 | 32 | T1 4xSG2M020170HJ, T4 4xSG2M020170HJ, T2 6xSG2M035120LJ, T3 6xSG2M035120LJ | 60 | 12 | 969 / 1096 | 1341 | 98.92 / 99.23 % | 891 / 699 (+149) | 0.56 | 0.10 / 0.18 |
-| TT-SiC 1700(40m)/1200 | 32 | T1 5xSG2M040170HJ, T4 5xSG2M040170HJ, T2 6xSG2M035120LJ, T3 6xSG2M035120LJ | 66 | 12 | 1267 / 1318 | 1640 | 98.69 / 99.21 % | 726 / 571 (+107) | 0.56 | 0.08 / 0.13 |
-| NPC-SiC 1200 + SBD | 32 | T1 5xSG2M035120LJ, T2 6xSG2M035120LJ, T3 6xSG2M035120LJ, T4 5xSG2M035120LJ, D5 3xYJD112040NQG2, D6 3xYJD112040NQG2 | 84 | 12 | 1576 / 1626 | 1949 | 98.44 / 99.14 % | 821 / 606 (+118) | 0.44 | 0.10 / 0.10 |
-| ANPC-SiC 1200 | 32 | T1 5xSG2M035120LJ, T2 6xSG2M035120LJ, T3 6xSG2M035120LJ, T4 5xSG2M035120LJ, T5 5xSG2M035120LJ, T6 5xSG2M035120LJ | 96 | 18 | 1534 / 1549 | 1906 | 98.47 / 99.18 % | 861 / 636 (+128) | 0.44 | 0.12 / 0.12 |
-| NPC-IGBT 1200 + SBD | 16 | T1 4xNCE40TD120VT, T2 5xNCE40TD120VT, T3 5xNCE40TD120VT, T4 4xNCE40TD120VT, D5 3xYJD112040NQG2, D6 3xYJD112040NQG2 | 72 | 12 | 2344 / 2504 | 2808 | 97.75 / 98.25 % | 856 / 621 (+118) | 0.44 | 9.28 / 9.28 |
-| NPC-module 1200 V (HIITIO HCG400FL120E3RA) - NOT FEASIBLE: T3 misses its Tj limit by 32 K (one module per phase) | 16 | T1 1xHCG400FL120E3RA, T2 1xHCG400FL120E3RA, T3 1xHCG400FL120E3RA, T4 1xHCG400FL120E3RA, D5 1xHCG400FL120E3RA, D6 1xHCG400FL120E3RA | 3 | 12 | 1867 / 2025 | 2330 | 98.13 / 98.43 % | 1060 / 752 (+162) | 0.44 | 20.59 / 20.59 |
-| NPC-module 1200 V @8 kHz - NOT FEASIBLE: T3 misses its Tj limit by 27 K (one module per phase) | 8 | T1 1xHCG400FL120E3RA, T2 1xHCG400FL120E3RA, T3 1xHCG400FL120E3RA, T4 1xHCG400FL120E3RA, D5 1xHCG400FL120E3RA, D6 1xHCG400FL120E3RA | 3 | 12 | 1625 / 1713 | 2282 | 98.17 / 98.52 % | 1230 / 889 (+189) | 0.44 | 20.59 / 20.59 |
-| NPC-module 650 V (HIITIO HCG375FL065E3RC) - NOT FEASIBLE: T1 misses its Tj limit by 16 K (one module per phase) | 16 | T1 1xHCG375FL065E3RC, T2 1xHCG375FL065E3RC, T3 1xHCG375FL065E3RC, T4 1xHCG375FL065E3RC, D5 1xHCG375FL065E3RC, D6 1xHCG375FL065E3RC | 3 | 12 | 1713 / 1889 | 2176 | 98.25 / 98.52 % | 970 / 692 (+142) | 0.80 | 30.00 / 30.00 |
-| 2L-SiC 1700 | 24 | TH 4xSG2M020170HJ, TL 4xSG2M020170HJ | 24 | 6 | 932 / 1016 | 1447 | 98.84 / 99.06 % | 607 / 485 (+133) | 0.56 | 0.04 / 0.21 |
-| 2L-SiC 1200 (rule check) | 32 | TH 6xSG2M035120LJ, TL 6xSG2M035120LJ | 36 | 6 | 857 / 936 | 1327 | 98.94 / 99.14 % | 412 / 308 (+75) | 0.79 | 64.80 / 151.20 |
-| 2L-SiC 1700(40m) | 24 | TH 6xSG2M040170HJ, TL 6xSG2M040170HJ | 36 | 6 | 1126 / 1193 | 1641 | 98.68 / 99.04 % | 469 / 381 (+98) | 0.56 | 0.03 / 0.16 |
+| TT-IGBT (architect) | 16 | T1 6xCRG40T120BK3SD, T4 6xCRG40T120BK3SD, T2 5xCRG50T60AK3SD, T3 5xCRG50T60AK3SD | 66 | 12 | 1720 / 1934 | 2184 | 98.25 / 98.64 % | 734 / 557 (+96) | 0.80 | 57.73 / 156.90 |
+| TT-IGBT (best documented) | 16 | T1 4xNCE40TD120VT, T4 4xNCE40TD120VT, T2 6xNCE80TD65BT, T3 6xNCE80TD65BT | 60 | 12 | 1559 / 1737 | 2023 | 98.38 / 98.62 % | 738 / 548 (+93) | 0.80 | 46.89 / 113.00 |
+| TT-SiC 1200/1200 (rule check) | 32 | T1 5xSG2M035120LJ, T4 5xSG2M035120LJ, T2 6xSG2M035120LJ, T3 6xSG2M035120LJ | 66 | 12 | 995 / 1084 | 1367 | 98.90 / 99.30 % | 709 / 535 (+95) | 0.79 | 25.01 / 55.22 |
+| TT-SiC 1700/1200 | 32 | T1 4xSG2M020170HJ, T4 4xSG2M020170HJ, T2 6xSG2M035120LJ, T3 6xSG2M035120LJ | 60 | 12 | 964 / 1089 | 1336 | 98.93 / 99.25 % | 891 / 699 (+149) | 0.56 | 0.10 / 0.18 |
+| TT-SiC 1700(40m)/1200 | 32 | T1 5xSG2M040170HJ, T4 5xSG2M040170HJ, T2 6xSG2M035120LJ, T3 6xSG2M035120LJ | 66 | 12 | 1267 / 1319 | 1640 | 98.69 / 99.22 % | 726 / 571 (+107) | 0.56 | 0.08 / 0.13 |
+| NPC-SiC 1200 + SBD | 32 | T1 5xSG2M035120LJ, T2 6xSG2M035120LJ, T3 6xSG2M035120LJ, T4 5xSG2M035120LJ, D5 3xYJD112040NQG2, D6 3xYJD112040NQG2 | 84 | 12 | 1585 / 1640 | 1957 | 98.43 / 99.13 % | 821 / 606 (+118) | 0.44 | 0.10 / 0.10 |
+| ANPC-SiC 1200 | 32 | T1 5xSG2M035120LJ, T2 6xSG2M035120LJ, T3 6xSG2M035120LJ, T4 5xSG2M035120LJ, T5 5xSG2M035120LJ, T6 5xSG2M035120LJ | 96 | 18 | 1541 / 1562 | 1913 | 98.47 / 99.17 % | 861 / 636 (+128) | 0.44 | 0.12 / 0.12 |
+| NPC-IGBT 1200 + SBD | 16 | T1 4xNCE40TD120VT, T2 5xNCE40TD120VT, T3 5xNCE40TD120VT, T4 4xNCE40TD120VT, D5 3xYJD112040NQG2, D6 3xYJD112040NQG2 | 72 | 12 | 2326 / 2473 | 2789 | 97.76 / 98.33 % | 856 / 621 (+118) | 0.44 | 9.28 / 9.28 |
+| NPC-module 1200 V (HIITIO HCG400FL120E3RA) - NOT FEASIBLE: T3 misses its Tj limit by 32 K (one module per phase) | 16 | T1 1xHCG400FL120E3RA, T2 1xHCG400FL120E3RA, T3 1xHCG400FL120E3RA, T4 1xHCG400FL120E3RA, D5 1xHCG400FL120E3RA, D6 1xHCG400FL120E3RA | 3 | 12 | 1878 / 2044 | 2342 | 98.12 / 98.41 % | 1060 / 752 (+162) | 0.44 | 20.59 / 20.59 |
+| NPC-module 1200 V @8 kHz - NOT FEASIBLE: T3 misses its Tj limit by 27 K (one module per phase) | 8 | T1 1xHCG400FL120E3RA, T2 1xHCG400FL120E3RA, T3 1xHCG400FL120E3RA, T4 1xHCG400FL120E3RA, D5 1xHCG400FL120E3RA, D6 1xHCG400FL120E3RA | 3 | 12 | 1630 / 1723 | 2287 | 98.17 / 98.51 % | 1230 / 889 (+189) | 0.44 | 20.59 / 20.59 |
+| NPC-module 650 V (HIITIO HCG375FL065E3RC) - NOT FEASIBLE: T4 misses its Tj limit by 16 K (one module per phase) | 16 | T1 1xHCG375FL065E3RC, T2 1xHCG375FL065E3RC, T3 1xHCG375FL065E3RC, T4 1xHCG375FL065E3RC, D5 1xHCG375FL065E3RC, D6 1xHCG375FL065E3RC | 3 | 12 | 1705 / 1875 | 2168 | 98.26 / 98.53 % | 970 / 692 (+142) | 0.80 | 30.00 / 30.00 |
+| 2L-SiC 1700 | 24 | TH 4xSG2M020170HJ, TL 4xSG2M020170HJ | 24 | 6 | 918 / 990 | 1433 | 98.85 / 99.08 % | 607 / 485 (+133) | 0.56 | 0.04 / 0.21 |
+| 2L-SiC 1200 (rule check) | 32 | TH 6xSG2M035120LJ, TL 6xSG2M035120LJ | 36 | 6 | 850 / 922 | 1319 | 98.94 / 99.15 % | 412 / 308 (+75) | 0.79 | 64.80 / 151.20 |
+| 2L-SiC 1700(40m) | 24 | TH 6xSG2M040170HJ, TL 6xSG2M040170HJ | 36 | 6 | 1113 / 1173 | 1628 | 98.69 / 99.06 % | 469 / 381 (+98) | 0.56 | 0.03 / 0.16 |
 
 Switching-frequency sweep of the three cheapest candidates that pass the 0.67 rule and the efficiency floor (devices re-sized, L1 for 25 % ripple, L2 for the 0.3 % carrier-band limit with C_f 50 uF):
 
 | candidate | f_sw kHz | devices | L1 / L2 uH | module loss 125 kW (est.) | peak eta | USD cat / 5k |
 |---|---|---|---|---|---|---|
-| 2L-SiC 1700(40m) | 16 | TH 6, TL 6 | 194 / 14 | 1641 | 99.06 % | 547 / 443 |
-| 2L-SiC 1700(40m) | 24 | TH 6, TL 6 | 130 / 6 | 1641 | 99.04 % | 469 / 381 |
-| 2L-SiC 1700(40m) | 32 | TH 6, TL 6 | 97 / 4 | 1687 | 98.99 % | 432 / 351 |
-| 2L-SiC 1700(40m) | 40 | TH 6, TL 6 | 78 / 3 | 1750 | 98.93 % | 410 / 334 |
-| 2L-SiC 1700(40m) | 48 | TH 6, TL 6 | 65 / 2 | 1822 | 98.87 % | 395 / 322 |
-| 2L-SiC 1700 | 16 | TH 4, TL 4 | 194 / 14 | 1429 | 99.10 % | 684 / 548 |
-| 2L-SiC 1700 | 24 | TH 4, TL 4 | 130 / 6 | 1447 | 99.06 % | 607 / 485 |
-| 2L-SiC 1700 | 32 | TH 4, TL 4 | 97 / 4 | 1513 | 99.00 % | 570 / 456 |
-| 2L-SiC 1700 | 40 | TH 4, TL 4 | 78 / 3 | 1596 | 98.93 % | 548 / 439 |
-| 2L-SiC 1700 | 48 | TH 4, TL 4 | 65 / 2 | 1689 | 98.85 % | 533 / 427 |
-| TT-SiC 1700(40m)/1200 | 16 | T1 5, T4 5, T2 6, T3 6 | 97 / 13 | 1653 | 99.22 % | 797 / 629 |
-| TT-SiC 1700(40m)/1200 | 24 | T1 5, T4 5, T2 6, T3 6 | 65 / 6 | 1630 | 99.22 % | 745 / 587 |
-| TT-SiC 1700(40m)/1200 | 32 | T1 5, T4 5, T2 6, T3 6 | 49 / 4 | 1640 | 99.21 % | 726 / 571 |
-| TT-SiC 1700(40m)/1200 | 40 | T1 5, T4 5, T2 6, T3 6 | 39 / 3 | 1660 | 99.19 % | 714 / 562 |
-| TT-SiC 1700(40m)/1200 | 48 | T1 5, T4 5, T2 6, T3 6 | 32 / 2 | 1685 | 99.17 % | 706 / 555 |
+| 2L-SiC 1700(40m) | 16 | TH 6, TL 6 | 194 / 14 | 1635 | 99.07 % | 547 / 443 |
+| 2L-SiC 1700(40m) | 24 | TH 6, TL 6 | 130 / 6 | 1628 | 99.06 % | 469 / 381 |
+| 2L-SiC 1700(40m) | 32 | TH 6, TL 6 | 97 / 4 | 1669 | 99.02 % | 432 / 351 |
+| 2L-SiC 1700(40m) | 40 | TH 6, TL 6 | 78 / 3 | 1727 | 98.97 % | 410 / 334 |
+| 2L-SiC 1700(40m) | 48 | TH 6, TL 6 | 65 / 2 | 1792 | 98.91 % | 395 / 322 |
+| 2L-SiC 1700 | 16 | TH 4, TL 4 | 194 / 14 | 1420 | 99.11 % | 684 / 548 |
+| 2L-SiC 1700 | 24 | TH 4, TL 4 | 130 / 6 | 1433 | 99.08 % | 607 / 485 |
+| 2L-SiC 1700 | 32 | TH 4, TL 4 | 97 / 4 | 1493 | 99.02 % | 570 / 456 |
+| 2L-SiC 1700 | 40 | TH 4, TL 4 | 78 / 3 | 1570 | 98.96 % | 548 / 439 |
+| 2L-SiC 1700 | 48 | TH 4, TL 4 | 65 / 2 | 1656 | 98.89 % | 533 / 427 |
+| TT-SiC 1700(40m)/1200 | 16 | T1 5, T4 5, T2 6, T3 6 | 97 / 13 | 1657 | 99.22 % | 797 / 629 |
+| TT-SiC 1700(40m)/1200 | 24 | T1 5, T4 5, T2 6, T3 6 | 65 / 6 | 1632 | 99.23 % | 745 / 587 |
+| TT-SiC 1700(40m)/1200 | 32 | T1 5, T4 5, T2 6, T3 6 | 49 / 4 | 1640 | 99.22 % | 726 / 571 |
+| TT-SiC 1700(40m)/1200 | 40 | T1 5, T4 5, T2 6, T3 6 | 39 / 3 | 1658 | 99.20 % | 714 / 562 |
+| TT-SiC 1700(40m)/1200 | 48 | T1 5, T4 5, T2 6, T3 6 | 32 / 2 | 1681 | 99.18 % | 706 / 555 |
 
-**Decision: two-level, 32 kHz, TH 6 x SG2M040170HJ, TL 6 x SG2M040170HJ** - 36 devices and 6 gate channels for three-wire: the PV module's 1700 V SiC device, gate-drive channel and switching frequency.  Screen-scope cost (devices, pads, gate drive, LCL, DC link) 432 USD catalogue / 351 USD at 5,000 units; module loss 1687 W at 125 kW; peak 98.99 % (estimates; step b gives the map).  **This replaces the architecture's three-level T-type.**
+**Decision: two-level, 24 kHz, TH 6 x SG2M040170HJ, TL 6 x SG2M040170HJ** - 36 devices and 6 gate channels for three-wire: the PV module's 1700 V SiC device, gate-drive channel and switching frequency.  Screen-scope cost (devices, pads, gate drive, LCL, DC link) 469 USD catalogue / 381 USD at 5,000 units; module loss 1628 W at 125 kW; peak 99.06 % (estimates; step b gives the map).  **This replaces the architecture's three-level T-type.**
 
 Why:
 - **The 0.67 rule first (SRC-4).** 950/1700 = 0.56 for every device.  The architect's T-type: 950/1200 = 0.79 (0.75 at 900 V).
 - **The DC link decides between two and three levels.** A three-level leg draws a 150 Hz midpoint current; at PF 0 (150 kVA reactive is in AC-02) and 600-750 V it cannot be cancelled by any zero sequence (np_residual: ideal carrier-based midpoint control still leaves up to 3.5 mF of need per half).  Keeping the ripple within the film's 60 V pp limit takes 25 C3D1U147 per half for every three-level option, against 5 per half for two-level (ripple-current-limited): 167 USD at 5k.  The architecture's 660 uF per half would ripple by hundreds of volts there.
-- **Totals (5k, screen scope):** two-level 1700 V SiC 351 USD; best three-level (TT-SiC 1700(40m)/1200, 32 kHz) 571 USD; NPC / ANPC SiC 606 / 636 USD (ANPC does not earn its place: its clamps add six channels and save no loss); the architect's IGBT T-type, sized correctly and with the DC link it needs, 565 USD; the best documented IGBT T-type 548 USD.
-- **Price of the safer choice:** none in money - the rule-compliant design is the cheapest one in the screen.  What the rule costs inside two-level: 43 USD against the same two-level with 1200 V SiC (2L-SiC 1200 (rule check), 0.79 of rating at 950 V, FIT 151 at 950 V vs 0.16).  The efficiency price against the best SiC three-level: module loss 1687 W vs 1640 W at 125 kW, peak 98.99 % vs 99.21 % (0.22 %-points; the slower gate resistor that the 950 V commutation needs adds about 60 W more, step e); against the architect's IGBT T-type it is a gain (2198 W, peak 98.57 %).
+- **Totals (5k, screen scope):** two-level 1700 V SiC 381 USD; best three-level (TT-SiC 1700(40m)/1200, 24 kHz) 587 USD; NPC / ANPC SiC 606 / 636 USD (ANPC does not earn its place: its clamps add six channels and save no loss); the architect's IGBT T-type, sized correctly and with the DC link it needs, 557 USD; the best documented IGBT T-type 548 USD.
+- **Price of the safer choice:** none in money - the rule-compliant design is the cheapest one in the screen.  What the rule costs inside two-level: 72 USD against the same two-level with 1200 V SiC (2L-SiC 1200 (rule check), 0.79 of rating at 950 V, FIT 151 at 950 V vs 0.16).  The efficiency price against the best SiC three-level: module loss 1628 W vs 1632 W at 125 kW, peak 99.06 % vs 99.23 % (0.17 %-points; the slower gate resistor that the 950 V commutation needs adds about 60 W more, step e); against the architect's IGBT T-type it is a gain (2184 W, peak 98.64 %).
 - **Four-wire:** the fourth leg of a two-level design is one more half-bridge; a T-type phase leg under 100 % unbalance pushes a 50 Hz current into its midpoint (step d) that the two-level bank does not have.
-- **What two-level costs elsewhere:** common-mode voltage at f_sw 432 V peak against 235 V for three-level (950 V DC, calculated spectrum): the C_f star must be tied to the DC midpoint (split film bank) and the EMI filter needs about 6 dB more common-mode attenuation (step f); full-V_dc steps at up to 60 V/ns (step e) on L1, the heatsink capacitance and the cables; L1 stores 5.7 J against 2.9 J per phase (twice the inductor) - all inside the totals above except the extra common-mode core.  The higher peak efficiency of three-level SiC does not pay for its 220 USD.
-- **f_sw = 32 kHz** (the PV module's frequency, at which its gate-drive channel, bias power and Miller check are validated).  The sweep is not at its cost minimum there: 48 kHz would save 29 USD at 5k (smaller L1, same device count) for 135 W more loss at 125 kW and 0.12 %-points of peak efficiency, 50 % more controller load and its fourth carrier harmonic inside the 150 kHz EMI band - kept as an open optimisation for after the inductor quotes.
+- **What two-level costs elsewhere:** common-mode voltage at f_sw 432 V peak against 235 V for three-level (950 V DC, calculated spectrum): the C_f star must be tied to the DC midpoint (split film bank) and the EMI filter needs about 6 dB more common-mode attenuation (step f); full-V_dc steps at up to 60 V/ns (step e) on L1, the heatsink capacitance and the cables; L1 stores 7.7 J against 3.8 J per phase (twice the inductor) - all inside the totals above except the extra common-mode core.  The higher peak efficiency of three-level SiC does not pay for its 206 USD.
+- **f_sw = 24 kHz** - the cheapest compliant point of the re-optimisation with the real inductor designs (section h).  This screen, which prices L1 at 10 + 6 USD/J, points the other way (48 kHz would 'save' 59 USD here): with the magnetics model in the loop the inductor loss, not its stored energy, sets its price, and lower device and core loss at 24 kHz buy a cheaper L1.
 
 
-**The architecture document's screen is optimistic.** Its 42-device T-type (4 x CRG40T120BK3SD + 3 x 650 V per position, 16 kHz) gives 2638 W of device loss at 125 kW / 900 V in this model, not 1,676 W: it used one 25 C V_CE(sat) point and a linear E(I); the data sheets' hot V_CE(sat) curves and the super-linear E_on(I) (Fig.13 of the CR Micro sheet: 3.2 mJ at 40 A, 7.3 mJ at 60 A) are higher.  Its hottest junction reaches 154 C at PF 1, 160 C at PF 0 and 162 C in rectifier mode (180 A, 900 V, 45 C) against a 150 C rating: the T-type with these parts needs 72 devices, not 42.  The CR Micro 650 V part is slow (E_on 3.2 mJ at 400 V / 50 A, p3) and the inner positions switch at full current in rectifier mode and at PF 0, which the PF-1 screen did not see.
+**The architecture document's screen is optimistic.** Its 42-device T-type (4 x CRG40T120BK3SD + 3 x 650 V per position, 16 kHz) gives 2638 W of device loss at 125 kW / 900 V in this model, not 1,676 W: it used one 25 C V_CE(sat) point and a linear E(I); the data sheets' hot V_CE(sat) curves and the super-linear E_on(I) (Fig.13 of the CR Micro sheet: 3.2 mJ at 40 A, 7.3 mJ at 60 A) are higher.  Its hottest junction reaches 154 C at PF 1, 160 C at PF 0 and 162 C in rectifier mode (180 A, 900 V, 45 C) against a 150 C rating: the T-type with these parts needs 66 devices, not 42.  The CR Micro 650 V part is slow (E_on 3.2 mJ at 400 V / 50 A, p3) and the inner positions switch at full current in rectifier mode and at PF 0, which the PF-1 screen did not see.
 
 
 ### Cosmic-ray failure rate versus DC voltage (the reason for the 0.67 rule)
@@ -79,7 +79,7 @@ At 950 V a 1200 V IGBT is at 0.79 of its rating: 47 FIT/cm2 against 0.51 FIT/cm2
 | design | FIT @850 V | @900 V | @950 V | @950 V, Tj 100 C | @950 V, 2000 m, Tj 100 C | @950 V, Tj -30 C (cold start) |
 |---|---|---|---|---|---|---|
 | architect, 42 IGBTs as specified | 13.23 | 37.89 | 104.00 | 21.52 | 86.06 | 330.24 |
-| architect parts sized here (72 IGBTs) | 22.54 | 59.53 | 158.69 | 32.83 | 131.32 | 503.94 |
+| architect parts sized here (66 IGBTs) | 20.74 | 57.73 | 156.90 | 32.46 | 129.83 | 498.22 |
 | chosen: 2L-SiC 1700(40m) (two-level) | 0.03 | 0.03 | 0.16 | 0.03 | 0.13 | 0.50 |
 
 For a fleet of 5,000 units operating continuously at 950 V (sea level, 25 C) the architect's 42-IGBT T-type would lose 4.6 units a year to single-event burnout (1.7 at 900 V; 3.8 at 2,000 m and Tj 100 C); the chosen design 0.007.  A burnt outer IGBT shorts the full DC link through the leg - the DC fuses clear it, the module is a repair.  These are order-of-magnitude figures (AN 17-003: 'order-of-magnitude estimates'), but the ratio is robust: the 1200 V T-type is two to three decades worse than a design that respects the rule.  Limiting the T-type to 804 V would break AC-02 (950 V operating, 900 V full load); derating power above 900 V does not help - cosmic-ray failures happen while blocking, at any current.
@@ -98,13 +98,13 @@ Owner's input: one three-level module per phase removes the paralleling and may 
 
 | option | per phase: power stage USD cat / 5k (devices, pads, gate drive) | device loss 125 kW @750 V | Tj / feasibility at the sizing corners (45 C) | gate channels per phase | assembly per phase | V/V_rated @950 V |
 |---|---|---|---|---|---|---|
-| NPC-module 1200 V (HIITIO HCG400FL120E3RA) (16 kHz) | 203 / 126 | 1867 W | NOT feasible - T3 misses its Tj limit by 32 K (one module per phase) | 4 | 1 screw-mounted module, press-fit pins, no paralleling | 0.44 |
-| NPC-module 1200 V @8 kHz (8 kHz) | 203 / 126 | 1625 W | NOT feasible - T3 misses its Tj limit by 27 K (one module per phase) | 4 | 1 screw-mounted module, press-fit pins, no paralleling | 0.44 |
-| NPC-module 650 V (HIITIO HCG375FL065E3RC) (16 kHz) | 173 / 106 | 1713 W | NOT feasible - T1 misses its Tj limit by 16 K (one module per phase) | 4 | 1 screw-mounted module, press-fit pins, no paralleling | 0.80 |
-| TT-IGBT (best documented) (16 kHz) | 96 / 58 | 1584 W | meets all limits (min margin 7 K) | 4 | 20 TO-247 with clips and pads, paralleled per position | 0.80 |
+| NPC-module 1200 V (HIITIO HCG400FL120E3RA) (16 kHz) | 203 / 126 | 1878 W | NOT feasible - T3 misses its Tj limit by 32 K (one module per phase) | 4 | 1 screw-mounted module, press-fit pins, no paralleling | 0.44 |
+| NPC-module 1200 V @8 kHz (8 kHz) | 203 / 126 | 1630 W | NOT feasible - T3 misses its Tj limit by 27 K (one module per phase) | 4 | 1 screw-mounted module, press-fit pins, no paralleling | 0.44 |
+| NPC-module 650 V (HIITIO HCG375FL065E3RC) (16 kHz) | 173 / 106 | 1705 W | NOT feasible - T4 misses its Tj limit by 16 K (one module per phase) | 4 | 1 screw-mounted module, press-fit pins, no paralleling | 0.80 |
+| TT-IGBT (best documented) (16 kHz) | 96 / 58 | 1559 W | meets all limits (min margin 8 K) | 4 | 20 TO-247 with clips and pads, paralleled per position | 0.80 |
 | TT-SiC 1700(40m)/1200 (32 kHz) | 116 / 85 | 1267 W | meets all limits (min margin 8 K) | 4 | 22 TO-247 with clips and pads, paralleled per position | 0.56 |
-| NPC-SiC 1200 + SBD (32 kHz) | 147 / 96 | 1576 W | meets all limits (min margin 2 K) | 4 | 28 TO-247 with clips and pads, paralleled per position | 0.44 |
-| 2L-SiC 1700(40m) (24 kHz) | 66 / 53 | 1126 W | meets all limits (min margin 37 K) | 2 | 12 TO-247 with clips and pads, paralleled per position | 0.56 |
+| NPC-SiC 1200 + SBD (32 kHz) | 147 / 96 | 1585 W | meets all limits (min margin 2 K) | 4 | 28 TO-247 with clips and pads, paralleled per position | 0.44 |
+| 2L-SiC 1700(40m) (24 kHz) | 66 / 53 | 1113 W | meets all limits (min margin 38 K) | 2 | 12 TO-247 with clips and pads, paralleled per position | 0.56 |
 
 - A 300-400 A three-level module per phase does not carry this product: 198 A continuous is fine, but 216 A for 2 min and 1.2 x 216 A for 200 ms at PF 0 push the inner IGBTs past the module's 150 C operating limit with the same heatsink; two modules per phase (or a 600 A class EconoDUAL / 62 mm three-level part) double the money.  Its turn-off energy (23 mJ at 600 V / 400 A, 125 C) keeps it at 8-16 kHz, i.e. the large filter.
 - Every three-level option - module or discrete - also carries the 150 Hz midpoint DC link of step d (25 film capacitors per half).
@@ -114,53 +114,53 @@ Owner's input: one three-level module per phase removes the paralleling and may 
 
 **Thermal concept (calculated):** one earthed extruded section per phase leg (3 for three-wire, 4 for four-wire), 150 mm x 400 mm, 24 fins x 60 mm, 4.0 kg each; 3 x AFB1224SHE-F00 (1 per section, push): 149 m3/h at 51 Pa per section, R_sa 50.3 mK/W, thermal time constant 179 s.  Each TO-247 on Al2O3 0.635 mm + 2 x 50 um grease + clip per TO-247: R_cs 0.261 K/W (basic insulation DC poles - PE as the PV design; Al2O3 is enough at these loss densities) + 0.08 K/W base spreading.  The fan is rated -10..+60 C (p3): at 60 C inlet it is at its limit and below -10 C it is outside its rating (PV risk R-05).
 
-**Modulation:** carrier-based two-level PWM, sampled twice per carrier period, **sinusoidal references wherever they reach (m <= 0.98) and the min-max zero sequence (SVPWM-equivalent) only above** (low DC voltage with high AC voltage: 590-680 V).  Why: any low-frequency zero sequence becomes a 150 Hz voltage between the battery and earth on a three-wire TN connection (step f); a two-level leg has no midpoint to balance, so nothing else asks for it.  Discontinuous PWM would cut the switching loss (33 % of the device loss at 125 kW / 750 V) but is all zero sequence - not used.
+**Modulation:** carrier-based two-level PWM, sampled twice per carrier period, **sinusoidal references wherever they reach (m <= 0.98) and the min-max zero sequence (SVPWM-equivalent) only above** (low DC voltage with high AC voltage: 590-680 V).  Why: any low-frequency zero sequence becomes a 150 Hz voltage between the battery and earth on a three-wire TN connection (step f); a two-level leg has no midpoint to balance, so nothing else asks for it.  Discontinuous PWM would cut the switching loss (-172561785 % of the device loss at 125 kW / 750 V) but is all zero sequence - not used.
 
-**Current sharing of paralleled discretes:** the hottest device is taken to carry k = 1.10 x the mean current (conduction and switching) - it requires devices from one lot (R_DS(on) spread within +-10 %), Kelvin-source drive with a 0.5 ohm Kelvin resistor per device (gen/gdrv.py R_KS) and a symmetric layout; positive R_DS(on) temperature coefficient (x1.4-1.9 from 25 to 150 C) stabilises it.  Without binning (data-sheet max/typ R_DS(on) 1.30 for SG2M040170HJ) k = 1.2 gives Tj 126 C at the worst 110 % corner (vs 116 C): binning or one-lot assembly is a production requirement.
+**Current sharing of paralleled discretes:** the hottest device is taken to carry k = 1.10 x the mean current (conduction and switching) - it requires devices from one lot (R_DS(on) spread within +-10 %), Kelvin-source drive with a 0.5 ohm Kelvin resistor per device (gen/gdrv.py R_KS) and a symmetric layout; positive R_DS(on) temperature coefficient (x1.4-1.9 from 25 to 150 C) stabilises it.  Without binning (data-sheet max/typ R_DS(on) 1.30 for SG2M040170HJ) k = 1.2 gives Tj 124 C at the worst 110 % corner (vs 115 C): binning or one-lot assembly is a production requirement.
 
-**Junction temperatures (calculated):** worst over the envelope at 45 C inlet (V_dc 590-950 V, AC 340-460 V, PF angle 0..+-180, 25-110 % current): **116 C** at V_dc 950 V, AC 340 V, PF angle 90, 110 % (heatsink 74 C; per position TH 116 C, TL 116 C).  110 % at 60 C inlet: Tj 138 C (limits 150 C continuous / 165 C for 2 min, devices rated 175 C).  Not reachable (modulation): 590 V DC with 400 V AC, 590 V DC with 460 V AC, 600 V DC with 460 V AC, 650 V DC with 460 V AC
+**Junction temperatures (calculated):** worst over the envelope at 45 C inlet (V_dc 590-950 V, AC 340-460 V, PF angle 0..+-180, 25-110 % current): **115 C** at V_dc 950 V, AC 460 V, PF angle 90, 110 % (heatsink 74 C; per position TH 115 C, TL 115 C).  110 % at 60 C inlet: Tj 136 C (limits 150 C continuous / 165 C for 2 min, devices rated 175 C).  Not reachable (modulation): 590 V DC with 400 V AC, 590 V DC with 460 V AC, 600 V DC with 460 V AC, 650 V DC with 460 V AC
 
 | overload | V_dc | PF angle | Tj (C) |
 |---|---|---|---|
-| 120 % for 2 min (heatsink RC from the 110 % state, then 73 C) | 600 | 0 | 117 |
-| 1.2 x 216 A = 259 A for 200 ms from the 110 % state (device transient, tau_jc 30 ms, tau_cs 0.54 s) | 600 | 0 | 137 |
-| 120 % for 2 min (heatsink RC from the 110 % state, then 75 C) | 750 | 0 | 122 |
-| 1.2 x 216 A = 259 A for 200 ms from the 110 % state (device transient, tau_jc 30 ms, tau_cs 0.54 s) | 750 | 0 | 144 |
-| 120 % for 2 min (heatsink RC from the 110 % state, then 77 C) | 900 | 90 | 128 |
-| 1.2 x 216 A = 259 A for 200 ms from the 110 % state (device transient, tau_jc 30 ms, tau_cs 0.54 s) | 900 | 90 | 151 |
-| 120 % for 2 min (heatsink RC from the 110 % state, then 77 C) | 900 | -90 | 128 |
-| 1.2 x 216 A = 259 A for 200 ms from the 110 % state (device transient, tau_jc 30 ms, tau_cs 0.54 s) | 900 | -90 | 151 |
-| 120 % for 2 min (heatsink RC from the 110 % state, then 77 C) | 900 | 180 | 128 |
-| 1.2 x 216 A = 259 A for 200 ms from the 110 % state (device transient, tau_jc 30 ms, tau_cs 0.54 s) | 900 | 180 | 151 |
-| 120 % for 2 min (heatsink RC from the 110 % state, then 73 C) | 600 | 180 | 117 |
-| 1.2 x 216 A = 259 A for 200 ms from the 110 % state (device transient, tau_jc 30 ms, tau_cs 0.54 s) | 600 | 180 | 137 |
+| 120 % for 2 min (heatsink RC from the 110 % state, then 72 C) | 600 | 0 | 116 |
+| 1.2 x 216 A = 259 A for 200 ms from the 110 % state (device transient, tau_jc 30 ms, tau_cs 0.54 s) | 600 | 0 | 136 |
+| 120 % for 2 min (heatsink RC from the 110 % state, then 74 C) | 750 | 0 | 121 |
+| 1.2 x 216 A = 259 A for 200 ms from the 110 % state (device transient, tau_jc 30 ms, tau_cs 0.54 s) | 750 | 0 | 142 |
+| 120 % for 2 min (heatsink RC from the 110 % state, then 76 C) | 900 | 90 | 126 |
+| 1.2 x 216 A = 259 A for 200 ms from the 110 % state (device transient, tau_jc 30 ms, tau_cs 0.54 s) | 900 | 90 | 149 |
+| 120 % for 2 min (heatsink RC from the 110 % state, then 76 C) | 900 | -90 | 126 |
+| 1.2 x 216 A = 259 A for 200 ms from the 110 % state (device transient, tau_jc 30 ms, tau_cs 0.54 s) | 900 | -90 | 149 |
+| 120 % for 2 min (heatsink RC from the 110 % state, then 76 C) | 900 | 180 | 126 |
+| 1.2 x 216 A = 259 A for 200 ms from the 110 % state (device transient, tau_jc 30 ms, tau_cs 0.54 s) | 900 | 180 | 149 |
+| 120 % for 2 min (heatsink RC from the 110 % state, then 72 C) | 600 | 180 | 116 |
+| 1.2 x 216 A = 259 A for 200 ms from the 110 % state (device transient, tau_jc 30 ms, tau_cs 0.54 s) | 600 | 180 | 136 |
 
-**Efficiency (calculated, 400 V AC, PF 1, 45 C):** peak **99.20 %** (inverter, 600 V, 35 % load) - the >= 98.5 % requirement is **met** (margin 0.70 %-points against a model uncertainty of about +-0.2).  Full load: 98.65 % at 750 V, 98.55 % at 900 V, worst 98.49 %.
+**Efficiency (calculated, 400 V AC, PF 1, 45 C):** peak **99.09 %** (inverter, 600 V, 40 % load) - the >= 98.5 % requirement is **met** (margin 0.59 %-points against a model uncertainty of about +-0.2).  Full load: 98.42 % at 750 V, 98.22 % at 900 V, worst 98.19 %.
 
 | direction, V_dc | 5 % | 10 % | 15 % | 20 % | 25 % | 30 % | 35 % | 40 % | 50 % | 60 % | 75 % | 90 % | 100 % | 110 % |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| inverter 600 V | 97.50 | 98.57 | 98.92 | 99.07 | 99.15 | 99.19 | 99.20 | 99.20 | 99.17 | 99.11 | 99.00 | 98.85 | 98.73 | 98.59 |
-| inverter 700 V | 97.05 | 98.33 | 98.74 | 98.93 | 99.03 | 99.09 | 99.11 | 99.12 | 99.10 | 99.05 | 98.95 | 98.80 | 98.68 | 98.54 |
-| inverter 750 V | 96.81 | 98.20 | 98.65 | 98.86 | 98.97 | 99.03 | 99.06 | 99.08 | 99.06 | 99.02 | 98.91 | 98.77 | 98.65 | 98.51 |
-| inverter 800 V | 96.56 | 98.06 | 98.55 | 98.78 | 98.91 | 98.97 | 99.01 | 99.03 | 99.02 | 98.98 | 98.88 | 98.74 | 98.62 | 98.48 |
-| inverter 850 V | 96.31 | 97.92 | 98.45 | 98.70 | 98.84 | 98.91 | 98.96 | 98.98 | 98.98 | 98.94 | 98.85 | 98.70 | 98.58 | 98.45 |
-| inverter 900 V | 96.05 | 97.77 | 98.34 | 98.62 | 98.77 | 98.85 | 98.90 | 98.93 | 98.94 | 98.91 | 98.81 | 98.67 | 98.55 | 98.41 |
-| inverter 950 V | 95.77 | 97.62 | 98.24 | 98.53 | 98.69 | 98.79 | 98.85 | 98.88 | 98.89 | 98.86 | 98.78 | 98.64 | 98.52 | 98.38 |
-| rectifier 600 V | 97.43 | 98.55 | 98.91 | 99.06 | 99.14 | 99.18 | 99.20 | 99.20 | 99.16 | 99.11 | 98.99 | 98.83 | 98.71 | 98.57 |
-| rectifier 700 V | 96.96 | 98.30 | 98.73 | 98.92 | 99.02 | 99.08 | 99.10 | 99.11 | 99.09 | 99.04 | 98.93 | 98.78 | 98.66 | 98.52 |
-| rectifier 750 V | 96.71 | 98.16 | 98.63 | 98.85 | 98.96 | 99.02 | 99.05 | 99.07 | 99.05 | 99.01 | 98.90 | 98.75 | 98.63 | 98.49 |
-| rectifier 800 V | 96.44 | 98.02 | 98.53 | 98.77 | 98.89 | 98.96 | 99.00 | 99.02 | 99.01 | 98.97 | 98.87 | 98.72 | 98.60 | 98.45 |
-| rectifier 850 V | 96.17 | 97.87 | 98.42 | 98.68 | 98.82 | 98.90 | 98.95 | 98.97 | 98.97 | 98.93 | 98.83 | 98.69 | 98.56 | 98.42 |
-| rectifier 900 V | 95.88 | 97.72 | 98.32 | 98.60 | 98.75 | 98.84 | 98.89 | 98.92 | 98.92 | 98.89 | 98.80 | 98.65 | 98.53 | 98.39 |
-| rectifier 950 V | 95.58 | 97.56 | 98.20 | 98.51 | 98.68 | 98.78 | 98.83 | 98.87 | 98.88 | 98.85 | 98.76 | 98.62 | 98.50 | 98.35 |
+| inverter 600 V | 96.87 | 98.26 | 98.70 | 98.90 | 99.01 | 99.06 | 99.08 | 99.09 | 99.06 | 99.00 | 98.88 | 98.71 | 98.58 | 98.44 |
+| inverter 700 V | 95.21 | 97.39 | 98.11 | 98.45 | 98.64 | 98.75 | 98.81 | 98.85 | 98.86 | 98.83 | 98.74 | 98.59 | 98.47 | 98.33 |
+| inverter 750 V | 94.44 | 96.99 | 97.83 | 98.24 | 98.47 | 98.60 | 98.68 | 98.73 | 98.77 | 98.75 | 98.67 | 98.53 | 98.42 | 98.28 |
+| inverter 800 V | 93.62 | 96.55 | 97.53 | 98.01 | 98.28 | 98.44 | 98.54 | 98.61 | 98.66 | 98.66 | 98.60 | 98.47 | 98.36 | 98.22 |
+| inverter 850 V | 92.73 | 96.08 | 97.21 | 97.76 | 98.07 | 98.27 | 98.39 | 98.47 | 98.55 | 98.57 | 98.52 | 98.40 | 98.29 | 98.16 |
+| inverter 900 V | 91.77 | 95.58 | 96.86 | 97.49 | 97.86 | 98.08 | 98.23 | 98.33 | 98.44 | 98.47 | 98.43 | 98.32 | 98.22 | 98.09 |
+| inverter 950 V | 90.79 | 95.05 | 96.50 | 97.21 | 97.63 | 97.89 | 98.06 | 98.18 | 98.31 | 98.36 | 98.34 | 98.25 | 98.15 | 98.02 |
+| rectifier 600 V | 96.77 | 98.23 | 98.69 | 98.89 | 99.00 | 99.05 | 99.07 | 99.08 | 99.05 | 98.99 | 98.86 | 98.70 | 98.56 | 98.42 |
+| rectifier 700 V | 94.97 | 97.32 | 98.08 | 98.43 | 98.62 | 98.73 | 98.80 | 98.83 | 98.85 | 98.82 | 98.72 | 98.57 | 98.45 | 98.31 |
+| rectifier 750 V | 94.12 | 96.89 | 97.79 | 98.21 | 98.44 | 98.58 | 98.67 | 98.72 | 98.75 | 98.73 | 98.65 | 98.51 | 98.39 | 98.25 |
+| rectifier 800 V | 93.18 | 96.42 | 97.47 | 97.97 | 98.25 | 98.41 | 98.52 | 98.59 | 98.65 | 98.64 | 98.58 | 98.45 | 98.33 | 98.19 |
+| rectifier 850 V | 92.15 | 95.92 | 97.13 | 97.70 | 98.03 | 98.24 | 98.37 | 98.45 | 98.53 | 98.55 | 98.49 | 98.37 | 98.26 | 98.12 |
+| rectifier 900 V | 91.04 | 95.37 | 96.76 | 97.43 | 97.81 | 98.05 | 98.20 | 98.30 | 98.41 | 98.44 | 98.41 | 98.30 | 98.19 | 98.05 |
+| rectifier 950 V | 89.85 | 94.80 | 96.37 | 97.14 | 97.57 | 97.85 | 98.03 | 98.15 | 98.28 | 98.33 | 98.32 | 98.22 | 98.11 | 97.98 |
 
 **Loss budget at 125 kW (W, calculated / budget):**
 
 | block | 750 V | 900 V |
 |---|---|---|
-| semiconductors | 1277 | 1381 |
-| L1 | 171 | 200 |
-| L2 | 36 | 36 |
+| semiconductors | 1253 | 1349 |
+| L1 | 494 | 663 |
+| L2 | 34 | 34 |
 | Cf + damping | 6 | 6 |
 | DC link | 20 | 20 |
 | AC contactors | 55 | 55 |
@@ -170,7 +170,7 @@ Owner's input: one three-level module per phase removes the paralleling and may 
 | DC shunt | 3 | 2 |
 | aux supply (control, drivers, sensors) | 29 | 29 |
 | fans | 42 | 42 |
-| **total** | **1710** | **1832** |
+| **total** | **2007** | **2260** |
 
 **Derating (calculated): largest continuous current (fraction of 180 A, searched up to 120 %; the product rating stops at 110 %) with every Tj within 150 C, worst of PF angle 0/90/180/-90 and AC 340/400/460 V:**
 
@@ -179,69 +179,71 @@ Owner's input: one three-level module per phase removes the paralleling and may 
 | 45C | 1.20 | 1.20 | 1.20 | 1.20 | 1.20 | 1.20 | 1.20 | 1.20 | 1.20 |
 | 50C | 1.20 | 1.20 | 1.20 | 1.20 | 1.20 | 1.20 | 1.20 | 1.20 | 1.20 |
 | 55C | 1.20 | 1.20 | 1.20 | 1.20 | 1.20 | 1.20 | 1.20 | 1.20 | 1.20 |
-| 60C | 1.20 | 1.20 | 1.20 | 1.20 | 1.20 | 1.15 | 1.15 | 1.15 | 1.15 |
+| 60C | 1.20 | 1.20 | 1.20 | 1.20 | 1.20 | 1.20 | 1.15 | 1.15 | 1.15 |
 
 ## (c) Switching frequency and LCL filter
 
-**f_sw = 32 kHz**, control sampled at 64 kHz (double update), delay 1.5 T_s = 23 us.  **L1 97 uH (2.4 %), C_f 50 uF per phase in star (Q 2.0 % of 125 kVA), L2 15 uH (0.4 %)**, passive branch R_d 2 ohm + C_d 10 uF per phase across C_f, plus capacitor-current active damping.  L1 from the ripple rule (25 % peak-to-peak of the 216 A peak at 950 V: V_dc/(4 f L1) = 76 A, 76 A pp from the time-domain PWM waveform); C_f and L2 place the resonance where capacitor-current active damping works (below f_s/6 = 10.7 kHz) for every grid and keep the carrier band several times below the 0.3 % target.
+**f_sw = 24 kHz**, control sampled at 48 kHz (double update), delay 1.5 T_s = 31 us.  **L1 130 uH (3.2 %), C_f 75 uF per phase in star (Q 3.0 % of 125 kVA), L2 6 uH (0.1 %)**, passive branch R_d 2 ohm + C_d 10 uF per phase across C_f, plus capacitor-current active damping.  L1, C_f and L2 are the cheapest compliant set of the re-optimisation with the real inductor designs (section h, sim/pcs_tradeoff.py): ripple V_dc/(4 f L1) = 76 A pp at 950 V (76 A from the time-domain PWM waveform); C_f and L2 place the stiff-grid resonance below f_s/6 = 8.0 kHz (capacitor-current active damping), the SCR-5 resonance above twice the current-loop bandwidth, and keep every carrier-band component of the grid current within the 0.3 % target.
+
+**Inductor parts (sim/magnetics.py, selected in sim/pcs_tradeoff.py):** L1 gapped amorphous C-core, alfoil 0.8 mm, 26 turns, 8.6 kg, 106 / 85 USD (catalogue / 5k), 165 W at 180 A / 750 V and 261 W at 198 A / 950 V (higher of own model and OpenMagnetics), hot spot 140 C at 60 C inlet; L2 amorphous C-core, alfoil 1.5 mm, 4 turns, 1.2 kg, 39 / 30 USD, 11 W at 180 A; AC CM choke 192 uH = 3 x Yunlu N-R-564440, 36 / 30 USD.  Their losses replace the step-c budgets in every efficiency figure (per phase a(V_dc) + k I^2).  All ESTIMATES: no quote, no sample.
 
 | grid | f_res (kHz) |
 |---|---|
-| stiff | 6.24 |
-| SCR 50 | 3.23 |
-| SCR 20 | 2.74 |
-| SCR 10 | 2.53 |
-| SCR 5 | 2.41 |
+| stiff | 7.67 |
+| SCR 50 | 2.54 |
+| SCR 20 | 2.05 |
+| SCR 10 | 1.85 |
+| SCR 5 | 1.74 |
 
-Resonance stays between 2.4 and 6.2 kHz: below f_s/6, where L1-current feedback with the 1.5 T_s delay is inherently damped, and above twice a 1 kHz current-loop bandwidth - one design covers SCR 5 to a stiff grid.  The passive branch alone lowers the resonance peak from 39 to 5 dB (relative to the L1 admittance at 1 kHz): it is the fallback if active damping is lost, not the main damping.
+Resonance stays between 1.7 and 7.7 kHz: below f_s/6, where L1-current feedback with the 1.5 T_s delay is inherently damped, and above twice a 0.75 kHz current-loop bandwidth - one design covers SCR 5 to a stiff grid.  The passive branch alone lowers the resonance peak from 31 to 6 dB (relative to the L1 admittance at 1 kHz): it is the fallback if active damping is lost, not the main damping.
 
 **Limits used (standard texts NOT on file - from memory):** IEEE 1547-2018 Table 26/27 odd-harmonic limits 4.0 / 2.0 / 1.5 / 0.6 / 0.3 % (h < 11 / < 17 / < 23 / < 35 / < 50), even 1 / 2 / 3 % for h 2 / 4 / 6 and 25 % of the odd limit above, TRD 5 %; the product's THDi < 3 %; above h50 (where no standard on file sets a limit; EN 50549-1 refers to the EN 61000-3 series, GB/T 34120 sets a THD) the 0.3 % per component is our design target.  Megarevo cites EN 50549-1/-10, GB/T 34120/34133 (pma_user-manual).
 
 | V_dc | grid | m | PWM | THDi h2-h50 from PWM | THDi incl. carrier band | largest component above h50 | limit violations |
 |---|---|---|---|---|---|---|---|
-| 600 | stiff | 1.09 | minmax | 0.003 % | 0.080 % | h638: 0.046 % | 0 |
-| 600 | SCR 50 | 1.09 | minmax | 0.002 % | 0.012 % | h638: 0.007 % | 0 |
-| 600 | SCR 20 | 1.09 | minmax | 0.001 % | 0.005 % | h638: 0.003 % | 0 |
-| 600 | SCR 10 | 1.09 | minmax | 0.001 % | 0.003 % | h638: 0.002 % | 0 |
-| 600 | SCR 5 | 1.09 | minmax | 0.000 % | 0.001 % | h638: 0.001 % | 0 |
-| 750 | stiff | 0.87 | none | 0.000 % | 0.093 % | h638: 0.065 % | 0 |
-| 750 | SCR 50 | 0.87 | none | 0.000 % | 0.014 % | h638: 0.010 % | 0 |
-| 750 | SCR 20 | 0.87 | none | 0.000 % | 0.006 % | h638: 0.004 % | 0 |
-| 750 | SCR 10 | 0.87 | none | 0.000 % | 0.003 % | h638: 0.002 % | 0 |
-| 750 | SCR 5 | 0.87 | none | 0.000 % | 0.002 % | h638: 0.001 % | 0 |
-| 950 | stiff | 0.69 | none | 0.000 % | 0.080 % | h638: 0.055 % | 0 |
-| 950 | SCR 50 | 0.69 | none | 0.000 % | 0.012 % | h638: 0.008 % | 0 |
-| 950 | SCR 20 | 0.69 | none | 0.000 % | 0.005 % | h638: 0.004 % | 0 |
-| 950 | SCR 10 | 0.69 | none | 0.000 % | 0.003 % | h638: 0.002 % | 0 |
-| 950 | SCR 5 | 0.69 | none | 0.000 % | 0.001 % | h638: 0.001 % | 0 |
+| 600 | stiff | 1.09 | minmax | 0.004 % | 0.252 % | h478: 0.145 % | 4 |
+| 600 | SCR 50 | 1.09 | minmax | 0.003 % | 0.016 % | h478: 0.009 % | 0 |
+| 600 | SCR 20 | 1.09 | minmax | 0.002 % | 0.007 % | h478: 0.004 % | 0 |
+| 600 | SCR 10 | 1.09 | minmax | 0.001 % | 0.004 % | h478: 0.002 % | 0 |
+| 600 | SCR 5 | 1.09 | minmax | 0.001 % | 0.002 % | h478: 0.001 % | 0 |
+| 750 | stiff | 0.87 | none | 0.000 % | 0.293 % | h478: 0.208 % | 2 |
+| 750 | SCR 50 | 0.87 | none | 0.000 % | 0.018 % | h478: 0.013 % | 0 |
+| 750 | SCR 20 | 0.87 | none | 0.000 % | 0.008 % | h478: 0.005 % | 0 |
+| 750 | SCR 10 | 0.87 | none | 0.000 % | 0.004 % | h478: 0.003 % | 0 |
+| 750 | SCR 5 | 0.87 | none | 0.000 % | 0.002 % | h478: 0.001 % | 0 |
+| 950 | stiff | 0.69 | none | 0.000 % | 0.251 % | h478: 0.174 % | 2 |
+| 950 | SCR 50 | 0.69 | none | 0.000 % | 0.016 % | h478: 0.011 % | 0 |
+| 950 | SCR 20 | 0.69 | none | 0.000 % | 0.007 % | h478: 0.005 % | 0 |
+| 950 | SCR 10 | 0.69 | none | 0.000 % | 0.003 % | h478: 0.002 % | 0 |
+| 950 | SCR 5 | 0.69 | none | 0.000 % | 0.002 % | h478: 0.001 % | 0 |
 
-The PWM itself leaves THDi far below 3 %; the THDi at rated power will be set by the controller (dead time 250 ns at 32 kHz = a 1.6 % volt-second error before compensation, sensor offsets, grid background distortion, the loop gain at h5-h13): budget 2.5 % for those, to be verified by the control simulation (item 3 of ARCHITECTURE-PCS section 9).
+The PWM itself leaves THDi far below 3 %; the THDi at rated power will be set by the controller (dead time 250 ns at 24 kHz = a 1.2 % volt-second error before compensation, sensor offsets, grid background distortion, the loop gain at h5-h13): budget 2.5 % for those, to be verified by the control simulation (item 3 of ARCHITECTURE-PCS section 9).
 
-**Common mode.** With the C_f star tied to the DC midpoint (the architecture's choice, and necessary - step f), the carrier harmonic of the two-level common-mode voltage (441 V peak at 32 kHz, 950 V) drives 48 A rms through the three L1 in parallel, C_f and the DC midpoint (16 A per phase): it is part of the L1 ripple (17 A rms HF per phase in total, DM 6 A) and of the DC-link ripple (step d).  The architecture document did not count it.
+**Common mode.** With the C_f star tied to the DC midpoint (the architecture's choice, and necessary - step f), the carrier harmonic of the two-level common-mode voltage (441 V peak at 24 kHz, 950 V) drives 48 A rms through the three L1 in parallel, C_f and the DC midpoint (16 A per phase): it is part of the L1 ripple (17 A rms HF per phase in total, DM 6 A) and of the DC-link ripple (step d).  The architecture document did not count it.
 
-**Light load:** C_f draws 4.2 A capacitive at 460 V (340 V: 1.82 kvar, 400 V: 2.51 kvar, 460 V: 3.32 kvar) - the current controller compensates it at the grid terminals (PF -1..+1 control), no switched capacitor is needed.  **Inrush:** connecting to the grid with C_f empty and the inverter off would ring L2-C_f at 5.8 kHz with 686 A peak (Z0 548 mOhm) - forbidden: the sequence is DC precharge, inverter builds the grid voltage on C_f, synchronise (|dV| <= 5 %, 5 deg), then close; the residual step gives 68 A peak, which the current loop takes over within a few control periods.
+**Light load:** C_f draws 6.3 A capacitive at 460 V (340 V: 2.72 kvar, 400 V: 3.77 kvar, 460 V: 4.99 kvar) - the current controller compensates it at the grid terminals (PF -1..+1 control), no switched capacitor is needed.  **Inrush:** connecting to the grid with C_f empty and the inverter off would ring L2-C_f at 7.5 kHz with 1328 A peak (Z0 283 mOhm) - forbidden: the sequence is DC precharge, inverter builds the grid voltage on C_f, synchronise (|dV| <= 5 %, 5 deg), then close; the residual step gives 131 A peak, which the current loop takes over within a few control periods.
 
 The electrical requirement of L1, L2 and L_N (inductance versus current, rms / peak / ripple, frequency, loss budget, insulation) is written to pcs_spec.json under "inductors" for the magnetics engineer.
 
 ## (d) DC link
 
-**Split film bank: 5 + 5 x Faratronic C3D1U147** (140 uF, U_N 600 V at 70 C / 500 V at 85 C, ESR 3.0 mOhm, I_max 40.2 A, Faratronic-C3D.pdf p8): 700 uF per half, 350 uF across 950 V.  Two-level legs do not use the midpoint; it exists for the C_f star (the common-mode path, steps c and f), so the halves are sized by the ripple current: worst half-bank 130 A rms at 950 V / PF angle 180 (110 %): 0 A below 2 kHz, 128 A carrier band, 24 A of the C_f-star common-mode current (step c) - 26.0 A per capacitor = 65 % of I_max (project rule <= 70 %), case rise 6.3 K, ESR loss 20 W.
+**Split film bank: 5 + 5 x Faratronic C3D1U147** (140 uF, U_N 600 V at 70 C / 500 V at 85 C, ESR 3.0 mOhm, I_max 40.2 A, Faratronic-C3D.pdf p8): 700 uF per half, 350 uF across 950 V.  Two-level legs do not use the midpoint; it exists for the C_f star (the common-mode path, steps c and f), so the halves are sized by the ripple current: worst half-bank 130 A rms at 950 V / PF angle 0 (110 %): 0 A below 2 kHz, 128 A carrier band, 24 A of the C_f-star common-mode current (step c) - 26.0 A per capacitor = 65 % of I_max (project rule <= 70 %), case rise 6.3 K, ESR loss 20 W.
 
 | operating point (110 %) | m | PWM | I_dc (A) | upper half LF / HF (A rms) | lower half LF / HF | midpoint LF from the legs (A rms) |
 |---|---|---|---|---|---|---|
 | 600 V, 0 deg | 1.09 | minmax | 229 | 0 / 81 | 0 / 81 | 0 |
 | 600 V, 180 deg | 1.09 | minmax | -229 | 0 / 81 | 0 / 81 | 0 |
-| 600 V, 90 deg | 1.12 | minmax | 0 | 1 / 110 | 1 / 110 | 0 |
+| 600 V, 90 deg | 1.13 | minmax | 0 | 0 / 110 | 0 / 110 | 0 |
 | 750 V, 0 deg | 0.87 | none | 183 | 0 / 117 | 0 / 117 | 0 |
 | 750 V, 180 deg | 0.87 | none | -183 | 0 / 117 | 0 / 117 | 0 |
-| 750 V, 90 deg | 0.90 | none | 0 | 0 / 98 | 0 / 98 | 0 |
+| 750 V, 90 deg | 0.90 | none | 0 | 0 / 99 | 0 / 99 | 0 |
 | 950 V, 0 deg | 0.69 | none | 144 | 0 / 128 | 0 / 128 | 0 |
 | 950 V, 180 deg | 0.69 | none | -144 | 0 / 128 | 0 / 128 | 0 |
-| 950 V, 90 deg | 0.71 | none | 0 | 0 / 87 | 0 / 87 | 0 |
+| 950 V, 90 deg | 0.71 | none | 0 | 0 / 88 | 0 / 88 | 0 |
 
 **Voltage use and life (calculated from the p12 life curve):** 475 V per half at 950 V = 0.79 U_N; 522 V at a 10 % midpoint deviation = 0.87 U_N (1.1 U_N is allowed for 30 % of the on-load time, p12); the 560 V per-half trip = 0.93 U_N (1.15 U_N allowed 30 min/day).  Hot spot = inlet + 5 K + case rise: 45C_750V: 56 C, 288 kh; 45C_900V: 56 C, 225 kh; 45C_950V: 56 C, 204 kh; 60C_750V: 71 C, 316 kh; 60C_900V: 71 C, 227 kh; 60C_950V: 71 C, 200 kh.  The 800 V-class C3D2K117 of the architecture is not needed (0.59 U_N, 34.5 A, 110 uF in the same can).
 
-**Midpoint ripple (110 %, SVPWM; including the 150 Hz common-mode current through C_f, up to 8 A rms):** 600 V / 0 deg 17.7 V, 600 V / 180 deg 17.7 V, 600 V / 90 deg 18.2 V, 750 V / 0 deg 0.0 V, 750 V / 180 deg 0.0 V, 750 V / 90 deg 0.0 V, 950 V / 0 deg 0.0 V, 950 V / 180 deg 0.0 V, 950 V / 90 deg 0.0 V peak-to-peak - within 60 V.  The two-level legs need no midpoint control; static balance by the bleeders, a slow firmware check of the half voltages.
+**Midpoint ripple (110 %, SVPWM; including the 150 Hz common-mode current through C_f, up to 23 A rms):** 600 V / 0 deg 26.3 V, 600 V / 180 deg 26.3 V, 600 V / 90 deg 27.3 V, 750 V / 0 deg 0.0 V, 750 V / 180 deg 0.0 V, 750 V / 90 deg 0.0 V, 950 V / 0 deg 0.0 V, 950 V / 180 deg 0.0 V, 950 V / 90 deg 0.0 V peak-to-peak - within 60 V.  The two-level legs need no midpoint control; static balance by the bleeders, a slow firmware check of the half voltages.
 
 **Three-level contrast (why the topology changed):** a three-level leg draws a 150 Hz midpoint current that no zero sequence cancels at PF 0 and 600-750 V (np_residual): 25 capacitors per half instead of 5 (step a).  The architecture's 660 uF per half relied on a midpoint control that cannot work at PF 0.
 
@@ -262,9 +264,9 @@ The electrical requirement of L1, L2 and L_N (inductance versus current, rms / p
 | 7.5 ohm | 1408 | 358 | 47.1 | 64 | 6.01 | sim/spice/pcs_commutation_sweep2.cir |
 | 12.5 ohm | 1352 | 302 | 39.8 | 44 | 9.11 | sim/spice/pcs_commutation_sweep3.cir |
 
-**Chosen: R_G,off 7.5 ohm, R_G,on 8.75 ohm per device** (the smallest of the sweep that holds the limit): worst case 1408 V peak against the 0.85 x 1700 = 1445 V project limit; nominal (950 V, 405 A = 1.2 x 216 A peak + ripple, nominal leg): 1217 V, 59 V/ns, 48.4 A/ns.  E_off at this R_G is 2.17 x the data-sheet curve; the device loss at 125 kW / 750 V rises from 1218 to 1277 W, peak efficiency 99.20 % (full load 750 V 98.65 %) - step b already carries this factor (this step runs first).  Decks: sim/spice/pcs_commutation_*.cir.
+**Chosen: R_G,off 7.5 ohm, R_G,on 8.75 ohm per device** (the smallest of the sweep that holds the limit): worst case 1408 V peak against the 0.85 x 1700 = 1445 V project limit; nominal (950 V, 405 A = 1.2 x 216 A peak + ripple, nominal leg): 1217 V, 59 V/ns, 48.4 A/ns.  E_off at this R_G is 2.17 x the data-sheet curve (simulated) and E_on at R_G,on 8.75 ohm 1.63 x (the data sheet's E-vs-R_G curve, D-057); the device loss at 125 kW / 750 V rises from 1113 to 1253 W, peak efficiency 99.09 % (full load 750 V 98.42 %) - step b already carries both factors (this step runs first).  Decks: sim/spice/pcs_commutation_*.cir.
 
-**Gate drive (the project's channel, gen/gdrv.py, NSI6651ASC):** one channel per switch position - **6 channels for three-wire, 8 for four-wire** (the architecture had 12/16).  Rails **+18 / -3.5 V** (the PV setting for this device, gdrv GATE_V (18, 3.5)); per-device gate resistor and 0.5 ohm Kelvin resistor (R_KS), per-gate Miller clamp FET as the PV rev-5 channel; DESAT string 100 ohm + 3 x US1MH and the short-circuit booster (booster=True) unchanged.  Six gates per channel: Q_g 468 nC, 0.32 W at 32 kHz (bias secondary budget 0.5 W - one SN6505B transformer per phase with two secondaries); peak gate current 14 A wanted against the NSI6651's 10 A - **add a discrete NPN/PNP push-pull buffer per channel** (two SOT-89 transistors, about 0.3 USD) or split the six devices over two drivers (+6 channels); the buffer is the cheaper answer.  Dead time: **300 ns** in the ePWM dead-band, with the channel's RC + Schmitt stretch on IN- as the hardware minimum and the negative-rail detector (gen/gdrv.py stretch=True, neg_det=True, D-050).  The stretch values of the PV preset (2 gates, no buffer) do NOT carry over: six gates behind a buffer at R_G,off 7.5 ohm turn off more slowly, so a '6 x SG2M040170HJ' preset must be added to gen/gdrv.py and its design_check re-run before the channel is drawn.
+**Gate drive (the project's channel, gen/gdrv.py, NSI6651ASC):** one channel per switch position - **6 channels for three-wire, 8 for four-wire** (the architecture had 12/16).  Rails **+18 / -3.5 V** (the PV setting for this device, gdrv GATE_V (18, 3.5)); per-device gate resistor and 0.5 ohm Kelvin resistor (R_KS), per-gate Miller clamp FET as the PV rev-5 channel; DESAT string 100 ohm + 3 x US1MH and the short-circuit booster (booster=True) unchanged.  Six gates per channel: Q_g 468 nC, 0.24 W at 24 kHz (bias secondary budget 0.5 W - one SN6505B transformer per phase with two secondaries); peak gate current 14 A wanted against the NSI6651's 10 A - **add a discrete NPN/PNP push-pull buffer per channel** (two SOT-89 transistors, about 0.3 USD) or split the six devices over two drivers (+6 channels); the buffer is the cheaper answer.  Dead time: **300 ns** in the ePWM dead-band, with the channel's RC + Schmitt stretch on IN- as the hardware minimum and the negative-rail detector (gen/gdrv.py stretch=True, neg_det=True, D-050).  The stretch values of the PV preset (2 gates, no buffer) do NOT carry over: six gates behind a buffer at R_G,off 7.5 ohm turn off more slowly, so a '6 x SG2M040170HJ' preset must be added to gen/gdrv.py and its design_check re-run before the channel is drawn.
 
 **Short circuit:** DESAT trips at V_DS 6.3-7.9 V (NSI6651 8.5-9.8 V minus 100 ohm x I_CHG and 3 x US1MH, gen/gdrv.py DESAT_CLASS[1700]); at the 450 A over-current trip the hottest device sits at 6.3 V (no nuisance trip); blanking 150-500 ns, detection to off <= 1.0 us with the booster - inside the 2 us withstand ASSUMED for Sichain (no rating published: SC test or maker statement is a release item).
 
@@ -274,7 +276,7 @@ The electrical requirement of L1, L2 and L_N (inductance versus current, rms / p
 
 ## (f) AC port, DC port, common mode
 
-**AC disconnect:** two 3-pole contactors in series (4-pole for four-wire), relay test before every connection; AC-1 >= 248 A at 60 C, U_i 1000 V, U_imp 8 kV, 24 V DC with economiser (ESTIMATE 20 W pull-in / 4 W hold); CHINT NXC-225 / CJX2-185, Delixi CJX2s-185 class - no data sheet on file (R-06, RFQ).  Relay test (firmware, before every connection): close each contactor alone and read the voltage across the other through the terminal- and C_f-side dividers - a welded pole shows as zero volts.  Two in series because the converter is non-isolated and the disconnection must survive one welded contact (IEC 62109-2 / EN 50549-1 'AC relay automatic checking' as the PMA cites them - clauses from memory).  The contactors make only after synchronisation (|dV| <= 5 %, 5 deg: 68 A peak, step c) and break only at zero current (firmware); with the controller dead the gates are off and only the brief diode-rectifier current flows, inside the AC-1 breaking capacity.  No AC-side hold-off comparator (D-050 keeps it for the DC contactor): after a trip the converter current is zero within microseconds, and a short behind the contactors is fed by the grid at a level only the upstream breaker can clear - a hold-off could not help.  Synchronised closing is firmware: an unsynchronised close rings L2-C_f (686 A peak) inside the contactor's making capacity - a stressed unit, not a hazard.
+**AC disconnect:** two 3-pole contactors in series (4-pole for four-wire), relay test before every connection; AC-1 >= 248 A at 60 C, U_i 1000 V, U_imp 8 kV, 24 V DC with economiser (ESTIMATE 20 W pull-in / 4 W hold); CHINT NXC-225 / CJX2-185, Delixi CJX2s-185 class - no data sheet on file (R-06, RFQ).  Relay test (firmware, before every connection): close each contactor alone and read the voltage across the other through the terminal- and C_f-side dividers - a welded pole shows as zero volts.  Two in series because the converter is non-isolated and the disconnection must survive one welded contact (IEC 62109-2 / EN 50549-1 'AC relay automatic checking' as the PMA cites them - clauses from memory).  The contactors make only after synchronisation (|dV| <= 5 %, 5 deg: 131 A peak, step c) and break only at zero current (firmware); with the controller dead the gates are off and only the brief diode-rectifier current flows, inside the AC-1 breaking capacity.  No AC-side hold-off comparator (D-050 keeps it for the DC contactor): after a trip the converter current is zero within microseconds, and a short behind the contactors is fed by the grid at a level only the upstream breaker can clear - a hold-off could not help.  Synchronised closing is firmware: an unsynchronised close rings L2-C_f (1328 A peak) inside the contactor's making capacity - a stressed unit, not a hazard.
 
 **Precharge and start:** from the DC side through the lean port's relay and 220 ohm: C_eq 350 uF, tau 77 ms, within 10 V of 950 V after 0.35 s, 158 J, 4.3 A peak.  Then the inverter forms the grid voltage on C_f (current-limited), synchronises, runs the relay test, closes.  Grid start (battery empty or disconnected) uses the architecture's six-diode tap for the auxiliary supply only.
 
@@ -284,11 +286,11 @@ The electrical requirement of L1, L2 and L_N (inductance versus current, rms / p
 
 | V_dc | AC | PWM | 150 Hz CM (V rms) | leakage at 1 / 5 / 20 uF to earth (mA) |
 |---|---|---|---|---|
-| 590 V | 400 V | minmax | 48 | 45 / 225 / 900 |
+| 590 V | 400 V | minmax | 48 | 45 / 225 / 901 |
 | 590 V | 460 V | minmax | 55 | 52 / 259 / 1035 |
-| 620 V | 400 V | minmax | 48 | 45 / 225 / 900 |
+| 620 V | 400 V | minmax | 48 | 45 / 225 / 901 |
 | 620 V | 460 V | minmax | 55 | 52 / 259 / 1035 |
-| 650 V | 400 V | minmax | 48 | 45 / 225 / 900 |
+| 650 V | 400 V | minmax | 48 | 45 / 225 / 901 |
 | 650 V | 460 V | minmax | 55 | 52 / 259 / 1035 |
 | 680 V | 400 V | none | 0 | 0 / 0 / 0 |
 | 680 V | 460 V | minmax | 55 | 52 / 259 / 1035 |
@@ -298,7 +300,7 @@ The electrical requirement of L1, L2 and L_N (inductance versus current, rms / p
 
 Against the residual-current monitor (IEC 62109-2 from memory: 10 mA per kVA continuous above 30 kVA = 1250 mA here, 300 mA for small units, sudden steps of 30 / 60 / 150 mA): the battery may have up to 6 uF to earth for a 300 mA budget (24 uF for the 10 mA/kVA one) when it is operated below 680 V; above, no limit from this source.  (The architecture's 0.7 A at 5 uF assumed 150 V of zero sequence - the min-max offset's 150 Hz part is about half that, and it is not used above 680 V here.)
 
-(2) Switching frequency: the converter's common-mode voltage (441 V peak at 32 kHz, 950 V) is returned locally through C_f and the DC midpoint (step c), leaving 2.3 V peak between the terminals and the DC midpoint; through the battery's earth capacitance that alone drives 1uF: 0.5 A, 5uF: 2.3 A, 20uF: 9.1 A at 32 kHz - so the AC conductors need a common-mode choke of >= 150 uH at 32 kHz (three nanocrystalline cores over the busbars instead of the architecture's two): 1uF: 90 mA, 5uF: 77 mA, 20uF: 75 mA.
+(2) Switching frequency: the converter's common-mode voltage (441 V peak at 24 kHz, 950 V) is returned locally through C_f and the DC midpoint (step c), leaving 2.0 V peak between the terminals and the DC midpoint; through the battery's earth capacitance that alone drives 1uF: 0.3 A, 5uF: 1.5 A, 20uF: 6.0 A at 24 kHz - so the AC conductors need a common-mode choke of >= 192 uH (3 nanocrystalline cores over the busbars instead of the architecture's two): 1uF: 90 mA, 5uF: 72 mA, 20uF: 70 mA.
 
 **What the product needs (answer):** no transformer and no special modulation beyond the one above.  Three-wire on a TN grid is allowed with (a) the C_f star tied to the DC midpoint, (b) the AC common-mode choke, (c) an installation limit on the battery's capacitance to earth for operation below 680 V (stated above), (d) the RCMU thresholds set per the code; where the battery exceeds it or the grid code forbids the DC-to-earth voltage, the four-wire version (N connected, the N leg holds the zero sequence) or an isolation transformer is the installer's choice.  The battery rack sits at +-V_dc/2 against earth in operation (as the architecture noted): its insulation and IMD must be rated for that.
 
@@ -312,36 +314,64 @@ Every line named and priced in sim/out/pcs_design/pcs_costed_bom.csv (and pcs_sp
 |---|---|---|
 | POWER | 239 | 202 |
 | GATE DRIVE | 51 | 37 |
-| LCL FILTER | 207 | 167 |
+| LCL FILTER | 469 | 374 |
 | SENSING | 60 | 49 |
 | DC PORT | 190 | 142 |
-| AC PORT | 159 | 127 |
+| AC PORT | 176 | 142 |
 | AUX SUPPLY | 37 | 31 |
-| CONTROL | 11 | 11 |
+| CONTROL | 12 | 11 |
 | INTERFACE | 8 | 8 |
 | THERMAL | 111 | 85 |
 | MECH-ELEC | 13 | 11 |
 
-**Discrete protection layer (D-050, as on the PV module; counts from the PV boards, prices from bom/PV-P75_costed_BOM.csv):** control board 3.69 / 3.47 USD (PV-CTL sheets 04 / 05, 62 parts; four-wire = the PV-P100/110 assembly with the fourth window, +0.50 USD); DC port: hold-off comparator 1.45 USD (replaces a 0.5 USD guess), polarity + precharge-dV interlocks and the over-current window 4.77 / 4.77 USD; per gate-drive channel stretch + negative-rail detector 0.12 / 0.11 USD (7 + 4 parts; the stretch was already inside the PV channel estimate and is now its own line).  Firmware duplicates each trip as the second layer.
+**Discrete protection layer (D-050, as on the PV module; counts from the PV boards, prices from bom/PV-P75_costed_BOM.csv):** control board 3.91 / 3.67 USD (PV-CTL sheets 04 / 05, 81 parts; four-wire = the PV-P100/110 assembly with the fourth window, +0.50 USD); DC port: hold-off comparator 1.45 USD (replaces a 0.5 USD guess), polarity + precharge-dV interlocks and the over-current window 4.77 / 4.77 USD; per gate-drive channel stretch + negative-rail detector 0.12 / 0.11 USD (7 + 4 parts; the stretch was already inside the PV channel estimate and is now its own line).  Firmware duplicates each trip as the second layer.
 
 **Where the PV discrete layer does not carry over unchanged:** (1) the phase-current windows keep their TLV9024 comparators but move to +-450 A on +-500 A TMR sensors: the sensor gain and the ladder values change, and the trip path (sensor response + comparator + latch + driver) must stay within about 1.5 us at di/dt = V_dc/L1 = 9.8 A/us - with the PV's 73 A / 224 uH it was 4.5 A/us; the sensor's step response is the open data item; (2) the dead-time stretch needs a new gen/gdrv.py preset for six gates behind a buffer (step e); (3) the AC side has no counterpart of the DC-port interlocks: no hold-off (the converter current is zero after a trip; a short behind the contactors is grid-fed) and no hardware synchronism check (firmware; an unsynchronised close is a stressed unit, not a hazard); (4) grid over / under voltage and frequency, anti-islanding and the residual-current trips are firmware-only by nature (slow, code-dependent), with the RCMU self-test; (5) the second DC port of the PV board does not exist here - one port's interlocks.
-| **three-wire total** | **1086 (8.7 USD/kW)** | **869 (7.0 USD/kW)** |
-| four-wire increment | 203 | 163 |
-| **four-wire total** | **1289** | **1032** |
+| **three-wire total** | **1365 (10.9 USD/kW)** | **1092 (8.7 USD/kW)** |
+| four-wire increment | 264 | 212 |
+| **four-wire total** | **1629** | **1304** |
 
-**Against the architecture:** three-wire 1086 / 869 USD against its 1037 / 801 USD (+5 % / +9 %); four-wire 1289 / 1032 against 1194 / 919 USD.  The architecture's figures rest on 42 IGBTs that overheat (step a: 66 needed) and on a 660 uF midpoint bank that its own modulation cannot hold at PF 0 (step d: 25 capacitors per half for any three-level design); corrected for those two (+55 USD of IGBTs and pads, +158 USD of DC link at 5k) its T-type would cost about 1015 USD at 5k.  Evidence behind the 5k figure: 7 % (LCSC breaks, marketplace quote); the rest are assumed factors 0.68-0.85 on estimates - the inductors, the contactors, the fuses, the heatsink and the SiC device price are RFQ items.
+**Against the architecture:** three-wire 1365 / 1092 USD against its 1037 / 801 USD (+32 % / +36 %); four-wire 1629 / 1304 against 1194 / 919 USD.  The architecture's figures rest on 42 IGBTs that overheat (step a: 66 needed) and on a 660 uF midpoint bank that its own modulation cannot hold at PF 0 (step d: 25 capacitors per half for any three-level design); corrected for those two (+47 USD of IGBTs and pads, +158 USD of DC link at 5k) its T-type would cost about 1006 USD at 5k on the architect's filter prices (section h prices it with the real inductors).  Evidence behind the 5k figure: 5 % (LCSC breaks, marketplace quote); the rest are assumed factors 0.68-0.85 on estimates - the inductors, the contactors, the fuses, the heatsink and the SiC device price are RFQ items.
+
+## (h) Re-optimisation with the real inductor designs (sim/pcs_tradeoff.py)
+
+**CALCULATED, nothing measured.** Devices, heat sink, PWM and LCL: sim/pcs_design.py (E_on at the drawn R_G,on 8.75 ohm, E_off x2.17 from its step e, L1 ripple in the device currents); L1 / L2 / AC CM choke: sim/magnetics.py (gapped nanocrystalline / amorphous C-cores only - no powder block cores), each candidate's own requirement (L(I) minima at its own peaks, its HF current, its trip).  L1 = the cheapest verified part keeping the peak efficiency >= 98.7 % (98.5 % + 0.2-point model margin). **Acceptance:** peak efficiency >= 98.5 % (AC-02); Tj <= 150 C at 110 % / 45 C (k 1.10, 120 % 2 min and 200 ms as step a) and 100 % rated current at 60 C inlet with the hottest device at 1.30 x the mean (D-057); every grid-current component of the carrier band <= 0.3 % of rated, resonance below f_s/6 (stiff) and above 2 x the current-loop bandwidth (SCR 5); 150 Hz earth current <= 300 mA at 5 uF to earth, carrier-band earth current <= the drawn design's (63 mA rms with 150 uH) at 1-20 uF, the AC CM choke sized per candidate; worst full-load efficiency (600-900 V, PF 1) >= 98.0 % (pcs_design rule); every device blocks <= 0.85 of its rating at the 1050 V DC trip before overshoot (the peak rule's necessary part - two-level overshoot is verified by step e's decks, the T-type's is not simulated).  The 0.67 rule is reported as the FIT per unit, not used as a filter.
+
+| candidate | 5k USD (catalogue) | peak / full-load (750 V) efficiency | filter 5k USD | filter kg | filter W at 125 kW, 750 V | meets the limits |
+|---|---|---|---|---|---|---|
+| A0 drawn (97 uH, 32 kHz, 450 A) | 1194 (1482) | 98.98 / 98.30 % | 506 | 48 | 538 | yes |
+| A1 L1 120 uH | 1131 (1409) | 98.99 / 98.30 % | 443 | 39 | 543 | yes |
+| A2 24 kHz | 1092 (1365) | 99.09 / 98.42 % | 404 | 30 | 528 | yes |
+| A1xA2 20 kHz, L1 117 uH | 1120 (1397) | 99.12 / 98.49 % | 433 | 33 | 504 | yes |
+| A3 min-max everywhere (SVPWM) | 1142 (1422) | 98.96 / 98.30 % | 455 | 40 | 549 | yes |
+| A3 AZSPWM1 | 1223 (1517) | 98.98 / 98.30 % | 510 | 51 | 540 | yes |
+| A3 NSPWM (AZSPWM1 above 860 V) | 1377 (1698) | 99.30 / 98.56 % | 665 | 36 | 456 | no (leak) |
+| A4 trip from protection need | 1194 (1482) | 98.98 / 98.30 % | 506 | 48 | 538 | yes |
+| B SiC T-type 1200 V (cross-check) | 1236 (1599) | 99.49 / 98.84 % | 439 | 22 | 320 | no (peak) |
+| B rule kept: 1700 V outer | 1279 (1619) | 99.46 / 98.64 % | 439 | 22 | 320 | yes |
+| B-IGBT T-type 16 kHz (competitor class) | 1607 (2091) | 98.99 / 98.37 % | 636 | 50 | 470 | no (peak) |
+| A* two-level, levers combined | 1092 (1365) | 99.09 / 98.43 % | 404 | 30 | 509 | yes |
+| A* two-level, same, sinusoidal PWM (no A3) | 1092 (1365) | 99.09 / 98.42 % | 404 | 30 | 528 | yes |
+
+**Recommended: A2 24 kHz**, 1092 USD at 5,000 units (1365 catalogue), 29 USD (2.6 %) below the runner-up A1xA2 20 kHz, L1 117 uH; peak efficiency 99.09 %, filter 404 USD / 30 kg.  The D-053 design corrected (A0) costs 1194 USD.
+
+Same design point, other settings: A* two-level, levers combined (minmax, trip 450 A) 1092 USD; A* two-level, same, sinusoidal PWM (no A3) (policy, trip 450 A) 1092 USD - at this point the L1 is already the cheapest part that passes the thermal screen, so a flatter reference buys nothing and D-053's sinusoidal policy stays.
+
+Cheapest acceptable T-type: B rule kept: 1700 V outer, 1279 USD (+187 USD against the best two-level).  The sweep's resolution is about +-20 USD: the magnetics grid is discrete and the cheapest part that meets the efficiency rules jumps between amorphous and nanocrystalline designs.
+
+pcs_design.py carries this design (A2 24 kHz): f_sw 24 kHz, L1 130 uH, C_f 75 uF, L2 6 uH, trip 450 A, modulation policy; inductor cost, mass and loss from sim/magnetics.py.
 
 ## Hand-over
 
 **Control engineer (plant and limits; pcs_spec.json 'handover'):**
-- LCL: L1 97 uH (R about 1.08 mOhm), C_f 50 uF star (tied to the DC midpoint), L2 15 uH, R_d 2 ohm + C_d 10 uF per phase; resonance stiff 6.24 kHz, SCR 50 3.23 kHz, SCR 20 2.74 kHz, SCR 10 2.53 kHz, SCR 5 2.41 kHz; DC link 350 uF across the bus.
-- Sampling 64 kHz double update, delay 23 us, dead time 300 ns (1.9 % volt-seconds -> compensate (THDi < 3 %)).
-- current loop: L1 current (sensor on the C_f side of L1): resonance 2.4-6.2 kHz is below f_s/6 = 10.7 kHz, where converter-current feedback with 1.5 T_s delay is inherently damped; keep the bandwidth <= 1 kHz (below f_res(SCR 5)/2), resonant terms at h5/h7/h11/h13; grid current for PF/THD = i_L1 - C_f dv_Cf/dt; passive R_d-C_d branch as the fallback damping
+- LCL: L1 130 uH (R about 2.72 mOhm), C_f 75 uF star (tied to the DC midpoint), L2 6 uH, R_d 2 ohm + C_d 10 uF per phase; resonance stiff 7.67 kHz, SCR 50 2.54 kHz, SCR 20 2.05 kHz, SCR 10 1.85 kHz, SCR 5 1.74 kHz; DC link 350 uF across the bus.
+- Sampling 48 kHz double update, delay 31 us, dead time 300 ns (1.4 % volt-seconds -> compensate (THDi < 3 %)).
+- current loop: L1 current (sensor on the C_f side of L1): resonance 1.7-7.7 kHz is below f_s/6 = 8.0 kHz, where converter-current feedback with 1.5 T_s delay is inherently damped; keep the bandwidth <= 0.75 kHz (below f_res(SCR 5)/2), resonant terms at h5/h7/h11/h13; grid current for PF/THD = i_L1 - C_f dv_Cf/dt; passive R_d-C_d branch as the fallback damping
 - pll: on the C_f (or terminal) voltages, 400 V +-15 %, 50/60 Hz, SCR 5..stiff, unbalance and LVRT/HVRT (EN 50549-1 / GB/T 34120)
 - modulation: two-level, sinusoidal where m <= 0.98, min-max zero sequence above (V_dc < ~680 V at 400 V, < ~780 V at 460 V)
-- midpoint: no control (two-level); firmware plausibility of the half voltages; C_f-star 150 Hz current <= 8 A rms, ripple <= 18 V pp
-- grid forming: voltage control on C_f (L1-C_f with the damping branch), current limit 1.2 x 216 A for 200 ms (Tj 151 C at the worst corner, step b), 120 % for 2 min, transitions grid <-> off-grid < 20 ms (Megarevo)
-- four wire: neutral leg two-level with L_N = 97 uH, reference = -sum of the phase currents' zero sequence; 100 Hz battery current of single-phase load (~39 A rms at 750 V) is an installation item
+- midpoint: no control (two-level); firmware plausibility of the half voltages; C_f-star 150 Hz current <= 23 A rms, ripple <= 27 V pp
+- grid forming: voltage control on C_f (L1-C_f with the damping branch), current limit 1.2 x 216 A for 200 ms (Tj 149 C at the worst corner, step b), 120 % for 2 min, transitions grid <-> off-grid < 20 ms (Megarevo)
+- four wire: neutral leg two-level with L_N = 130 uH, reference = -sum of the phase currents' zero sequence; 100 Hz battery current of single-phase load (~39 A rms at 750 V) is an installation item
 
 **Board designers:**
 - power stage: 3 two-level legs (4 for four-wire): 6 x SG2M040170HJ per switch (TO-247-4L, Kelvin source), Al2O3 pads on one earthed section per leg; per device pair 3 x 2.2 uF / 1300 V film at the pins + RC damper (2 x 4.7 nF 2 kV C0G, 6 x 15 ohm 2512); DC link 5 + 5 x C3D1U147 in two series halves, midpoint to the C_f star
@@ -368,7 +398,7 @@ Every line named and priced in sim/out/pcs_design/pcs_costed_bom.csv (and pcs_sp
 - Nothing is measured: every loss, temperature, overshoot and spectrum here is calculated from data-sheet curves (read by eye, +-5 %) or simulated with fitted VDMOS models.
 - Sichain SG2M040170HJ: no public price (4.07 USD is the PV module's estimate), no qualification statement, no short-circuit withstand (2 us assumed), no cosmic-ray data (the 0.67 rule is applied to its 1700 V rating by scaling Wolfspeed's 1200 V curve). The qualified fallback of the PV module (Microchip MSC035SMA170B4, 39 USD) does not fit this product's budget at 36 devices.
 - Paralleling six TO-247 per switch: sharing k = 1.10 needs one-lot or binned devices and the per-pair decoupling layout; both are requirements, not results.  The commutation decks use the PV leg scaled x3 - re-run with the extracted layout.
-- Inductors, contactors, the 400 A aR fuse, the heatsink, the film capacitors and the CM cores have no quotes; 95 % of the 5,000-unit money is an assumed factor.
+- Inductors, contactors, the 400 A aR fuse, the heatsink, the film capacitors and the CM cores have no quotes; 95 % of the 5,000-unit money is an assumed factor; the inductor prices are sim/magnetics.py's material + labour model (core and conductor USD/kg ESTIMATES), and its search covers gapped nanocrystalline / amorphous C-cores only - no powder block cores.
 - Standards: EN 50549-1, IEC 62109-2, IEEE 1547 (the harmonic limits used), IEC 62116, GB/T 34120 - from memory, texts not on file.
 - Battery capacitance to earth (1-20 uF range assumed) decides the three-wire TN installation limit below 680 V.
 - Control: current loop, PLL, grid forming, four-wire neutral control and the THDi < 3 % at rated power are not simulated here (ARCHITECTURE-PCS section 9 items 3-7).

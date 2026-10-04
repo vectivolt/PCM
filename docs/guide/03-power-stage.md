@@ -203,16 +203,20 @@ film capacitors' ESL (35 nH bank / 25 nH decoupling) differs from the KEMET part
 These per-phase figures include gate drive, bias, sensing and the dampers, with the dead time at its maximum; they
 exclude fans, controller and port parts.
 
-**Module level — not yet re-run for the cost-first module.** The module efficiency of
-[module_report.md](../../sim/out/pv_design/module_report.md) (99.49 % peak) was computed for the earlier platform
-(Sanyo fans, NH fuses, per-phase heatsinks). For the cost-first module the power-board check adds the cheaper
-round-wire inductor: +98 W per PV-P75 at the worst point, about −0.13 percentage points
-([D-054](../requirements/DECISIONS.md)). A module re-run with the shared heatsink, the Delta fans and the lean port
-parts is open ([ARCHITECTURE-COSTFIRST.md §9](../requirements/ARCHITECTURE-COSTFIRST.md)).
+**Module level — re-run on the drawn boards ([D-056](../requirements/DECISIONS.md)).**
+[module_report.md](../../sim/out/pv_design/module_report.md) and block `costfirst` of
+[module_spec.json](../../sim/out/pv_design/module_spec.json) (`sim/pv_module.py`: shared heatsink, Delta fans, lean port
+parts and the round-wire inductor of [D-054](../requirements/DECISIONS.md)) give, calculated, for PV-P75: peak
+efficiency 99.47 % at 900 → 1000 V and 49.5 kW (25 °C inlet; phases, ports, auxiliary supply, contactor coils and fans
+all counted) and 98.77–99.07 % at the full-power corners at 45 °C inlet. At full power and 45 °C inlet the junction is
+109.5 °C, the heatsink 82.2 °C and the inductor hot spot 144.7 °C (the power-board check below gives 107.3 °C for the
+junction). Full power holds to 45 °C inlet and 75 % of it at 60 °C; at 3,000 m and 45 °C inlet 79 %. PV-P100/110 peaks
+at 99.46 % but is a derated build on these boards: its inductors limit it to full power up to 35 °C inlet (92 % at
+45 °C), and the 145 A battery port needs at least 690 V for 100 kW.
 
 | Thermal, 45 °C inlet, full power (calculated) | PV-P75 | PV-P100/110 |
 |---|---:|---:|
-| Shared heatsink, R<sub>sa</sub> incl. air rise (K/W) | ≤ 0.060 at ~424 m³/h | ≤ 0.049 at ~566 m³/h |
+| Shared heatsink, R<sub>sa</sub> incl. air rise (K/W) | ≤ 0.060 at ~402 m³/h | ≤ 0.049 at ~456 m³/h |
 | Device losses (W) | 536 | 715 |
 | Heatsink (°C) | 77.2 | 80.0 |
 | Hottest junction (°C), design limit 125 °C | 107.3 | 110.1 |

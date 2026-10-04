@@ -6,7 +6,7 @@
 > What "verified" means in a project with no hardware: the build pipeline and its checks, the board design checks, the pin, temperature and insulation audits, the independent design reviews, the simulation self-checks and the three-way magnetics check — with the result for every board, and an honest list of what has not been verified.
 
 ![boards](https://img.shields.io/badge/boards%20built-14%20of%2014%20passing-00A99D?style=flat-square)
-![reviews](https://img.shields.io/badge/review%20findings-112%20recorded-0B1F33?style=flat-square)
+![reviews](https://img.shields.io/badge/review%20findings-113%20recorded-0B1F33?style=flat-square)
 ![cost-first review](https://img.shields.io/badge/independent%20review%20of%20PV--PWR%20%2F%20PV--CTL-not%20yet-F2A007?style=flat-square)
 ![bench](https://img.shields.io/badge/bench%20tests-none-E4572E?style=flat-square)
 ![date](https://img.shields.io/badge/as%20of-2026--10--05-5B6B7A?style=flat-square)
@@ -117,8 +117,8 @@ unknown are a Mersen fuse and four Phoenix Contact terminals without a stated ra
 | [INT](../../gen/data/integration_findings.csv) | integration across boards | 4 | 7 | 11 | as CSR |
 | [DR](../../gen/data/review_dab60.csv) | DAB60 board | 0 | 8 | 7 | DR-01…07 resolved by calculation in [dab_design report §0.1](../../sim/out/dab_design/report.md); DR-05 left as a residual risk |
 | [IC](../../gen/data/review_insulation.csv) | insulation, all HV boards | 3 | 15 | 5 | partly closed by the Chipanalog isolators ([D-040](../requirements/DECISIONS.md)) and the varistor network ([D-042](../requirements/DECISIONS.md)) |
-| [MG](../../gen/data/review_magnetics.csv) | magnetics | 2 | 10 | 4 | 13 closed by the rev M1 / M2 constructions (calculated), 3 open |
-| **Total** | | **12** | **58** | **42** | 112 findings |
+| [MG](../../gen/data/review_magnetics.csv) | magnetics | 2 | 11 | 4 | 13 closed by the rev M1 / M2 constructions (calculated), 4 open |
+| **Total** | | **12** | **59** | **42** | 113 findings |
 
 The first four reviews are the round of [D-023](../requirements/DECISIONS.md): 58 defects (7 critical, 25 major, 26
 minor) found **after** every board had passed its own checks — the reason the review step exists. Only the magnetics
@@ -135,7 +135,7 @@ file carries a status column; for the others the status is taken from the decisi
 |---|---|---|
 | Control | switched, averaged and small-signal models agree on overshoot within ~3 %; energy balance residual 0.007 %; ngspice band-mode deck drifts −16.281 A against −16.288 A in the switched model (RMS difference 3.5 mA) | [pv_control report §3](../../sim/out/pv_control/report.md) |
 | Cell design | ngspice switching decks against the analytic model: ripple within 15 %, device peak within 12 % (asserted); bidirectional symmetry of the loss model asserted | [pv_design report §2, §4](../../sim/out/pv_design/report.md) |
-| Magnetics | 57 checks, 54 pass, 3 known fails (MG-15, MG-16); model self-tests (Bessel strand model → DC limit 1.0000, iGSE on a sine = Steinmetz 1.000, two forms of Sullivan's F<sub>r</sub> agree) | [magnetics report §8](../../sim/out/magnetics/report.md) |
+| Magnetics | 77 checks, 73 pass, 4 recorded as known shortfalls (MG-15, MG-16 twice, MG-17); model self-tests (Bessel strand model → DC limit 1.0000, iGSE on a sine = Steinmetz 1.000, two forms of Sullivan's F<sub>r</sub> agree) | [magnetics report §8](../../sim/out/magnetics/report.md) |
 | DAB | model calibrated against Wolfspeed's measured CRD efficiency; ngspice switching cross-check | [dab_design report §5, §11](../../sim/out/dab_design/report.md) |
 | PCS study | self-check passes on an independent re-run ([D-053](../requirements/DECISIONS.md)) | [pcs_design report](../../sim/out/pcs_design/report.md) |
 
@@ -149,8 +149,9 @@ The three-way magnetics verification (designer / OpenMagnetics / own calculation
   partial-discharge test, EMI scan or efficiency measurement exists.
 - **No PCB layout** (out of scope): every loop inductance (15 nH bulk-to-leg, ≤ 1 nH clamp loop), creepage distance and
   thermal path is a stated requirement, not a result.
-- **The cost-first module as a whole:** efficiency and thermal have not been re-run with the shared heatsink, the Delta
-  fans and the lean port parts; the control loops and the MPPT have not been re-simulated with the TMR sensors and the
+- **The cost-first module as a whole:** efficiency and thermal were re-run on the drawn boards ([D-056](../requirements/DECISIONS.md);
+  99.47 % peak, junction 109.5 °C at 45 °C inlet, [module_report.md](../../sim/out/pv_design/module_report.md)) — a
+  calculation, not a measurement; the control loops and the MPPT have not been re-simulated with the TMR sensors and the
   divider / shunt chain; the F280039C timing at 120 MHz is an estimate (R-14).
 - **No independent review, pin audit or full temperature audit of PV-PWR and PV-CTL** (above).
 - **Insulation:** the barrier audit has not been re-run for the cost-first barrier list; all standard values are
@@ -158,7 +159,8 @@ The three-way magnetics verification (designer / OpenMagnetics / own calculation
 - **Makers' data that do not exist or were not obtained:** Sichain's qualification, short-circuit withstand and price;
   cosmic-ray FIT curves for the 1700 V devices; the TMR sensors' dv/dt immunity; the contactor's making current at
   1000 V and coil-to-mounting insulation; the aR fuse's L/R; the fans below −10 °C.
-- **Magnetics:** all calculated; the DAB transformer and series inductor fail three of their own checks.
+- **Magnetics:** all calculated; the DAB transformer and series inductor fail three of their own checks, and the
+  PV-P100/110 inductor's hot spot is 5.3 K over its limit (MG-17).
 - **Firmware:** not written (out of scope); the safety-requirement list on [05 · Control and firmware](05-control-and-firmware.md#firmware-requirements)
   is unverified.
 - **Prices:** no quotation exists; see [07 · Sourcing and cost](07-sourcing-and-cost.md).

@@ -3,11 +3,11 @@
 
 # 🧲 Magnetics
 
-> Every custom magnetic part of the PV module and the DAB — what it is for, how it is built, how it was verified three ways (designer, OpenMagnetics, an independent calculation), how it compares with the reference designs, which Asian materials it uses, what it costs, what a first article must prove — and how OpenMagnetics was built and where it fell short.
+> Every custom magnetic part of the PV module, the DAB and the inverter's filter — what it is for, how it is built, how it was verified three ways (designer, OpenMagnetics, an independent calculation), how it compares with the reference designs, which Asian materials it uses, what it costs, what a first article must prove — and how OpenMagnetics was built and where it fell short.
 
 ![method](https://img.shields.io/badge/verification-3--way-0B1F33?style=flat-square)
-![checks](https://img.shields.io/badge/self--checks-54%20of%2057%20pass-00A99D?style=flat-square)
-![dab](https://img.shields.io/badge/DAB%20transformer-2%20checks%20fail%20%28known%29-E4572E?style=flat-square)
+![checks](https://img.shields.io/badge/self--checks-73%20of%2077%20pass-00A99D?style=flat-square)
+![known](https://img.shields.io/badge/known%20shortfalls-4%20recorded%20%28MG--15%2C%20MG--16%2C%20MG--17%29-E4572E?style=flat-square)
 ![tool](https://img.shields.io/badge/OpenMagnetics-1.7.33%20built%20from%20source-5B6B7A?style=flat-square)
 ![measured](https://img.shields.io/badge/measured-nothing-E4572E?style=flat-square)
 
@@ -51,9 +51,9 @@ flowchart LR
     OM --> CMP["Compare against bands<br/>L and B 10 %, loss 15 %, leakage 20 %"]
     OWN --> CMP
     REF --> CMP
-    CMP -->|"disagreement reported"| FIND["Findings MG-01 to MG-16"]
+    CMP -->|"disagreement reported"| FIND["Findings MG-01 to MG-17"]
     FIND --> REV["Constructions rev M1 / M2<br/>design_part.json"]
-    REV --> CHK["57 self-checks<br/>re-run on every change"]
+    REV --> CHK["77 self-checks<br/>re-run on every change"]
 ```
 
 **First round — the hand-off constructions.** The designer's figures, OpenMagnetics and the own calculation agreed on
@@ -74,16 +74,17 @@ some quantities and were far apart on others:
 | PV inductor hot-spot rise (K) | 50 | 114 (natural convection) | 75 | the designer's surface model has no internal winding gradient (MG-07) |
 
 <sub>Source: [report.md §3](../../sim/out/magnetics/report.md). Findings are in
-[review_magnetics.csv](../../gen/data/review_magnetics.csv): 16 rows (2 critical, 10 major, 4 minor), 13 closed by the
-rev M1 / M2 constructions **by calculation**, 3 open (the report's own summary line still counts the first 14).</sub>
+[review_magnetics.csv](../../gen/data/review_magnetics.csv): 17 rows (2 critical, 11 major, 4 minor), 13 closed by the
+rev M1 / M2 constructions **by calculation**, 4 open (the report's own summary line still counts the first 14).</sub>
 
 **Second round — the constructions now in the design.** Each construction file is re-checked on every run:
 
 <img src="../assets/img/design_magnetics_checks.png" width="820" alt="Self-checks of sim/magnetics.py by part: pass and fail counts">
 
 <sub>Chart: [figures_design.py](../assets/figures_design.py) from [magnetics_check.json](../../sim/out/magnetics/magnetics_check.json)
-`checks`. The three fails are known and tracked: the DAB transformer pair at the 137 A worst corner (MG-16) and the series
-inductor's saturation margin at 635 A (MG-15).</sub>
+`checks`: 77 checks, 73 pass; the other four are recorded as known shortfalls, none unexplained: the DAB transformer pair
+at the 137 A worst corner (MG-16, two checks), the series inductor's saturation margin at 635 A (MG-15) and the
+PV-P100/110 inductor's hot spot, 5.3 K over its 155 °C limit at 114 m³/h per phase and 45 °C inlet (MG-17).</sub>
 
 ## 🧲 PV inductor: what "do not trust the tool, do not trust yourself" looks like
 
@@ -116,6 +117,31 @@ The history is the method working:
 Against the 51.2 W budget of the cell design the chosen inductor adds about 33 W per phase — 98 W per PV-P75, about
 0.13 percentage points at the worst point (1000 V, duty 0.5, 45 A) — for 118 USD less per module than rev M1
 ([PV-PWR design check](../../hardware/PV-PWR/outputs/PV-PWR_design_check.txt)).
+
+## 🧲 PCS-P125 filter magnetics
+
+The inverter's LCL filter is the largest block of its bill of materials. At the design point of
+[D-059](../requirements/DECISIONS.md) (24 kHz) the three L1, the three L2 and the common-mode choke were designed by the
+same `sim/magnetics.py` model inside the trade study — each against its own current peaks, trip level and thermal
+screen — and cost 374 USD at 5,000 units of the filter's 404 USD (the rest is C<sub>f</sub> and damping):
+
+| Part | Construction (calculated) | Loss at 180 A, 750 V (198 A, 950 V) | Hot spot at 60 °C inlet | Mass | USD each, catalogue / 5,000 units |
+|---|---|---|---|---|---|
+| L1, 130 µH (× 3, plus L<sub>N</sub> in the four-wire version) | gapped amorphous C-core, 26 turns of 0.8 mm aluminium foil | 165 W (261 W) | 140 °C, at its limit | 8.6 kg | 105.7 / 84.9 |
+| L2, 6 µH (× 3) | gapped amorphous C-core, 4 turns of 1.5 mm aluminium foil | 11.3 W | not reported | 1.2 kg | 38.6 / 29.7 |
+| AC common-mode choke, ≥ 150 µH (one set) | 3 nanocrystalline rectangular cores, flat-µ grade, N = 1, stacked over the phase bars | < 1 W | no winding | 1.2 kg (3 cores) | 35.9 / 29.9 (the set) |
+
+<sub>Source: [pcs_spec.json](../../sim/out/pcs_design/pcs_spec.json) `inductors` and [tradeoff.md](../../sim/out/pcs_design/tradeoff.md)
+(row "A2 24 kHz"); the choke's construction from [design_pcs_cm_choke.json](../../sim/out/magnetics/design_pcs_cm_choke.json)
+(rev M1: the same three cores and mass). [design_pcs_l1.json](../../sim/out/magnetics/design_pcs_l1.json) and
+[design_pcs_l2.json](../../sim/out/magnetics/design_pcs_l2.json) (rev M1, [D-057](../requirements/DECISIONS.md)) still
+hold the earlier 97.2 µH and 15 µH designs and have not been regenerated for the 24 kHz point, so they are not the source
+of this table. Core and conductor prices are estimates per kilogram; nothing is quoted.</sub>
+
+**Powder cores were not searched.** The inductor search covers gapped nanocrystalline and amorphous C-cores only. Powder
+block cores (FeSiAl, high flux) roll off softly and could be sized for the overload peak instead of the trip point; they
+are the remaining cost lever for a filter that is 37 % of the inverter's bill of materials, and they need a search of
+their own before the filter is frozen.
 
 ## 📚 Comparison with the reference designs
 

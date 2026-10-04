@@ -28,6 +28,22 @@ import pv_tradeoff as tr  # noqa: E402  (ngspice runner, heatsink model)
 
 OUT = os.path.join(HERE, "out", "pcs_design")
 SPEC, REP = {}, []          # pcs_spec.json content, report.md lines (filled step by step)
+TRADEOFF = os.path.join(OUT, "tradeoff.json")
+
+
+def filter_parts():
+    """the best two-level filter of sim/pcs_tradeoff.py - L1 / L2 / AC CM choke designed and priced by sim/magnetics.py, loss per phase
+    = a(V_dc) + k2 I^2.  None before that script has run: the step-c budgets and the architect's estimates stand in (report says so)"""
+    try:
+        t = json.load(open(TRADEOFF))
+        return next(r for r in t["rows"] if r["name"] == t["two_level_best"])
+    except (OSError, KeyError, StopIteration, ValueError, TypeError):
+        return None
+
+
+FP = filter_parts()
+CORE_WORD = {"amor": "amorphous", "nano": "nanocrystalline"}
+MOD_2L = FP["set"]["zs"] if FP else "policy"   # two-level modulation: 'minmax' = SVPWM-equivalent everywhere if sim/pcs_tradeoff.py chose it
 
 # ------------------------------------------------------------------------------------------------ product (AC-02)
 P_RATED, P_DC_MAX, S_MAX = 125e3, 137e3, 150e3
@@ -55,14 +71,14 @@ GATE_PER_DEV = {"cat": 0.10, "5k": 0.08}             # extra gate/Kelvin resisto
 PAD = {"cat": 0.40, "5k": 0.30}                      # Al2O3 pad + clip + grease per device (costfirst_pcs_bom.csv)
 L1_COST = (10.0, 6.0)                                # USD = 10 + 6 x (1/2 L I_pk^2 in J): the architect's L1 estimate (screen only; step c refines)
 RIPPLE_PP = 0.25                                     # L1 ripple peak-to-peak / I_pk at 216 A (architect's sizing rule, screen)
-FSW_CHOICE = 32e3                                    # chosen switching frequency (report a / c give the reasons)
+FSW_CHOICE = FP["fsw_kHz"] * 1e3 if FP else 32e3      # sim/pcs_tradeoff.py's choice (section h); D-053's 32 kHz before it has run
 MOD_3W = "minmax"     # three-LEVEL legs: min-max zero sequence everywhere (+ midpoint-balance offset) - a three-level midpoint needs it (step d)
 
 
 def zs_policy(levels, m):
     """modulation policy: three-level -> min-max zero sequence always (midpoint); two-level -> sinusoidal PWM wherever it reaches
     (m <= 0.98: no 150 Hz common-mode voltage on a three-wire TN connection, step f), min-max zero sequence only above"""
-    if levels == 3:
+    if levels == 3 or MOD_2L == "minmax":
         return "minmax"
     return "none" if m <= 0.98 else "minmax"
 
@@ -87,11 +103,20 @@ def op_point(vdc, v_ll, i_rms, ang_deg, l_tot, f=F_GRID):
 def references(m, zs, n=720):
     """per-phase reference (in units of V_dc/2) over one fundamental period for phase a; zs: 'none' or 'minmax' (SVPWM-equivalent)"""
     th = np.linspace(0.0, 2 * np.pi, n, endpoint=False)
-    va = m * np.sin(th)
+    abc = np.stack([m * np.sin(th - k * 2 * np.pi / 3) for k in range(3)])
+    return th, abc[0] + zero_seq(abc, zs)
+
+
+def zero_seq(abc, zs):
+    """zero sequence added to the three references: 'none', 'minmax' (SVPWM-equivalent) or 'dpwm1' (the largest-magnitude phase
+    clamped to its rail for 60 deg around its peak - the reference set of NSPWM / DPWM1)"""
     if zs == "minmax":
-        abc = np.stack([m * np.sin(th - k * 2 * np.pi / 3) for k in range(3)])
-        va = va - 0.5 * (abc.max(0) + abc.min(0))
-    return th, va
+        return -0.5 * (abc.max(0) + abc.min(0))
+    if zs == "dpwm1":
+        k = np.argmax(np.abs(abc), 0)
+        big = abc[k, np.arange(abc.shape[1])]
+        return np.sign(big) - big
+    return 0.0 * abc[0]
 
 
 # ------------------------------------------------------------------------------------------------ device primitives
@@ -107,33 +132,36 @@ def dev(part):
     return dv.IGBTS.get(part) or dv.MODULES.get(part) or dv.SBD.get(part) or pv.MOSFETS[part]
 
 
-def cond_w(part, elem, i_dev, tj):
+def cond_w(part, elem, i_dev, tj, i_rip=0.0):
     """instantaneous conduction power of ONE device carrying i_dev (>= 0) in element 'sw' (forward) or 'rev' (reverse / diode);
-    returns (w_switch_chip, w_diode_chip)"""
+    i_rip = rms of the L1 ripple it carries (SiC channel: adds R_DS(on) i_rip^2; IGBT / diode forward drops: neglected).
+    Returns (w_switch_chip, w_diode_chip)"""
     k, d = kind(part), dev(part)
     if k == "igbt":
         return (dv.vce(d, i_dev, tj) * i_dev, 0.0 * i_dev) if elem == "sw" else (0.0 * i_dev, dv.vf(d, i_dev, tj) * i_dev)
     if k == "sbd":
         return 0.0 * i_dev, dv.vf_sbd(d, i_dev, tj) * i_dev
-    return pv.rds(d, tj) * i_dev ** 2, 0.0 * i_dev          # SiC: channel in both directions (synchronous rectification)
+    return pv.rds(d, tj) * (i_dev ** 2 + i_rip ** 2), 0.0 * i_dev     # SiC: channel in both directions (synchronous rectification)
 
 
-def sw_energy(part, role, v, i_dev, tj):
+def sw_energy(part, role, v, i_dev, tj, di=0.0):
     """energy per event for ONE device: role 'hard' (turn-on + turn-off of the switching device, i.e. one period's pair) or
     'rec' (recovery of the passive device).  SiC: pv_devices convention E_on + E_off + E_rr - E_oss split as
-    hard = E_on + E_off - E_oss, rec = E_rr (K_RR x Q_rr x V).  SBD: capacitive only, its E_C is inside the switch's E_on (0 here)."""
+    hard = E_on + E_off - E_oss, rec = E_rr (K_RR x Q_rr x V).  SBD: capacitive only, its E_C is inside the switch's E_on (0 here).
+    di = peak-to-peak L1 ripple of the device's share: turn-on and recovery happen at the current valley (i - di/2, >= 0), turn-off at
+    the peak (i + di/2).  E_on carries EON_MULT (data-sheet R_G -> drawn R_G,on), E_off EOFF_MULT (step e)."""
     k, d = kind(part), dev(part)
+    i_lo, i_hi = np.maximum(i_dev - di / 2, 0.0), i_dev + di / 2
     if k == "igbt":
         if role == "hard":
-            return dv.e_igbt(d, "on", v, i_dev, tj) + dv.e_igbt(d, "off", v, i_dev, tj), 0.0
-        return 0.0, dv.e_igbt(d, "rec", v, i_dev, tj)
+            return dv.e_igbt(d, "on", v, i_lo, tj) + dv.e_igbt(d, "off", v, i_hi, tj), 0.0
+        return 0.0, dv.e_igbt(d, "rec", v, i_lo, tj)
     if k == "sbd":
         return 0.0, 0.0
     if role == "hard":
-        e = (pv.e_sw(d, "on", v, i_dev, tj) * pv.eon_rg_factor(d, d["rg_ext"]) + pv.e_sw(d, "off", v, i_dev, tj) * EOFF_MULT["value"]
-             - pv.eoss(d, v))
+        e = (pv.e_sw(d, "on", v, i_lo, tj) * EON_MULT["value"] + pv.e_sw(d, "off", v, i_hi, tj) * EOFF_MULT["value"] - pv.eoss(d, v))
         return np.maximum(e, 0.0), 0.0
-    return pv.e_sw(d, "rr", v, i_dev, tj), 0.0
+    return pv.e_sw(d, "rr", v, i_lo, tj), 0.0
 
 
 # ------------------------------------------------------------------------------------------------ topologies
@@ -166,8 +194,10 @@ TOPO = {
 }
 
 
-def leg_losses(topo, devs, fsw, vdc, m, phi, i_rms, zs, tj, n_th=360):
+def leg_losses(topo, devs, fsw, vdc, m, phi, i_rms, zs, tj, n_th=360, l1=None):
     """averaged losses of ONE phase leg over a fundamental period.  devs: {pos: (part, n)}; tj: {pos: (Tj switch chip, Tj diode chip)}.
+    l1 given: the L1 ripple (C_f star on the DC midpoint, so each L1 sees its own leg) enters conduction (rms) and switching (valley /
+    peak current); clamped intervals (|ref| = 1, DPWM1) do not switch.
     Returns ({pos: {'sw': W, 'd': W (hottest device: k_share x mean current), 'tot': W of the whole position (mean devices)}}, leg W)."""
     t = TOPO[topo]
     th, vref = references(m, zs, n_th)
@@ -175,16 +205,20 @@ def leg_losses(topo, devs, fsw, vdc, m, phi, i_rms, zs, tj, n_th=360):
     sgn = np.where(i >= 0, 1, -1)
     ai = np.abs(i)
     vsw = t["vcomm"] * vdc
+    ar = np.minimum(np.abs(vref), 1.0)
+    rip = (np.zeros(n_th) if not l1 else vdc * (1 - ar ** 2) / (4 * fsw * l1) if t["levels"] == 2 else
+           vdc * ar * (1 - ar) / (2 * fsw * l1))                                # leg ripple, A peak-to-peak
+    live = ar < 0.999                                                            # the leg switches in this interval
     if t["levels"] == 3:
         dpos, dneg = np.clip(vref, 0, 1), np.clip(-vref, 0, 1)
         if topo == "ANPC":
             states = (("P", dpos), ("Op", np.where(vref >= 0, 1 - dpos, 0.0)), ("On", np.where(vref < 0, 1 - dneg, 0.0)), ("N", dneg))
         else:
             states = (("P", dpos), ("O", np.where(vref >= 0, 1 - dpos, 1 - dneg)), ("N", dneg))
-        halves = (("P", vref >= 0), ("N", vref < 0))
+        halves = (("P", live & (vref >= 0)), ("N", live & (vref < 0)))
     else:
         d = np.clip(0.5 * (1 + vref), 0, 1)
-        states, halves = (("P", d), ("N", 1 - d)), (("P", np.ones(n_th, bool)),)
+        states, halves = (("P", d), ("N", 1 - d)), (("P", live),)
 
     def per_device(share):
         acc = {p: [np.zeros(n_th), np.zeros(n_th)] for p in t["pos"]}      # W per device (switch chip, diode chip)
@@ -195,8 +229,9 @@ def leg_losses(topo, devs, fsw, vdc, m, phi, i_rms, zs, tj, n_th=360):
                     continue
                 for pos, elem in t["cond"][state][s]:
                     part, n = devs[pos]
-                    idev = (K_SHARE[kind(part)] if share else 1.0) * ai[sel] / n
-                    w_s, w_d = cond_w(part, elem, idev, tj[pos][0] if elem == "sw" or kind(part) == "sic" else tj[pos][1])
+                    k_ = (K_SHARE[kind(part)] if share else 1.0) / n
+                    w_s, w_d = cond_w(part, elem, k_ * ai[sel], tj[pos][0] if elem == "sw" or kind(part) == "sic" else tj[pos][1],
+                                      k_ * rip[sel] / math.sqrt(12.0))
                     acc[pos][0][sel] += frac[sel] * w_s
                     acc[pos][1][sel] += frac[sel] * w_d
         for half, hm in halves:
@@ -207,8 +242,9 @@ def leg_losses(topo, devs, fsw, vdc, m, phi, i_rms, zs, tj, n_th=360):
                 hard, rec = t["comm"][(half, s)]
                 for pos, role in ((hard, "hard"), (rec, "rec")):
                     part, n = devs[pos]
-                    idev = (K_SHARE[kind(part)] if share else 1.0) * ai[sel] / n
-                    e_s, e_d = sw_energy(part, role, vsw, idev, tj[pos][0] if role == "hard" or kind(part) == "sic" else tj[pos][1])
+                    k_ = (K_SHARE[kind(part)] if share else 1.0) / n
+                    e_s, e_d = sw_energy(part, role, vsw, k_ * ai[sel], tj[pos][0] if role == "hard" or kind(part) == "sic" else tj[pos][1],
+                                         k_ * rip[sel])
                     acc[pos][0][sel] += fsw * e_s
                     acc[pos][1][sel] += fsw * e_d
                 part, n = devs[rec]          # dead-time conduction of the recovering SiC device's body diode (2 dead times per period)
@@ -284,7 +320,7 @@ def evaluate(cand, vdc, v_ll, i_rms, ang, t_in, fsw=None, zs=None, l_tot=None, n
     tj = {pos: (t_in + 40.0, t_in + 40.0) for pos in TOPO[topo]["pos"]}
     runaway = False
     for _ in range(n_iter):            # fixed point Tj -> losses -> Tj; > 250 C = thermal runaway (no steady state)
-        res, tot = leg_losses(topo, devs, fsw, vdc, m, phi, i_rms, zs, tj)
+        res, tot = leg_losses(topo, devs, fsw, vdc, m, phi, i_rms, zs, tj, l1=cand.get("l1"))
         t_hs = t_in + tot * hs["r_sa"]
         new = {pos: device_tj(devs[pos][0], res[pos]["sw"], res[pos]["d"], t_hs) for pos in TOPO[topo]["pos"]}
         delta = max(abs(new[p][k] - tj[p][k]) for p in new for k in (0, 1))
@@ -393,8 +429,7 @@ def pwm_wave(levels, m, fsw, zs="none", f0=F_GRID, n=2 ** 17, wire="3W"):
     t = np.arange(n) / n / f0
     tri = np.abs(2.0 * ((t * fsw) % 1.0) - 1.0)                  # 1 -> 0 -> 1 each carrier period
     refs = np.stack([m * np.sin(2 * np.pi * f0 * t - k * 2 * np.pi / 3) for k in range(3)])
-    if zs == "minmax":
-        refs = refs - 0.5 * (refs.max(0) + refs.min(0))
+    refs = refs + zero_seq(refs, zs)
     if levels == 3:
         legs = np.where(refs > tri, 1.0, 0.0) - np.where(refs < tri - 1.0, 1.0, 0.0)
     else:
@@ -414,8 +449,7 @@ def pwm_fourier(levels, m, fsw, zs="none", f0=F_GRID, hmax=None):
     tk = np.arange(2 * n) * Tc / 2                                  # half-period starts; even k: carrier falling 1 -> 0, odd: rising
     th = 2 * np.pi * f0 * tk
     refs = np.stack([m * np.sin(th - k * 2 * np.pi / 3) for k in range(3)])
-    if zs == "minmax":
-        refs = refs - 0.5 * (refs.max(0) + refs.min(0))
+    refs = refs + zero_seq(refs, zs)
     falling = (np.arange(2 * n) % 2 == 0)
     h = np.arange(1, hmax + 1)
     w = 2 * np.pi * f0 * h
@@ -729,7 +763,7 @@ def step_a():
     finalists = sorted(ok, key=lambda c: c["cost"]["5k"]["total"])[:3]
     sweep = []
     for c in finalists:                      # switching-frequency sweep of the three cheapest compliant candidates
-        fs = (16e3, 24e3, 32e3, 40e3, 48e3) if TOPO[c["topo"]]["levels"] == 3 else (16e3, 24e3, 32e3, 40e3, 48e3)
+        fs = sorted({16e3, 24e3, 32e3, 40e3, 48e3, FSW_CHOICE})
         for f in fs:
             x = {k: (dict(v) if isinstance(v, dict) else v) for k, v in c.items() if k in ("name", "topo", "devs", "hs_r")}
             x["fsw"] = f
@@ -749,6 +783,8 @@ def step_a():
                  key=lambda x: x["cost"]["5k"]["total"])
     best2l = min([x for x in ok2 if TOPO[x["topo"]]["levels"] == 2 and abs(x["fsw"] - FSW_CHOICE) < 1], key=lambda x: x["cost"]["5k"]["total"])
     choice = min((best3l, best2l), key=lambda x: x["cost"]["5k"]["total"])
+    if FP:                              # the topology is decided with the real inductors (section h): two-level
+        choice = best2l
     choice["best3l"] = best3l
     choice["rule"] = rule_ratio(choice)
     choice["cheapest"], choice["best2l"] = cheapest, best2l
@@ -862,11 +898,17 @@ def report_a(rows, choice, arch):
        f"{d5(b3)-d5(ch):.0f} USD.")
     sw2 = [x for x in arch["sweep"] if x["name"] == ch["name"]]
     hi = max(sw2, key=lambda x: x["fsw"])
-    wr(f"- **f_sw = {ch['fsw']/1e3:.0f} kHz** (the PV module's frequency, at which its gate-drive channel, bias power and Miller check are "
-       f"validated).  The sweep is not at its cost minimum there: {hi['fsw']/1e3:.0f} kHz would save {d5(ch)-d5(hi):.0f} USD at 5k (smaller L1, "
-       f"same device count) for {hi['loss_mod_full_W']-ch['loss_mod_full_W']:.0f} W more loss at 125 kW and {(ch['eta_peak']-hi['eta_peak'])*100:.2f} "
-       f"%-points of peak efficiency, 50 % more controller load and its fourth carrier harmonic inside the 150 kHz EMI band - kept as an "
-       f"open optimisation for after the inductor quotes.\n")
+    if FP:
+        wr(f"- **f_sw = {ch['fsw']/1e3:.0f} kHz** - the cheapest compliant point of the re-optimisation with the real inductor designs "
+           f"(section h).  This screen, which prices L1 at 10 + 6 USD/J, points the other way ({hi['fsw']/1e3:.0f} kHz would 'save' "
+           f"{d5(ch)-d5(hi):.0f} USD here): with the magnetics model in the loop the inductor loss, not its stored energy, sets its price, "
+           f"and lower device and core loss at {ch['fsw']/1e3:.0f} kHz buy a cheaper L1.\n")
+    else:
+        wr(f"- **f_sw = {ch['fsw']/1e3:.0f} kHz** (the PV module's frequency, at which its gate-drive channel, bias power and Miller check are "
+           f"validated).  The sweep is not at its cost minimum there: {hi['fsw']/1e3:.0f} kHz would save {d5(ch)-d5(hi):.0f} USD at 5k (smaller L1, "
+           f"same device count) for {hi['loss_mod_full_W']-ch['loss_mod_full_W']:.0f} W more loss at 125 kW and {(ch['eta_peak']-hi['eta_peak'])*100:.2f} "
+           f"%-points of peak efficiency, 50 % more controller load and its fourth carrier harmonic inside the 150 kHz EMI band - kept as an "
+           f"open optimisation for after the inductor quotes.\n")
     ac = t["architect_42_devices_check"]
     wr(f"\n**The architecture document's screen is optimistic.** Its 42-device T-type (4 x CRG40T120BK3SD + 3 x 650 V per position, "
        f"16 kHz) gives {ac['loss_125kW_900V_W']} W of device loss at 125 kW / 900 V in this model, not 1,676 W: it used one 25 C "
@@ -977,12 +1019,19 @@ def other_losses(i_rms, vdc, p_ac, n_fans, load):
            "DC shunt": b["shunt_ohm"] * idc ** 2,
            "aux supply (control, drivers, sensors)": b["aux_W"] / b["aux_eff"],
            "fans": fans_w(n_fans, load) / b["aux_eff"]}
+    if FP:                              # the magnetics-model parts instead of the budgets: a(V_dc) + k2 I^2 per phase
+        for key in ("L1", "L2"):
+            lp = FP[key]["loss_per_phase"]
+            a = sorted((float(k), v) for k, v in lp["a"].items())
+            out[key] = 3 * (float(np.interp(vdc, [x[0] for x in a], [x[1] for x in a])) + lp["k2"] * i_rms ** 2)
     return out
 
 
 def design_from(choice):
     d = {k: (dict(v) if isinstance(v, dict) else v) for k, v in choice.items() if k in ("name", "topo", "devs", "fsw", "hs_r", "l1", "l2")}
     d["l2"] = max(d["l2"], 15e-6)       # step c sets the real L2; 15 uH placeholder for the modulation index here
+    if FP:                              # the re-optimised filter (sim/pcs_tradeoff.py)
+        d["l1"], d["l2"] = FP["L1_uH"] * 1e-6, FP["L2_uH"] * 1e-6
     d["l_tot"] = d["l1"] + d["l2"]
     return d
 
@@ -1044,7 +1093,7 @@ def step_b(choice):
     peak = max(((k, x, e) for k, v in emap.items() for x, e in v), key=lambda t: t[2])
     ev, oth, p_dev, p_loss, eta_full = eff_point(D, 750.0, V_LL, I_RATED, 0.0, T_IN, n_fans)
     _, oth9, p_dev9, p_loss9, eta_full9 = eff_point(D, 900.0, V_LL, I_RATED, 0.0, T_IN, n_fans)
-    worst_full = min(e for (dirn, vdc), v in emap.items() for x, e in v if abs(x - 1.0) < 1e-9)
+    worst_full = min(e for (dirn, vdc), v in emap.items() for x, e in v if abs(x - 1.0) < 1e-9 and vdc <= VDC["3W"][3])   # 600-900 V
     res["efficiency"] = {"peak": peak[2], "peak_at": {"direction": peak[0][0], "vdc": peak[0][1], "load": peak[1]},
                          "full_load_750V": eta_full, "full_load_900V": eta_full9, "full_load_worst": worst_full,
                          "required_max": ETA_REQ, "met": peak[2] >= ETA_REQ,
@@ -1107,11 +1156,19 @@ def report_b(D, r):
        f"(basic insulation DC poles - PE as the PV design; Al2O3 is enough at these loss densities) + {R_SPREAD} K/W base spreading.  "
        f"The fan is rated -10..+60 C (p3): at 60 C inlet it is at its limit and below -10 C it is outside its rating (PV risk R-05).")
     lev = TOPO[D["topo"]]["levels"]
-    wr(f"\n**Modulation:** carrier-based two-level PWM, sampled twice per carrier period, **sinusoidal references wherever they reach "
-       f"(m <= 0.98) and the min-max zero sequence (SVPWM-equivalent) only above** (low DC voltage with high AC voltage: 590-680 V).  Why: "
-       f"any low-frequency zero sequence becomes a 150 Hz voltage between the battery and earth on a three-wire TN connection (step f); "
-       f"a two-level leg has no midpoint to balance, so nothing else asks for it.  Discontinuous PWM would cut the switching loss "
-       f"({r['switching_share_125kW_750V']*100:.0f} % of the device loss at 125 kW / 750 V) but is all zero sequence - not used.")
+    if MOD_2L == "minmax":
+        wr(f"\n**Modulation:** carrier-based two-level PWM, sampled twice per carrier period, **with the min-max zero sequence "
+           f"(SVPWM-equivalent) at every operating point** - chosen in section h: it flattens each leg's reference, lowers the L1 ripple "
+           f"and core loss and so buys a cheaper L1.  The price is a 150 Hz voltage between the battery and earth at every DC voltage on a "
+           f"three-wire TN connection (step f: within the leakage limit up to 5 uF of battery capacitance to earth).  Discontinuous PWM "
+           f"would cut the switching loss ({r['switching_share_125kW_750V']*100:.0f} % of the device loss at 125 kW / 750 V) but its zero "
+           f"sequence is twice as large and excites the L1-C_f common-mode resonance through the C_f-star tie - not used.")
+    else:
+        wr(f"\n**Modulation:** carrier-based two-level PWM, sampled twice per carrier period, **sinusoidal references wherever they reach "
+           f"(m <= 0.98) and the min-max zero sequence (SVPWM-equivalent) only above** (low DC voltage with high AC voltage: 590-680 V).  Why: "
+           f"any low-frequency zero sequence becomes a 150 Hz voltage between the battery and earth on a three-wire TN connection (step f); "
+           f"a two-level leg has no midpoint to balance, so nothing else asks for it.  Discontinuous PWM would cut the switching loss "
+           f"({r['switching_share_125kW_750V']*100:.0f} % of the device loss at 125 kW / 750 V) but is all zero sequence - not used.")
     wr(f"\n**Current sharing of paralleled discretes:** the hottest device is taken to carry k = {K_SHARE['sic']:.2f} x the mean current "
        f"(conduction and switching) - it requires devices from one lot (R_DS(on) spread within +-10 %), Kelvin-source drive with a "
        f"0.5 ohm Kelvin resistor per device (gen/gdrv.py R_KS) and a symmetric layout; positive R_DS(on) temperature coefficient "
@@ -1158,6 +1215,7 @@ def report_b(D, r):
 
 # ------------------------------------------------------------------------------------------------ (c) switching frequency + LCL filter
 F_S = 2 * FSW_CHOICE          # control sampling: double update (C2000 ePWM, ARCHITECTURE-PCS section 6)
+BW_LOOP = 1e3 * F_S / 64e3    # current-loop bandwidth: 1 kHz at 64 kHz sampling, scaled with f_s (sim/pcs_tradeoff.py uses the same rule)
 T_DELAY = 1.5 / F_S           # computation + PWM transport delay
 OC_TRIP = 450.0               # A peak per phase, hardware window comparator (step e: must sit above 1.2 x I_max peak + ripple)
 # grid-current harmonic limits used (IEEE 1547-2018 Table 26/27, FROM MEMORY - the standard text is not on file; EN 50549-1 refers
@@ -1180,8 +1238,8 @@ def harm_limit(h):
 def lcl_design(D):
     """L1 for the ripple rule; C_f and L2 placing the stiff-grid resonance below f_s/6 (capacitor-current active damping works there)
     and meeting the 0.3 % carrier-band target with margin; passive R_d-C_d branch for robustness"""
-    l1 = l1_for_ripple(D, FSW_CHOICE)
-    cf, l2 = 50e-6, 15e-6
+    l1 = D["l1"] if FP else l1_for_ripple(D, FSW_CHOICE)
+    cf, l2 = (FP["Cf_uF"] * 1e-6, FP["L2_uH"] * 1e-6) if FP else (50e-6, 15e-6)      # FP: sim/pcs_tradeoff.py's cheapest compliant pair
     rd, cd = 2.0, 10e-6
     return {"L1": l1, "Cf": cf, "L2": l2, "Rd": rd, "Cd": cd}
 
@@ -1308,6 +1366,16 @@ def step_c(D):
                          "current": {"rms_A_100pct_unbalance": I_2MIN, "note": "single-phase full load returns 100 % of the phase current"},
                          "as": "L1 (same electrical requirement)"},
     }
+    if FP:                              # the parts sim/pcs_tradeoff.py selected with sim/magnetics.py (cheapest meeting the efficiency rules)
+        for key in ("L1", "L2"):
+            x = FP[key]
+            SPEC["inductors"][key]["selected_part"] = {k: x[k] for k in x if k not in ("loss_per_phase",)}
+            SPEC["inductors"][key]["loss_budget_W"]["note"] = (
+                "superseded: the efficiency rules of sim/pcs_tradeoff.py (peak >= 98.7 %, full load >= 98.0 % at 600-900 V) set the "
+                f"loss; selected part {x.get('P_180A_750V_W', x.get('P_180A_W')):.0f} W at 180 A")
+        SPEC["inductors"]["L1"]["core_suggestion"] = (f"selected: gapped {FP['L1']['mat']} C-core, {FP['L1']['wire']}, {FP['L1']['N']} turns "
+                                                      "(sim/pcs_tradeoff.py + sim/magnetics.py); the magnetics engineer confirms")
+        SPEC["inductors"]["AC_CM_choke"] = FP["cm_choke"]
     SPEC["lcl"] = res
     return res
 
@@ -1318,16 +1386,31 @@ def report_c(r):
     wr(f"**f_sw = {FSW_CHOICE/1e3:.0f} kHz**, control sampled at {F_S/1e3:.0f} kHz (double update), delay 1.5 T_s = {T_DELAY*1e6:.0f} us.  "
        f"**L1 {F['L1']*1e6:.0f} uH ({r['pu']['L1']*100:.1f} %), C_f {F['Cf']*1e6:.0f} uF per phase in star "
        f"(Q {r['pu']['Cf_Q_frac']*100:.1f} % of 125 kVA), L2 {F['L2']*1e6:.0f} uH ({r['pu']['L2']*100:.1f} %)**, passive branch "
-       f"R_d {F['Rd']:.0f} ohm + C_d {F['Cd']*1e6:.0f} uF per phase across C_f, plus capacitor-current active damping.  L1 from the ripple "
-       f"rule (25 % peak-to-peak of the 216 A peak at 950 V: V_dc/({8 if r['levels'] == 3 else 4} f L1) = {r['ripple_pp_formula_A']:.0f} A, {r['ripple_pp_950V_A']:.0f} A pp from the time-domain PWM waveform); C_f and L2 "
-       f"place the resonance where capacitor-current active damping works (below f_s/6 = {r['f_crit_Hz']/1e3:.1f} kHz) for every grid and "
-       f"keep the carrier band several times below the 0.3 % target.")
+       f"R_d {F['Rd']:.0f} ohm + C_d {F['Cd']*1e6:.0f} uF per phase across C_f, plus capacitor-current active damping.  "
+       + (f"L1, C_f and L2 are the cheapest compliant set of the re-optimisation with the real inductor designs (section h, "
+          f"sim/pcs_tradeoff.py): ripple V_dc/({8 if r['levels'] == 3 else 4} f L1) = {r['ripple_pp_formula_A']:.0f} A pp at 950 V "
+          f"({r['ripple_pp_950V_A']:.0f} A from the time-domain PWM waveform); C_f and L2 place the stiff-grid resonance below f_s/6 = "
+          f"{r['f_crit_Hz']/1e3:.1f} kHz (capacitor-current active damping), the SCR-5 resonance above twice the current-loop bandwidth, and "
+          f"keep every carrier-band component of the grid current within the 0.3 % target." if FP else
+          f"L1 from the ripple rule (25 % peak-to-peak of the 216 A peak at 950 V: V_dc/({8 if r['levels'] == 3 else 4} f L1) = "
+          f"{r['ripple_pp_formula_A']:.0f} A, {r['ripple_pp_950V_A']:.0f} A pp from the time-domain PWM waveform); C_f and L2 place the "
+          f"resonance where capacitor-current active damping works (below f_s/6 = {r['f_crit_Hz']/1e3:.1f} kHz) for every grid and keep the "
+          f"carrier band several times below the 0.3 % target."))
+    if FP:
+        L1p, L2p, cm = FP["L1"], FP["L2"], FP["cm_choke"]
+        wr(f"\n**Inductor parts (sim/magnetics.py, selected in sim/pcs_tradeoff.py):** L1 gapped {CORE_WORD[L1p['mat']]} C-core, {L1p['wire']}, "
+           f"{L1p['N']} turns, {L1p['mass_kg']:.1f} kg, {L1p['usd'][0]:.0f} / {L1p['usd'][1]:.0f} USD (catalogue / 5k), {L1p['P_180A_750V_W']:.0f} W "
+           f"at 180 A / 750 V and {L1p['P_198A_950V_W']:.0f} W at 198 A / 950 V (higher of own model and OpenMagnetics), hot spot "
+           f"{L1p['T_hot_60C']:.0f} C at 60 C inlet; L2 {CORE_WORD[L2p['mat']]} C-core, {L2p['wire']}, {L2p['N']} turns, {L2p['mass_kg']:.1f} kg, "
+           f"{L2p['usd'][0]:.0f} / {L2p['usd'][1]:.0f} USD, {L2p['P_180A_W']:.0f} W at 180 A; AC CM choke {cm['L_cm_uH']:.0f} uH = {cm['k']} x "
+           f"Yunlu N-R-564440, {cm['usd'][0]:.0f} / {cm['usd'][1]:.0f} USD.  Their losses replace the step-c budgets in every efficiency "
+           f"figure (per phase a(V_dc) + k I^2).  All ESTIMATES: no quote, no sample.")
     wr("\n| grid | f_res (kHz) |")
     wr("|---|---|")
     for k, v in r["f_res_Hz"].items():
         wr(f"| {k} | {v/1e3:.2f} |")
     wr(f"\nResonance stays between {min(r['f_res_Hz'].values())/1e3:.1f} and {max(r['f_res_Hz'].values())/1e3:.1f} kHz: below f_s/6, "
-       f"where L1-current feedback with the 1.5 T_s delay is inherently damped, and above twice a 1 kHz current-loop bandwidth - one design "
+       f"where L1-current feedback with the 1.5 T_s delay is inherently damped, and above twice a {BW_LOOP/1e3:.2f} kHz current-loop bandwidth - one design "
        f"covers SCR 5 to a stiff grid.  The passive branch alone lowers "
        f"the resonance peak from {r['peak_gain_undamped_dB']:.0f} to {r['peak_gain_passive_branch_dB']:.0f} dB (relative to the L1 admittance at "
        f"1 kHz): it is the fallback if active damping is lost, not the main damping.")
@@ -1512,7 +1595,7 @@ def step_d(D, rc):
            "electrolytic_alternative": {"part": ELCO["part"], "strings_per_half": n_str, "cans": elco_cans, "life_h": elco_life,
                                         "cost_usd": {k: elco_cans * v for k, v in ELCO["price"].items()}, "note": "2 x 400 V in series per half + balancing resistors"},
            "film_cost_usd": {k: 2 * n * v for k, v in FILM_PRICE.items()}, "sinusoidal_pwm_alternative": sin_alt,
-           "modulation": "min-max zero sequence" if TOPO[D["topo"]]["levels"] == 3 else "sinusoidal, min-max only where m > 0.98",
+           "modulation": "min-max zero sequence" if TOPO[D["topo"]]["levels"] == 3 or MOD_2L == "minmax" else "sinusoidal, min-max only where m > 0.98",
            "U_pp_max_V": U_PP_MAX, "n_for_midpoint": n,
            "four_wire_unbalance": {"levels": lev, "io_50Hz_peak_A_if_three_level": io_unbal, "midpoint_50Hz_ripple_V_peak_if_three_level": dv_unbal,
                                    "battery_100Hz_A_rms_single_phase_full_load_750V": i_bat_100},
@@ -1597,6 +1680,7 @@ def leg_model(n_pairs=6, l_scale=1.0):
             "l_rest": (20e-9 - pv.C4AQ_DEC["C4AQUBU4100A1WJ"]["esl"] / 2) / k * l_scale,
             "r_damp": 2 * 4.99 / k, "c_damp": 4.7e-9 / 2 * k, "decoupling_parts": int(3 * k), "damper_parts": int(4 * k)}
 EOFF_MULT = {"value": 1.0}    # E_off(chosen R_G) / E_off(data-sheet R_G), set by step e; the efficiency is re-stated with it
+EON_MULT = {"value": 1.0}     # E_on(drawn R_G,on) / E_on(data-sheet R_G) from the data sheet's E-vs-R_G curve, set by step e (D-057)
 
 
 def pcs_dpt(d, npar, vdc, i_load, lloop, tag, rg, a, ton=1.0e-6, leg=None):
@@ -1664,7 +1748,9 @@ def step_e(D, rc):
     eoff_factor = nom["e_off_mJ"] / max(base["e_off_mJ"], 1e-9)
     n_fans = 3 * HS["fans_per_section"]
     loss_b = 3 * evaluate(D, 750.0, V_LL, I_RATED, 0.0, T_IN)["leg_w"]
+    rg_on = 3.75 if pick["rg_ext_off"] <= 2.5 else pick["rg_ext_off"] + 1.25       # drawn turn-on resistor per device
     EOFF_MULT["value"] = max(eoff_factor, 1.0)
+    EON_MULT["value"] = pv.eon_rg_factor(d, rg_on)                                # D-057: E_on at the drawn R_G,on (x1.63 at 8.75 ohm)
     loss_c = 3 * evaluate(D, 750.0, V_LL, I_RATED, 0.0, T_IN)["leg_w"]
     etas = [eff_point(D, vdc, V_LL, I_RATED * x, ang, T_IN, n_fans)[4] for vdc in (600.0, 750.0, 900.0) for ang in (0.0, 180.0)
             for x in (0.2, 0.25, 0.3, 0.35, 0.4, 0.5)]
@@ -1679,9 +1765,9 @@ def step_e(D, rc):
     nsi_ipk = 10.0
     res = {"device": part, "n_parallel": n, "rails_V": (d["vgs_on"], d["vgs_off"]), "rg_cal_eff_ohm": rg_cal, "leg": leg_model(n, 1.0),
            "sweep_1050V_450A_30nH": [{k: (round(v, 3) if isinstance(v, float) else v) for k, v in r.items()} for r in sweep],
-           "chosen": {"R_G_off_ext_ohm_per_device": pick["rg_ext_off"], "R_G_on_ext_ohm_per_device": 3.75 if pick["rg_ext_off"] <= 2.5 else pick["rg_ext_off"] + 1.25,
+           "chosen": {"R_G_off_ext_ohm_per_device": pick["rg_ext_off"], "R_G_on_ext_ohm_per_device": rg_on,
                       "rg_eff": rg, "v_limit_V": v_lim},
-           "nominal_950V": nom, "worst_1050V_450A_30nH": worst, "eoff_factor_vs_datasheet_rg": eoff_factor,
+           "nominal_950V": nom, "worst_1050V_450A_30nH": worst, "eoff_factor_vs_datasheet_rg": eoff_factor, "eon_factor_vs_datasheet_rg": EON_MULT["value"],
            "loss_b_W": loss_b, "loss_corr_W": loss_c, "eta_peak_corr": max(etas), "eta_full_corr": eta_full_corr, "tj_200ms_corr_C": tj_corr,
            "dead_time_ns": 300.0, "gate": {"Qg_per_channel_nC": qg * 1e9, "P_gate_W_per_channel": p_gate,
                                             "I_peak_A_needed": i_pk_needed, "NSI6651_peak_A": nsi_ipk},
@@ -1714,15 +1800,16 @@ def report_e(r):
        f"(the smallest of the sweep that holds the limit): worst case {w['v_pk']:.0f} V peak against the 0.85 x 1700 = {c['v_limit_V']:.0f} V "
        f"project limit; nominal (950 V, {nom['i']:.0f} A = 1.2 x 216 A peak + ripple, nominal leg): {nom['v_pk']:.0f} V, {nom['dvdt_V_per_ns']:.0f} V/ns, "
        f"{nom['didt_A_per_ns']:.1f} A/ns.  E_off at this R_G is {r['eoff_factor_vs_datasheet_rg']:.2f} x "
-       f"the data-sheet curve; the device loss at 125 kW / 750 V rises from {r['loss_b_W']:.0f} to {r['loss_corr_W']:.0f} W, peak "
-       f"efficiency {r['eta_peak_corr']*100:.2f} % (full load 750 V {r['eta_full_corr']*100:.2f} %) - step b already carries this factor "
+       f"the data-sheet curve (simulated) and E_on at R_G,on {c['R_G_on_ext_ohm_per_device']:.2f} ohm {r['eon_factor_vs_datasheet_rg']:.2f} x "
+       f"(the data sheet's E-vs-R_G curve, D-057); the device loss at 125 kW / 750 V rises from {r['loss_b_W']:.0f} to {r['loss_corr_W']:.0f} W, peak "
+       f"efficiency {r['eta_peak_corr']*100:.2f} % (full load 750 V {r['eta_full_corr']*100:.2f} %) - step b already carries both factors "
        f"(this step runs first).  Decks: sim/spice/pcs_commutation_*.cir.")
     g = r["gate"]
     wr(f"\n**Gate drive (the project's channel, gen/gdrv.py, NSI6651ASC):** one channel per switch position - **6 channels for three-wire, "
        f"8 for four-wire** (the architecture had 12/16).  Rails **+{r['rails_V'][0]:.0f} / {r['rails_V'][1]:.1f} V** (the PV setting for this "
        f"device, gdrv GATE_V (18, 3.5)); per-device gate resistor and 0.5 ohm Kelvin resistor (R_KS), per-gate Miller clamp FET as the PV rev-5 "
        f"channel; DESAT string 100 ohm + 3 x US1MH and the short-circuit booster (booster=True) unchanged.  Six gates per channel: "
-       f"Q_g {g['Qg_per_channel_nC']:.0f} nC, {g['P_gate_W_per_channel']:.2f} W at 32 kHz (bias secondary budget 0.5 W - one SN6505B "
+       f"Q_g {g['Qg_per_channel_nC']:.0f} nC, {g['P_gate_W_per_channel']:.2f} W at {FSW_CHOICE/1e3:.0f} kHz (bias secondary budget 0.5 W - one SN6505B "
        f"transformer per phase with two secondaries); peak gate current {g['I_peak_A_needed']:.0f} A wanted against the NSI6651's "
        f"{g['NSI6651_peak_A']:.0f} A - **add a discrete NPN/PNP push-pull buffer per channel** (two SOT-89 transistors, about 0.3 USD) or "
        f"split the six devices over two drivers (+6 channels); the buffer is the cheaper answer.  Dead time: **{r['dead_time_ns']:.0f} ns** in "
@@ -1754,7 +1841,8 @@ def report_e(r):
 RCMU = {"continuous_mA": {"<=30kVA": 300.0, ">30kVA_per_kVA": 10.0}, "steps_mA_s": [(30, 0.3), (60, 0.15), (150, 0.04)],
         "src": "IEC 62109-2 residual-current monitoring, FROM MEMORY (standard text not on file)"}
 C_BE = (1e-6, 5e-6, 20e-6)        # battery-system capacitance to earth, F (unknown, a range: rack Y-caps, cables, cell-to-frame)
-L_CM_AC = 150e-6                  # CM choke on the AC conductors at f_sw (3 nanocrystalline cores, single turn - ESTIMATE, EMI design confirms)
+L_CM_AC = FP["cm_choke"]["L_cm_uH"] * 1e-6 if FP else 150e-6   # AC CM choke: sim/pcs_tradeoff.py sizes it (earth current no worse than
+#                                   the D-053 150 uH, Yunlu N-R-564440 cores by magnetics.pcs_cm_design); 150 uH before that script has run
 
 
 def step_f(D, rc, rd):
@@ -1825,9 +1913,11 @@ def report_f(r, rc):
        "residual; DC side: the PV rev-6 varistor network unchanged (Up,eff 3.79 kV).")
     lfz = r["lf_zero_sequence"]
     wr(f"\n**Common mode on a three-wire connection to an earthed-neutral (TN) grid.**  The DC side is galvanically tied to the grid: its "
-       f"midpoint sits at earth potential plus whatever zero sequence the converter makes.  (1) Low frequency: this design uses sinusoidal "
-       f"PWM wherever it reaches, so above about 680 V (400 V AC; about 780 V at 460 V AC) there is no 150 Hz common-mode voltage at all; "
-       f"below, the min-max zero sequence is needed (rms of its 150 Hz component, rated current):\n")
+       f"midpoint sits at earth potential plus whatever zero sequence the converter makes.  (1) Low frequency: "
+       + ("this design uses the min-max zero sequence at every operating point (section h), so the battery carries its 150 Hz component at "
+          "every DC voltage (rms, rated current):\n" if MOD_2L == "minmax" else
+          "this design uses sinusoidal PWM wherever it reaches, so above about 680 V (400 V AC; about 780 V at 460 V AC) there is no 150 Hz "
+          "common-mode voltage at all; below, the min-max zero sequence is needed (rms of its 150 Hz component, rated current):\n"))
     wr("| V_dc | AC | PWM | 150 Hz CM (V rms) | leakage at 1 / 5 / 20 uF to earth (mA) |")
     wr("|---|---|---|---|---|")
     for x in lfz:
@@ -1837,16 +1927,18 @@ def report_f(r, rc):
         wr(f"| {x['vdc']:.0f} V | {x['vll']:.0f} V | {x['zs']} | {x['v150_rms']:.0f} | {il['1uF']:.0f} / {il['5uF']:.0f} / {il['20uF']:.0f} |")
     wr(f"\nAgainst the residual-current monitor (IEC 62109-2 from memory: 10 mA per kVA continuous above 30 kVA = {RCMU['continuous_mA']['>30kVA_per_kVA']*P_RATED/1e3:.0f} mA "
        f"here, 300 mA for small units, sudden steps of 30 / 60 / 150 mA): the battery may have up to {r['cbe_limit_uF_at_300mA']:.0f} uF to "
-       f"earth for a 300 mA budget ({r['cbe_limit_uF_at_10mA_per_kVA']:.0f} uF for the 10 mA/kVA one) when it is operated below 680 V; above, "
-       f"no limit from this source.  (The architecture's 0.7 A at 5 uF assumed 150 V of zero sequence - the min-max offset's 150 Hz part is "
-       f"about half that, and it is not used above 680 V here.)")
+       f"earth for a 300 mA budget ({r['cbe_limit_uF_at_10mA_per_kVA']:.0f} uF for the 10 mA/kVA one) "
+       + ("at every DC voltage.  (The architecture's 0.7 A at 5 uF assumed 150 V of zero sequence - the min-max offset's 150 Hz part is "
+          "about half that.)" if MOD_2L == "minmax" else
+          "when it is operated below 680 V; above, no limit from this source.  (The architecture's 0.7 A at 5 uF assumed 150 V of zero "
+          "sequence - the min-max offset's 150 Hz part is about half that, and it is not used above 680 V here.)"))
     h = r["hf"]
-    wr(f"\n(2) Switching frequency: the converter's common-mode voltage ({h['v_cm_converter_V_pk']:.0f} V peak at 32 kHz, 950 V) is returned "
+    wr(f"\n(2) Switching frequency: the converter's common-mode voltage ({h['v_cm_converter_V_pk']:.0f} V peak at {FSW_CHOICE/1e3:.0f} kHz, 950 V) is returned "
        f"locally through C_f and the DC midpoint (step c), leaving {h['v_cm_terminals_V_pk']:.1f} V peak between the terminals and the DC "
        f"midpoint; through the battery's earth capacitance that alone drives "
        + ", ".join(f"{k}: {v['no_choke_A']:.1f} A" for k, v in h["earth_current"].items())
-       + f" at 32 kHz - so the AC conductors need a common-mode choke of >= {h['L_cm_uH']:.0f} uH at 32 kHz (three nanocrystalline cores over "
-         f"the busbars instead of the architecture's two): " + ", ".join(f"{k}: {v['with_choke_mA']:.0f} mA" for k, v in h["earth_current"].items()) + ".")
+       + f" at {FSW_CHOICE/1e3:.0f} kHz - so the AC conductors need a common-mode choke of >= {h['L_cm_uH']:.0f} uH "
+         f"({FP['cm_choke']['k'] if FP else 3} nanocrystalline cores over the busbars instead of the architecture's two): " + ", ".join(f"{k}: {v['with_choke_mA']:.0f} mA" for k, v in h["earth_current"].items()) + ".")
     wr("\n**What the product needs (answer):** no transformer and no special modulation beyond the one above.  Three-wire on a TN grid is "
        "allowed with (a) the C_f star tied to the DC midpoint, (b) the AC common-mode choke, (c) an installation limit on the battery's "
        "capacitance to earth for operation below 680 V (stated above), (d) the RCMU thresholds set per the code; where the battery exceeds it "
@@ -1972,6 +2064,16 @@ def protection_layer():
     return out
 
 
+def filter_row(key, l, e):
+    """BOM row of L1 or L2 from the magnetics-model part chosen by sim/pcs_tradeoff.py"""
+    x = FP[key]
+    core = CORE_WORD[x["mat"]]
+    return ("LCL FILTER", f"{key} {l*1e6:.0f} uH, 216 A rms ({e:.1f} J): gapped {core} C-core, {x['wire']}, {x['N']} turns, {x['mass_kg']:.1f} kg",
+            3, f"{key}-{l*1e6:.0f}u-216A (CUSTOM)", "CUSTOM (Yunlu / AT&M core)", x["usd"][0], x["usd"][1],
+            "sim/magnetics.py design + cost model (core / conductor USD per kg, labour; catalogue 1k) - ESTIMATE, no quote",
+            "magnetics.py 5k build factors (ASSUMED)", False)
+
+
 def bom_rows(D, rc, rd, re_, PL):
     """every costed line: (block, function, qty, part, maker, unit cat, unit 5k, cat basis, 5k basis, evidence_5k?) - three-wire; the
     four-wire increment separately.  5k basis: 'EVIDENCE' = an LCSC volume break / maker 1 ku list / marketplace quote; else ASSUMED."""
@@ -2005,13 +2107,17 @@ def bom_rows(D, rc, rd, re_, PL):
          PL["stretch_per_ch"][1] + PL["negdet_per_ch"][1], "bom/PV-P75_costed_BOM.csv unit prices", "PV costed BOM 5k column (REAL for the ICs)", True),
         ("GATE DRIVE", "Gate bias per phase: SN6505B + custom transformer (2 secondaries) + 2 regulators", 3, "SN6505BDBVR + GDB-T1 + 2 x reg",
          "TI + CUSTOM", 0.926 + 1.50 + 2 * 0.30, 0.926 + 1.20 + 2 * 0.255, "TI 1ku + ESTIMATE", "MIXED: TI 1ku list, rest ASSUMED x0.80/0.85", False),
+        filter_row("L1", l1, e1) if FP else
         ("LCL FILTER", f"L1 {l1*1e6:.0f} uH, 216 A rms / {I_2MIN*math.sqrt(2)*(1+RIPPLE_PP/2):.0f} A pk ({e1:.1f} J), amorphous C-core + Cu strip",
          3, f"L1-{l1*1e6:.0f}u-216A (CUSTOM)", "CUSTOM (AT&M / Yunlu core)", L1_COST[0] + L1_COST[1] * e1, (L1_COST[0] + L1_COST[1] * e1) * 0.8,
          "ESTIMATE: architect's 10 USD + 6 USD/J (42 USD for 100 uH)", "ASSUMED x0.80", False),
+        filter_row("L2", l2, e2) if FP else
         ("LCL FILTER", f"L2 {l2*1e6:.0f} uH, 216 A rms ({e2:.2f} J), powder / Si-steel", 3, f"L2-{l2*1e6:.0f}u-216A (CUSTOM)", "CUSTOM",
          10.0 + 8.0 * e2, (10.0 + 8.0 * e2) * 0.8, "ESTIMATE: 10 USD + 8 USD/J (fits the architect's 22 USD for 30 uH)", "ASSUMED x0.80", False),
-        ("LCL FILTER", f"C_f {cf*1e6:.0f} uF per phase (2 x 25 uF 450 V AC MKP), star tied to the DC midpoint", 6, "25 uF 450 VAC MKP",
-         "Faratronic / Jianghai class (CN)", 0.12 * 25, 0.12 * 25 * 0.85, "ESTIMATE: 0.12 USD/uF (architect)", "ASSUMED x0.85", False),
+        ("LCL FILTER", f"C_f {cf*1e6:.0f} uF per phase ({math.ceil(cf / 25e-6 - 1e-9)} x {cf*1e6/math.ceil(cf / 25e-6 - 1e-9):.0f} uF 450 V AC MKP), "
+         "star tied to the DC midpoint", 3 * math.ceil(cf / 25e-6 - 1e-9), f"{cf*1e6/math.ceil(cf / 25e-6 - 1e-9):.0f} uF 450 VAC MKP",
+         "Faratronic / Jianghai class (CN)", 0.12 * cf * 1e6 / math.ceil(cf / 25e-6 - 1e-9), 0.12 * cf * 1e6 / math.ceil(cf / 25e-6 - 1e-9) * 0.85,
+         "ESTIMATE: 0.12 USD/uF (architect)", "ASSUMED x0.85", False),
         ("LCL FILTER", "Passive damping branch 2 ohm 25 W + 10 uF per phase", 3, "RX24 2R + 10 uF MKP", "class", 3.0, 2.55, "ESTIMATE (architect)",
          "ASSUMED x0.85", False),
         ("SENSING", "Phase current sensor, open-loop TMR +-500 A (C_f side of L1)", 3, "STK-HO/A class", "Sinomags (CN)", 6.0, 4.8,
@@ -2046,6 +2152,10 @@ def bom_rows(D, rc, rd, re_, PL):
         ("AC PORT", "AC contactor coil drivers + economiser", 2, "class", "class", 0.7, 0.6, "PV basis", "ASSUMED x0.85", False),
         ("AC PORT", "AC surge protection type II on board, monitored", 1, "TVT25 (300 VAC) x3 + GDT", "Thinking (TW) class", 9.3, 7.9,
          "ESTIMATE (architect)", "ASSUMED x0.85", False),
+        ("AC PORT", f"AC common-mode choke {L_CM_AC*1e6:.0f} uH: {FP['cm_choke']['k']} x Yunlu N-R-564440 nanocrystalline cores over the phase "
+         f"busbars + 3 x Y1 ({FP['cm_choke']['mass']:.1f} kg)", 1, f"{FP['cm_choke']['k']} x N-R-564440 + 3 x Y1", "Yunlu (CN)",
+         FP["cm_choke"]["usd"][0], FP["cm_choke"]["usd"][1], "sim/magnetics.py pcs_cm_design (core 20 USD/kg ESTIMATE) + Y1 1.5 USD",
+         "magnetics.py 5k factors (ASSUMED)", False) if FP else
         ("AC PORT", f"AC common-mode choke >= {L_CM_AC*1e6:.0f} uH at 32 kHz: 3 nanocrystalline cores over the phase busbars + 3 x Y1", 1,
          "3 x ring core + 3 x Y1", "Yunlu / AT&M class", 18.9, 15.1, "ESTIMATE (architect's 2-core row x1.5)", "ASSUMED x0.80", False),
         ("AC PORT", "AC terminals (L1-L3 + PE) + busbars", 1, "4 x terminal + 3 x busbar", "CUSTOM", 39.0, 31.2, "ESTIMATE (architect)", "ASSUMED x0.80", False),
@@ -2083,7 +2193,8 @@ def bom_rows(D, rc, rd, re_, PL):
          "2 x TLV9024PWR + passives", "TI + passives", PL["control_4W"][0] - PL["control_3W"][0], PL["control_4W"][1] - PL["control_3W"][1],
          "bom/PV-CTL_BOM.csv minus PV-CTL-P75", "PV costed BOM / pv_ctrl estimate", False),
         ("4-WIRE OPTION", f"Neutral inductor L_N {l1*1e6:.0f} uH (as L1: the neutral leg's ripple is that of a phase leg) + TMR sensor", 1,
-         "L1 class + STK class", "CUSTOM + Sinomags", L1_COST[0] + L1_COST[1] * e1 + 6.0, (L1_COST[0] + L1_COST[1] * e1) * 0.8 + 4.8, "rows above", "rows above", False),
+         "L1 class + STK class", "CUSTOM + Sinomags", (FP["L1"]["usd"][0] if FP else L1_COST[0] + L1_COST[1] * e1) + 6.0,
+         (FP["L1"]["usd"][1] if FP else (L1_COST[0] + L1_COST[1] * e1) * 0.8) + 4.8, "rows above", "rows above", False),
         ("4-WIRE OPTION", "Heatsink section + fan for the fourth leg", 1, "as THERMAL rows", "CUSTOM + Delta",
          4.0 * 4.7 + 5.0 + HS["fans_per_section"] * FAN["price"]["cat"], (4.0 * 4.7 + 5.0) * 0.8 + HS["fans_per_section"] * FAN["price"]["5k"],
          "rows above", "rows above", False),
@@ -2168,9 +2279,39 @@ def report_g(r):
        f"{a4[0]:.0f} / {a4[1]:.0f} USD.  The architecture's figures rest on 42 IGBTs that overheat (step a: 66 needed) and on a 660 uF "
        f"midpoint bank that its own modulation cannot hold at PF 0 (step d: 25 capacitors per half for any three-level design); "
        f"corrected for those two (+{r['arch_corr']['devices_5k']:.0f} USD of IGBTs and pads, +{r['arch_corr']['dc_link_5k']:.0f} USD of DC "
-       f"link at 5k) its T-type would cost about {a3[1] + r['arch_corr']['devices_5k'] + r['arch_corr']['dc_link_5k']:.0f} USD at 5k.  "
-       f"Evidence behind the 5k figure: {r['evidence_share_5k']*100:.0f} % (LCSC breaks, marketplace quote); the rest are assumed factors "
+       f"link at 5k) its T-type would cost about {a3[1] + r['arch_corr']['devices_5k'] + r['arch_corr']['dc_link_5k']:.0f} USD at 5k"
+       + (" on the architect's filter prices (section h prices it with the real inductors).  " if FP else ".  ")
+       + f"Evidence behind the 5k figure: {r['evidence_share_5k']*100:.0f} % (LCSC breaks, marketplace quote); the rest are assumed factors "
        f"0.68-0.85 on estimates - the inductors, the contactors, the fuses, the heatsink and the SiC device price are RFQ items.")
+
+
+def report_h():
+    """(h) the power-stage and filter re-optimisation with the real inductor designs (sim/pcs_tradeoff.py; full tables in tradeoff.md)"""
+    wr("\n## (h) Re-optimisation with the real inductor designs (sim/pcs_tradeoff.py)\n")
+    try:
+        t = json.load(open(TRADEOFF))
+    except (OSError, ValueError):
+        wr("Not run yet: the filter of steps c and g is priced with the step-c loss budgets and the architect's estimates.  Run "
+           "sim/pcs_tradeoff.py, then this script again.")
+        return
+    wr(t["basis"] + "\n")
+    wr("| candidate | 5k USD (catalogue) | peak / full-load (750 V) efficiency | filter 5k USD | filter kg | filter W at 125 kW, 750 V | meets the limits |")
+    wr("|---|---|---|---|---|---|---|")
+    sweep = ("A1", "A2", "A1xA2")
+    best_of = {g: min((r for r in t["rows"] if r["group"] == g), key=lambda r: r["cost"]["5k"])["name"] for g in sweep
+               if any(r["group"] == g for r in t["rows"])}
+    for r in t["rows"]:
+        if r["group"] in sweep and r["name"] != best_of[r["group"]]:
+            continue                    # sweeps: their cheapest point here, every point in tradeoff.md
+        wr(f"| {r['name']} | {r['cost']['5k']:.0f} ({r['cost']['cat']:.0f}) | {r['eta_peak']*100:.2f} / {r['eta_full_750V']*100:.2f} % | "
+           f"{r['cost']['filter'][1]:.0f} | {r['filter_mass_kg']:.0f} | {r['filter_loss_W']['125kW_750V']:.0f} | "
+           f"{'yes' if r['ok'] else 'no (' + ', '.join(k for k, v in r['accept'].items() if not v) + ')'} |")
+    for x in t["conclusion"]:
+        wr(f"\n{x}")
+    SPEC["tradeoff"] = {k: t[k] for k in ("recommended", "two_level_best", "runner_up", "conclusion")}
+    SPEC["tradeoff"]["rows"] = [{"name": r["name"], "usd_5k": round(r["cost"]["5k"], 1), "usd_cat": round(r["cost"]["cat"], 1),
+                                 "eta_peak": round(r["eta_peak"], 5), "filter_usd_5k": round(r["cost"]["filter"][1], 1),
+                                 "filter_kg": round(r["filter_mass_kg"], 1), "ok": r["ok"]} for r in t["rows"]]
 
 
 def module_section(rows):
@@ -2243,16 +2384,19 @@ def handover(D, rb, rc, rd, re_, rf, rg_):
     F = rc["filter"]
     ctrl = {
         "plant": {"L1_uH": round(F["L1"] * 1e6, 1), "Cf_uF_star": F["Cf"] * 1e6, "L2_uH": F["L2"] * 1e6, "Rd_ohm": F["Rd"], "Cd_uF": F["Cd"] * 1e6,
-                  "R_L1_mohm_est": round(BUDGET["L1_cu_W_per_phase_180A"] / I_RATED ** 2 * 1e3, 2), "f_res_Hz": rc["f_res_Hz"],
+                  "R_L1_mohm_est": round((FP["L1"]["loss_per_phase"]["k2"] if FP else BUDGET["L1_cu_W_per_phase_180A"] / I_RATED ** 2) * 1e3, 2), "f_res_Hz": rc["f_res_Hz"],
                   "grid_SCR_range": "5 .. stiff", "C_dc_series_uF": rd["C_series_uF"], "C_f_star": "tied to the DC midpoint"},
         "sampling": {"f_sw_Hz": FSW_CHOICE, "f_s_Hz": F_S, "delay_s": T_DELAY, "dead_time_ns": re_["dead_time_ns"],
                      "dead_time_error": f"{2 * re_['dead_time_ns'] * 1e-9 * FSW_CHOICE * 100:.1f} % volt-seconds -> compensate (THDi < 3 %)"},
-        "current_loop": "L1 current (sensor on the C_f side of L1): resonance 2.4-6.2 kHz is below f_s/6 = 10.7 kHz, where converter-current "
-                        "feedback with 1.5 T_s delay is inherently damped; keep the bandwidth <= 1 kHz (below f_res(SCR 5)/2), resonant terms "
+        "current_loop": f"L1 current (sensor on the C_f side of L1): resonance {min(rc['f_res_Hz'].values())/1e3:.1f}-"
+                        f"{max(rc['f_res_Hz'].values())/1e3:.1f} kHz is below f_s/6 = {F_S/6e3:.1f} kHz, where converter-current "
+                        f"feedback with 1.5 T_s delay is inherently damped; keep the bandwidth <= {BW_LOOP/1e3:.2f} kHz (below f_res(SCR 5)/2), resonant terms "
                         "at h5/h7/h11/h13; grid current for PF/THD = i_L1 - C_f dv_Cf/dt; passive R_d-C_d branch as the fallback damping",
         "pll": "on the C_f (or terminal) voltages, 400 V +-15 %, 50/60 Hz, SCR 5..stiff, unbalance and LVRT/HVRT (EN 50549-1 / GB/T 34120)",
-        "modulation": "two-level, sinusoidal where m <= 0.98, min-max zero sequence above (V_dc < ~680 V at 400 V, < ~780 V at 460 V)",
-        "midpoint": "no control (two-level); firmware plausibility of the half voltages; C_f-star 150 Hz current <= 8 A rms, ripple <= 18 V pp",
+        "modulation": ("two-level, min-max zero sequence (SVPWM-equivalent) at every operating point (section h)" if MOD_2L == "minmax" else
+                       "two-level, sinusoidal where m <= 0.98, min-max zero sequence above (V_dc < ~680 V at 400 V, < ~780 V at 460 V)"),
+        "midpoint": f"no control (two-level); firmware plausibility of the half voltages; C_f-star 150 Hz current <= {rd['cf_star_lf_cm_A_max']:.0f} A "
+                    f"rms, ripple <= {max(rd['midpoint_pp_V'].values()):.0f} V pp",
         "grid_forming": f"voltage control on C_f (L1-C_f with the damping branch), current limit 1.2 x 216 A for 200 ms (Tj "
                         f"{max(o['tj_200ms_C'] for o in rb['overload']):.0f} C at the worst corner, step b), 120 % for 2 min, transitions grid "
                         f"<-> off-grid < 20 ms (Megarevo)",
@@ -2295,7 +2439,7 @@ def handover(D, rb, rc, rd, re_, rf, rg_):
           "memory - verify), sensor self-test",
           "current limit 1.2 x 216 A for <= 200 ms then trip; 120 % for <= 2 min; device thermal model; inlet-temperature derating (fan "
           "limit 60 C); fan speed control; open / shorted NTC plausibility",
-          "monitoring and non-hazard edge cases: dead-time compensation, the modulation policy (sinusoidal where m <= 0.98), half-voltage "
+          "monitoring and non-hazard edge cases: dead-time compensation, the modulation policy (" + ("min-max everywhere" if MOD_2L == "minmax" else "sinusoidal where m <= 0.98") + "), half-voltage "
           "plausibility, varistor and contactor feedback, unsynchronised-close prevention (a stressed unit, not a hazard: no extra hardware)"]
     SPEC["handover"] = {"control_engineer": ctrl, "board_designers": boards, "firmware_requirements": fw}
     wr("\n## Hand-over\n")
@@ -2328,10 +2472,13 @@ def unknowns():
               "The qualified fallback of the PV module (Microchip MSC035SMA170B4, 39 USD) does not fit this product's budget at 36 devices.",
               "Paralleling six TO-247 per switch: sharing k = 1.10 needs one-lot or binned devices and the per-pair decoupling layout; both are "
               "requirements, not results.  The commutation decks use the PV leg scaled x3 - re-run with the extracted layout.",
-              "Inductors, contactors, the 400 A aR fuse, the heatsink, the film capacitors and the CM cores have no quotes; 95 % of the "
-              "5,000-unit money is an assumed factor.",
+              "Inductors, contactors, the 400 A aR fuse, the heatsink, the film capacitors and the CM cores have no quotes; "
+              f"{(1 - SPEC['cost_usd']['evidence_share_5k']) * 100:.0f} % of the 5,000-unit money is an assumed factor"
+              + ("; the inductor prices are sim/magnetics.py's material + labour model (core and conductor USD/kg ESTIMATES), and its "
+                 "search covers gapped nanocrystalline / amorphous C-cores only - no powder block cores." if FP else "."),
               "Standards: EN 50549-1, IEC 62109-2, IEEE 1547 (the harmonic limits used), IEC 62116, GB/T 34120 - from memory, texts not on file.",
-              "Battery capacitance to earth (1-20 uF range assumed) decides the three-wire TN installation limit below 680 V.",
+              "Battery capacitance to earth (1-20 uF range assumed) decides the three-wire TN installation limit "
+              + ("at every DC voltage (min-max PWM)." if MOD_2L == "minmax" else "below 680 V."),
               "Control: current loop, PLL, grid forming, four-wire neutral control and the THDi < 3 % at rated power are not simulated here "
               "(ARCHITECTURE-PCS section 9 items 3-7).",
               "Three-level modules (HIITIO): data sheets without short-circuit rating or qualification; prices indicative only.",
@@ -2339,26 +2486,50 @@ def unknowns():
         wr(f"- {x}")
 
 
+def tradeoff_line():
+    """one sentence on the re-optimisation (section h) for the summary"""
+    t = SPEC.get("tradeoff", {})
+    rows = {r["name"]: r for r in t.get("rows", [])}
+    tt = [r for r in rows.values() if r["name"].startswith("B")]
+    me = rows.get(t.get("two_level_best"), {})
+    if not (tt and me):
+        return ""
+    ok = [r for r in tt if r["ok"]]
+    b = min(ok or tt, key=lambda r: r["usd_5k"])
+    cheap = min(tt, key=lambda r: r["usd_5k"])
+    return (f"With the real inductor designs (section h) it is also the cheapest: {me['usd_5k']:.0f} USD at 5k against {b['usd_5k']:.0f} USD "
+            f"for the cheapest compliant T-type ({b['name']})"
+            + (f"; {cheap['name']} ({cheap['usd_5k']:.0f} USD) puts its 1200 V outer devices at {V_OV_TRIP / 1200:.2f} of rating at the {V_OV_TRIP:.0f} V trip." if cheap is not b else "."))
+
+
 def summary(choice, rb, rc, rd, re_, rf, rg_):
     ef = rb["efficiency"]
     fit = SPEC["cosmic_ray"]["table"]
     lines = ["## Summary", "",
-             f"- **Topology: two-level, 1700 V SiC (6 x SG2M040170HJ per switch, 36 devices, 6 gate channels), 32 kHz** - replaces the "
+             f"- **Topology: two-level, 1700 V SiC ({choice['devs']['TH'][1]} x SG2M040170HJ per switch, {6 * choice['devs']['TH'][1]} devices, "
+             f"6 gate channels), {FSW_CHOICE/1e3:.0f} kHz** - replaces the "
              f"architecture's three-level T-type with 1200 V IGBTs.  Every device at <= 0.56 of its rating at 950 V (rule 0.67); the T-type's "
              f"outer IGBTs sit at 0.79 and would fail by cosmic rays {fit[0]['FIT_950V']:.0f} FIT per unit at 950 V (25 C, sea level; Semikron "
-             f"AN 17-003 data) against {fit[2]['FIT_950V']:.2f} FIT here.  The two-level design is also the cheapest: three-level legs need a "
-             f"3.5 mF per-half midpoint bank for PF 0 that two-level does not.",
+             f"AN 17-003 data) against {fit[2]['FIT_950V']:.2f} FIT here.  "
+             + (tradeoff_line() if FP else "The two-level design is also the cheapest: three-level legs need a 3.5 mF per-half midpoint "
+                "bank for PF 0 that two-level does not."),
              f"- **Efficiency (calculated):** peak {re_['eta_peak_corr']*100:.2f} % (>= 98.5 % met), {re_['eta_full_corr']*100:.2f} % at 125 kW / 750 V; "
              f"worst Tj {rb['envelope_45C']['tj_max_C']:.0f} C at 110 % / 45 C inlet, {rb['tj_110pct_60C']:.0f} C at 60 C, "
              f"{max(o['tj_200ms_C'] for o in rb['overload']):.0f} C after 1.2 x 216 A for 200 ms (175 C rating).",
              f"- **Filter:** L1 {rc['filter']['L1']*1e6:.0f} uH, C_f {rc['filter']['Cf']*1e6:.0f} uF (star on the DC midpoint), L2 {rc['filter']['L2']*1e6:.0f} uH; "
-             f"resonance {min(rc['f_res_Hz'].values())/1e3:.1f}-{max(rc['f_res_Hz'].values())/1e3:.1f} kHz; PWM THDi < 0.1 % (the 3 % is the controller's).",
+             f"resonance {min(rc['f_res_Hz'].values())/1e3:.1f}-{max(rc['f_res_Hz'].values())/1e3:.1f} kHz; PWM THDi < 0.1 % (the 3 % is the controller's)"
+             + (f"; inductors from sim/magnetics.py: 3 x L1 {CORE_WORD[FP['L1']['mat']]} {FP['L1']['mass_kg']:.1f} kg, 3 x L2 {FP['L2']['mass_kg']:.1f} kg, "
+                f"CM choke {FP['cm_choke']['k']} cores - filter {FP['cost']['filter'][0]:.0f} / {FP['cost']['filter'][1]:.0f} USD, "
+                f"{FP['filter_mass_kg']:.0f} kg, {FP['filter_loss_W']['125kW_750V']:.0f} W at 125 kW / 750 V." if FP else "."),
              f"- **DC link:** {rd['per_half']} + {rd['per_half']} x Faratronic C3D1U147 film, > 100 kh at 60 C inlet; electrolytics would need "
              f"{rd['electrolytic_alternative']['cans']} cans and last {min(rd['electrolytic_alternative']['life_h'].values())/1e3:.0f} kh.",
              f"- **Cost:** {rg_['three_wire']['catalogue']:.0f} / {rg_['three_wire']['5k']:.0f} USD (catalogue / 5,000 units) three-wire, "
              f"{rg_['four_wire']['catalogue']:.0f} / {rg_['four_wire']['5k']:.0f} USD four-wire, against the architecture's 1,037 / 801 and "
-             f"1,194 / 919 USD - which become about {SPEC['topology_screen'] and (rg_['architect']['three_wire'][1] + rg_['arch_corr']['devices_5k'] + rg_['arch_corr']['dc_link_5k']):.0f} "
-             f"USD at 5k for its own T-type once its IGBT count and midpoint bank are corrected.", ""]
+             + (f"1,194 / 919 USD, whose filter is priced at 10 + 6 USD/J; with the real inductors and its corrected IGBT count the "
+                f"architecture's T-type comes to {next((r['usd_5k'] for r in SPEC['tradeoff']['rows'] if r['name'].startswith('B-IGBT')), float('nan')):.0f} "
+                f"USD at 5k (section h)." if FP and SPEC.get("tradeoff") else
+                f"1,194 / 919 USD - which become about {SPEC['topology_screen'] and (rg_['architect']['three_wire'][1] + rg_['arch_corr']['devices_5k'] + rg_['arch_corr']['dc_link_5k']):.0f} "
+                f"USD at 5k for its own T-type once its IGBT count and midpoint bank are corrected."), ""]
     REP[4:4] = lines
 
 
@@ -2390,12 +2561,14 @@ def run():
                 "ngspice transients). Nothing is measured or bench-validated.** Device data and page references: sim/pcs_devices.py and "
                 "sim/pv_devices.py. Requirements: REQUIREMENTS.md AC-01..03, SRC-1..6. Re-run: `.venv/bin/python sim/pcs_design.py`.", ""])
     rows, choice, arch = step_a()
+    if FP:          # the trade study's device count: sized with E_on / E_off at the drawn gate resistors, AC 340-460 V and 1.3 sharing at 60 C
+        choice["devs"] = {p: (v.split(" x ")[1], int(v.split(" x ")[0])) for p, v in FP["devices"].items()}
     report_a(rows, choice, arch)
     cosmic_section(rows, choice)
     module_section(rows)
     lev = TOPO[choice["topo"]]["levels"]
     SPEC["design"] = {"topology": ("two-level" if lev == 2 else "three-level " + choice["topo"]) + ", three-wire (four-wire = one more leg)",
-                      "fsw_Hz": choice["fsw"], "modulation": "sinusoidal where m <= 0.98, min-max zero sequence above" if lev == 2 else "min-max",
+                      "fsw_Hz": choice["fsw"], "modulation": ("min-max zero sequence everywhere" if MOD_2L == "minmax" else "sinusoidal where m <= 0.98, min-max zero sequence above") if lev == 2 else "min-max",
                       "devices": {p: {"part": part, "n_parallel": n} for p, (part, n) in choice["devs"].items()}}
     save()
     D = design_from(choice)
@@ -2417,6 +2590,7 @@ def run():
     save()
     rg_ = step_g(D, rc, rd, re_)
     report_g(rg_)
+    report_h()
     handover(D, rb, rc, rd, re_, rf, rg_)
     unknowns()
     summary(choice, rb, rc, rd, re_, rf, rg_)

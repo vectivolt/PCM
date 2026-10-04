@@ -1,0 +1,35 @@
+section,parameter,megarevo_pmd_75_g3_published,pv_p75_calculated,verdict,evidence
+DC Data,Rated Power (kW),75,75 (3 x 25 kW cells),MEETS,sim/out/pv_design/module_spec.json
+DC Data,Max. Power (kW),82.5,82.5,MEETS,sim/out/pv_design/module_spec.json
+DC Data,MPPT Channels,1 (Centralized 75kW Design),1 centralised tracker over the 3 interleaved cells,MEETS,sim/out/pv_control/control_spec.json
+PV Data,Operating Voltage Range (V),250~1000,250~1000,MEETS,sim/out/pv_design/module_spec.json
+PV Data,Full-Load Voltage Range (V),550~950,550~950,MEETS,sim/out/pv_design/module_spec.json
+PV Data,Max. Operating Current (A),135,135 (3 x 45 A),MEETS,sim/out/pv_design/module_spec.json
+PV Data,MPPT Tracking Accuracy,≥99.9%,"99.932 % static (simulated), key /mppt/static_eta_min_in_window",MEETS,sim/out/pv_control/control_spec.json
+PV Data,PV Start-up Voltage (V),250,auxiliary supply starts at 232.4 V (key /start_up_voltage_V); converter runs from 250 V,MEETS,sim/out/aux_hv_design/aux_hv_spec.json
+Output Data,Voltage Range (V),250~1000,250~1000,MEETS,sim/out/pv_design/module_spec.json
+Output Data,Full-Load Voltage Range (V),550~950,550~950,MEETS,sim/out/pv_design/module_spec.json
+Output Data,Max. Operating Current (A),135,135 (3 x 45 A),MEETS,sim/out/pv_design/module_spec.json
+Protection Data,Over/Under Voltage Protection (Both Ports),Supported,"hardware trip 1100 V and firmware limit 1050 V on each port, stop below 240 V",MEETS,sim/out/pv_design/cell_spec.json
+Protection Data,Overcurrent Protection (Both Ports),Supported,"per cell: hardware trip 72.4 A on the inductor; per port: over-current trip 202.5 A, short-circuit comparator 405 A",MEETS,"sim/out/pv_design/cell_spec.json, sim/out/port_design/port_spec.json"
+Protection Data,Open-Circuit Protection (Both Ports),Supported,"full-power load rejection and loss of the PV source simulated: the 1100 V hardware over-voltage trip has the gates off 97 us after the crossing, against 134 us allowed by the device voltage limit",MEETS,sim/out/pv_control/control_spec.json
+Protection Data,Overtemperature Protection,Supported,"heatsink trip 86 C (hottest junction then 125 C), inductor and second heatsink NTC, fan tach",MEETS,sim/out/pv_design/cell_spec.json
+Protection Data,Lightning Protection,Supported,"DEHNguard M YPV SCI 1000 FM on each port, protection level 4000 V",MEETS,sim/out/port_design/port_spec.json
+Protection Data,Insulation Impedance Detection,Supported,switched 992 kOhm test resistors pole-to-PE on the port board; 33.3 kOhm threshold (1000 V / 30 mA),MEETS,sim/out/port_design/port_spec.json
+Protection Data,Short-Circuit Protection,Supported,"gate-driver DESAT at 7 V (detect + soft turn-off 1.35 us against 3.1 us device withstand), 160 A gPV fuse on every pole, contactor hold-closed interlock above 382.1 A so the fuse always clears first",MEETS,"sim/out/pv_design/cell_spec.json, sim/out/port_design/port_spec.json, hardware/GDRV-HB/outputs/GDRV-HB_design_check.txt"
+Protection Data,Isolation Method,Non-Isolated,"non-isolated, common negative rail (2-level non-inverting four-switch buck-boost (FSBB))",MEETS,sim/out/pv_design/cell_spec.json
+General Data,Max. Efficiency,99%,"99.48 % peak at 900->1000 V, 66 kW (whole module: cells, port board, control, fans); 98.90 % at the worst full-power corner, 45 C inlet",BETTER,sim/out/pv_design/module_spec.json
+General Data,Operating Temperature Range (℃),-30~60 (>45 Derating),"cold side: the fan, the part that set the limit, is rated to -40 C (requirement and Megarevo: -30 C); the minimum rating of every other part has not been audited one by one. Hot side: full 82.5 kW to 60 C inlet at sea level (nominal thermal model), 100 % at 60 C with the pessimistic model",MEETS,sim/out/pv_design/module_spec.json
+General Data,Operating Altitude (m),＞3000 Derating,"at 3000 m: 100 % to 60 C inlet, 100 % at 60 C (nominal); pessimistic model derates from 50 C",MEETS,sim/out/pv_design/module_spec.json
+General Data,Relative Humidity,≤95% (Non-condensing),not assessed: mechanics and enclosure are outside this project's scope (schematic + BOM + simulation),NOT ASSESSED,docs/requirements/REQUIREMENTS.md section 1
+General Data,IP Rating,IP20,not assessed: mechanics and enclosure are outside this project's scope (schematic + BOM + simulation),NOT ASSESSED,docs/requirements/REQUIREMENTS.md section 1
+General Data,Noise Level (dB),≤65 @1m,"59.0 dB(A) @1 m at full power, 45 C inlet (fan datasheet sound data + 3 dB installation estimate)",BETTER,sim/out/pv_design/module_spec.json
+General Data,Cooling Method,Temperature-Controlled Smart Forced Air,"forced air, one Sanyo Denki 9GT1224P1S001 per cell, PWM + tach, speed from heatsink and inductor NTCs; one fan failed still holds 100 % at 45 C",MEETS,sim/out/pv_design/module_spec.json
+General Data,Dimensions L*W*H (mm),550*444*133,not assessed: mechanics and enclosure are outside this project's scope (schematic + BOM + simulation),NOT ASSESSED,docs/requirements/REQUIREMENTS.md section 1
+General Data,Weight (kg),30,not assessed: mechanics and enclosure are outside this project's scope (schematic + BOM + simulation),NOT ASSESSED,docs/requirements/REQUIREMENTS.md section 1
+General Data,Mounting Method,Cabinet Fixed Installation,not assessed: mechanics and enclosure are outside this project's scope (schematic + BOM + simulation),NOT ASSESSED,docs/requirements/REQUIREMENTS.md section 1
+Communication Data,Communication,"485, CAN","2 x isolated RS-485, 2 x isolated CAN (one CAN FD), 10/100 Ethernet",BETTER,"gen/sys_io_aux.py, gen/ctrl_c2000.py"
+Communication Data,BMS Interface,Supported,BMU-GW daughtercard: isolated CAN FD + isolated RS-485 to the battery BMS,MEETS,gen/bmu_gw.py
+Other Data,Voltage Accuracy,＜1%@100%Pn,0.73 % worst case after one-point calibration,MEETS,sim/out/port_design/report.md
+Other Data,Current Accuracy,＜1%@100%Pn,"0.83 % worst case after calibration, shunt temperature compensated",MEETS,sim/out/port_design/port_spec.json
+Other Data,Standby Power Consumption (W),＜20,18.7 (estimate),MEETS,sim/out/pv_design/module_spec.json

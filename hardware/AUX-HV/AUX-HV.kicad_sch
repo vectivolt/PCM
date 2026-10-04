@@ -1,0 +1,343 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "e63c04c1-0158-55c2-a827-43b0a3f0fc80")
+	(paper "A3")
+	(title_block
+		(title "AUX-HV (builds PV, DAB-D60) - Cover / Hierarchy")
+		(date "2026-10-04")
+		(rev "C1")
+		(comment 1 "Barrier: T1 (PD-tested, reinforced) + CNY65B, conformally coated (PD1) - D-032")
+		(comment 2 "Schematics authored by Chinmoy Bhuyan")
+		(comment 3 "Sheet 1")
+		(comment 4 "Builds: PV all fitted / DAB-D60 port B not fitted (DAB BOM). Not bench-validated.")
+	)
+	(lib_symbols)
+	(text "CALCULATED (sim/aux_hv_design.py rev C1): DCM flyback 64.9 kHz; start 228 V (worst 232 V), stop 175-190 V; out 22.40-23.15 V; eta 80.8/84.0/83.5/82.2/80.4 % at 200-1000 V (T1 design M1); switch IV2Q171R0D7Z (alt. SG2M1K0170J2J), gate 15.5-18.1 V."
+		(exclude_from_sim no)
+		(at 20 240 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "1cd3d3e5-a373-5378-956e-016fe8d76e00")
+	)
+	(text "Rev C1  |  2026-10-04  |  Schematics authored by Chinmoy Bhuyan  |  22.8 V / 30 W isolated control rail from the DC ports, 200-1000 V (1100 V transient)"
+		(exclude_from_sim no)
+		(at 20 36 0)
+		(effects
+			(font
+				(size 2 2)
+			)
+			(justify left bottom)
+		)
+		(uuid "21f0db96-6f7f-5c87-9232-de8c3b7bdb42")
+	)
+	(text "Protections: OV lockout 1114-1170 V; 4 kV/20 us residual -> HV_BULK 1199 V; foldback 5.9 kHz; overload timer 91-189 ms -> hiccup. Rating 30 W continuous, 38 W <= 91 ms (SYS rev E 27.8 W, 30.15 W <= 200 s). V_DS 1323 / 1428 V at 1000 / 1100 V."
+		(exclude_from_sim no)
+		(at 20 244 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "5b21e6de-4b07-5605-a7fe-853cf3e02314")
+	)
+	(text "VS-8ETU04S + RC snubber, 3 x 100 uF polymer, ATL431 + CNY65B fast-lane type II\nwith R-C feed-forward, TPS3700 window -> SN74LVC1G17 -> PG_HVAUX (active high),\noutput connector (interfaces.AUX)"
+		(exclude_from_sim no)
+		(at 310.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "5cda4639-2ff1-5721-be3a-e903ab038629")
+	)
+	(text "CONFORMAL COATING (IC-17, D-032): coated to pollution degree 1 (IEC 60664-3 type 1) over the HV-PELV barrier parts T1, CNY65B and their HV copper. T1: PD <= 10 pC at 2461 Vpk on every unit, 4400 V rms 60 s, 8 kV impulse."
+		(exclude_from_sim no)
+		(at 20 236 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "7d9eb531-e6d8-531e-8dff-4259518ac0f3")
+	)
+	(text "LAYOUT (not dimensions): reinforced HV <-> PELV for 1000 V DC, PD2, OVC II (IEC 62477-1 / 62109-1, ECO-10); only T1 and the CNY65B cross; 1000 V spacing between HV nets and between the ports; >= 4 cm2 2-oz Cu per SMCJ70A; VDD follower <= 85 C, away from T1 / SiC / clamp (sim"
+		(exclude_from_sim no)
+		(at 20 248 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "8c37ac55-9e92-5066-928b-a51d38b25ad7")
+	)
+	(text "3 x BSS126 cascode on a compensated tap string; TPS3710 brown-in pulls COMP low;\nTLV3202 ch 1 = input OV lockout (COMP low),\nch 2 = latched overload timer (soft-start crowbar) -> hiccup"
+		(exclude_from_sim no)
+		(at 118.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "a3f3e267-d602-55ac-8738-51d6920f26fb")
+	)
+	(text "report sec. 4, 6, 11)."
+		(exclude_from_sim no)
+		(at 20 252 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "b271d892-2591-5429-86b9-dd718390a84f")
+	)
+	(text "UCC28C59-Q1 at 65 kHz, IV2Q171R0D7Z 1700 V SiC, TVS clamp, T1 (CUSTOM EC34A),\naux -> BC817 follower -> VDD, aux backup loop on FB,\nfoldback: 10 nF onto RT/CT below ~8 V output (no current staircase)"
+		(exclude_from_sim no)
+		(at 214.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "c78d5b2e-0aa7-5db6-9590-284cd7a1d13f")
+	)
+	(text "Per port: studs, 2 x 22 R pulse-rated AHEAD of the 1 A / 1000 VDC fuse, BYG10Y OR\nof both poles; 2 x 3.3 uF / 1300 V film = surge absorber.\nPort B is not fitted on the DAB-D60 build (bom/AUX-HV_DAB_BOM.csv)."
+		(exclude_from_sim no)
+		(at 22.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "c826bb02-7417-5886-ad9d-3a405728f2b6")
+	)
+	(text "AUX-HV (builds PV, DAB-D60)"
+		(exclude_from_sim no)
+		(at 20 28 0)
+		(effects
+			(font
+				(size 5 5)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "c86bffdf-7d3f-58b9-ab1a-439cfe39ca75")
+	)
+	(text "BUILD OPTIONS: PV = all parts fitted (bom/AUX-HV_BOM.csv). DAB-D60 = port 1 only (D-021): the port-B input parts marked 'PV build only' (2 studs, 2 x 22 R, fuse, 2 OR diodes) are not fitted (bom/AUX-HV_DAB_BOM.csv)."
+		(exclude_from_sim no)
+		(at 20 232 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "eca81423-89e8-56ec-85b8-53b9408561c5")
+	)
+	(sheet
+		(at 20 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "5328a2ff-8eaa-5c86-b7c7-0e07ca3519fd")
+		(property "Sheetname" "01 HV input, limit, fuse, OR"
+			(at 20 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/01_input.kicad_sch"
+			(at 20 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "AUX-HV"
+				(path "/e63c04c1-0158-55c2-a827-43b0a3f0fc80"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "63ce22e7-ca82-5faf-b409-f31a813f0a35")
+		(property "Sheetname" "02 Start-up, brown-in, OV, timer"
+			(at 116 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/02_startup.kicad_sch"
+			(at 116 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "AUX-HV"
+				(path "/e63c04c1-0158-55c2-a827-43b0a3f0fc80"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "80d60c04-27b0-5d63-9418-6e57475db03f")
+		(property "Sheetname" "03 PWM, SiC, clamp, T1, foldback"
+			(at 212 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/03_power.kicad_sch"
+			(at 212 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "AUX-HV"
+				(path "/e63c04c1-0158-55c2-a827-43b0a3f0fc80"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "8c31dda2-992f-5a1e-939b-9abbb404b7a3")
+		(property "Sheetname" "04 Rectifier, output, feedback, PG"
+			(at 308 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/04_secondary.kicad_sch"
+			(at 308 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "AUX-HV"
+				(path "/e63c04c1-0158-55c2-a827-43b0a3f0fc80"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+)

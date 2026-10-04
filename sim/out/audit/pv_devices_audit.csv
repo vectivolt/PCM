@@ -1,0 +1,183 @@
+item,parameter,file_value,datasheet_value,page_or_figure,verdict,note
+pv_devices.py,K_RR = 0.45 (from 0.39 / 0.46 / 0.58),E_fr/(Q_fr*V): 1835uJ/(3950nC*1200V); 1100uJ/(1975nC*1200V); E_RR/(Q_RR*V): 0.64mJ/(1.85uC*600V),"IMYH012 E_fr 1835 uJ, Q_fr 3950 nC (175C); IMYH024 E_fr 1100 uJ, Q_fr 1975 nC (175C); CAB E_RR 0.64 mJ, Q_RR 1.85 uC (150C)",IMYH012 p6; IMYH024 p6; CAB011M12FM3 p3,MATCH,Inputs verified; arithmetic gives 0.387 / 0.464 / 0.577.
+pv_devices.py,_qrr_shape: Q_rr(175C)/Q_rr(25C) = 2,x2 (0.5 at 25C -> 1.0 at 175C),IMYH012 E_fr 920->1835 uJ and Q_fr 2000->3950 nC (25->175C); IMYH024 E_fr 550->1100 uJ,IMYH012 p6; IMYH024 p6,MATCH,Temperature shape verified (x2.0). The Q_rr ~ sqrt(I) current shape is the author's stated assumption (see next row).
+pv_devices.py,_qrr_shape current law Q_rr ~ sqrt(I); VSD0 = 2.7 V body-diode knee,sqrt(I); 2.7 V,not a datasheet value,n/a,CANNOT VERIFY,Author's stated assumptions.
+C3M0016120K,rev,"Rev. 5, Nov 2025","Rev. 5, November 2025",page footers,MATCH,
+C3M0016120K,vdss,1200 V,1200 V (TC 25C),p1 Key Parameters,MATCH,
+C3M0016120K,vgs_on / vgs_off,+15 / -4 V,VGS(op) -4/+15 V; turn-on 15 V +/-5 % (note 1),p1,MATCH,
+C3M0016120K,vth / gfs / qgd,2.5 V / 54 S at 80 A / 65 nC at 800 V,"VGS(th) 2.5 V typ (ID 22 mA); gfs 54 S (VDS 20 V, IDS 80 A, 25C; 49 S at 175C); Qgd 65 nC (800 V, 80 A)",p2,MATCH,
+C3M0016120K,rg_ext / rg_int,2.5 / 2.6 ohm,RG(ext) 2.5 ohm (test); RG(int) 2.6 ohm,p2,MATCH,
+C3M0016120K,rds25 / rds25_max,16 / 22 mOhm,"16 typ / 22 max mOhm (VGS 15 V, ID 80 A, 25C)",p2,MATCH,175C typ is 29 mOhm (1.81x).
+C3M0016120K,rds_norm 25..175C,1.00/1.06/1.15/1.27/1.42/1.60/1.80,"0.995/1.060/1.153/1.273/1.419/1.590/1.785 (vector read; ID 80.28 A, VGS 15 V)",Fig.4 p4,MATCH,Max deviation 0.8 %.
+C3M0016120K,rth_jc,0.23 K/W,0.23 K/W typ,p3,MATCH,
+C3M0016120K,qg / ciss / coss / crss (c_at),223 nC / 6922 / 231 / 13 pF at 1000 V,"223 nC (800 V, 80 A) / 6922 / 231 / 13 pF (VDS 1000 V, 100 kHz)",p2,MATCH,
+C3M0016120K,eoss(V) 200..1200 V,12/30/55/87/127/177 uJ,9.7/28.2/52.8/85.4/127.0/177.6 uJ; table 127 uJ at 1000 V,Fig.16 p6; p2,MATCH,200 V point +24 % but 2 uJ (1 % of full scale); 1000 V equals the table value.
+C3M0016120K,"eon (800 V, 25C, RG 2.5, body-diode FWD) 20..150 A",0.47/0.82/1.22/1.65/2.20/2.72/3.75 mJ,"0.44*/0.80/1.21/1.667/2.18/2.738/3.673 mJ (*extrapolated, curve starts at 21 A)",Fig.24 p7,MATCH,"Max +7 % (20 A), others within 2 %."
+C3M0016120K,eoff (same condition),0.12/0.24/0.42/0.65/0.96/1.30/2.00 mJ,0.096*/0.218/0.407/0.653/0.954/1.308/1.932 mJ,Fig.24 p7,MATCH,20 A (+25 %) and 40 A (+10 %) are <=0.025 mJ (0.4 % of full scale); rest within 3.5 %.
+C3M0016120K,kv_on / kv_off,1.48 / 1.30,"from Fig.23 (600 V) vs Fig.24 (800 V): kv_on 1.50 (50 A), 1.43 (100 A); kv_off 1.40 (50 A), 1.26 (100 A)","Fig.23, Fig.24 p7",MATCH,
+C3M0016120K,kt_on / kt_off,0.00357 / 0.00118,"Fig.26 (80.28 A, 800 V): E_on 1.656->2.566 mJ, E_off 0.656->0.782 mJ (25->175C) = 0.00366 / 0.00128; table 175C 2552 / 788 uJ",Fig.26 p8; p2,MATCH,
+C3M0016120K,qrr,"1665 nC at 80 A, 175C","1665 nC (VR 800 V, di/dt 5180 A/us, 175C)",p3,MATCH,
+C3M0016120K,vsd,4.4 V at 40 A,"4.4 V (VGS -4 V, ISD 40 A, 175C); 4.9 V at 25C",p3,MATCH,
+C3M0016120K,tf,13 ns at 80 A,"13 ns (800 V, 80 A, RG 2.5)",p2,MATCH,
+C3M0016120K,check E_on / E_off,"2552 / 788 uJ (800 V, 80 A, 175C)","2552 / 788 uJ (body-diode FWD, L 135 uH)",p2,MATCH,
+C3M0021120K,rev,"Rev. 4, Jun 2025","Rev. 4, June 2025",page footers,MATCH,
+C3M0021120K,vdss,1200 V,1200 V,p1,MATCH,
+C3M0021120K,vgs_on / vgs_off,+15 / -4 V,VGS(op) -4/+15 V,p1,MATCH,
+C3M0021120K,vth / gfs / qgd,2.5 V / 35 S at 50 A / 50 nC at 800 V,"VGS(th) 2.5 V typ (ID 17.7 mA); gfs 35 S (VDS 20 V, IDS 50 A, 25C; 33 S at 175C); Qgd 50 nC (800 V, 50 A)",p2,MATCH,
+C3M0021120K,rg_ext / rg_int,2.5 / 3.3 ohm,RG(ext) 2.5 (test); RG(int) 3.3 ohm,p2,MATCH,
+C3M0021120K,rds25 / rds25_max,21 / 28.8 mOhm,"21 typ / 28.8 max mOhm (VGS 15 V, ID 50 A)",p2,MATCH,
+C3M0021120K,rds_norm 25..175C,1.00/1.05/1.13/1.25/1.39/1.55/1.72,"0.997/1.052/1.137/1.249/1.384/1.540/1.713 (vector read; 50 A, 15 V)",Fig.4 p4,MATCH,"Table gives 38 mOhm at 175C (1.81x); the curve implies 36 mOhm. Datasheet is 5 % self-inconsistent, file follows the curve (36.1 mOhm)."
+C3M0021120K,rth_jc,0.32 K/W,0.32 K/W,p3,MATCH,
+C3M0021120K,qg / ciss / coss / crss,162 nC / 4818 / 180 / 12 pF at 1000 V,"162 nC / 4818 / 180 / 12 pF (1000 V, 100 kHz)",p2,MATCH,
+C3M0021120K,eoss(V) 200..1200 V,8/23/43/68/99/139 uJ,7.7/22.7/42.6/68.0/100.4/139.6 uJ; table 99 uJ at 1000 V,Fig.16 p6; p2,MATCH,
+C3M0021120K,"eon (800 V, 25C, RG 2.5) 10..80 A",0.32/0.46/0.61/0.80/1.00/1.22/1.47/1.73 mJ,0.317/0.454/0.612/0.794/0.999/1.226/1.473/1.726 mJ,Fig.24 p7,MATCH,Max deviation 1.4 %.
+C3M0021120K,eoff (same condition) 10..80 A,0.07/0.08/0.13/0.20/0.29/0.38/0.49/0.60 mJ,0.058/0.072/0.123/0.192/0.280/0.377/0.484/0.598 mJ,Fig.24 p7,MATCH,10 A +21 % and 20 A +12 % are <=0.012 mJ (0.5 % of full scale); rest <=4 %.
+C3M0021120K,kv_on / kv_off (ASSUMED = C3M0016120K),1.48 / 1.30,"own Fig.23 vs Fig.24: kv_on 1.49 (50 A); kv_off 1.35 (30-40 A), 1.42 (50 A), 1.36 (60 A)","Fig.23, Fig.24 p7",MATCH,The assumption is consistent with the device's own figures; kv_off is 4-8 % low (<=3 % effect on E_off at 600 V).
+C3M0021120K,kt_on / kt_off,0.00376 / 0.00115,"Fig.26 (50 A): E_on 1.010->1.583 mJ, E_off 0.289->0.337 mJ (25->175C) = 0.00378 / 0.00111; table 175C 1.58 / 0.34 mJ",Fig.26 p8; p2,MATCH,
+C3M0021120K,qrr,"928 nC at 50 A, 175C","928 nC (VR 800 V, di/dt 2600 A/us, 175C)",p3,MATCH,
+C3M0021120K,vsd,4.2 V at 25 A,"4.2 V (VGS -4 V, ISD 25 A, 175C); 4.6 V at 25C",p3,MATCH,
+C3M0021120K,tf,14 ns at 50 A,14 ns,p2,MATCH,
+C3M0021120K,check E_on / E_off,"1.58 / 0.34 mJ (800 V, 50 A, 175C)","1.58 / 0.34 mJ (body-diode FWD, L 157 uH)",p2,MATCH,
+C3M0032120K,rev,"Rev. 6, Sep 2024","Rev. 6, September 2024",page footers,MATCH,
+C3M0032120K,vdss,1200 V,1200 V,p1,MATCH,
+C3M0032120K,vgs_on / vgs_off,+15 / -4 V,VGS(op) -4/+15 V,p1,MATCH,
+C3M0032120K,vth / qgd,2.5 V / 34 nC at 800 V,"VGS(th) 2.5 V typ (ID 11.5 mA); Qgd 34 nC (800 V, 40 A)",p2,MATCH,
+C3M0032120K,gfs,22.0 S at 40 A (comment: 'g_fs at 175 C: only value printed'),"27 S (VDS 20 V, IDS 40 A, 25C) and 22 S (same, TJ 175C) - both printed",p2 Electrical Characteristics,MISMATCH,File holds the 175C value; the 25C value is 27 S (file -19 %). Comment is wrong. Other Wolfspeed entries (54 / 35 / 73 S) are 25C values.
+C3M0032120K,rg_ext / rg_int,2.5 / 1.7 ohm,RG(ext) 2.5 (test); RG(int) 1.7 ohm,p2,MATCH,
+C3M0032120K,rds25 / rds25_max,32 / 43 mOhm,"32 typ / 43 max mOhm (min 23) (VGS 15 V, ID 40 A)",p2,MATCH,
+C3M0032120K,rds_norm 25..175C,1.00/1.02/1.08/1.22/1.38/1.58/1.80,"0.993/1.030/1.110/1.225/1.385/1.577/1.806 (raster trace; 40 A, 15 V); table 57.6/32 = 1.80 at 175C",Fig.4 p4; p2,MATCH,"75C: 1.08 vs 1.11 (-2.7 %), rest within 1 %."
+C3M0032120K,rth_jc,0.44 K/W,0.44 K/W,p3,MATCH,
+C3M0032120K,qg / ciss / coss / crss,118 nC / 3357 / 129 / 8 pF at 1000 V,"118 nC / 3357 / 129 / 8 pF (1000 V, 100 kHz)",p2,MATCH,
+C3M0032120K,eoss(V) 200..1200 V,7/19/34/53/77/105 uJ,6.5/17.9/33.9/53.4/76.5/104.1 uJ; table 76 uJ at 1000 V,Fig.16 p6; p2,MATCH,400 V +6 %; 1000 V 77 vs table 76.
+C3M0032120K,"eon (800 V, 25C, RG 2.5, body-diode FWD) 10..60 A",190/280/390/500/620/740 uJ,198/284/384/506/616/742 uJ (raster trace),Fig.24 p7,MATCH,
+C3M0032120K,eoff (same condition) 10..60 A,45/50/60/80/120/175 uJ,44/52/56/78/110/178 uJ (raster trace),Fig.24 p7,MATCH,50 A +9 % = 10 uJ (0.8 % of full scale).
+C3M0032120K,kv_on / kv_off (ASSUMED = C3M0016120K),1.48 / 1.30,own Fig.23 vs Fig.24: kv_on 1.44-1.56 (mean 1.47); kv_off scatters 1.0-1.6 at low E (mean ~1.3),"Fig.23, Fig.24 p7",MATCH,Assumption consistent with the device's own figures.
+C3M0032120K,kt_on / kt_off,0.00613 / 0.00225 (from 500->955 uJ and 80->107 uJ),"Fig.26 (40 A): E_on 504->962 uJ, E_off 79->104 uJ (25->175C); table 175C 955 / 107 uJ; Fig.24 at 25C: 506 / 78 uJ",Fig.26 p8; p2,MATCH,File comment 'Fig.26 reads ~100 at 25 C' is wrong: Fig.26 and Fig.24 both read ~79 uJ. The 80 uJ actually used is correct.
+C3M0032120K,qrr,"478 nC at 40 A, 175C","478 nC (VR 800 V, di/dt 2250 A/us, 175C)",p3,MATCH,
+C3M0032120K,vsd,4.2 V at 20 A,"4.2 V (VGS -4 V, ISD 20 A, 175C); 4.6 V at 25C",p3,MATCH,
+C3M0032120K,tf,9 ns at 40 A,9 ns,p2,MATCH,
+C3M0032120K,check E_on / E_off,"955 / 107 uJ (800 V, 40 A, 175C)","955 / 107 uJ (body-diode FWD, L 65.7 uH)",p2,MATCH,
+IMYH200R012M1H,rev / package,"Rev. 1.10, 2023-01-16; PG-TO247-4-PLUS-NT14","Revision 1.10, 2023-01-16; PG-TO247-4-PLUS-NT14",p1,MATCH,
+IMYH200R012M1H,vdss,2000 V,2000 V (Tvj >= 25C),p3 Table 2,MATCH,
+IMYH200R012M1H,vgs_on / vgs_off,+18 / -3 V,"recommended turn-on 15..18 V, turn-off -5..0 V; switching data measured at -2/18 V",p3 Table 3; p4-5,MATCH,-3 V is inside the recommended range but all E_on / E_off / E_fr data were measured at -2 V.
+IMYH200R012M1H,vth / gfs / qgd,4.5 V / 30 S at 60 A / 44 nC at 1200 V,"VGS(th) 4.5 V typ (ID 48 mA); gfs 30 S (60 A, VDS 20 V); QGD 44 nC (1200 V, 60 A)",p4 Table 4,MATCH,
+IMYH200R012M1H,rg_ext / rg_int,2.0 / 3.0 ohm,"RGS(on) = RGS(off) = 2 ohm (test); RG,int 3 ohm",p4-5 Table 4,MATCH,
+IMYH200R012M1H,rds25 / rds25_max,12 / 16.5 mOhm,"12 typ / 16.5 max mOhm (60 A, VGS 18 V, 25C)",p4,MATCH,"Table also: 20 mOhm at 100C, 36 mOhm at 175C."
+IMYH200R012M1H,rds_norm 25..175C (x12 mOhm = 12.0/14.5/17.5/21.0/25.1/30.0/35.4),1.00/1.21/1.46/1.75/2.09/2.50/2.95,"curve VGS 18 V, 60 A: 12.54/14.89/17.85/21.48/25.89/30.88/36.0 mOhm; table 12 / 20 / 36 mOhm at 25 / 100 / 175C",p9 curve; p4 table,MATCH,"Model within 4.5 % of the curve at every T; -1.7 % vs table at 175C, +5 % vs table at 100C (21.0 vs 20)."
+IMYH200R012M1H,rth_jc / rth_jc_max,0.12 / 0.16 K/W,"0.12 typ / 0.16 max K/W (MOSFET/body diode, junction-case)",p3 Table 1,MATCH,
+IMYH200R012M1H,qg / ciss / coss / crss (c_at 1200 V),246 nC / 9700 / 322 / 22 pF,"246 nC (1200 V, 60 A, -2/18 V) / 9700 / 322 / 22 pF (VDD 1200 V, 100 kHz)",p4,MATCH,
+IMYH200R012M1H,eoss_ref,216 uJ at 1200 V,Eoss 216 uJ (VDD 1200 V),p4,MATCH,Datasheet-internal conflict: integrating the p9 Coss(V) curve gives 296 uJ at 1200 V (+37 %); 216 uJ is below the lower bound 0.5*Coss(1200 V)*V^2 = 232 uJ. File uses the (lower) table value.
+IMYH200R012M1H,eoss_k = 1.6 (ASSUMED shape),E(V)/E(1200) = 0.175/0.330/0.523/0.745 at 400/600/800/1000 V,from p9 Coss(V) integral: 0.19/0.35/0.54/0.75 (effective exponent ~1.5),p9 Coss curve,MATCH,Assumption holds within 9 % (worst at 400 V).
+IMYH200R012M1H,"eon (1200 V, 175C, RG 2) 20..90 A",1750/2800/3800/4900/5450 uJ,1818/2799/3835/4929/5479 uJ,p10 E=f(ID),MATCH,p10 legend for this plot has swapped line styles; curves identified by their table values at 60 A (3800 and 1200 uJ).
+IMYH200R012M1H,eoff (same condition),350/750/1200/1600/1850 uJ,397/792/1209/1661/1889 uJ,p10 E=f(ID),MATCH,20 A -12 % = 47 uJ (0.4 % of full scale).
+IMYH200R012M1H,err = E_fr curve x 0.834 (pinned to table),959/1418/1835/2252/2502 uJ (20..90 A),"table E_fr 1835 uJ at 60 A, 175C (p6); p10 E=f(Tvj) plot E_fr 1853 uJ at 174C; p10 E=f(ID) plot E_fr 1208/1738/2267/2796/3061 uJ",p6; p10,MATCH,"File agrees with table and E=f(Tvj) plot; the E=f(ID) E_fr curve is the outlier (+23 %), correctly scaled down by the author."
+IMYH200R012M1H,kv_on / kv_off / kv_rr (ASSUMED),1.48 / 1.30 / 1.0,datasheet has data at 1200 V only (p10-12 checked),p10-12,CANNOT VERIFY,Author's stated assumption; no second voltage exists in the datasheet.
+IMYH200R012M1H,kt_on / kt_off / kt_rr,0.00245 / 0.00133 / 0.00332,"table 25/175C: E_on 2400/3800, E_off 960/1200, E_fr 920/1835 uJ = 0.00246 / 0.00133 / 0.00332",p5 Table 4; p6 Table 6,MATCH,p10 E=f(Tvj) plot shows E_off 1132->1202 uJ (kt_off ~0.0004) vs table 960->1200; file follows the table.
+IMYH200R012M1H,vsd,3.2 V at 60 A,"3.2 V (ISD 60 A, VGS 0 V, 175C)",p6 Table 6,MATCH,
+IMYH200R012M1H,tf,27 ns at 60 A,27 ns (175C),p5,MATCH,
+IMYH200R012M1H,check E_on / E_off / E_on(25C),3800 / 1200 / 2400 uJ,"3800 / 1200 uJ (175C), 2400 uJ (25C) at 1200 V, 60 A",p5,MATCH,
+IMYH200R024M1H,rev / package,Rev. 1.10; PG-TO247-4-PLUS-NT14,"Revision 1.10, 2023-01-16; PG-TO247-4-PLUS-NT14",p1,MATCH,
+IMYH200R024M1H,vdss,2000 V,2000 V,p3 Table 2,MATCH,
+IMYH200R024M1H,vgs_on / vgs_off,+18 / -3 V,recommended 15..18 / -5..0 V; switching data at -2/18 V,p3 Table 3,MATCH,Same remark as IMYH200R012M1H.
+IMYH200R024M1H,vth / gfs / qgd,4.5 V / 20 S at 40 A / 22 nC at 1200 V,"VGS(th) 4.5 V typ (ID 24 mA); gfs 20 S (40 A); QGD 22 nC (1200 V, 40 A)",p4,MATCH,
+IMYH200R024M1H,rg_ext,2.0 ohm,RGS(on) = RGS(off) = 2 ohm,p4-5,MATCH,
+IMYH200R024M1H,rg_int,3.0 ohm,"6 ohm typ (f 100 kHz, VAC 25 mV); the 012 device is 3 ohm",p4 Table 4,MISMATCH,Value copied from the IMYH200R012M1H entry. Changes the switching-speed / gate-loop estimate for this device.
+IMYH200R024M1H,rds25 / rds25_max,24 / 33 mOhm,"24 typ / 33 max mOhm (40 A, VGS 18 V)",p4,MATCH,"Table also: 41 mOhm at 100C, 72 mOhm at 175C."
+IMYH200R024M1H,rds_norm 25..175C (x24 mOhm = 24.0/29.5/35.5/43.0/51.1/60.9/72.0),1.00/1.23/1.48/1.79/2.13/2.54/3.00,"curve VGS 18 V, 40 A: 25.06/29.78/35.69/42.94/51.77/61.75/72.0 mOhm; table 24 / 41 / 72 mOhm at 25 / 100 / 175C",p9 curve; p4 table,MATCH,Within 4.2 % of the curve; +4.9 % vs table at 100C (43.0 vs 41).
+IMYH200R024M1H,rth_jc / rth_jc_max,0.20 / 0.26 K/W,0.20 typ / 0.26 max K/W,p3 Table 1,MATCH,
+IMYH200R024M1H,qg / ciss / coss / crss (c_at 1200 V),137 nC / 4850 / 161 / 11 pF,"137 nC (1200 V, 40 A) / 4850 / 161 / 11 pF",p4,MATCH,
+IMYH200R024M1H,eoss_ref,109 uJ at 1200 V,Eoss 109 uJ (VDD 1200 V),p4,MATCH,"Same datasheet conflict as the 012: p9 Coss(V) integral is 148 uJ (+36 %), and 109 uJ < 0.5*Coss(1200 V)*V^2 = 116 uJ. File uses the lower table value."
+IMYH200R024M1H,eoss_k = 1.6 (ASSUMED shape),E(V)/E(1200) = 0.175/0.330/0.523/0.745,p9 Coss(V) integral: 0.19/0.35/0.54/0.75,p9 Coss curve,MATCH,Within 9 %.
+IMYH200R024M1H,"eon (1200 V, 175C, RG 2) 10..60 A (curve x1.044, pinned to table 2140 at 40 A)",835/1253/1670/2140/2610/3080 uJ,plot 822/1218/1635/2073/2527/2984 uJ; table 2140 uJ at 40 A,p10 E=f(ID); p5 Table 4,MATCH,+1.6..+3.3 % vs plot.
+IMYH200R024M1H,"eoff (same condition) 10..60 A (curve x0.725, pinned to table 435 at 40 A)",87/196/312/435/551/674 uJ,"p10 E=f(ID) plot: 148/292/447/614/785/957 uJ; p10 E=f(Tvj) plot at 174C, 40 A: 619 uJ; p5 table: 435 uJ (175C, 40 A)",p10 plots; p5 Table 4,MISMATCH,"File is 29-41 % below BOTH p10 plots (which agree with each other, 614 / 619 uJ) and equals the p5 table (435). Datasheet is self-inconsistent by 41 %; the file takes the lower value. Using ~615 uJ would add ~180 uJ per turn-off at 40 A."
+IMYH200R024M1H,err (E_fr),520/720/920/1100/1310/1500 uJ,plot 538/736/935/1133/1332/1530 uJ; table 1100 uJ at 40 A,p10; p6,MATCH,-1.6..-3.3 %.
+IMYH200R024M1H,kv_on / kv_off / kv_rr (ASSUMED),1.48 / 1.30 / 1.0,datasheet has data at 1200 V only,p10-12,CANNOT VERIFY,Author's stated assumption.
+IMYH200R024M1H,kt_on / kt_off / kt_rr,0.00308 / 0.00054 / 0.00333,"table 25/175C: E_on 1150/2140, E_off 400/435, E_fr 550/1100 uJ = 0.00308 / 0.00054 / 0.00333",p5; p6,MATCH,"kt_off inherits the table's low E_off; the plots give 570->619 uJ (kt ~0.00057), i.e. a similar slope at a 40 % higher level."
+IMYH200R024M1H,vsd,3.5 V at 40 A,"3.5 V (ISD 40 A, VGS 0 V, 175C)",p6,MATCH,
+IMYH200R024M1H,tf,18 ns at 40 A,18 ns (175C),p5,MATCH,
+IMYH200R024M1H,check E_on / E_off,2140 / 435 uJ,"2140 / 435 uJ (table, 175C, 40 A)",p5,MATCH,Equals the table; see the eoff row for the plot conflict.
+MSC035SMA170B4,rev / package,DS00005160A; TO-247-4,DS00005160A; TO-247 4-lead with source sense,p1,MATCH,
+MSC035SMA170B4,vdss,1700 V,1700 V,p2 Table 1-1,MATCH,
+MSC035SMA170B4,vgs_on / vgs_off,+20 / -5 V,dynamic data characterised at 20 V / -5 V,p3,MATCH,
+MSC035SMA170B4,vth / gfs / qgd,3.2 V / none / 27 nC at 850 V,"VGS(th) 3.2 V typ (ID 2.5 mA); no g_fs printed; QGD 27 nC (850 V, 30 A)",p2-3,MATCH,
+MSC035SMA170B4,rg_ext / rg_int,4.0 / 0.85 ohm,"RG(ext) 4 ohm (test); ESR 0.85 ohm (f 1 MHz, drain short)",p3,MATCH,
+MSC035SMA170B4,rds25 / rds25_max,35 / 45 mOhm,"35 typ / 45 max mOhm (VGS 20 V, ID 30 A, 25C); 41 mOhm typ at 18 V",p2 Table 1-3,MATCH,
+MSC035SMA170B4,rds_norm 25..175C,1.00/1.02/1.09/1.21/1.38/1.57/1.87,"20 V curve (norm. 25C, 40 A): 1.00/1.03/1.09/1.21/1.375/1.573/1.84 (18 V curve ends at 1.88)",Fig.1-5 p5,MATCH,175C: +1.6 % (1.87 is the 18 V curve end value); rest within 1 %.
+MSC035SMA170B4,rth_jc / rth_jc_max,0.27 / 0.35 K/W,0.27 typ / 0.35 max K/W,p2 Table 1-2,MATCH,
+MSC035SMA170B4,qg / ciss / coss / crss (c_at 1000 V),178 nC / 3300 / 155 / 13 pF,"178 nC (VGS -5/20 V, 850 V, 30 A) / 3300 / 155 / 13 pF (VDD 1000 V, 200 kHz)",p3 Table 1-4,MATCH,
+MSC035SMA170B4,"eoss_ref (DERIVED) 107 uJ at 1000 V, k 1.5","107 uJ; Q_oss 100 nC at 100 V, 320 nC at 1000 V","not tabulated; integral of V dQ over Fig.1-8 = 103.5 uJ at 1000 V (+3.4 %); Q_oss 98 nC at 100 V, 314 nC at 1000 V",Fig.1-8 p5,MATCH,Derived value verified; shape (V/1000)^1.5 within 2.5 % of the integral at 800 / 1200 V.
+MSC035SMA170B4,"eon (1000 V, 25C, RG 4) 30/50/70 A",660/910/1220 uJ,660/907/1220 uJ,Fig.1-11 p6,MATCH,
+MSC035SMA170B4,eoff (same condition),110/188/272 uJ,110/188/271 uJ,Fig.1-12 p6,MATCH,
+MSC035SMA170B4,kv_on / kv_off,1.60 / 0.80,"Fig.1-11/12, 800->1200 V: kv_on 1.46 / 1.58 / 1.68, kv_off 0.74 / 0.90 / 0.71 at 30 / 50 / 70 A","Fig.1-11, 1-12 p6",MATCH,
+MSC035SMA170B4,kt_on / kt_off,0.0061 / 0.0,Fig.1-14: E_on 1439 -> 2540 uJ (25 -> 150C) = 0.0061; E_off ~flat (230 -> 220 uJ),Fig.1-14 p7,MATCH,"Fig.1-14 absolute E_on at 25C (1440) is 11 % below the table / Fig.1-11 (1613 at 1360 V, 50 A); only the ratio is used, so no effect."
+MSC035SMA170B4,qrr,"650 nC at 50 A, 1200 V, 8000 A/us, 25C","650 nC (ISD 50 A, VGS -5 V, VDD 1200 V, dI/dt -8000 A/us); table header: TJ = 25C",p3 Table 1-5,MATCH,"File comment 'Tj not stated' is wrong (table header states 25C), the value and the 25C are right."
+MSC035SMA170B4,vsd,3.9 V at 30 A,"3.9 V typ (ISD 30 A, VGS -5 V, 25C)",p3 Table 1-5,MATCH,25C point; the other devices' V_SD points are 150-175C (inconsistent basis for the common VSD0 model).
+MSC035SMA170B4,tf,17 ns at 50 A,"17 ns (VDD 1360 V, 50 A, RG 4)",p3,MATCH,
+MSC035SMA170B4,check E_on / E_off,"1613 / 256 uJ (1360 V, 50 A, 25C)",1613 / 256 uJ,p3 Table 1-4,MATCH,
+CAB011M12FM3,rev,"Rev. 6, Jun 2026","Rev. 6, June 2026",page footers,MATCH,
+CAB011M12FM3,vdss,1200 V,1200 V,p1,MATCH,
+CAB011M12FM3,vgs_on / vgs_off,+15 / -4 V,VGS(op) -4/+15..18 V,p1,MATCH,
+CAB011M12FM3,vth / gfs / qgd,2.5 V / 73 S at 100 A / 100 nC at 800 V,"VGS(th) 2.5 V typ (ID 35 mA); gfs 73 S (VDS 20 V, 100 A, 25C); QGD 100 nC (800 V, 100 A)",p2,MATCH,
+CAB011M12FM3,rg_ext / rg_int,1.0 / 3.2 ohm,RG(ON) = RG(OFF) = 1.0 ohm (test); RG(int) 3.2 ohm,p2,MATCH,
+CAB011M12FM3,rds25 / rds25_max,10.5+2.2 = 12.7 / 14.4+2.2 = 16.6 mOhm,"device 10.5 typ / 14.4 max mOhm (VGS 15 V, ID 100 A, 25C) + package 2.23 (HS) / 2.06 (LS) mOhm at TC 125C",p2; p3,MATCH,"Package R is specified at TC = 125C, not 25C; 'max' adds a typ package R to a max device R. Device R at 175C is 19.0 mOhm typ (p2)."
+CAB011M12FM3,rds_norm 25/100/125/150/175C,1.00/1.18/1.31/1.46/1.63,"Fig.2 at 50 A: 0.965/1.190/1.312/1.458/1.630; at 100 A: 0.995/1.220/1.346/1.495/1.671; Fig.3 (100 A): 1.001/1.207/1.335/1.492/1.678; table (100 A): 150C 1.55x, 175C 1.81x","Fig.2, Fig.3 p4; p2",MATCH,"Matches Fig.2 at 50 A within 0.8 %, but the table anchor rds25 is the 100 A value and the table's 175C device R (19.0) is 10 % above 10.5*1.63 = 17.1; total incl. package is within 5 %. Datasheet table vs curves differ by 8 % at 175C."
+CAB011M12FM3,rth_jc (actually R_th junction-heatsink with TIM),0.428 K/W,"0.428 K/W (FET, junction to heatsink, pre-applied TIM)",p2 / Fig.17 p6,MATCH,Key name misleading; flagged in-file by rth_includes_tim.
+CAB011M12FM3,qg / ciss / coss / crss (c_at 800 V),324 nC / 10.3 nF / 0.39 nF / 30 pF,"324 nC (800 V, 100 A) / 10.3 nF / 0.39 nF / 30 pF (VDS 800 V, 100 kHz)",p2,MATCH,
+CAB011M12FM3,"eoss_ref (ESTIMATE) 130 uJ at 800 V, k 1.6",130 uJ,not tabulated; integral of Coss(V)*V dV over Fig.9 = 141 uJ at 800 V (file -8 %); the file's own formula 0.5*1.1*0.39 nF*800^2 = 137 uJ,Fig.9 p5,CANNOT VERIFY,Author's estimate; no E_oss in the datasheet. Shape check: integral gives E(400)/E(800) = 0.335 and E(600)/E(800) = 0.63 vs 0.330 / 0.63 for V^1.6.
+CAB011M12FM3,"eon (600 V, 25C, RG 1) 25/50/100/150/200 A",0.28/0.52/1.30/1.88/2.40 mJ,0.272/0.632/1.289/1.861/2.346 mJ,Fig.11 p5,MISMATCH,"50 A point is 0.52 vs 0.63 mJ (-18 %, -0.11 mJ); the other four points are within 3 %. Reading slip on the low-current point."
+CAB011M12FM3,eoff (same condition),0.20/0.33/0.73/1.25/1.85 mJ,0.177/0.346/0.751/1.241/1.818 mJ; table 0.71 mJ at 100 A,Fig.11 p5; p2,MATCH,25 A +13 % = 0.024 mJ (0.5 % of full scale).
+CAB011M12FM3,"err (E_RR, 600 V, 25C) 25/100/200 A",0.08/0.17/0.33 mJ,Fig.11: 0.065/0.142/0.303 mJ; table 0.16 mJ at 100 A; Fig.14 at 25C: 0.160 mJ,Fig.11 p5; Fig.14 p6; p3,MATCH,File anchors to the table at 100 A (+6 %); the Fig.11 E_RR curve is itself 12 % below the table. Low/high-current points +23 % / +9 % are <=0.015 mJ.
+CAB011M12FM3,kv_on,0.96,"Fig.11 (600 V) vs Fig.12 (800 V): 0.51 at 50 A, 1.03 at 100 A, 1.42 at 150 A, 1.80 at 200 A","Fig.11, Fig.12 p5",MATCH,Matches at 100 A (-7 %) but the exponent rises strongly with current; at 50 A the exponent alone over-predicts the 600->800 V step by ~14 %. A single kv does not describe this module.
+CAB011M12FM3,kv_off,0.79,"Fig.11 vs Fig.12: 0.29 at 50 A, 0.65 at 100 A, 0.98 at 150 A, 1.25 at 200 A","Fig.11, Fig.12 p5",MISMATCH,"Stated basis ('50/100 A') gives 0.29-0.65, file 0.79. The exponent alone over-predicts the 600->800 V step by +16 % (50 A) / +4 % (100 A); conservative."
+CAB011M12FM3,kv_rr,0.56,"Fig.11 vs Fig.12: 0.19 at 50 A, 0.28 at 100 A; Fig.14 (100 A, 25C): 0.41","Fig.11, Fig.12 p5; Fig.14 p6",MISMATCH,"The exponent alone over-predicts the 600->800 V step by +4.5 % (Fig.14) to +11 % (Fig.11/12), <=0.02 mJ absolute; conservative, low impact."
+CAB011M12FM3,kt_on / kt_off / kt_rr,0.00094 / 0.0 / 0.0230,"Fig.13 (100 A): E_on 1.265->1.411 mJ (0.00092), E_off 0.696->0.701 (flat); Fig.14 (600 V): E_RR 0.160->0.638 mJ (0.0239); table 0.16 / 0.48 / 0.64 mJ","Fig.13, Fig.14 p6; p3",MATCH,
+CAB011M12FM3,vsd,4.7 V at 100 A,"4.7 V (ISD 100 A, VGS -4 V, 150C)",p3,MATCH,
+CAB011M12FM3,didt_off 10/50/100/200 A,1.0/4.5/8.0/16.5 A/ns,"di/dt_OFF 0.61/3.90/8.02/16.24 A/ns (600 V, 25C, RG 1)",Fig.25 p8,MATCH,"Low-current points high by 0.4-0.6 A/ns (1 % of full scale, conservative)."
+CAB011M12FM3,lstray,11.4 nH,"11.4 nH (DC- to DC+, 10 MHz)",p3,MATCH,
+CAB011M12FM3,check E_on / E_off / E_rr,"1.4 / 0.71 / 0.64 mJ (600 V, 100 A, 150C)",1.4 / 0.71 / 0.64 mJ,p2; p3,MATCH,
+COSMIC_GEN3_1200,v_fit_cm2 (V -> sea-level FIT/cm2),"640:0.01, 680:0.1, 720:0.4, 775:2.8, 830:10, 900:30, 950:70, 1000:150, 1100:450","Gen 3 1200 V curve (vector read): 640:0.0111, 680:0.0826, 720:0.447, 775:2.59, 830:9.64, 900:36.4, 950:78, 1000:151, 1100:430",Fig.4 p7,MATCH,"Log axis; worst points 680 V +21 % and 900 V -18 % (<=0.08 decade), others within 11 %. Source is a marketing brief ('NOT A DATASHEET' in SOURCES.csv), generic Gen3 1200 V, no die area / altitude basis."
+COSMIC_GEN3_1200,V_DC_FRAC 0.67 -> '800 V ~5 FIT/cm2',~5 FIT/cm2 at 800 V,Gen 3 curve at 800 V = 4.9 FIT/cm2,Fig.4 p7,MATCH,
+COSMIC_GEN3_1200,V_PK_FRAC 0.85,0.85 x V_DSS,"stated as industrial practice, not a vendor number",n/a,CANNOT VERIFY,Author's stated assumption.
+HighFlux.pdf (cited source),document / edition,"'full catalog, 2025'; pages 12, 17, 66, 112, 199-200","On disk: 2017 Magnetics Powder Core Catalog, 112 pages (SOURCES.csv: swapped from the 210-page 2025 catalog)",whole file,CANNOT VERIFY,"Pages 66 / 112 / 199-200 do not exist as cited (PDF p.66 is a 6.86 mm toroid page, p.112 the back cover). E-core table is on PDF p.98-99; bias / loss fits are on PDF p.36 / p.48 (different values and units)."
+MATERIALS: Kool Mu MAX (26/40/60),bsat,1.0 T,Saturation flux density Kool Mu MAX 1.0 T,HighFlux.pdf PDF p.11 (printed p.9),MATCH,Cited p.12 is the Material Properties page; value is on p.11.
+MATERIALS: XFlux (26/40/60),bsat,1.6 T,Saturation flux density XFlux 1.6 T,HighFlux.pdf PDF p.11; XFlux.pdf p1,MATCH,
+MATERIALS: Kool Mu MAX,rho,6500 kg/m3,no Kool Mu MAX density on file (Kool Mu 5.5 g/cm3; Kool Mu MAX not in the table),HighFlux.pdf PDF p.12,CANNOT VERIFY,Cited p.17 holds no density.
+MATERIALS: XFlux,rho,6900 kg/m3,XFlux 7.5 g/cm3 (file -8.0 %),HighFlux.pdf PDF p.12 (printed p.10),CANNOT VERIFY,Cited page absent; on-file value differs by exactly the tolerance. Toroid weight/volume tables imply ~7.2 g/cm3. Affects inductor mass only.
+MATERIALS: KoolMuMAX-26,"bias (a, b, c) H in Oe","(0.01, 1.600e-7, 2.000): 80 % at 125.0 Oe, 50 % at 250.0 Oe","toroid fit (A.T/cm): 80 % at 160 Oe, 50 % at 300 Oe; no Kool Mu MAX shapes data on file",HighFlux.pdf PDF p.36 (printed p.34),CANNOT VERIFY,"Cited p.66 absent. b = 1/(100*250^2) exactly with c = 2.000: looks constructed from two points, not a catalog regression. File rolls off 17-22 % earlier in H than the on-file toroid data (conservative)."
+MATERIALS: KoolMuMAX-40,"bias (a, b, c)","(0.01, 3.906e-7, 2.000): 80 % at 80.0 Oe, 50 % at 160.0 Oe",no 40 uH Kool Mu MAX entry on file,n/a,CANNOT VERIFY,b = 1/(100*160^2) exactly: constructed from the 50 % point.
+MATERIALS: KoolMuMAX-60,"bias (a, b, c)","(0.01, 2.575e-6, 1.758): 80 % at 50.0 Oe, 50 % at 110.1 Oe","p.11 table (60 u, toroid): 80 % at 52 A.T/cm = 65 Oe, 50 % at 103 A.T/cm = 129 Oe","HighFlux.pdf PDF p.11, p.36",CANNOT VERIFY,Cited p.66 absent; file is 15-23 % earlier in H than the on-file toroid data (conservative).
+MATERIALS: XFlux-26,bias,"(0.01, 1.163e-8, 2.258): 80 % at 229.9 Oe, 50 % at 424.8 Oe","XFlux Shapes 26u fit: 80 % at 231.5 Oe, 50 % at 454.6 Oe",HighFlux.pdf PDF p.36,MATCH,"Within 0.7 % at 80 % and 6.6 % at 50 %. Cited p.66 absent, but consistent with the on-file shapes fit."
+MATERIALS: XFlux-40,bias,"(0.01, 4.028e-8, 2.250): 80 % at 134.9 Oe, 50 % at 249.9 Oe","XFlux Shapes 40u fit: 80 % at 129.9 Oe, 50 % at 266.3 Oe (2016 bulletin XFlux.pdf p1 says 109 Oe at 80 %)",HighFlux.pdf PDF p.36; XFlux.pdf p1,MATCH,"+3.8 % / -6.2 % vs the 2017 catalog fit; the older 2016 bulletin (XFlux.pdf p1) gives 109 Oe at 80 % (file +24 %), superseded by the 2017 catalog."
+MATERIALS: XFlux-60,bias,"(0.01, 8.129e-8, 2.269): 80 % at 95.0 Oe, 50 % at 175.1 Oe","XFlux Shapes 60u fit: 80 % at 95.0 Oe, 50 % at 187.0 Oe; p.11 table 76 / 131 A.T/cm","HighFlux.pdf PDF p.11, p.36",MATCH,"0 % at 80 %, -6.4 % at 50 %."
+MATERIALS: KoolMuMAX-26,"loss P = a*B^b*f^c (mW/cm3, T, kHz)","(32.22, 1.988, 1.541): P(0.1 T, 100 kHz) = 400.1; P(0.1 T, 50 kHz) = 137.5","Kool Mu MAX 26/60u fit (>10 kHz) 86.00*B^1.998*f^1.40: 545 at 0.1 T, 100 kHz; 207 at 0.1 T, 50 kHz",HighFlux.pdf PDF p.48 (printed p.46),MISMATCH,"-27 % (100 kHz) / -34 % (50 kHz). Cited p.112 absent. Round anchor 400.1 at 0.1 T / 100 kHz suggests the 'a' was back-solved, not transcribed. Non-conservative."
+MATERIALS: KoolMuMAX-40,loss,"(32.22, 1.988, 1.541), identical to 26u","no 40u Kool Mu MAX loss entry on file (p.48 lists 26u, 60u only)",HighFlux.pdf PDF p.48,CANNOT VERIFY,Same coefficients as the 26u grade; the datasheet does not give a separate 40u fit on file.
+MATERIALS: KoolMuMAX-60,loss,"(36.25, 1.988, 1.541): P(0.1 T, 100 kHz) = 450.1; P(0.1 T, 50 kHz) = 154.7; a = 1.125 x the 26u value","p.11 table, Kool Mu MAX 60u: 550 mW/cm3 at 1000 G, 100 kHz and 205 at 1000 G, 50 kHz; p.48 fit gives 545 (100 kHz) / 207 (50 kHz)","HighFlux.pdf PDF p.11, p.48",MISMATCH,"-18 % (100 kHz) / -25 % (50 kHz) vs the same material and B, f on file. Non-conservative."
+MATERIALS: XFlux-26,loss,"(290.77, 2.015, 1.194): P(0.1 T, 50 kHz) = 300.0; P(0.1 T, 100 kHz) = 686","XFlux bulletin, Shapes 26u: 700 mW/cm3 at 0.1 T, 50 kHz (fit 379*B^1.995*f^1.33 = 697; 1752 at 100 kHz); catalog p.48 26u fit: 913 at 50 kHz",XFlux.pdf p1 and loss-density pages; HighFlux.pdf PDF p.48,MISMATCH,-57 % at 0.1 T / 50 kHz (-61 % at 100 kHz). Anchor exactly 300.0 mW/cm3 -> 'a' back-solved. Cited p.112 absent. Core loss is the main inductor loss: this is the largest numeric discrepancy found.
+MATERIALS: XFlux-40,loss,"(387.69, 2.015, 1.194): P(0.1 T, 50 kHz) = 400.0; a = 4/3 x the 26u value","XFlux bulletin, Shapes 40u: 600 mW/cm3 at 0.1 T, 50 kHz (fit 441*B^2.16*f^1.35 = 600); catalog p.48 40u: 810",XFlux.pdf p1; HighFlux.pdf PDF p.48,MISMATCH,-33 %.
+MATERIALS: XFlux-60,loss,"(436.16, 2.015, 1.194): P(0.1 T, 50 kHz) = 450.0; P(0.1 T, 100 kHz) = 1030; a = 1.5 x the 26u value","XFlux bulletin, Shapes 60u: 600 mW/cm3 at 0.1 T, 50 kHz; catalog p.11 table 60u: 590 (50 kHz) / 1350 (100 kHz) at 1000 G",XFlux.pdf p1; HighFlux.pdf PDF p.11,MISMATCH,"-25 % (50 kHz), -24 % (100 kHz)."
+ECORES: 8044E,"A,B,C,D,E,F,M (mm)",80.01 / 44.58 / 19.81 / 34.37 / 59.28 / 19.81 / 19.81,80.01 / 44.58 / 19.8 / 34.36 (1.353 in) / 59.28 / 19.8 / 19.8,HighFlux.pdf PDF p.98-99 (printed p.96-97),MATCH,Cited p.199-200 does not exist in this PDF; values match the table at the pages shown.
+ECORES: 8044E,"le, Ae, Ve",208 mm / 389 mm2 / 80900 mm3,"208 / 389 / 80,900",HighFlux.pdf PDF p.98-99 (printed p.96-97),MATCH,
+ECORES: 8044E,AL 26/40/60 uH (nH/T2 +/-8 %),91 / 113 / 170,91 / 113 / 170,HighFlux.pdf PDF p.98-99 (printed p.96-97),MATCH,
+ECORES: 114LE,"A,B,C,D,E,F,M (mm)",114.30 / 46.18 / 34.93 / 28.60 / 79.50 / 35.10 / 22.20,114.3 / 46.18 / 34.93 / 28.60 / 79.50 / 35.10 / 22.1 mm column (0.874 in = 22.2),HighFlux.pdf PDF p.98-99 (printed p.96-97),MATCH,M: the catalog's mm and inch columns disagree by 0.1 mm; immaterial.
+ECORES: 114LE,"le, Ae, Ve",215 / 1220 / 262000,"215 / 1,220 / 262,000",HighFlux.pdf PDF p.98-99 (printed p.96-97),MATCH,
+ECORES: 114LE,AL 26/40/60 uH,235 / 335 / 445,235 / 335 / 445,HighFlux.pdf PDF p.98-99 (printed p.96-97),MATCH,
+ECORES: 130LE,"A,B,C,D,E,F,M (mm)",130.30 / 32.51 / 53.85 / 22.10 / 108.46 / 20.02 / 44.22,130.3 / 32.51 / 53.85 / 22.1 / 108.4 (4.270 in) / 20.0 (0.788 in) / 44.22,HighFlux.pdf PDF p.98-99 (printed p.96-97),MATCH,
+ECORES: 130LE,"le, Ae, Ve, AL 26u",219 / 1080 / 237000; 254,"219 / 1,080 / 237,000; 254",HighFlux.pdf PDF p.98-99 (printed p.96-97),MATCH,
+ECORES: 160LE,"A,B,C,D,E,F,M (mm)",160.00 / 38.10 / 39.62 / 28.10 / 138.18 / 19.81 / 59.28,160.0 / 38.10 / 39.62 / 28.14 (1.108 in) / 138.2 (5.440 in) / 19.8 / 59.28,HighFlux.pdf PDF p.98-99 (printed p.96-97),MATCH,D is 28.10 vs 28.14 (0.14 %); immaterial.
+ECORES: 160LE,"le, Ae, Ve, AL 26u",273 / 778 / 212000; 180,"273 / 778 / 212,000; 180",HighFlux.pdf PDF p.98-99 (printed p.96-97),MATCH,
+ECORES,"which materials are offered in these shapes (Kool Mu MAX 'Y' code, XFlux 'X')","Y = Kool Mu MAX, X = XFlux for 00<code><size>LE0<perm>","2017 catalog lists shape codes K, M, H, X only; Kool Mu MAX shapes and the 'Y' code do not appear (Kool Mu MAX only as toroids)",HighFlux.pdf PDF p.14,CANNOT VERIFY,Newer-edition feature; cannot be confirmed from the files on disk.
+C4AQ:C4AQUEW5450A3BJ,C / V_NDC (70C) / V_OP85,45 uF / 1300 / 1100 V,45 uF / 1300 / 1100 V (V_NDC at 70C; V_OP85 at 85C),p14 Table 1; p6 voltage table,MATCH,
+C4AQ:C4AQUEW5450A3BJ,"ESR / I_rms (70C, 10 kHz)",3.1 mOhm / 34.0 A,3.1 mOhm / 34.0 A (I_rms = 30 K hot-spot rise),p14 Table 1,MATCH,
+C4AQ:C4AQUEW5450A3BJ,ESL / Rth / T x H x L,19 nH / 7 K/W / 45 x 65 x 57.5 mm,"19 nH / 7 K/W (HS/Amb) / T 45, H 65, L 57.5 mm",p14 Table 1,MATCH,
+C4AQ:C4AQQEW5650A3BJ,C / V_NDC (70C) / V_OP85,65 uF / 1100 / 900 V,65 uF / 1100 / 900 V (V_NDC at 70C; V_OP85 at 85C),p14 Table 1; p6 voltage table,MATCH,
+C4AQ:C4AQQEW5650A3BJ,"ESR / I_rms (70C, 10 kHz)",2.6 mOhm / 37.0 A,2.6 mOhm / 37.0 A (I_rms = 30 K hot-spot rise),p14 Table 1,MATCH,
+C4AQ:C4AQQEW5650A3BJ,ESL / Rth / T x H x L,19 nH / 7 K/W / 45 x 65 x 57.5 mm,"19 nH / 7 K/W (HS/Amb) / T 45, H 65, L 57.5 mm",p14 Table 1,MATCH,
+C4AQ:C4AQIEW6100A3BJ,C / V_NDC (70C) / V_OP85,100 uF / 800 / 700 V,100 uF / 800 / 700 V (V_NDC at 70C; V_OP85 at 85C),p13 Table 1; p6 voltage table,MATCH,
+C4AQ:C4AQIEW6100A3BJ,"ESR / I_rms (70C, 10 kHz)",2.2 mOhm / 40.6 A,2.2 mOhm / 40.6 A (I_rms = 30 K hot-spot rise),p13 Table 1,MATCH,
+C4AQ:C4AQIEW6100A3BJ,ESL / Rth / T x H x L,19 nH / 7 K/W / 45 x 65 x 57.5 mm,"19 nH / 7 K/W (HS/Amb) / T 45, H 65, L 57.5 mm",p13 Table 1,MATCH,
+C4AQ:C4AQCEW6130A3BJ,C / V_NDC (70C) / V_OP85,130 uF / 650 / 600 V,130 uF / 650 / 600 V (V_NDC at 70C; V_OP85 at 85C),p13 Table 1; p6 voltage table,MATCH,
+C4AQ:C4AQCEW6130A3BJ,"ESR / I_rms (70C, 10 kHz)",1.9 mOhm / 42.9 A,1.9 mOhm / 42.9 A (I_rms = 30 K hot-spot rise),p13 Table 1,MATCH,
+C4AQ:C4AQCEW6130A3BJ,ESL / Rth / T x H x L,19 nH / 7 K/W / 45 x 65 x 57.5 mm,"19 nH / 7 K/W (HS/Amb) / T 45, H 65, L 57.5 mm",p13 Table 1,MATCH,
+C4AQ (header comment),cited pages for V_OP85 table and ripple rule,'p.8 voltage table'; 'ripple V_pp <= 0.2*V_NDC (p.10)',"voltage-derating table (V_NDC, V_OP85, V_OP105) is on p6; 'peak-to-peak ripple shall not exceed 0.2 x VNDC' is on p7; p8 and p10 are lifetime curves","C4AQ.pdf p6, p7",MATCH,Rule values are correct; only the page citations in the comment are wrong.
+C4AQ (header),CAP_IRMS_USE = 0.7 (dT ~15 K),0.7 of table I_rms,dT = ESR*I^2*Rth -> 0.49 x 30 K = 14.7 K (p8 note),C4AQ.pdf p8 notes,MATCH,Arithmetic verified; the 70 % is the author's derating choice.
+pv_devices.py,"CU_RHO20 = 1.72e-8 ohm*m, CU_ALPHA = 0.00393 /K",1.72e-8 / 0.00393,"not in any datasheet on disk; equals standard annealed-copper (IACS) 1.7241e-8 ohm*m, 0.00393 /K",n/a,CANNOT VERIFY,"Physical constant, not a datasheet value."

@@ -1,0 +1,129 @@
+{
+  "design": {
+    "n": 0.9166666666666666,
+    "L": 6.5e-06,
+    "Lm": 0.00015,
+    "C1": 0.000135,
+    "C2": 0.00019499999999999997,
+    "oc_trip": 200.0,
+    "i_port2_max": 100.0,
+    "dead_time": {
+      "mode": "hardware shoot-through guard (fixed window, worst case used in every loss figure) + firmware LUT on top (predicted ZVS transition + 20 ns, 50-300 ns)",
+      "min_ns": 50.0,
+      "max_ns": 300.0,
+      "fallback_fixed_ns": 100.0,
+      "note": "DR-02 decision: the hardware guard owns the minimum, firmware owns the rest; the drawn GDRV stretcher (104-354 ns) must be replaced by a 69-188 ns gate-level window",
+      "lut_rule": "dead time = t_d(off)(RG_off) - t_d(on) + predicted ZVS transition + 20 ns; RG_off 0.27 ohm adds ~3.5 ns of t_d(off) (DS Fig. 28)",
+      "hw_guard_ns": [
+        69.02999999999999,
+        187.5111764705882
+      ],
+      "hw_guard_basis": "min = t_d(off) 62 ns + t_f 15 ns (hot, design R_G,off) - t_d(on) 28 ns + 20 ns; logic-side delay element +/-15 % plus the NSI6651 delay mismatch 40 ns on both ends",
+      "study": {
+        "firmware LUT only (50-300 ns, no guard)": {
+          "J": 373.28692066235186,
+          "eta_mean": 0.9875120273986013,
+          "zvs": 0.5416666666666666,
+          "loss_800_60k_W": 794.4435271637101,
+          "p_diode_800_60k_W": 9.933766755582456,
+          "loss_800_30k_W": 255.04353477267603
+        },
+        "LUT + decided hardware guard": {
+          "J": 390.0641397433976,
+          "eta_mean": 0.9869794536326326,
+          "zvs": 0.4791666666666667,
+          "loss_800_60k_W": 838.5087244492852,
+          "p_diode_800_60k_W": 51.27674216531089,
+          "loss_800_30k_W": 273.33187846768215
+        },
+        "LUT + guard as drawn on DAB60 rev B (104-354 ns)": {
+          "J": 409.59020489905635,
+          "eta_mean": 0.9864342050472242,
+          "zvs": 0.5416666666666666,
+          "loss_800_60k_W": 891.7783590144596,
+          "p_diode_800_60k_W": 101.25054450609318,
+          "loss_800_30k_W": 296.65240213613407
+        },
+        "fixed 200 ns (CRD firmware)": {
+          "J": 397.4287751953337,
+          "eta_mean": 0.9865784014783777,
+          "zvs": 0.3958333333333333,
+          "loss_800_60k_W": 842.5077320432615,
+          "p_diode_800_60k_W": 55.02851762630869,
+          "loss_800_30k_W": 275.0817312068957
+        },
+        "fixed 400 ns (ST STSW-DABBIDIR)": {
+          "J": 414.73261279380995,
+          "eta_mean": 0.986322378562075,
+          "zvs": 0.5833333333333334,
+          "loss_800_60k_W": 906.4807603213711,
+          "p_diode_800_60k_W": 115.04233645397943,
+          "loss_800_30k_W": 303.4847017098591
+        }
+      },
+      "study_W": {
+        "st_400ns_minus_ours_800_60k": 67.97203587208594,
+        "st_400ns_diode_800_60k": 115.04233645397943,
+        "drawn_minus_ours_800_60k": 53.26963456517444
+      }
+    },
+    "st_inputs": {
+      "E_turn_on_zero_current_800V_J": 0.0006642664964335239
+    }
+  },
+  "metrics": {
+    "softstart_il_peak": 118.60538968931291,
+    "dc_offset_split": 3.919080136086453,
+    "dc_offset_naive": 46.97778562906167,
+    "cc_err_75": -1.4509403456486325e-06,
+    "cc_err_40": 1.0998705732845337e-05,
+    "cv_err": -0.00031643663214708795,
+    "cv_dip": 5.624125608021245,
+    "cv_settle_ms": 0.5475000000000002,
+    "rev_i2_end": -69.99997944242197,
+    "rev_il_peak": 114.90452231420204,
+    "share_open": -0.04994840673473935,
+    "share_ctrl": -0.010000015400028784,
+    "one_branch_fault_survivor_I_before_A": 74.58102689622731,
+    "one_branch_fault_survivor_I_after_A": 74.78785817352393,
+    "one_branch_fault_survivor_I_peak_A": 74.81544055918128,
+    "one_branch_fault_survivor_P_after_kW": 59.99871481636247,
+    "one_branch_fault_bus_pre_trip_V": 799.6107237367279,
+    "one_branch_fault_bus_overshoot_V": 19.483009683975297,
+    "one_branch_fault_bus_end_V": 796.6395182499701,
+    "one_branch_fault_il_peak_survivor_A": 118.34905551359839,
+    "one_branch_fault_naive_survivor_I_before_A": 75.00000356194047,
+    "one_branch_fault_naive_survivor_I_after_A": 100.00020762107633,
+    "one_branch_fault_naive_survivor_I_peak_A": 100.23483606002823,
+    "one_branch_fault_naive_survivor_P_after_kW": 80.30103578039247,
+    "one_branch_fault_naive_bus_pre_trip_V": 799.6090723558724,
+    "one_branch_fault_naive_bus_overshoot_V": 19.5966206903654,
+    "one_branch_fault_naive_bus_end_V": 799.1163648333522,
+    "one_branch_fault_naive_il_peak_survivor_A": 156.55333684774746,
+    "one_branch_fault_noff_survivor_I_before_A": 74.58100802138736,
+    "one_branch_fault_noff_survivor_I_after_A": 74.78799550715509,
+    "one_branch_fault_noff_survivor_I_peak_A": 74.82156201730122,
+    "one_branch_fault_noff_survivor_P_after_kW": 59.998787679007805,
+    "one_branch_fault_noff_bus_pre_trip_V": 799.2591856461547,
+    "one_branch_fault_noff_bus_overshoot_V": 65.23215105895963,
+    "one_branch_fault_noff_bus_end_V": 800.9252142034804,
+    "one_branch_fault_noff_il_peak_survivor_A": 130.46945133180907
+  },
+  "assumptions": {
+    "R_loop": 0.04289333995525328,
+    "R_line1": 0.01,
+    "R_int_batt": 0.06,
+    "sensor_gain_err": 0.01,
+    "f_ci": 2000.0,
+    "f_cv": 400.0,
+    "phi_max_deg": 60.0,
+    "phi_slew_deg": 3.0,
+    "carrier_offset_deg": 30.0,
+    "C_pcs": 0.004,
+    "f_pcs": 30.0,
+    "t_can": 0.01,
+    "i_ramp": 20000.0,
+    "pcs_ff_tau": 0.002,
+    "P_branch_max": 60000.0
+  }
+}

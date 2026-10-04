@@ -1,0 +1,42 @@
+{
+  "project": "PV-CTL",
+  "rev": "A0",
+  "date": "2026-10-04",
+  "sheets": 7,
+  "parts": 266,
+  "nets": 182,
+  "erc_waivers": {},
+  "passed": true,
+  "checks": [
+    {
+      "check": "Isolation domains (only declared isolators/crossings bridge two domains)",
+      "result": "pass",
+      "detail": "5 isolators, 5 crossings, 264 other parts each in one domain"
+    },
+    {
+      "check": "Stress: jellybean capacitor voltage <= 80 %, resistor power <= 60 % and working voltage",
+      "result": "pass",
+      "detail": "166 parts inside the rules, 32 on nets without a DC range (left to the design check)"
+    },
+    {
+      "check": "ERC (kicad-cli, all severities)",
+      "result": "pass",
+      "detail": "0 errors, 0 warnings (0 waived) - clean"
+    },
+    {
+      "check": "Netlist identity (kicad-cli XML export == design table)",
+      "result": "pass",
+      "detail": "182 nets, 266 components identical"
+    },
+    {
+      "check": "Schematic PDF rendered",
+      "result": "pass",
+      "detail": "hardware/PV-CTL/outputs/PV-CTL_schematic.pdf"
+    },
+    {
+      "check": "BOM: every line has manufacturer + MPN + datasheet on file, or is GENERIC/RFQ/CUSTOM",
+      "result": "pass",
+      "detail": "97 lines, 266 parts -> bom/PV-CTL_BOM.csv"
+    }
+  ]
+}

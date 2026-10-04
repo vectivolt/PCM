@@ -1,0 +1,131 @@
+{
+ "rev": "E0",
+ "source": "gen/sys_io_aux.py check_aux / check_budget / check_ramp (calculated, not measured)",
+ "feed": {
+  "uvlo_rising_V": [
+   20.088672641605143,
+   21.489466273472956
+  ],
+  "uvlo_falling_V": [
+   18.340369750620262,
+   19.657688564289785
+  ],
+  "ov_rising_V": [
+   23.968671052705677,
+   25.572698092100527
+  ],
+  "ov_rearm_V": [
+   21.88269465983422,
+   23.392862737762048
+  ],
+  "cabinet_healthy_rising_V": [
+   20.846536407673455,
+   21.40733684886714
+  ],
+  "cabinet_lost_falling_V": [
+   20.372751489317242,
+   21.195397894670435
+  ],
+  "inhibit_at_AUX_EN_V": [
+   0.7152867683226759,
+   0.8230804185307576
+  ]
+ },
+ "hgate": {
+  "R1_ohm": 1000.0,
+  "CdVdT_nominal_F": 2.2e-06,
+  "CdVdT_effective_F": [
+   1.188e-06,
+   2.42e-06
+  ],
+  "I_HGATE_A": [
+   3.9e-05,
+   7.5e-05
+  ],
+  "VGS_on_V": 3.0,
+  "bus_capacitance_F": [
+   0.00128,
+   0.0024552199999999997
+  ],
+  "ramp_V_per_ms": [
+   0.016115702479338842,
+   0.06313131313131312
+  ]
+ },
+ "black_start": {
+  "fast": {
+   "vms": 0.06313131313131312,
+   "t_pre": 0.03484800000000001,
+   "t_ramp": 0.354816,
+   "p_peak": 37.95261101543888,
+   "t_over34": 0.06019200000000048,
+   "e_fet": 1.5163420701678383,
+   "p_fet": 12.134292221495485,
+   "i_in": 0.15500126262626257
+  },
+  "slow": {
+   "vms": 0.016115702479338842,
+   "t_pre": 0.13651282051282052,
+   "t_ramp": 1.3899487179487178,
+   "p_peak": 34.84187228150867,
+   "t_over34": 0.042194871794871816,
+   "e_fet": 3.70722951327855,
+   "p_fet": 11.135899617041819,
+   "i_in": 0.02062809917355372
+  }
+ },
+ "handover": {
+  "fast": {
+   "vmin": 17.112858876819214,
+   "t_cond": 0.00598499999999984,
+   "t_rec": 0.08893500000001855,
+   "p_peak": 36.29797372896027,
+   "t_over34": 0.0380350000000016,
+   "e_fet": 0.4204583798025445
+  },
+  "slow": {
+   "vmin": 16.316771326016077,
+   "t_cond": 0.003834999999999928,
+   "t_rec": 0.37811999999959656,
+   "p_peak": 34.09835343741718,
+   "t_over34": 0.005029999999999879,
+   "e_fet": 1.9570976615370224
+  },
+  "t_inhibit_s": 0.00016692709367410543,
+  "t_hgate_enabled_s": 0.0010806176258261243,
+  "logic_uvlo_V": 15.480177009292346,
+  "full_power_bus_min_V": 13.693636984262286
+ },
+ "load_post_inhibit": {
+  "total_W": 27.83969894545877,
+  "rows": [
+   [
+    "SYS-IO-AUX logic: 5 V 0.72 A (4 isolated ports at max, 3V3 0.1 A) / 0.85 + 24 V direct 18 mA",
+    4.682130055658095
+   ],
+   [
+    "BMU-GW on this board's 5 V: 265 mA (ISO1042 + ISO1410 at max)",
+    1.562342117647059
+   ],
+   [
+    "AUX feed parts on 24V_F3: detector rail, dividers, LM74800 (6.3 mA)",
+    0.14522677215361868
+   ],
+   [
+    "CTRL-C2000: 0.35 A at 21.6 V (gen/ctrl_c2000.py), constant power",
+    7.56
+   ],
+   [
+    "port board logic + hold-closed coils: 0.6 A at 23.15 V, <= 200 s (interfaces.PORT)",
+    13.889999999999999
+   ],
+   [
+    "fans, +24V_GD, 24V_DO (incl. both K_x_MAIN coil pairs, 1.51 A when on): forced off",
+    0.0
+   ]
+  ],
+  "port_hold_s": 200,
+  "without_port_hold_W": 13.949698945458772,
+  "model": "this board + BMU-GW constant power above 6 V; CTRL constant power and the port 0.6 A above the +24V eFuse UVLO; feed parts on AUX-HV directly"
+ }
+}

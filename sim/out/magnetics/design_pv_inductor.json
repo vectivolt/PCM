@@ -1,0 +1,384 @@
+{
+ "part": "pv_inductor",
+ "revision": "M2",
+ "status": "proposed construction - calculated, not built or measured (design to cost, D-044)",
+ "basis": {
+  "spec": "sim/out/pv_design/cell_spec.json",
+  "spec_mtime": "2026-10-04 20:57",
+  "requirement": {
+   "L_at_45A_uH_min": 207.8,
+   "L_at_trip_fraction_of_L0_min": 0.35,
+   "L_tolerance_pct": 8.0,
+   "I_rms_max_A": 47.7,
+   "I_peak_normal_max_A": 62.3,
+   "I_trip_A": 72.4,
+   "ripple_pp_max_A": 34.6,
+   "loss_allowed_W": 51.2,
+   "hot_spot_max_C": 155.0,
+   "air_flow_m3h_at_full_load": 150.0
+  }
+ },
+ "construction": "2 x POCO NPC290026 (NPC 26, 74/45/35 mm) stacked toroid (as M1), 37 turns of solid round enamelled Cu 3.15 mm grade 2, 1 layer, core wrapped 2 x 0.13 mm Nomex 410 + polyimide, VPI class H, NTC at the bore-side winding centre in a reinforced pocket; insulating base with a centre clamp in the cell air stream",
+ "electrical": {
+  "L0_H": 0.000243682,
+  "L_at_45A_nom_H": 0.0002258909319762923,
+  "L_at_45A_min_H": 0.00020781965741818894,
+  "L_at_45A_req_H": 0.0002078,
+  "L_trip_over_L0": 0.8126179084219181,
+  "L_trip_req": 0.35,
+  "ripple_pp_A": 34.58527498934723,
+  "dB_pp_T": 0.20947286572286572,
+  "B_sat_T": 1.25,
+  "turns": 37,
+  "f_ripple_Hz": 32000.0,
+  "note": "the converter engineer's L(I) table (inductor_L_vs_I.csv) is for Kool Mu MAX; NPC 26 rolls off less (L_trip/L0 0.81 vs 0.69) - pv_tradeoff.py should read L0/L(45 A) from here",
+  "loss_limit_W": 93.2273459388116,
+  "loss_note": "worst-point loss 84 W against the cell budget 51 W and M1 51 W: +33 W per inductor = 98 W per PV-P75 (0.13 % of 75 kW at the 1000 V / D 0.5 / 45 A point), 130 W per PV-P100/110; loss_limit_W = hot-spot-limited value"
+ },
+ "core": {
+  "maker": "POCO (Shenzhen POCO Magnetic)",
+  "part_number": "NPC290026 x 2 (stacked, 0.5 mm spacer)",
+  "material": "NPC 26",
+  "Ae_m2": 0.001008,
+  "le_m": 0.1838,
+  "Ve_m3": 0.00018528,
+  "AL_H": 1.78e-07,
+  "AL_tol": "+/-8 %",
+  "datasheet": "docs/datasheets/magnetics/POCO-Powder-Core-Catalog-2026.pdf (NPC290026: 74.1/45.3/35.0 mm, coated 75.2/44.07/36.27)",
+  "gap": {
+   "type": "distributed (powder)"
+  },
+  "asian_alternative": "this is the Asian part; DMEGC DE8038 (E 80/38/20 powder E core, 26u A_L 103 nH +/-12 %, docs/datasheets/magnetics/DMEGC-DE8038.pdf) is an E-core option, but its FeSiAl loss / DC-bias curves are not retrievable (dmegc.de links return HTTP 404) -> RFQ",
+  "western_reference": "Magnetics Kool Mu MAX 26 2 x 00Y8044E026, 38 t profiled litz 12.6 mm2, 2 layers (fits: build 17.3 of 17.8 mm): 49.9 W, hot-spot rise 71 K, ~76 USD"
+ },
+ "windings": [
+  {
+   "name": "L",
+   "turns": 37,
+   "conductor": "solid round enamelled Cu 3.15 mm grade 2, 1 layer",
+   "copper_area_m2": 7.79311327631118e-06,
+   "MLT_m": 0.1953887601976309,
+   "R_dc_110C_ohm": 0.02224735643100813,
+   "arrangement": "single layer, close-wound at the bore; first and last turn >= 10 mm apart with an insulating separator (up to 1000 V between them); wire class 200 (polyesterimide + polyamide-imide), grade 2"
+  }
+ ],
+ "fit": {
+  "build_m": 0.03559,
+  "available_m": null,
+  "fits": true,
+  "note": "build_m = centre hole left (>= 16 mm for clamp and air); single layer fits at the bore"
+ },
+ "insulation": {
+  "system": "winding-core basic: core wrapped 2 x 0.13 mm Nomex 410 + 1 x 0.05 mm polyimide over the epoxy coating (coating not counted), grade-2 enamel (not counted as insulation), VPI class H varnish (no air at the core edges); NTC in a reinforced pocket (3 layers polyimide + silicone sleeve) at the inner-side winding centre",
+  "levels": [
+   {
+    "label": "Basic HV-PE, switch node (TO-247 pad, magnetic cores)",
+    "kind": "B",
+    "u_w": 1000.0,
+    "u_rp": 1273.2899643636363,
+    "imp": 6000.0,
+    "imp_spd": 4781.25,
+    "ac": 2200.0,
+    "pd_test": 1909.9349465454543,
+    "pd_ext": 1527.9479572363634,
+    "cr_pd1": 3.2,
+    "cr_pd2": 5.0,
+    "cl_2000": 5.5,
+    "cl_3000": 6.3
+   },
+   {
+    "label": "Reinforced HV-PELV, PV switch node (UCC21710/UCC14241)",
+    "kind": "R",
+    "u_w": 1000.0,
+    "u_rp": 1273.2899643636363,
+    "imp": 8000.0,
+    "imp_spd": 7650.0,
+    "ac": 4400.0,
+    "pd_test": 2387.418683181818,
+    "pd_ext": 1909.9349465454543,
+    "cr_pd1": 6.4,
+    "cr_pd2": 10.0,
+    "cl_2000": 8.0,
+    "cl_3000": 9.2
+   }
+  ],
+  "creepage_turn_gap_m": 0.01,
+  "routine_tests": "PD-free (<= 10 pC) at 1910 V pk winding-core; AC 2200 V rms 1 s; NTC-winding AC 4400 V rms 1 s",
+  "type_tests": "AC 2200 V rms 1 min winding-core, 4400 V rms NTC-winding, impulse 6 kV / 8 kV; L(I) to 72.4 A; thermal run at 54 W in 150 m3/h"
+ },
+ "loss_model": {
+  "core": {
+   "k1": 1.9638,
+   "alpha": 2.4352,
+   "k2": 0.0259,
+   "Ve_m3": 0.00018528,
+   "N": 37,
+   "Ae_m2": 0.001008,
+   "formula": "POCO NPC 26 catalogue fit: Pcv [mW/cm3] = k1 Bm^alpha f + k2 (Bm f)^2 with Bm [kG] = dB/2, f [kHz]; dB = V t_on / (N Ae)",
+   "table_W_vs_Bm_T": [
+    [
+     0.02,
+     0.427733561438873
+    ],
+    [
+     0.04,
+     2.0365218728065826
+    ],
+    [
+     0.06,
+     5.125071816758823
+    ],
+    [
+     0.08,
+     9.906993348133614
+    ],
+    [
+     0.1,
+     16.557213695999998
+    ],
+    [
+     0.12,
+     25.226938651919788
+    ]
+   ]
+  },
+  "winding": {
+   "R_ac_per_harmonic": [
+    [
+     0.0,
+     0.02224735643100813
+    ],
+    [
+     32000.0,
+     0.1314777164375324
+    ],
+    [
+     96000.0,
+     0.23336782684824955
+    ],
+    [
+     160000.0,
+     0.30353905777446066
+    ],
+    [
+     224000.0,
+     0.3605880436663646
+    ],
+    [
+     288000.0,
+     0.4099251924813537
+    ],
+    [
+     352000.0,
+     0.45402846242152406
+    ],
+    [
+     416000.0,
+     0.49427887420346617
+    ],
+    [
+     480000.0,
+     0.5315396499579212
+    ]
+   ],
+   "referred_to": "the winding",
+   "temperature_C": 110.0,
+   "formula": "P_cu = R_dc I_dc^2 + sum_h R(h) I_h,rms^2; R(h) Bessel skin + proximity in the single-layer field N I / (2 b), weighted along the turn"
+  }
+ },
+ "loss_table": [
+  {
+   "point": "25 A DC, worst ripple",
+   "I_rms_A": 26.919852101638,
+   "B_pk_T": 0.10473643286143286,
+   "P_core_W": 25.430821385098415,
+   "P_cu_W": 27.18027551735841,
+   "P_total_W": 52.61109690245682
+  },
+  {
+   "point": "35 A DC, worst ripple",
+   "I_rms_A": 36.39613217326896,
+   "B_pk_T": 0.10473643286143286,
+   "P_core_W": 25.430821385098415,
+   "P_cu_W": 40.52868937596329,
+   "P_total_W": 65.95951076106171
+  },
+  {
+   "point": "worst: 1000 V, D 0.5, 45 A DC",
+   "I_rms_A": 46.09423431595392,
+   "B_pk_T": 0.10473643286143286,
+   "P_core_W": 25.430821385098415,
+   "P_cu_W": 58.326574520769796,
+   "P_total_W": 83.75739590586821
+  }
+ ],
+ "loss_grid": {
+  "I_rms_A": [
+   26.919852101638,
+   36.39613217326896,
+   46.09423431595392
+  ],
+  "P_cu_W": [
+   27.18027551735841,
+   40.52868937596329,
+   58.326574520769796
+  ],
+  "B_pk_T": [
+   0.02,
+   0.04,
+   0.06,
+   0.08,
+   0.1,
+   0.12
+  ],
+  "P_core_W": [
+   0.427733561438873,
+   2.0365218728065826,
+   5.125071816758823,
+   9.906993348133614,
+   16.557213695999998,
+   25.226938651919788
+  ],
+  "note": "copper at the worst ripple; core loss vs Bm (= dB/2) at 32 kHz"
+ },
+ "thermal": {
+  "Rth_hotspot_to_air_K_W": 1.0726466466784708,
+  "dT_hotspot_K": 89.84208985295061,
+  "dT_internal_K": 0.0,
+  "T_air_local_C": 55.0,
+  "T_hotspot_C": 144.8420898529506,
+  "T_hotspot_max_C": 155.0,
+  "basis": "surface model of the cell designer (forced air, h ~25 W/m2K on the wound toroid surface); solid copper: no internal winding gradient; core gradient < 1 K",
+  "interface": "in the cell air stream (150 m3/h at full load); sim/pv_module.py derates with T_air + Rth x P"
+ },
+ "mass_kg": 1.7447046857839288,
+ "cost": {
+  "core_usd": 16.0,
+  "copper_usd": 9.804684344110719,
+  "insulation_usd": 4.0,
+  "labour_usd": 7.0,
+  "total_usd": 40.5,
+  "basis": "ESTIMATES, no quote: core 2 x 8.0 USD (13.3 USD/kg Asian powder, as M1); enamelled round Cu 18.0 USD/kg (LME 14.4 + 3.6 drawing/enamel); insulation 4.0 (Nomex wrap, VPI batch, base); winding 5.0 + test 2.0; +10 %",
+  "cost_estimates_row": "L_CELL 224uH (CUSTOM),40,\"ESTIMATE (sim/magnetics.py design_pv_inductor.json rev M2, design to cost D-044): 2 x POCO NPC290026 16 + 0.54 kg enamelled Cu 3.15 mm at 18.0 USD/kg + insulation 4.0 + winding/test 7, +10 %; no quote\",low"
+ },
+ "verification": {
+  "own": {
+   "P_core_W": 25.430821385098415,
+   "P_core_catalogue_W": 18.422639578913913,
+   "P_cu_W": 58.326574520769796,
+   "P_cu_design_W": 58.326574520769796,
+   "L_at_45A_H": 0.0002258909319762923,
+   "dT_hotspot_K": 89.84208985295061
+  },
+  "openmagnetics": {
+   "material": "NPC 26",
+   "L_H": 0.0002267585038218188,
+   "P_core_W": 25.43082138509842,
+   "P_cu_W": 50.53361207859598,
+   "note": "MAS T 74/45/35 x2, NPC 26, Round 3.15 - Grade 2, 1 mm former wall"
+  },
+  "previous_designer": {
+   "design": "NPC290026 x 2 (stacked, 0.5 mm spacer)",
+   "conductor": "profiled litz 1923 x 0.10 mm, 3.07 x 8.06 mm, 1 layer",
+   "P_total_W": 51.2234267797798,
+   "L_at_45A_H": 0.0002258909319762923,
+   "dT_hotspot_K_own": 74.50827896373379,
+   "cost_usd": 66
+  }
+ },
+ "reference_M1": {
+  "construction": "2 x POCO NPC290026 (NPC 26, 74/45/35 mm) stacked toroid, 37 turns single-layer profiled litz 1923 x 0.10 mm (15.1 mm2), core wrapped 2 x 0.13 mm Nomex 410 + polyimide, VPI class H, NTC at the inner-side winding centre in a reinforced pocket; mounted on an insulating base with a centre clamp in the cell air stream",
+  "P_total_W": 51.22342677977983,
+  "T_hotspot_C": 105.4932010936321,
+  "mass_kg": 2.359047587929494,
+  "cost_usd": 80.0,
+  "cost": {
+   "core_usd": 16.0,
+   "copper_usd": 37.5531418489156,
+   "insulation_usd": 7.0,
+   "labour_usd": 12.4,
+   "total_usd": 80.0,
+   "basis": "ESTIMATES, no quote: Kool Mu MAX E80 set ~11 USD (sim/pv_tradeoff.py basis), POCO NPC toroid ~8 USD; profiled litz 0.1 mm 32.4 USD/kg (LME Cu 14.4 + 18 drawing/profiling premium, as cost_estimates.csv); PPS former 3, VPI class H 4, winding 8, PD/hipot/L test 2; +10 %; toroid winding labour x1.3",
+   "cost_estimates_row": "L_CELL 224uH (CUSTOM),80,\"ESTIMATE (sim/magnetics.py design_pv_inductor.json rev M1): 2 x POCO NPC290026 16 + profiled litz 1.16 kg x 32.4 USD/kg + former/VPI 7 + winding/test 12.4, +10 %; no quote\",low"
+  }
+ },
+ "options": [
+  {
+   "option": "M1 construction",
+   "core": "2 x NPC290026 (NPC 26)",
+   "turns": 37,
+   "conductor": "profiled litz 1923 x 0.10 mm",
+   "fits": true,
+   "P_core_W": 25.4,
+   "P_cu_W": 26.7,
+   "P_total_W": 52.2,
+   "T_hotspot_C": 106.0,
+   "mass_kg": 2.44,
+   "cost_usd": 79.9,
+   "L_trip_over_L0": 0.81
+  },
+  {
+   "option": "coarse bunched litz",
+   "core": "2 x NPC290026 (NPC 26)",
+   "turns": 37,
+   "conductor": "profiled bunched 61 x 0.50 mm",
+   "fits": true,
+   "P_core_W": 25.4,
+   "P_cu_W": 40.8,
+   "P_total_W": 66.2,
+   "T_hotspot_C": 123.0,
+   "mass_kg": 2.17,
+   "cost_usd": 57.2,
+   "L_trip_over_L0": 0.81
+  },
+  {
+   "option": "solid round wire",
+   "core": "2 x NPC290026 (NPC 26)",
+   "turns": 37,
+   "conductor": "solid round enamelled Cu 3.15 mm grade 2, 1 layer",
+   "fits": true,
+   "P_core_W": 25.4,
+   "P_cu_W": 58.3,
+   "P_total_W": 83.8,
+   "T_hotspot_C": 145.0,
+   "mass_kg": 1.74,
+   "cost_usd": 40.5,
+   "L_trip_over_L0": 0.81
+  },
+  {
+   "option": "solid round wire, 40u core, fewer turns",
+   "core": "2 x NPC290040 (NPC 40)",
+   "turns": 32,
+   "conductor": "solid round enamelled Cu 3.55 mm grade 2, 1 layer",
+   "fits": true,
+   "P_core_W": 40.6,
+   "P_cu_W": 39.9,
+   "P_total_W": 80.5,
+   "T_hotspot_C": 140.0,
+   "mass_kg": 1.8,
+   "cost_usd": 41.7,
+   "L_trip_over_L0": 0.68
+  },
+  {
+   "option": "edgewise flat wire",
+   "core": "2 x NPC290026 (NPC 26)",
+   "turns": 37,
+   "conductor": "edgewise rectangular enamelled Cu 2.8 x 3.2 mm, 1 layer",
+   "fits": true,
+   "P_core_W": 25.4,
+   "P_cu_W": 47.5,
+   "P_total_W": 73.0,
+   "T_hotspot_C": 133.0,
+   "mass_kg": 1.83,
+   "cost_usd": 44.6,
+   "L_trip_over_L0": 0.81
+  }
+ ],
+ "options_rejected": [
+  "POCO NPF 26 (FeSi, cheapest star class): catalogue loss ~4 x NPC at 32 kHz / 0.1 T -> ~70 W core",
+  "KDM KS 26 (standard sendust, MAS data; KDM brochure is image-only): DC bias needs 42 turns (does not fit one layer), MAS core loss 51 W",
+  "POCO GPC 26 (lower loss, same cost class): no 74 mm toroid in the 2026 catalogue",
+  "single toroid (55 turns, two layers): same core loss, surface halves -> hot spot > 170 C",
+  "POCO NPX / NPA (lowest loss): 1.6-1.8 x core price"
+ ]
+}

@@ -1,0 +1,3060 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "ee8c160d-5e8f-505c-b283-a3554a4d6734")
+	(paper "A3")
+	(title_block
+		(title "PV-PWR power board - AUX75 input taps, OR, film")
+		(date "2026-10-04")
+		(rev "A1")
+		(comment 1 "Live board referenced to BUS-; gate islands functional; SELV winding reinforced; HV-PE basic")
+		(comment 2 "Schematics authored by Chinmoy Bhuyan")
+		(comment 3 "Sheet 20")
+		(comment 4 "Not bench-validated. Values read from sim/out/*.json; checks: design_check()")
+	)
+	(lib_symbols
+		(symbol "dcdc:AC10_20R"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "R"
+				(at 2.032 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "R"
+				(at 0 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at -1.778 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Resistor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "R res resistor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "R_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "AC10_20R_0_1"
+				(rectangle
+					(start -1.016 -2.54)
+					(end 1.016 2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "AC10_20R_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "dcdc:BYG10Y"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "D"
+				(at 0 2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "D"
+				(at 0 -2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Diode"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Sim.Device" "D"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Sim.Pins" "1=K 2=A"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "diode"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "TO-???* *_Diode_* *SingleDiode* D_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "BYG10Y_0_1"
+				(polyline
+					(pts
+						(xy -1.27 1.27) (xy -1.27 -1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 1.27) (xy 1.27 -1.27) (xy -1.27 0) (xy 1.27 1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 0) (xy -1.27 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "BYG10Y_1_1"
+				(pin passive line
+					(at -3.81 0 0)
+					(length 2.54)
+					(name "K"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 3.81 0 180)
+					(length 2.54)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "dcdc:C4AQ_3U3"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0.254)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "C"
+				(at 0.635 2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "C"
+				(at 0.635 -2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0.9652 -3.81 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Unpolarized capacitor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "cap capacitor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "C_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "C4AQ_3U3_0_1"
+				(polyline
+					(pts
+						(xy -2.032 0.762) (xy 2.032 0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -2.032 -0.762) (xy 2.032 -0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "C4AQ_3U3_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 2.794)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 2.794)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "dcdc:FUSE_HV"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "F"
+				(at 2.032 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Fuse"
+				(at -1.905 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at -1.778 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Fuse"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "fuse"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "*Fuse*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "FUSE_HV_0_1"
+				(rectangle
+					(start -0.762 -2.54)
+					(end 0.762 2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 2.54) (xy 0 -2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "FUSE_HV_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "dcdc:PWR_FLAG"
+			(power global)
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "#FLG"
+				(at 0 1.905 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "PWR_FLAG"
+				(at 0 3.81 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Special symbol for telling ERC where power comes from"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "flag power"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "PWR_FLAG_0_0"
+				(pin power_out line
+					(at 0 0 90)
+					(length 0)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(symbol "PWR_FLAG_0_1"
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 1.27) (xy -1.016 1.905) (xy 0 2.54) (xy 1.016 1.905) (xy 0 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+	)
+	(rectangle
+		(start 12 48.14)
+		(end 142.76 86.56)
+		(stroke
+			(width 0.254)
+			(type dash)
+			(color 72 72 160 1)
+		)
+		(fill
+			(type none)
+		)
+		(uuid "48e0b51b-af5f-510d-a4da-70bc88119fd5")
+	)
+	(rectangle
+		(start 210.2 14)
+		(end 403.4 43.14)
+		(stroke
+			(width 0.254)
+			(type dash)
+			(color 72 72 160 1)
+		)
+		(fill
+			(type none)
+		)
+		(uuid "973225aa-4424-5e96-9e06-f231c32301b0")
+	)
+	(rectangle
+		(start 12 14)
+		(end 205.2 43.14)
+		(stroke
+			(width 0.254)
+			(type dash)
+			(color 72 72 160 1)
+		)
+		(fill
+			(type none)
+		)
+		(uuid "f0da5ad1-82ee-5027-a6e7-00352b0fbee9")
+	)
+	(text "TAP B_T+"
+		(exclude_from_sim no)
+		(at 212.2 19 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "4d0c4475-76af-5300-b9f2-186672e6d7e1")
+	)
+	(text "2 per tap AHEAD of the fuse (AC10 pulse-rated, 20 R = the smallest E24 value inside AX-01 / 02: hot-plug I2t 18.1 % of the fuse melting I2t (rule 20 %), film surge 1218 V); 4.14 W each at 200 V / 75 W\nFuse: (30 W case, unchanged) per-port fuse 1000 VDC gPV behind 44R: fault current <= 25 A (breaking 20 kA not needed), hot-plug I2t 0.091 A2s = 16 % of melting"
+		(exclude_from_sim no)
+		(at 14 40.64 0)
+		(effects
+			(font
+				(size 1.1 1.1)
+			)
+			(justify left bottom)
+		)
+		(uuid "4d650285-41b9-5bd5-98fd-32d83753ced9")
+	)
+	(text "SURGE ABSORBER / INPUT FILTER"
+		(exclude_from_sim no)
+		(at 14 53.14 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "4f791997-258b-566d-98c1-6f8b91e171e2")
+	)
+	(text "Film: (30 W case, unchanged) 2 x film = RC surge absorber with 44R: 4 kV / 20 us residual -> 1199 V (UR 1300 V); filter corner 546 Hz."
+		(exclude_from_sim no)
+		(at 14 84.06 0)
+		(effects
+			(font
+				(size 1.1 1.1)
+			)
+			(justify left bottom)
+		)
+		(uuid "5e59a9ff-e29a-5d83-884d-9802d97b58bd")
+	)
+	(text "2 per tap AHEAD of the fuse (AC10 pulse-rated, 20 R = the smallest E24 value inside AX-01 / 02: hot-plug I2t 18.1 % of the fuse melting I2t (rule 20 %), film surge 1218 V); 4.14 W each at 200 V / 75 W\nFuse: (30 W case, unchanged) per-port fuse 1000 VDC gPV behind 44R: fault current <= 25 A (breaking 20 kA not needed), hot-plug I2t 0.091 A2s = 16 % of melting"
+		(exclude_from_sim no)
+		(at 212.2 40.64 0)
+		(effects
+			(font
+				(size 1.1 1.1)
+			)
+			(justify left bottom)
+		)
+		(uuid "8a933d94-40b6-5a61-b1a1-0e5239d2e398")
+	)
+	(text "TAP A_IN+"
+		(exclude_from_sim no)
+		(at 14 19 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "f8599182-86a6-59c0-a816-d0e2c9f2cc4c")
+	)
+	(wire
+		(pts
+			(xy 298.45 25.4) (xy 300.99 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "003243c7-9fa0-505c-a423-8a5dc82eceaf")
+	)
+	(wire
+		(pts
+			(xy 72.39 60.96) (xy 74.93 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "08983a65-97b1-523f-825c-93fcd0161dff")
+	)
+	(wire
+		(pts
+			(xy 328.93 25.4) (xy 326.39 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "09d7aaae-4dc2-5980-997a-e743d7cc0d2e")
+	)
+	(wire
+		(pts
+			(xy 100.33 25.4) (xy 102.87 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "102f92d1-9fc8-56ed-9635-a6d51cbef141")
+	)
+	(wire
+		(pts
+			(xy 104.14 60.96) (xy 104.14 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "263139d3-5035-51c6-b8fc-9ec25e37efa6")
+	)
+	(wire
+		(pts
+			(xy 31.75 60.96) (xy 29.21 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3d4e9174-8a11-59ba-97e8-b4c8b8814b80")
+	)
+	(wire
+		(pts
+			(xy 34.29 25.4) (xy 36.83 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "40315bad-6b16-51d6-ad49-e371ca47c97b")
+	)
+	(wire
+		(pts
+			(xy 92.71 25.4) (xy 90.17 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4190014b-8de7-5b78-a7b3-224f3e254071")
+	)
+	(wire
+		(pts
+			(xy 59.69 25.4) (xy 57.15 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "429a8574-3bce-5ba3-acd4-3b06020d9fdd")
+	)
+	(wire
+		(pts
+			(xy 64.77 60.96) (xy 62.23 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5a228a4d-23c0-5558-b37d-3dea3300c6fb")
+	)
+	(wire
+		(pts
+			(xy 229.87 25.4) (xy 232.41 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7e0b13b6-9c8b-5d83-9df7-faa4e0501ea0")
+	)
+	(wire
+		(pts
+			(xy 222.25 25.4) (xy 219.71 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "840e2502-4c4c-595d-a756-77a5cc00afe9")
+	)
+	(wire
+		(pts
+			(xy 26.67 25.4) (xy 24.13 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9abf346e-e2f1-58d0-9537-29dee638c262")
+	)
+	(wire
+		(pts
+			(xy 290.83 25.4) (xy 288.29 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9c1b19e8-31b2-5d0f-8929-9701a45d675a")
+	)
+	(wire
+		(pts
+			(xy 91.44 60.96) (xy 91.44 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a11d5d79-5cfb-57a2-ac99-6f2446ff10bc")
+	)
+	(wire
+		(pts
+			(xy 138.43 25.4) (xy 140.97 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c5ae0ebe-628d-5e5f-98a8-85b9a1b44bfb")
+	)
+	(wire
+		(pts
+			(xy 39.37 60.96) (xy 41.91 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d8b0323d-add6-53cc-a522-5d1d188dda77")
+	)
+	(wire
+		(pts
+			(xy 130.81 25.4) (xy 128.27 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "dd1836dd-78d0-5785-a9bc-8d385303d84b")
+	)
+	(wire
+		(pts
+			(xy 265.43 25.4) (xy 267.97 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f4d61d62-9c04-5022-ad93-301bee1bc330")
+	)
+	(wire
+		(pts
+			(xy 336.55 25.4) (xy 339.09 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f9073431-4821-518b-bb1d-195785dc736b")
+	)
+	(wire
+		(pts
+			(xy 67.31 25.4) (xy 69.85 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fa0e6fa1-4c53-56c0-b652-d66062d5431b")
+	)
+	(wire
+		(pts
+			(xy 257.81 25.4) (xy 255.27 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fe5c5dd9-b30b-5f4b-97dd-1f77dbc27957")
+	)
+	(label "AUX_PA_RF"
+		(at 69.85 25.4 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "0718c9f9-5bad-5e8b-a9e6-c70db37132c9")
+	)
+	(label "AUX_PA_R1"
+		(at 36.83 25.4 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "1172c2c0-f0f5-57af-86e5-8d0a6acfdedb")
+	)
+	(label "AUX_PB_F"
+		(at 339.09 25.4 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "17a9ec0d-51d5-5c28-bd08-a9d035235d00")
+	)
+	(label "AUX_PA_R1"
+		(at 57.15 25.4 180)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right bottom)
+		)
+		(uuid "39e023c0-edc0-5182-a9e5-4ad487b34202")
+	)
+	(label "AUX_PA_RF"
+		(at 90.17 25.4 180)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right bottom)
+		)
+		(uuid "3fc675c6-9e63-55ee-b964-34c54c283fc0")
+	)
+	(label "AUX_PB_RF"
+		(at 267.97 25.4 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "425a4cc8-0431-557d-9e15-a22aacc60deb")
+	)
+	(label "AUX_PA_F"
+		(at 140.97 25.4 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "457865fb-5223-5cd7-97f8-5db4a494f8ba")
+	)
+	(label "AUX_PB_F"
+		(at 300.99 25.4 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "4a550da1-b752-534e-b2d5-12556ccf4d88")
+	)
+	(label "AUX_PA_F"
+		(at 102.87 25.4 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "63ee17bb-6b9c-5ddc-bbdf-36ad9b52b12d")
+	)
+	(label "AUX_PB_RF"
+		(at 288.29 25.4 180)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right bottom)
+		)
+		(uuid "7f9bfc6a-59ba-5a82-beaf-63727577b646")
+	)
+	(label "AUX_PB_R1"
+		(at 255.27 25.4 180)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right bottom)
+		)
+		(uuid "aeaaf2d1-c45e-50b0-9bbd-d3a9178781c1")
+	)
+	(label "AUX_PB_R1"
+		(at 232.41 25.4 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "f98f341e-a973-5228-b498-108ad045ec62")
+	)
+	(global_label "AUX_HV_BULK"
+		(shape bidirectional)
+		(at 128.27 25.4 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "4ceb0263-5660-57ee-ae9e-47ff8d673bc9")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 128.27 25.4 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "AUX_HV_BULK"
+		(shape bidirectional)
+		(at 62.23 60.96 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "5b6f6801-daa5-5482-a06c-22c216c6f995")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 62.23 60.96 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "AUX_HV_BULK"
+		(shape bidirectional)
+		(at 91.44 63.5 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "7453752d-0a97-577e-8247-43d9082095f1")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 91.44 63.5 270)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "AUX_HV_BULK"
+		(shape bidirectional)
+		(at 29.21 60.96 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "95e4827f-352d-5122-a6c9-ea64d1472db0")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 29.21 60.96 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "BUS-"
+		(shape bidirectional)
+		(at 104.14 63.5 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "b9435e70-3dcb-5702-a03c-e9f03b4deec7")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 104.14 63.5 270)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "BUS-"
+		(shape bidirectional)
+		(at 41.91 60.96 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "bf05d02c-1142-5d2f-84c3-20f6a131e46e")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 41.91 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "AUX_HV_BULK"
+		(shape bidirectional)
+		(at 326.39 25.4 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "cf271c9d-dcfa-59d4-9332-0e14ea0a9cc2")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 326.39 25.4 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "A_IN+"
+		(shape bidirectional)
+		(at 24.13 25.4 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "d7594310-afd5-551d-a1c2-017a9332bd3f")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 24.13 25.4 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "B_T+"
+		(shape bidirectional)
+		(at 219.71 25.4 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "d7f3ce31-b783-54de-a686-91d1c5db8ec1")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 219.71 25.4 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "BUS-"
+		(shape bidirectional)
+		(at 74.93 60.96 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "df89a3ab-0d51-52d1-9c50-6842ff6c769e")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 74.93 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:FUSE_HV")
+		(at 294.64 25.4 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "0202cb3c-18d3-58c4-bce5-cfd1c1aab389")
+		(property "Reference" "F1902"
+			(at 294.64 23.238 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "0090.1001"
+			(at 294.64 27.562 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 294.64 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/protection/ASO-0090.1001.pdf"
+			(at 294.64 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Fuse 1 A 1000 VDC gPV, 20 kA breaking, PCB pins (one per DC port, behind 2 x 22 R)"
+			(at 294.64 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Schurter"
+			(at 294.64 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0090.1001"
+			(at 294.64 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "10.3 x 38 mm, PCB pins"
+			(at 294.64 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 294.64 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "LIVE"
+			(at 294.64 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "71bd77f1-213a-5542-af5f-323a68077f8f")
+		)
+		(pin "2"
+			(uuid "78e7c910-214c-5ab3-b3ba-bda2af3578d6")
+		)
+		(instances
+			(project "PV-PWR"
+				(path "/c36ce6c8-3b13-5ed4-bd1b-77f09456e1b5/ee8c160d-5e8f-505c-b283-a3554a4d6734"
+					(reference "F1902")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:BYG10Y")
+		(at 134.62 25.4 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "02e1138d-a9db-53e4-91c1-22cfce36f924")
+		(property "Reference" "D1901"
+			(at 134.62 22.73 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "BYG10Y-E3/TR"
+			(at 134.62 28.07 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 134.62 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/power-semiconductors/BYG10Y.pdf"
+			(at 134.62 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Avalanche rectifier 1600 V 1.5 A, standard recovery"
+			(at 134.62 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Vishay"
+			(at 134.62 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "BYG10Y-E3/TR"
+			(at 134.62 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "SMA (DO-214AC)"
+			(at 134.62 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 134.62 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "LIVE"
+			(at 134.62 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "047105b6-0957-5acd-88a7-09cb0c7161e5")
+		)
+		(pin "2"
+			(uuid "837151f9-b40d-554e-a55a-c7e0bbe7a55d")
+		)
+		(instances
+			(project "PV-PWR"
+				(path "/c36ce6c8-3b13-5ed4-bd1b-77f09456e1b5/ee8c160d-5e8f-505c-b283-a3554a4d6734"
+					(reference "D1901")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:BYG10Y")
+		(at 332.74 25.4 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "23795c2d-397a-5766-a80c-2b77611ba86a")
+		(property "Reference" "D1902"
+			(at 332.74 22.73 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "BYG10Y-E3/TR"
+			(at 332.74 28.07 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 332.74 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/power-semiconductors/BYG10Y.pdf"
+			(at 332.74 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Avalanche rectifier 1600 V 1.5 A, standard recovery"
+			(at 332.74 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Vishay"
+			(at 332.74 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "BYG10Y-E3/TR"
+			(at 332.74 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "SMA (DO-214AC)"
+			(at 332.74 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 332.74 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "LIVE"
+			(at 332.74 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "2f8f6833-53d4-5616-998a-f4e53e018617")
+		)
+		(pin "2"
+			(uuid "584d823b-d345-599c-bcb5-a7dc4c2fecb6")
+		)
+		(instances
+			(project "PV-PWR"
+				(path "/c36ce6c8-3b13-5ed4-bd1b-77f09456e1b5/ee8c160d-5e8f-505c-b283-a3554a4d6734"
+					(reference "D1902")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:FUSE_HV")
+		(at 96.52 25.4 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "32c12511-a2e6-5e85-aaef-ad72864b7bb1")
+		(property "Reference" "F1901"
+			(at 96.52 23.238 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "0090.1001"
+			(at 96.52 27.562 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 96.52 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/protection/ASO-0090.1001.pdf"
+			(at 96.52 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Fuse 1 A 1000 VDC gPV, 20 kA breaking, PCB pins (one per DC port, behind 2 x 22 R)"
+			(at 96.52 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Schurter"
+			(at 96.52 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0090.1001"
+			(at 96.52 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "10.3 x 38 mm, PCB pins"
+			(at 96.52 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 96.52 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "LIVE"
+			(at 96.52 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "b3aab002-7ee8-5c98-a7aa-c04eb0178f87")
+		)
+		(pin "2"
+			(uuid "9adf7e45-1eb8-5f45-a118-2ec3cdf54190")
+		)
+		(instances
+			(project "PV-PWR"
+				(path "/c36ce6c8-3b13-5ed4-bd1b-77f09456e1b5/ee8c160d-5e8f-505c-b283-a3554a4d6734"
+					(reference "F1901")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:PWR_FLAG")
+		(at 104.14 60.96 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "338e5a43-e52d-5434-bf2e-c827bf42fb74")
+		(property "Reference" "#FLG1902"
+			(at 104.14 57.02 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 104.14 62.36 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 104.14 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 104.14 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "ERC power flag"
+			(at 104.14 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 104.14 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 104.14 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" ""
+			(at 104.14 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "NOPART"
+			(at 104.14 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "LIVE"
+			(at 104.14 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "f506d476-a250-5d2d-ae5b-0971618832e1")
+		)
+		(instances
+			(project "PV-PWR"
+				(path "/c36ce6c8-3b13-5ed4-bd1b-77f09456e1b5/ee8c160d-5e8f-505c-b283-a3554a4d6734"
+					(reference "#FLG1902")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:AC10_20R")
+		(at 30.48 25.4 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "4d2f910e-2994-51f3-8e47-91c9f4ebd539")
+		(property "Reference" "R1901"
+			(at 30.48 22.984 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "20R"
+			(at 30.48 27.816 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 30.48 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/passives-capacitors/AC-AC-AT-AC-NI.pdf"
+			(at 30.48 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor 20 R 5 % 10 W cemented wirewound, pulse-rated (AUX75 tap, ahead of the fuse)"
+			(at 30.48 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Vishay Draloric"
+			(at 30.48 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "AC10000002009JAB00"
+			(at 30.48 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "axial cemented wirewound 10 W, 44 x 8 mm"
+			(at 30.48 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 30.48 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "LIVE"
+			(at 30.48 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "78d8165d-50d9-5025-a60c-5821118380a9")
+		)
+		(pin "2"
+			(uuid "2c97ad0d-babd-56df-847f-54ded3cfc39f")
+		)
+		(instances
+			(project "PV-PWR"
+				(path "/c36ce6c8-3b13-5ed4-bd1b-77f09456e1b5/ee8c160d-5e8f-505c-b283-a3554a4d6734"
+					(reference "R1901")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:AC10_20R")
+		(at 226.06 25.4 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "73c752bd-0d0b-51a9-8aed-d9fee15db821")
+		(property "Reference" "R1903"
+			(at 226.06 22.984 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "20R"
+			(at 226.06 27.816 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 226.06 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/passives-capacitors/AC-AC-AT-AC-NI.pdf"
+			(at 226.06 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor 20 R 5 % 10 W cemented wirewound, pulse-rated (AUX75 tap, ahead of the fuse)"
+			(at 226.06 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Vishay Draloric"
+			(at 226.06 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "AC10000002009JAB00"
+			(at 226.06 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "axial cemented wirewound 10 W, 44 x 8 mm"
+			(at 226.06 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 226.06 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "LIVE"
+			(at 226.06 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "371e7562-c900-5c51-af71-43a39b59dfd3")
+		)
+		(pin "2"
+			(uuid "16245741-72c5-5288-b38e-3c0df1834fb4")
+		)
+		(instances
+			(project "PV-PWR"
+				(path "/c36ce6c8-3b13-5ed4-bd1b-77f09456e1b5/ee8c160d-5e8f-505c-b283-a3554a4d6734"
+					(reference "R1903")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C4AQ_3U3")
+		(at 68.58 60.96 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "91bf5b7a-caad-5bf5-b989-203aa7175b96")
+		(property "Reference" "C1902"
+			(at 68.58 57.528 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "3.3u 1300V"
+			(at 68.58 64.392 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 68.58 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/passives-capacitors/Jianghai-JE26-Film.pdf"
+			(at 68.58 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Film capacitor 3.3 uF 1300 VDC, PP DC link, IEC 61071 (input surge absorber); was KEMET C4AQUBU4330A11J"
+			(at 68.58 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Jianghai"
+			(at 68.58 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "FCSA3DS335K050ID90BE3"
+			(at 68.58 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "radial 27.5 mm, 2 pins 5.0 mm, 32 x 28 x 18 mm"
+			(at 68.58 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 68.58 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "LIVE"
+			(at 68.58 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "97ad19a5-c20d-5b4d-b45a-324360602f87")
+		)
+		(pin "2"
+			(uuid "56b49c37-705e-5456-965b-17ad7e13abbb")
+		)
+		(instances
+			(project "PV-PWR"
+				(path "/c36ce6c8-3b13-5ed4-bd1b-77f09456e1b5/ee8c160d-5e8f-505c-b283-a3554a4d6734"
+					(reference "C1902")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:PWR_FLAG")
+		(at 91.44 60.96 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "d2957d31-5c60-5861-b0ea-57573e3a94d9")
+		(property "Reference" "#FLG1901"
+			(at 91.44 57.02 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 91.44 62.36 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 91.44 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 91.44 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "ERC power flag"
+			(at 91.44 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 91.44 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 91.44 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" ""
+			(at 91.44 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "NOPART"
+			(at 91.44 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "LIVE"
+			(at 91.44 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "09ce4c12-00ce-5e2f-897a-8cb7569ec344")
+		)
+		(instances
+			(project "PV-PWR"
+				(path "/c36ce6c8-3b13-5ed4-bd1b-77f09456e1b5/ee8c160d-5e8f-505c-b283-a3554a4d6734"
+					(reference "#FLG1901")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:AC10_20R")
+		(at 261.62 25.4 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "e7a9164d-412c-5366-8141-d890a0412b24")
+		(property "Reference" "R1904"
+			(at 261.62 22.984 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "20R"
+			(at 261.62 27.816 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 261.62 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/passives-capacitors/AC-AC-AT-AC-NI.pdf"
+			(at 261.62 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor 20 R 5 % 10 W cemented wirewound, pulse-rated (AUX75 tap, ahead of the fuse)"
+			(at 261.62 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Vishay Draloric"
+			(at 261.62 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "AC10000002009JAB00"
+			(at 261.62 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "axial cemented wirewound 10 W, 44 x 8 mm"
+			(at 261.62 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 261.62 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "LIVE"
+			(at 261.62 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "0b251871-4df0-540b-bbd1-629fc93ea106")
+		)
+		(pin "2"
+			(uuid "672f97da-4843-5c1b-b768-be457020b08e")
+		)
+		(instances
+			(project "PV-PWR"
+				(path "/c36ce6c8-3b13-5ed4-bd1b-77f09456e1b5/ee8c160d-5e8f-505c-b283-a3554a4d6734"
+					(reference "R1904")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C4AQ_3U3")
+		(at 35.56 60.96 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "f920a7aa-c46d-55ca-a7d8-8c7cd392f6ca")
+		(property "Reference" "C1901"
+			(at 35.56 57.528 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "3.3u 1300V"
+			(at 35.56 64.392 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 35.56 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/passives-capacitors/Jianghai-JE26-Film.pdf"
+			(at 35.56 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Film capacitor 3.3 uF 1300 VDC, PP DC link, IEC 61071 (input surge absorber); was KEMET C4AQUBU4330A11J"
+			(at 35.56 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Jianghai"
+			(at 35.56 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "FCSA3DS335K050ID90BE3"
+			(at 35.56 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "radial 27.5 mm, 2 pins 5.0 mm, 32 x 28 x 18 mm"
+			(at 35.56 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 35.56 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "LIVE"
+			(at 35.56 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "702391f8-4823-5dfd-a4b9-a858ebb8ded0")
+		)
+		(pin "2"
+			(uuid "8a73c8c8-6c29-577b-ba14-5709cae3fa16")
+		)
+		(instances
+			(project "PV-PWR"
+				(path "/c36ce6c8-3b13-5ed4-bd1b-77f09456e1b5/ee8c160d-5e8f-505c-b283-a3554a4d6734"
+					(reference "C1901")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:AC10_20R")
+		(at 63.5 25.4 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "fcf25af2-2d36-56a7-94c5-18076bf564f3")
+		(property "Reference" "R1902"
+			(at 63.5 22.984 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "20R"
+			(at 63.5 27.816 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 63.5 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/passives-capacitors/AC-AC-AT-AC-NI.pdf"
+			(at 63.5 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor 20 R 5 % 10 W cemented wirewound, pulse-rated (AUX75 tap, ahead of the fuse)"
+			(at 63.5 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Vishay Draloric"
+			(at 63.5 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "AC10000002009JAB00"
+			(at 63.5 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "axial cemented wirewound 10 W, 44 x 8 mm"
+			(at 63.5 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 63.5 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "LIVE"
+			(at 63.5 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "0c7cc0da-e264-53b5-bf2c-c9dce9c92d50")
+		)
+		(pin "2"
+			(uuid "4bf45f7d-97de-5d31-aba7-011a7490310b")
+		)
+		(instances
+			(project "PV-PWR"
+				(path "/c36ce6c8-3b13-5ed4-bd1b-77f09456e1b5/ee8c160d-5e8f-505c-b283-a3554a4d6734"
+					(reference "R1902")
+					(unit 1)
+				)
+			)
+		)
+	)
+)

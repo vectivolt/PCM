@@ -1,0 +1,236 @@
+{
+ "part": "aux75_transformer",
+ "revision": "M1",
+ "status": "proposed construction - calculated, not built or measured",
+ "basis": {
+  "spec": "sim/out/aux_hv_design/aux75_spec.json",
+  "spec_mtime": "2026-10-04 23:03",
+  "spec_rev": "A0"
+ },
+ "construction": "DMEGC EC39A DMR95 (ETD39 class), centre-leg gap 1.05 mm, 48:8 live:9 SELV in the order P1 | SH | SELV (TIW-litz) | LIVE | P2, copper set back 2.0 mm from the gapped leg, vacuum-potted case",
+ "electrical": {
+  "L_p_H": 0.00048518573815795215,
+  "L_p_tol": "+/-7 % at 10 kHz",
+  "turns": "48:8:9 (P:live:SELV)",
+  "f_sw_Hz": 64899.60778807783,
+  "mode": "DCM >= 185 V",
+  "I_pk_limit_A": 3.942788437792563,
+  "B_limit_Amin_T": 0.3313412407556972,
+  "B_limit_rule_T": 0.3485000000000002,
+  "Np_x_Amin_m2": 0.0061776,
+  "Np_x_Amin_min_m2": 0.005873439451628104,
+  "L_leak_est_H": 1.3535268317350594e-05,
+  "L_leak_max_H": 1.423902229340714e-05,
+  "L_leak_live_selv_H": 3.021998673935711e-07,
+  "L_leak_live_selv_max_H": 6.986547246413413e-07,
+  "C_switched_P1_SH_own_F": 3.988773879543997e-11,
+  "C_switched_max_F": 5.3201661065470916e-11,
+  "winding_loss_max_W": 1.5,
+  "live_share": 0.24,
+  "acceptance_limits": {
+   "L_leak_primary_max_H": 1.2e-05,
+   "C_switched_max_F": 4.5e-11,
+   "note": "routine-test limits that guarantee the drain-voltage budget (1336 V vs 1360 V): leakage measured at 100 kHz with SELV and live shorted; switched capacitance P1-start to shield at 100 kHz"
+  },
+  "leakage_for_cross_regulation": {
+   "P_to_secondaries_own_H": 1.3535268317350594e-05,
+   "P_to_SELV_OM_H": 4.562725584401378e-06,
+   "live_SELV_live_referred_H": 3.021998673935711e-07
+  },
+  "cross_regulation": "tightest practical band: SELV and live as adjacent single full-width layers, same winding sense, between the primary halves (P1 | SH | SELV | LIVE | P2), separated only by the reinforced tape barrier -> live-SELV leakage ~0.3 uH; bifilar SELV/live would halve it again but leaves only the TIW insulation (~25 kV/mm at the 2505 V pk PD test: not PD-free); a SELV-LIVE-SELV sandwich (~0.15 uH) needs a second reinforced barrier and does not fit the ETD39-class window; the residual band is set by the diode drops and the 18 W / 57 W load asymmetry - the converter engineer re-runs the band with these leakages"
+ },
+ "core": {
+  "maker": "DMEGC",
+  "part_number": "EC39A set (DMR95)",
+  "material": "DMR95",
+  "Ae_m2": 0.000133,
+  "A_min_m2": 0.0001287,
+  "le_m": 0.103,
+  "Ve_m3": 1.3699e-05,
+  "datasheet": "docs/datasheets/magnetics/DMEGC-EC39A.pdf p.1",
+  "note": "window and post from the ETD 39/20/13 class (MAS); the EC39A drawing is image-only - confirm the bobbin",
+  "gap": {
+   "type": "ground centre-leg gap",
+   "length_m": 0.0010512657162000945
+  },
+  "asian_alternative": "this is the Asian part (DMEGC lists no ETD39)",
+  "western_reference": "TDK ETD 39/20/13 N97"
+ },
+ "windings": [
+  {
+   "order": 1,
+   "name": "P1",
+   "turns": 24,
+   "spec": "litz 30 x 0.10 mm (grade 2 strands), 1 layer, start = DRAIN"
+  },
+  {
+   "order": 2,
+   "name": "SH",
+   "turns": 1,
+   "spec": "copper foil 0.05 mm, open overlap, -> BUS-"
+  },
+  {
+   "order": 3,
+   "name": "SELV",
+   "turns": 9,
+   "spec": "TIW-litz 150 x 0.10 mm (three-layer extruded, certified reinforced), 1 layer"
+  },
+  {
+   "order": 4,
+   "name": "LIVE",
+   "turns": 8,
+   "spec": "litz 100 x 0.10 mm, 1 layer, -> live 24 V rectifier"
+  },
+  {
+   "order": 5,
+   "name": "P2",
+   "turns": 24,
+   "spec": "litz 30 x 0.10 mm, 1 layer, finish = bulk"
+  }
+ ],
+ "fit": {
+  "build_m": 0.007692773105452763,
+  "available_m": 0.0082,
+  "fits": true,
+  "widest_layer_m": 0.02009642823392823,
+  "breadth_m": 0.0266
+ },
+ "insulation": {
+  "system": "VACUUM-POTTED case; REINFORCED SELV barrier = TIW-litz insulation + 4 x 0.06 mm tape each side of the SELV layer; primary, live, shield and core on the BUS- side (functional among themselves, PD-free 1750 V pk); SELV pins on their own row, creepage >= 20.0 mm PD2 / 6.4 mm potted, clearance >= 10.4 mm",
+  "min_solid_selv_m": 0.0003400000000000002,
+  "levels": [
+   {
+    "label": "Reinforced: primary + live + shield - SELV",
+    "u_rp": 1335.9657879911715,
+    "pd_test": 2505.0,
+    "ac": 4400.0,
+    "imp": 8000.0,
+    "cr_pd1": 6.4,
+    "cr_pd2": 20.0,
+    "clearance": [
+     8.0,
+     9.2,
+     10.4
+    ]
+   }
+  ],
+  "routine_tests": "<= 10 pC at 2505 Vpk on every unit (extinction >= 2004 Vpk)",
+  "type_tests": "AC 4400.0 V rms 60 s; impulse 8000.0 V; thermal at 82.5 W"
+ },
+ "loss_model": {
+  "core": {
+   "k": 0.0033626687766135665,
+   "alpha": 2.0182306625896125,
+   "beta": 3.0309313905981483,
+   "Ve_m3": 1.3699e-05,
+   "N": 48,
+   "Ae_m2": 0.000133,
+   "formula": "unipolar DCM flux (iGSE), DMR95 at 100 C"
+  },
+  "winding": {
+   "R_ac_per_harmonic": null,
+   "referred_to": "n/a - use loss_table",
+   "temperature_C": 100.0,
+   "formula": "1-D Dowell ramp + line-source gap fringing per layer; live winding loaded with its power share"
+  }
+ },
+ "loss_table": [
+  {
+   "point": "200 V, 82.5 W",
+   "I_rms_A": 0.9439731325193651,
+   "B_pk_T": 0.1953023815392206,
+   "P_core_W": 0.17894764094983046,
+   "P_cu_W": 0.7026300791845029,
+   "P_fringe_W": 0.0708313578880401,
+   "P_total_W": 0.8815777201343333
+  },
+  {
+   "point": "400 V, 82.5 W",
+   "I_rms_A": 0.6218162507748721,
+   "B_pk_T": 0.18626123093991764,
+   "P_core_W": 0.25864673571998986,
+   "P_cu_W": 0.529289224827411,
+   "P_fringe_W": 0.10575881161181691,
+   "P_total_W": 0.7879359605474009
+  },
+  {
+   "point": "600 V, 82.5 W",
+   "I_rms_A": 0.5041022592750797,
+   "B_pk_T": 0.1853381316876156,
+   "P_core_W": 0.35201029593913846,
+   "P_cu_W": 0.5186508322942998,
+   "P_fringe_W": 0.14284016543016512,
+   "P_total_W": 0.8706611282334382
+  },
+  {
+   "point": "800 V, 82.5 W",
+   "I_rms_A": 0.4367733114778647,
+   "B_pk_T": 0.18566241875138587,
+   "P_core_W": 0.45012438377491115,
+   "P_cu_W": 0.5369502044570214,
+   "P_fringe_W": 0.18035021307149435,
+   "P_total_W": 0.9870745882319325
+  },
+  {
+   "point": "1000 V, 82.5 W",
+   "I_rms_A": 0.39383053154789976,
+   "B_pk_T": 0.1865000309162007,
+   "P_core_W": 0.5524272389329452,
+   "P_cu_W": 0.5664446317971814,
+   "P_fringe_W": 0.21811484195075342,
+   "P_total_W": 1.1188718707301266
+  }
+ ],
+ "loss_grid": {
+  "V_in_V": [
+   200,
+   400,
+   600,
+   800,
+   1000
+  ],
+  "P_total_W": [
+   0.8815777201343333,
+   0.7879359605474009,
+   0.8706611282334382,
+   0.9870745882319325,
+   1.1188718707301266
+  ],
+  "note": "at 82.5 W (design point incl. margin)"
+ },
+ "thermal": {
+  "T_rise_K": 15.060687817409379,
+  "basis": "potted ETD39-class case ~45 x 40 x 35 mm, ~12 K/W natural convection (estimate)",
+  "interface": "board-mounted"
+ },
+ "mass_kg": 0.13696361217686548,
+ "cost": {
+  "core_usd": 0.85,
+  "copper_usd": 2.4000000000000004,
+  "insulation_usd": 2.0500000000000003,
+  "labour_usd": 2.4000000000000004,
+  "total_usd": 8.5,
+  "build_5k_usd": 5.7,
+  "catalogue_1k_usd": 8.5,
+  "basis": "ESTIMATES, no quote: EC39A 70 g 0.85; former 0.45; TIW-litz 150 x 0.1 ~1.0 m 1.6; litz P + live 0.6, foil/tape 0.2; case + vacuum potting 1.6; winding 1.6; PD routine test 0.8; +10 %",
+  "cost_estimates_row": "AUX-T1 75 W (CUSTOM),8.5,\"ESTIMATE (sim/magnetics.py design_aux75_transformer.json rev M1): DMEGC EC39A DMR95 + TIW-litz SELV + litz P/live + potted case + PD test; no quote\",low"
+ },
+ "verification": {
+  "own": {
+   "P_cu_W": 0.7026300791845029,
+   "L_leak_est_H": 1.3535268317350594e-05,
+   "B_limit_Amin_T": 0.3313412407556972
+  },
+  "openmagnetics": {
+   "L_p_H": 0.0004406380902621479,
+   "P_core_W": 0.25442118814263737,
+   "P_cu_W": 1.292965645931847,
+   "L_leak_H": 4.562725584401378e-06,
+   "point_V": 1000,
+   "note": "MAS ETD 39/20/13 window, P and SELV only (live winding not in the OM model); all secondary ampere-turns in the SELV winding"
+  },
+  "previous_designer": {
+   "estimates": "A0: leakage 11.0 uH, core 0.46 W, flux 347 mT"
+  }
+ }
+}

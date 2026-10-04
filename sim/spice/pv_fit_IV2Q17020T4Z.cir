@@ -1,0 +1,14 @@
+* PVCELL VDMOS C_gd fit for IV2Q17020T4Z: drain ramp 0..1200 V, gate held at -3.5 V
+.model m VDMOS(Vto=3.0 Kp=5 lambda=0.01 Rd=0.005667 Rs=0.5m Rg=1.8 Cgs=6.288e-09 Cgdmax=1.26e-09 Cgdmin=1.2e-11 a=0.02808 Cjo=3.364e-09 Vj=3 M=0.5 Is=7.58e-16 N=3 Rb=0.03187 Tt=0)
+Vg g 0 -3.5
+Vd dd 0 PWL(0 0 10u 1200.0)
+Rd dd dn 1m
+M1 dn g 0 m
+.save i(Vg) v(dn)
+.tran 5n 10u
+.control
+run
+wrdata pv_fit_IV2Q17020T4Z.dat i(Vg) v(dn)
+quit
+.endc
+.end

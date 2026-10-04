@@ -1,0 +1,42 @@
+{
+  "project": "BMU-GW",
+  "rev": "B0",
+  "date": "2026-10-04",
+  "sheets": 1,
+  "parts": 32,
+  "nets": 23,
+  "erc_waivers": {},
+  "passed": true,
+  "checks": [
+    {
+      "check": "Isolation domains (only declared isolators/crossings bridge two domains)",
+      "result": "pass",
+      "detail": "3 isolators, 0 crossings, 34 other parts each in one domain"
+    },
+    {
+      "check": "Stress: jellybean capacitor voltage <= 80 %, resistor power <= 60 % and working voltage",
+      "result": "pass",
+      "detail": "16 parts inside the rules, 4 on nets without a DC range (left to the design check)"
+    },
+    {
+      "check": "ERC (kicad-cli, all severities)",
+      "result": "pass",
+      "detail": "0 errors, 0 warnings (0 waived) - clean"
+    },
+    {
+      "check": "Netlist identity (kicad-cli XML export == design table)",
+      "result": "pass",
+      "detail": "23 nets, 32 components identical"
+    },
+    {
+      "check": "Schematic PDF rendered",
+      "result": "pass",
+      "detail": "hardware/BMU-GW/outputs/BMU-GW_schematic.pdf"
+    },
+    {
+      "check": "BOM: every line has manufacturer + MPN + datasheet on file, or is GENERIC/RFQ/CUSTOM",
+      "result": "pass",
+      "detail": "19 lines, 32 parts -> bom/BMU-GW_BOM.csv"
+    }
+  ]
+}

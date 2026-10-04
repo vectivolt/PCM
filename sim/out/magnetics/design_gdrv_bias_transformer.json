@@ -1,0 +1,229 @@
+{
+ "part": "gdrv_bias_transformer",
+ "revision": "M1",
+ "status": "proposed construction - calculated, not built or measured",
+ "basis": {
+  "spec": "sim/out/gdrv_miller/bias_transformer_req.json",
+  "spec_mtime": "2026-10-04 22:30",
+  "requirement": {
+   "part": "T_BIAS4, one per phase (4 channels), driven by TI SN6505B (centre-tapped primary, 420 kHz typ)",
+   "input_V": [
+    4.75,
+    5.25
+   ],
+   "f_min_Hz": 350000.0,
+   "volt_seconds_per_half_primary_Vs": 7.5e-06,
+   "turns_ratio_each_secondary_to_half_primary": 5.9,
+   "secondaries": 4,
+   "secondary_load_per_winding_A_dc": 0.0241,
+   "secondary_rms_A_est": 0.0313,
+   "primary_current_A_avg_per_phase": 0.676,
+   "magnetizing_current_max_A_pk": 0.15,
+   "winding_resistance_max_ohm": {
+    "half_primary": 0.1,
+    "secondary": 2.0
+   },
+   "rectifier": "full bridge per secondary (PMEG4010CEJ), raw DC 25.8-30.5 V",
+   "insulation": "FUNCTIONAL (B3, ARCHITECTURE-COSTFIRST.md section 2): primary <-> each secondary AND secondary <-> secondary",
+   "working_V_dc": 1000.0,
+   "recurring_peak_V": 1401.0,
+   "pd_free_V_pk_min": 1750.0,
+   "surge_V_1.2_50us": 3790.0,
+   "capacitance_max_F": {
+    "primary_to_each_secondary": 5e-12,
+    "secondary_to_secondary": 5e-12
+   },
+   "construction_hint": "EP10-class, sectioned bobbin, triple-insulated wire on the secondaries",
+   "basis": "gen/gdrv.py ext_bias_numbers() / design_check(); 5 V +/-5 % and f_min ASSUMED"
+  }
+ },
+ "construction": "one per phase: DMEGC EP17 DMR44 ungapped, custom bobbin with 5 side-by-side sections separated by 0.6 mm flanges, order S1 (high side A) | S2 (low side A) | P (2 x 4 t bifilar, centre tap) | S3 (low side B) | S4 (high side B); secondaries 24 t TIW 0.16 mm; core floating; vacuum varnish dip",
+ "electrical": {
+  "turns": "4+4:24 x4",
+  "ratio": 6.0,
+  "ratio_note": "6.0 instead of the requested 5.9 (5.9 needs 10:59, which does not fit): raw output +1.7 % (25.8-30.5 V becomes ~26.2-31.0 V)",
+  "L_half_primary_H": 3.68e-05,
+  "L_half_primary_min_H": 2.76e-05,
+  "I_mag_pk_max_A": 0.1358695652173913,
+  "I_mag_limit_A": 0.15,
+  "B_pk_T": 0.02765486725663717,
+  "B_pk_Amin_T": 0.03676470588235294,
+  "B_sat_100C_T": 0.315,
+  "f_min_Hz": 350000.0,
+  "Vs_half_primary": 7.5e-06,
+  "L_leak_pri_ref_H": {
+   "adjacent": 2.9014538086621217e-07,
+   "one_apart": 6.735517770108496e-07
+  },
+  "commutation_s": {
+   "adjacent": 8.83263622594827e-09,
+   "one_apart": 2.050433409595134e-08
+  },
+  "capacitance_F": {
+   "adjacent": 3.431443445007857e-12,
+   "one_apart": 1.770301049905817e-12,
+   "two_apart": 1.4588368508241844e-12,
+   "pairs": "adjacent: P-S2, P-S3, S1-S2, S3-S4; one apart: P-S1, P-S4, S2-S3 (across P); two apart or more: S1-S4",
+   "high_side_to_primary": 1.770301049905817e-12,
+   "cm_current_at_124V_ns_A": 0.2195173301883213,
+   "method": "own: parallel plate between adjacent section faces through the flange (build x MLT / (t_flange/eps + t_TIW/eps + air)) + each section to the floating MnZn core (post through the tube, shell through air) taken in series + 0.3 pF pins; one apart: 20 % of the direct term (fringe)"
+  },
+  "R_sec_110C_ohm": 0.7543899359999997,
+  "R_half_pri_110C_ohm": 0.020117064959999993
+ },
+ "core": {
+  "maker": "DMEGC",
+  "part_number": "EP17 set (DMR44), ungapped",
+  "material": "DMR44",
+  "Ae_m2": 3.39e-05,
+  "A_min_m2": 2.55e-05,
+  "le_m": 0.0284,
+  "Ve_m3": 9.628e-07,
+  "AL_H": 2.3e-06,
+  "AL_tol": "+/-25 %",
+  "datasheet": "docs/datasheets/magnetics/DMEGC-EP17.pdf p.1",
+  "gap": {
+   "type": "none"
+  },
+  "asian_alternative": "DMEGC is the Asian part; NiZn rejected (DN100H/DN150H Curie point 130/100 C, mu 1000-1500: more turns); sector-wound toroid rejected (coupling: commutation > 5 % of the half period)"
+ },
+ "windings": [
+  {
+   "order": 1,
+   "name": "S1",
+   "turns": 24,
+   "conductor": "TIW 0.16 mm (three-layer, IEC 61558-2-16 / 62368-1 Annex J), 6 layers x 4",
+   "channel": "high side A"
+  },
+  {
+   "order": 2,
+   "name": "S2",
+   "turns": 24,
+   "conductor": "TIW 0.16 mm (three-layer, IEC 61558-2-16 / 62368-1 Annex J), 6 layers x 4",
+   "channel": "low side A"
+  },
+  {
+   "order": 3,
+   "name": "P",
+   "turns": 8,
+   "conductor": "enamelled Cu 0.40 mm grade 1, bifilar 2 x 4 t, centre tap",
+   "channel": "SN6505B"
+  },
+  {
+   "order": 4,
+   "name": "S3",
+   "turns": 24,
+   "conductor": "TIW 0.16 mm (three-layer, IEC 61558-2-16 / 62368-1 Annex J), 6 layers x 4",
+   "channel": "low side B"
+  },
+  {
+   "order": 5,
+   "name": "S4",
+   "turns": 24,
+   "conductor": "TIW 0.16 mm (three-layer, IEC 61558-2-16 / 62368-1 Annex J), 6 layers x 4",
+   "channel": "high side B"
+  }
+ ],
+ "fit": {
+  "build_m": 0.00216,
+  "available_m": 0.00246,
+  "fits": true,
+  "section_width_m": 0.00162
+ },
+ "insulation": {
+  "system": "FUNCTIONAL (B3): TIW on every secondary + 0.6 mm bobbin flanges between sections + vacuum varnish dip (no air voids at the TIW); pins of different windings >= 5.0 mm apart (skip pin positions at 2.5 mm pitch; 3.2 mm if the board is coated); core floating",
+  "levels": [
+   {
+    "label": "functional, each secondary to P and to the other secondaries",
+    "u_w": 1000.0,
+    "u_rp": 1401.0,
+    "pd_test": 1750.0,
+    "imp": 3790.0
+   }
+  ],
+  "routine_tests": "L_half, ratio, R; PD <= 10 pC at 1750 V pk between windings (sample) or 2.5 kV DC 1 s each pair (routine); C P-S and S-S <= 5 pF at 100 kHz (sample)",
+  "type_tests": "impulse 3790 V 1.2/50 between windings; thermal at 85 C ambient"
+ },
+ "loss_model": {
+  "core": {
+   "k": 0.0033626687766135665,
+   "alpha": 2.0182306625896125,
+   "beta": 3.0309313905981483,
+   "Ve_m3": 9.628e-07,
+   "N": 4,
+   "Ae_m2": 3.39e-05,
+   "formula": "Steinmetz (DMR95 set as a stand-in for DMR44; milliwatts)"
+  },
+  "winding": {
+   "R_ac_per_harmonic": null,
+   "referred_to": "per winding, DC",
+   "temperature_C": 110.0,
+   "formula": "P = I_rms^2 R (thin wires at 420 kHz: R_ac ~ R_dc)"
+  }
+ },
+ "loss_table": [
+  {
+   "point": "420 kHz, 4 x 24 mA",
+   "I_rms_A": 0.0313,
+   "B_pk_T": 0.02765486725663717,
+   "P_core_W": 0.01368834292785092,
+   "P_cu_W": 0.01407982231696412,
+   "P_total_W": 0.02776816524481504
+  }
+ ],
+ "loss_grid": {
+  "I_rms_A": [],
+  "P_cu_W": [],
+  "B_pk_T": [],
+  "P_core_W": [],
+  "note": "milliwatts; not needed"
+ },
+ "thermal": {
+  "dT_K": 3.3321798293778047,
+  "basis": "~120 K/W board-mounted EP17 (natural convection), estimate",
+  "margins": "B_pk 37 mT on A_min at f_min 350 kHz vs >= 315 mT at 100 C; Curie > 215 C (DMR44)"
+ },
+ "mass_kg": 0.0174,
+ "cost": {
+  "catalogue_1k_usd": 2.18,
+  "build_5k_usd": 1.22,
+  "tooling_usd": 4000.0,
+  "per_module_PV_P75_usd": {
+   "catalogue": 6.54,
+   "build_5k": 3.66
+  },
+  "four_single_secondary_parts_per_phase_usd": {
+   "catalogue": 4.4,
+   "build_5k": 2.4,
+   "note": "EP10 DMR44 + standard 2-section bobbin (no tooling), one secondary; same capacitance class (P-S ~2-3 pF on a 2-section bobbin, S-S < 0.5 pF via the board); 4 x the board area; no tooling"
+  },
+  "verdict": "one 4-secondary part is cheaper (1.22 vs 2.40 USD per phase at 5 k, 2.18 vs 4.40 at catalogue) once the bobbin tooling (4000 USD, 0.80 USD/part over 5 k) is paid",
+  "total_usd": 2.18,
+  "basis": "ESTIMATES, no quote: DMEGC EP17 set 13.4 g (Chinese small-core pricing); custom 5-section LCP bobbin (tooling ~4 kUSD once); TIW 0.16 mm ~0.12 USD/m (1 k) / 0.08 (5 k), 2.6 m; automated sectional winding; Lm / C / functional hipot routine test",
+  "cost_estimates_row": "T_BIAS4 (CUSTOM),2.18,\"ESTIMATE (sim/magnetics.py design_gdrv_bias_transformer.json rev M1): DMEGC EP17 DMR44 + custom 5-section bobbin + 4 x 24 t TIW, catalogue/1k; 1.22 at 5 k + 4000 USD tooling; no quote\",low"
+ },
+ "verification": {
+  "own": {
+   "L_half_H": 3.68e-05,
+   "L_leak_adjacent_H": 2.9014538086621217e-07,
+   "L_leak_one_apart_H": 6.735517770108496e-07,
+   "C_max_F": 3.431443445007857e-12
+  },
+  "openmagnetics": {
+   "L_of_S1_H": 0.0015732758614766182,
+   "L_half_pri_H": 4.370210726323939e-05,
+   "L_leak_from_P_H": [
+    5.558340376093149e-07,
+    2.7032957811160497e-07,
+    0.0,
+    2.705301800806511e-07,
+    5.515398571999103e-07
+   ],
+   "note": "MAS N87 for DMR44 (same mu_i class); leakage per other winding, seen from P"
+  },
+  "previous_designer": {
+   "catalogue": "Wurth 760390014: 400 V rms working, 12.5 pF (fails)",
+   "architecture": "ARCHITECTURE-COSTFIRST.md section 4: 1.80 USD per phase"
+  }
+ }
+}

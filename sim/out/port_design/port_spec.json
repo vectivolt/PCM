@@ -1,0 +1,841 @@
+{
+ "meta": {
+  "generated_by": "sim/port_design.py",
+  "status": "CALCULATED / SIMULATED - not bench-validated",
+  "bus_capacitance_sources": [
+   "PV: cell_spec.json module/3_cells: 270 uF per port, 135 A",
+   "PV: cell_spec.json module/4_cells: 360 uF per port, 180 A",
+   "DAB: dab_spec.json capacitor_banks/port1: 135 uF",
+   "DAB: dab_spec.json capacitor_banks/port2: 195 uF"
+  ]
+ },
+ "contactor": {
+  "mpn": "B88269X7340C011",
+  "type": "TDK HVC43-250A-24MC",
+  "ds": "docs/datasheets/protection/HVC43MC.pdf",
+  "bidirectional": "yes - 'main terminals without polarity (bi-directional)', HVC43MC p2",
+  "coil_V": 24,
+  "coil_ohm": 96.0,
+  "coil_suppressor": "B72210S0300K101 (S10K30)",
+  "aux": "mirror contact NC (COM pos 1, NC pos 4); 10 mA min -> pull-up R_fb"
+ },
+ "variants": {
+  "135": {
+   "fuse_mpn": "HP10NH1GPV160",
+   "fuse_item": "E1028288",
+   "fuse_In_A": 160.0,
+   "fuse_size": "NH1",
+   "fuse_base": "HPBB11PPR",
+   "fuse_derated_A": 123.9,
+   "fuse_loss_W": 13.9,
+   "cmc_rating_A": 160,
+   "terminal_rating_A": 200,
+   "OC_trip_A": 202.5,
+   "SC_trip_A": 405.0,
+   "battery_gap_A": null,
+   "battery_marginal_A": [
+    420.0,
+    420.0
+   ]
+  },
+  "180": {
+   "fuse_mpn": "HP10NH2GPV250",
+   "fuse_item": "Y1037620",
+   "fuse_In_A": 250.0,
+   "fuse_size": "NH2",
+   "fuse_base": "HPBB21PPR",
+   "fuse_derated_A": 193.6,
+   "fuse_loss_W": 13.6,
+   "cmc_rating_A": 200,
+   "terminal_rating_A": 250,
+   "OC_trip_A": 270.0,
+   "SC_trip_A": 450.0,
+   "battery_gap_A": [
+    384.0,
+    19998.0
+   ],
+   "battery_marginal_A": null
+  }
+ },
+ "sources": {
+  "pv": {
+   "135": {
+    "fuse_mpn": "HP10NH1GPV160",
+    "fuse_mfr": "Mersen",
+    "fuse_In_A": 160.0,
+    "n_contactors": 1,
+    "contactor_mpn": "B88269X7340C011",
+    "coordinated": "PV-fed currents only (<= 169 A, below the hold band)"
+   },
+   "180": {
+    "fuse_mpn": "HP10NH2GPV250",
+    "fuse_mfr": "Mersen",
+    "fuse_In_A": 250.0,
+    "n_contactors": 1,
+    "contactor_mpn": "B88269X7340C011",
+    "coordinated": "PV-fed currents only (<= 225 A, below the hold band)"
+   }
+  },
+  "battery": {
+   "135": {
+    "fuse_mpn": "004110760",
+    "fuse_mfr": "ETI",
+    "fuse_name": "ETI NH1 gBat 200A 1000V DC",
+    "fuse_In_A": 200.0,
+    "fuse_derated_A": 136.0,
+    "fuse_derated_60C_A": 136.0,
+    "fuse_loss_W": 12.3,
+    "n_contactors": 2,
+    "contactor_mpn": "B88269X7340C011",
+    "share": 0.662,
+    "coordinated": true,
+    "gap_A": null,
+    "single_contactor_gap_A": [
+     384.0,
+     680.0
+    ],
+    "Ipsc_assumed_A": 20000.0,
+    "Ipsc_allowed_A": 30000.0,
+    "L_R_max_s": 0.001,
+    "DO_current_A": 0.597,
+    "hold_current_A": 0.596
+   },
+   "180": {
+    "fuse_mpn": "004110760",
+    "fuse_mfr": "ETI",
+    "fuse_name": "ETI NH1 gBat 200A 1000V DC",
+    "fuse_In_A": 200.0,
+    "fuse_derated_A": 136.0,
+    "fuse_derated_60C_A": 136.0,
+    "fuse_loss_W": 21.9,
+    "n_contactors": 2,
+    "contactor_mpn": "B88269X7340C011",
+    "share": 0.662,
+    "coordinated": true,
+    "gap_A": null,
+    "single_contactor_gap_A": [
+     384.0,
+     680.0
+    ],
+    "Ipsc_assumed_A": 20000.0,
+    "Ipsc_allowed_A": 30000.0,
+    "L_R_max_s": 0.001,
+    "DO_current_A": 0.597,
+    "hold_current_A": 0.596
+   }
+  }
+ },
+ "precharge": {
+  "R_ohm": 220.0,
+  "R_mpn": "Miba RST 200 220R (RFQ)",
+  "R_tol": 0.05,
+  "relay_mpn": "G7L-2A-X DC24",
+  "dV_ok_V": 10.0,
+  "k_check": 0.8,
+  "t_blank_s": 0.02,
+  "tau_max_s": 0.22,
+  "t_out_s": 1.317,
+  "max_attempts": 3,
+  "lockout_s": 30,
+  "E_worst_J": 757.0,
+  "dV_residual_after_null_V": 4.39,
+  "I_inrush_at_residual_A": 138.8
+ },
+ "discharge": {
+  "R_ohm": 600.0,
+  "R_elem_ohm": 300.0,
+  "n_R": 2,
+  "R_mpn": "Miba RST 200 300R (RFQ)",
+  "switch": "C2M1000170D",
+  "driver": "TPSI3050QDWZRQ1",
+  "bias_string": [
+   5,
+   2000000.0
+  ],
+  "bleeder_string": [
+   10,
+   47000.0
+  ],
+  "R_pxfr_ohm": 7320.0,
+  "C_vddp_F": 2.7e-07,
+  "R_en_pd_ohm": 100000.0,
+  "R_gate_ref_ohm": [
+   1000000.0,
+   1000000.0
+  ],
+  "R_timer_ohm": 4700000.0,
+  "C_timer_F": 1e-06,
+  "R_latch_ohm": 1000000.0,
+  "R_tstat_ohm": 100000.0,
+  "t_limit_s": [
+   2.39,
+   5.07
+  ],
+  "thermostat_mpn": "",
+  "E_per_R_worst_J": 5380
+ },
+ "coil": {
+  "low_side": "IRFL214TRPbF",
+  "hold_high_side": "IRFR9214TRPbF",
+  "R_gate_div_ohm": [
+   10000.0,
+   22000.0
+  ],
+  "V_ds_max_V": 107.1,
+  "t_demag_ms": 7.25,
+  "t_demag_ref50V_ms": 8.61,
+  "E_coil_mJ": 88.8
+ },
+ "proof_test": {
+  "R_tst_div_ohm": [
+   100000.0,
+   15000.0
+  ],
+  "R_os_ohm": 47000.0,
+  "C_os_F": 3.3e-06,
+  "C_dly_F": 2.2e-05,
+  "R_os_in_ohm": 10000.0,
+  "shift_A": 459.4,
+  "one_shot_s": [
+   0.103,
+   0.279
+  ],
+  "delay_up_s": [
+   0.481,
+   1.488
+  ],
+  "delay_down_s": [
+   0.685,
+   1.857
+  ],
+  "coverage": {
+   "none (healthy)": "-",
+   "r1 OUTP -> +IN open": "NOT FOUND",
+   "r2 +IN -> AGND open": "not found: trips early (278 A) - harmless alone, the hold needs both channels",
+   "r2 +IN -> AGND short": "proof test (side does not trip under TEST)",
+   "rt TEST -> +IN open": "proof test (side does not trip under TEST)",
+   "r1n OUTN -> -IN open": "proof test, marginal (only in part of the tolerance corners)",
+   "r3 -IN -> REF open": "in operation (RB = 1 at |I| > 122 A, below rated current)",
+   "r4 -IN -> AGND open": "proof test (side does not trip under TEST)",
+   "r4 -IN -> AGND short": "at rest (RB = 1 with no current)",
+   "REF3030E output 0 V": "in operation (RB = 1 at |I| > 4 A, below rated current)",
+   "REF3030E output at 3.3 V": "proof test, marginal (only in part of the tolerance corners)"
+  }
+ },
+ "port_current_limit_vs_inlet_C": {
+  "inlet_C": [
+   25.0,
+   30.0,
+   35.0,
+   40.0,
+   45.0,
+   50.0,
+   55.0,
+   60.0
+  ],
+  "fuse_air_C": [
+   30.0,
+   35.0,
+   40.0,
+   45.0,
+   50.0,
+   55.0,
+   60.0,
+   65.0
+  ],
+  "note": "firmware port-current limit = min(rating, fuse In x derating at inlet + 5 K): pv/135 above 45 C, battery/180 above 35 C inlet; CTRL must enforce it, sim/pv_module.py and the Megarevo comparison read it",
+  "pv/135": [
+   135,
+   135,
+   135,
+   135,
+   135,
+   133.9,
+   129.0,
+   123.9
+  ],
+  "battery/135": [
+   135,
+   135,
+   135,
+   135,
+   135,
+   135,
+   135,
+   135
+  ],
+  "pv/180": [
+   180,
+   180,
+   180,
+   180,
+   180,
+   180,
+   180,
+   180
+  ],
+  "battery/180": [
+   180,
+   180,
+   180,
+   172.0,
+   164.0,
+   155.0,
+   146.0,
+   136.0
+  ]
+ },
+ "readback_codes": {
+  "PV-PORT": {
+   "states": [
+    {
+     "nA": 0,
+     "nB": 0,
+     "V_nom": 1.24965,
+     "V_lo": 1.2484,
+     "V_hi": 1.2509
+    },
+    {
+     "nA": 1,
+     "nB": 0,
+     "V_nom": 1.39007,
+     "V_lo": 1.38188,
+     "V_hi": 1.39404
+    },
+    {
+     "nA": 2,
+     "nB": 0,
+     "V_nom": 1.5305,
+     "V_lo": 1.51515,
+     "V_hi": 1.54489
+    },
+    {
+     "nA": 0,
+     "nB": 1,
+     "V_nom": 1.64231,
+     "V_lo": 1.62173,
+     "V_hi": 1.65103
+    },
+    {
+     "nA": 1,
+     "nB": 1,
+     "V_nom": 1.78273,
+     "V_lo": 1.75525,
+     "V_hi": 1.7941
+    },
+    {
+     "nA": 2,
+     "nB": 1,
+     "V_nom": 1.92316,
+     "V_lo": 1.88855,
+     "V_hi": 1.94493
+    },
+    {
+     "nA": 0,
+     "nB": 2,
+     "V_nom": 2.03497,
+     "V_lo": 1.99452,
+     "V_hi": 2.06675
+    },
+    {
+     "nA": 1,
+     "nB": 2,
+     "V_nom": 2.17539,
+     "V_lo": 2.1281,
+     "V_hi": 2.20977
+    },
+    {
+     "nA": 2,
+     "nB": 2,
+     "V_nom": 2.31582,
+     "V_lo": 2.26153,
+     "V_hi": 2.36048
+    }
+   ],
+   "gap_counts": 81.2,
+   "unpowered_V": [
+    1.84114,
+    1.84307
+   ],
+   "R_eff_ohm": 9994.3,
+   "R_ohm": {
+    "r_id": 28000.0,
+    "r_a": 118000.0,
+    "r_b": 42200.0,
+    "i_hold_a": 0.3,
+    "i_hold_b": 0.6
+   },
+   "pullup_ohm": 10000.0,
+   "vbias_V": 2.5,
+   "adc_lsb_V": 0.0006103515625
+  },
+  "DAB60-PORT": {
+   "states": [
+    {
+     "nA": 0,
+     "nB": 0,
+     "V_nom": 0.49786,
+     "V_lo": 0.49706,
+     "V_hi": 0.49865
+    },
+    {
+     "nA": 1,
+     "nB": 0,
+     "V_nom": 0.58381,
+     "V_lo": 0.57863,
+     "V_hi": 0.58641
+    },
+    {
+     "nA": 2,
+     "nB": 0,
+     "V_nom": 0.66977,
+     "V_lo": 0.66016,
+     "V_hi": 0.69824
+    },
+    {
+     "nA": 0,
+     "nB": 1,
+     "V_nom": 0.74511,
+     "V_lo": 0.73175,
+     "V_hi": 0.75103
+    },
+    {
+     "nA": 1,
+     "nB": 1,
+     "V_nom": 0.83106,
+     "V_lo": 0.81337,
+     "V_hi": 0.83873
+    },
+    {
+     "nA": 2,
+     "nB": 1,
+     "V_nom": 0.91702,
+     "V_lo": 0.89492,
+     "V_hi": 0.95053
+    },
+    {
+     "nA": 0,
+     "nB": 2,
+     "V_nom": 0.99236,
+     "V_lo": 0.96629,
+     "V_hi": 1.02757
+    },
+    {
+     "nA": 1,
+     "nB": 2,
+     "V_nom": 1.07831,
+     "V_lo": 1.04794,
+     "V_hi": 1.11525
+    },
+    {
+     "nA": 2,
+     "nB": 2,
+     "V_nom": 1.16427,
+     "V_lo": 1.12948,
+     "V_hi": 1.22705
+    }
+   ],
+   "gap_counts": 23.3,
+   "unpowered_V": [
+    0.62219,
+    0.62406
+   ],
+   "R_eff_ohm": 2486.6,
+   "R_ohm": {
+    "r_id": 3320.0,
+    "r_a": 76800.0,
+    "r_b": 26700.0,
+    "i_hold_a": 0.6,
+    "i_hold_b": 0.6
+   },
+   "pullup_ohm": 10000.0,
+   "vbias_V": 2.5,
+   "adc_lsb_V": 0.0006103515625
+  }
+ },
+ "readback": {
+  "R_rb_A_ohm": 118000.0,
+  "R_rb_B_ohm": 42200.0,
+  "R_id_ohm": 28000.0,
+  "R_id_effective_ohm": 9994,
+  "R_hc_div_ohm": [
+   100000.0,
+   15000.0
+  ],
+  "levels_V": [
+   [
+    1.2484,
+    1.2509
+   ],
+   [
+    1.3819,
+    1.394
+   ],
+   [
+    1.5151,
+    1.5374
+   ],
+   [
+    1.5227,
+    1.5449
+   ],
+   [
+    1.6217,
+    1.651
+   ],
+   [
+    1.7552,
+    1.7941
+   ],
+   [
+    1.8885,
+    1.9374
+   ],
+   [
+    1.8961,
+    1.9449
+   ],
+   [
+    1.9945,
+    2.0518
+   ],
+   [
+    2.0095,
+    2.0667
+   ],
+   [
+    2.1281,
+    2.1948
+   ],
+   [
+    2.1431,
+    2.2098
+   ],
+   [
+    2.2615,
+    2.338
+   ],
+   [
+    2.284,
+    2.3605
+   ]
+  ],
+  "gap_counts": 154.7,
+  "gap_counts_coils_on": 81.2
+ },
+ "divider": {
+  "n_top": 6,
+  "R_top_elem_ohm": 1000000.0,
+  "R_top_mpn": "TNPV12061M00BEEA",
+  "R_bot_ohm": 4990.0,
+  "R_bot_mpn": "TNPW12064K99BEEA",
+  "C_filter_F": 4.7e-09,
+  "C_filter_tol": 0.05,
+  "ratio": 0.0008309341428241576,
+  "V_full_scale": 1203.4648096192384,
+  "lag_s": 2.7205186686405804e-05,
+  "amc_delay_s": 2.6e-06
+ },
+ "current": {
+  "shunt_mpn": "CSM2F-8518-L100J01",
+  "R_shunt_ohm": 0.0001,
+  "amp": "AMC3302DWE",
+  "R_filter_ohm": 10.0,
+  "C_filter_F": 1e-08,
+  "I_linear_A": 500.0,
+  "I_clip_A": 640.0,
+  "ntc_mpn": "B57703M0103A018",
+  "error_worst_compensated": {
+   "135": 0.008252777777777777,
+   "180": 0.007558333333333333
+  }
+ },
+ "hold": {
+  "I_trip_nom_A": 410.2,
+  "I_trip_band_A": [
+   382.1,
+   441.3
+  ],
+  "channels": 2,
+  "R1_ohm": 49900.0,
+  "R2_ohm": 118000.0,
+  "Rt_ohm": 86600.0,
+  "R3_ohm": 88700.0,
+  "R4_ohm": 113000.0,
+  "vref": "REF3030EAIDBZR",
+  "comparator": "TLV3502AIDCNR",
+  "or": "SN74LVC1G32DBVR",
+  "and3": "SN74LVC1G11DBVR",
+  "switch": "IRFR9214TRPbF",
+  "R_fb_div_ohm": [
+   100000.0,
+   25500.0
+  ],
+  "R_diag_pullup_ohm": 47000.0
+ },
+ "spd": {
+  "type": "on-board Y per port: MOV1 pole+ -> M, MOV2 pole- -> M, MOV3 M -> PE_T (IC-01/IC-12)",
+  "mov_mpn": "TVT25751KFKG",
+  "mov_mfr": "Thinking Electronic",
+  "fuse_mpn": "002637115",
+  "fuse_mfr": "ETI",
+  "clip_mpn": "006710340",
+  "monitor_opto": "CNY65B",
+  "n_mon": 12,
+  "R_mon_ohm": 82500.0,
+  "In_A": 3000.0,
+  "Imax_A": 25000.0,
+  "Up_eff_pe_V": 3793,
+  "Up_eff_pp_V": 3793,
+  "Uc_V": 1230.0,
+  "credit": "Up,eff <= 4.0 kV -> reinforced 6 kV, basic 4 kV (D-032 sec. 3.1)"
+ },
+ "cm_choke": {
+  "to_be_set_by": "magnetics design (sim/out/magnetics/design_port_cm_choke.json, MG-10)",
+  "I_cm_LF_A_rms": [
+   0.78,
+   1.04
+  ],
+  "f_LF_Hz": 150,
+  "V_cm_LF_V_rms": 50.0,
+  "V_cm_HF_V_rms": 5.0,
+  "I_cm_HF_max_A_rms": 0.1,
+  "Z_cm_min_ohm": 50,
+  "f_HF_band_Hz": [
+   16000.0,
+   100000.0
+  ],
+  "basis": "HF CM current of the module into the PV array capacitance (16.5-22 uF, 0.1-0.5 ohm at 16-100 kHz) <= 0.1 A rms: a third of the 300 mA continuous residual-current level of IEC 62109-2, so the PCS / array RCMU does not see the DC/DC switching; |Z_cm| >= 50 ohm from 16 kHz = about 40 dB below the no-choke current; the choke must NOT saturate with the LF current above (transformerless PCS) - A_VCM_HF is an assumption, CISPR 11 not assessed",
+  "insulation_IC09": "basic winding-core and winding-winding: 1000 V DC, impulse >= 6 kV (no surge credit), AC 2200 V rms 60 s, creepage >= 5.0 mm PD2 / 16.0 mm PD3"
+ },
+ "x_cap": {
+  "mpn": "RFQ",
+  "C_F": 2.2e-06,
+  "per_port": 2,
+  "V_dc": 1300,
+  "ESR_max_ohm": 0.016,
+  "V_impulse_min": 4500.0
+ },
+ "y_cap": {
+  "mpn": "VY1472M63Y5UQ63V0",
+  "C_F": 4.7e-09,
+  "per_port": 2
+ },
+ "imd": {
+  "n_string": 8,
+  "R_elem_ohm": 124000.0,
+  "R_elem_mpn": "TNPV1210124KBEEA",
+  "R_t_ohm": 992000.0,
+  "threshold_ohm": 33333.333333333336,
+  "settle_s_per_state": 35.3,
+  "C_pv_F": [
+   1.65e-05,
+   2.2e-05
+  ],
+  "settle_3tau_s": [
+   21.2,
+   28.2
+  ],
+  "prediction_s_per_state": 1.49,
+  "pe_returns": {
+   "dividers": "PE_D",
+   "strings": "PE_T"
+  },
+  "passive_load_ohm_per_pole": 6004990.0,
+  "pe_open_rule": "no swing between states -> IMD PE open"
+ },
+ "control": {
+  "R_fb_pullup_ohm": 1500.0,
+  "R_do_pulldown_ohm": 47000.0,
+  "coil_series_diode": "S2M-13-F",
+  "en_or_diode": "BAS16",
+  "OV_trip_V": 1050.0,
+  "fb_ok": true,
+  "coils_ok": true
+ },
+ "sensor_supply": {
+  "regulator": "LMR36015ARNXR",
+  "Vout": 3.315,
+  "R_fbt_ohm": 100000.0,
+  "R_fbb_ohm": 43200.0,
+  "L": "74439346100 (10 uH)",
+  "I_load_max_A": 0.342
+ },
+ "lean": {
+  "contactor": {
+   "mpn": "HFE82V-300C/1000-24-H-C5-1",
+   "mfr": "Hongfa",
+   "I_open_normal_max_A": 300.0,
+   "hold_off_band_A": [
+    967,
+    1033
+   ],
+   "openings_at_band_top": 2.3,
+   "break_once_published_A": 1500.0,
+   "coil_W": 6.0,
+   "release_s": 0.01
+  },
+  "battery_fuse": {
+   "mpn": "HPE501/000B100-250",
+   "mfr": "Hongfa",
+   "In_A": 250.0,
+   "I_min_break_A": 1250.0,
+   "I2t_pre_A2s": 5270.0,
+   "I2t_clear_A2s": 85200.0,
+   "Kt_65C": 0.772,
+   "I_allowed_65C_A": {
+    "lenient": 188,
+    "strict": 145
+   },
+   "loss_W_per_link": {
+    "135": 21.4,
+    "180": 38.1
+   }
+  },
+  "installation": {
+   "band_A": [
+    967,
+    1250
+   ],
+   "clear_within_s": 0.261,
+   "Ipsc_max_A": 50000.0,
+   "L_R_max_s": 0.001
+  },
+  "port_oc_trip_A": [
+   387,
+   413
+  ],
+  "polarity_enable_V": [
+   187,
+   213
+  ],
+  "precharge": {
+   "R_ohm": 220.0,
+   "dV_enable_V": [
+    3.5,
+    16.5
+   ],
+   "per_phases": {
+    "3": {
+     "tau": 0.059,
+     "t_done": 0.274,
+     "E": 135.0,
+     "i_pk": 117.551,
+     "P_short": 4545.455,
+     "E_short": 433.364,
+     "t60_min": 8.755,
+     "P_bleed_W": 1.515,
+     "t60_800k_min": 10.392
+    },
+    "4": {
+     "tau": 0.079,
+     "t_done": 0.365,
+     "E": 180.0,
+     "i_pk": 131.816,
+     "P_short": 4545.455,
+     "E_short": 532.364,
+     "t60_min": 11.674,
+     "P_bleed_W": 1.515,
+     "t60_800k_min": 13.856
+    }
+   }
+  },
+  "bleeder": {
+   "n": 8,
+   "R_elem_ohm": 82500.0,
+   "label_min": {
+    "3": 10,
+    "4": 15
+   }
+  },
+  "shunt": {
+   "R_ohm": 0.0001,
+   "build": "2 x 200 uOhm 3920 metal strip in parallel, BUS-",
+   "G_hold_path": 10.0
+  },
+  "pv_port": {
+   "135": {
+    "isc": 168.75,
+    "brk_margin": 1.78,
+    "carry": 2.22
+   },
+   "180": {
+    "isc": 225.0,
+    "brk_margin": 1.33,
+    "carry": 1.67
+   }
+  },
+  "varistor_network": "unchanged: port_spec spd",
+  "firmware_requirements": {
+   "polarity_enable_V": [
+    187,
+    213
+   ],
+   "dV_enable_V": [
+    3.5,
+    16.5
+   ],
+   "port_oc_trip_A": [
+    387,
+    413
+   ],
+   "oc_latency_max_s": 0.497,
+   "oc_latency_max_to_950A_s": 0.756,
+   "rules": [
+    "close K_A / K_B only while the terminal-side divider reads >= the polarity enable (both ports)",
+    "close K_B only after precharge with |V_bank - V_term| <= the dV enable; open K_PRE afterwards",
+    "port OC trip from the ADC limit on IA / IB (IM path) -> trip latch -> contactor off, within the latency (second layer behind the hardware OC window)",
+    "the hold-off comparator stays in hardware: above 0.97-1.03 kA a closed contactor is held regardless"
+   ],
+   "basis": "D-050: firmware duplicates the hardware interlocks and OC trip; bands = the hardware comparators' worst-case windows; latency from the HPE501 250 A melting curve (to 0.95 kA, and to the hold-band top)"
+  },
+  "contactors": {
+   "HFE82V": {
+    "mpn": "HFE82V-300C/1000-24-H-C5-1",
+    "ith_85C": 300.0,
+    "break_1000V_both": 300.0,
+    "n_break": 200,
+    "make_published": [
+     140.0,
+     20.0
+    ],
+    "sc_I2t_min": 384000.0
+   }
+  },
+  "contactor_per_source": {
+   "pv": "HFE82V",
+   "battery": "HFE82V"
+  },
+  "pv_make": {
+   "135": {
+    "dV_max": 1000.0,
+    "i_make_est": 498.75,
+    "covered": false
+   },
+   "180": {
+    "dV_max": 1000.0,
+    "i_make_est": 555.0,
+    "covered": false
+   }
+  },
+  "shunt_filters_Hz": {
+   "IM": 11250,
+   "IH": 15915
+  },
+  "shared_reference": true,
+  "coil_economiser": {
+   "R_hold_ohm": 149.6,
+   "pull_in_window_s": [
+    0.1,
+    0.152
+   ],
+   "pull_in_W_at_24V": 6.0,
+   "hold_W_at_24V": 2.35,
+   "hold_W_max": 3.26,
+   "hold_coil_V_at_21V_hot": 9.73,
+   "pull_in_supply_needed_V_at_70C": 22.39,
+   "pull_in_guaranteed_to_C_at_21V": 50.4,
+   "precharge_relay": "no economiser: energised < 1 s per attempt"
+  }
+ }
+}

@@ -1,0 +1,807 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "d53f4c90-215a-5ead-a32a-e34f02f4c228")
+	(paper "A3")
+	(title_block
+		(title "SYS-IO-AUX - Cover / Hierarchy")
+		(date "2026-10-04")
+		(rev "E0")
+		(comment 1 "Domains: PELV, CANB, MCAN, RSA, RSB, DI field, PE - only isolators cross (checked)")
+		(comment 2 "Schematics authored by Chinmoy Bhuyan")
+		(comment 3 "Sheet 1")
+		(comment 4 "Not bench-validated. Dual-channel chain gate- and single-fault-checked on every build.")
+	)
+	(lib_symbols)
+	(text "the fans, +24V_GD and 24V_DO off and latches both chain channels (D-022: AUX-HV <= 30 W; checked every build). PG_24V = inside the 21.6-26.0 V window."
+		(exclude_from_sim no)
+		(at 20 240 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "1cd3d3e5-a373-5378-956e-016fe8d76e00")
+	)
+	(text "Rev E0  |  2026-10-04  |  Schematics authored by Chinmoy Bhuyan  |  System I/O and auxiliary board, 25-110 kW DC/DC family (ECO-03/04/06/07)"
+		(exclude_from_sim no)
+		(at 20 36 0)
+		(effects
+			(font
+				(size 2 2)
+			)
+			(justify left bottom)
+		)
+		(uuid "21f0db96-6f7f-5c87-9232-de8c3b7bdb42")
+	)
+	(text "A: E-stop A, 24 V UV, spare loop, watchdog -> latch A -> GATE_EN, 24V_DO switch A\nB: E-stop B, watchdog -> latch B -> CHB_OK -> +24V_GD, 24V_DO switch B"
+		(exclude_from_sim no)
+		(at 310.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "55f44ff3-b2a8-5c56-a355-5f193da8322a")
+	)
+	(text "J301 = interfaces.SYS 2x40 (every contract signal), J302 = interfaces.GW 2x5;\nCANA and SCIC go to the BMU-GW socket; SCIC receiver always enabled"
+		(exclude_from_sim no)
+		(at 214.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "564265d3-5033-5999-8d13-f3ec290cebdf")
+	)
+	(text "Safety chain (ECO-04), two channels on separate parts: A = E-stop A, 24 V UV, spare loop, watchdog -> latch A -> GATE_EN + 24V_DO switch A; B = E-stop B, watchdog -> latch B -> CHB_OK -> +24V_GD + 24V_DO switch B. Each channel alone stops the gates and opens 24V_DO; the build"
+		(exclude_from_sim no)
+		(at 20 244 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "5b21e6de-4b07-5605-a7fe-853cf3e02314")
+	)
+	(text "4 x TPS16630 fan supply (3.6 A limit, auto-retry, OV cut-off), open-drain PWM,\nclamped tach; sized for PFC1224DE-F00 (2.0 A typ, 2.4 A max, 26.5 V max)"
+		(exclude_from_sim no)
+		(at 118.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "7a32a84e-655b-5f85-bfac-8cfce96af7df")
+	)
+	(text "branch is a TPS16630 eFuse with the shared precision OV cut-off (26.13-26.42 V, D-013) and UVLO (16 V): +24V to CTRL (2 A), +24V_GD gate-drive bias (5 A, channel B), 24V_DO via switch A and switch B in series (6 A), four fans (3.6 A). While AUX-HV is the source, hardware forces"
+		(exclude_from_sim no)
+		(at 20 236 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "7d9eb531-e6d8-531e-8dff-4259518ac0f3")
+	)
+	(text "RJ45 with integrated 1:1 magnetics for the 100BASE-TX PHY on CTRL-C2000,\ncentre taps on ETH_CT (PHY analog supply), link / activity LEDs, PE bonding point"
+		(exclude_from_sim no)
+		(at 118.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "7e802022-d9c3-5644-aaf8-e1d863afa4ee")
+	)
+	(text "simulates every single stuck fault (outputs/SYS-IO-AUX_safety_fmea.csv)."
+		(exclude_from_sim no)
+		(at 20 248 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "8c37ac55-9e92-5066-928b-a51d38b25ad7")
+	)
+	(text "ADS7953 16-ch SAR on SPI_CS_ADC_N, REF3025 2.5 V: CH0-11 = NTC1-12,\nCH12-14 = feed voltages, CH15 = +24V_GD gate-drive bias current (eFuse IMON)"
+		(exclude_from_sim no)
+		(at 214.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "8ca3dd49-126d-5f58-a952-073ae4db14d8")
+	)
+	(text "Two half-duplex RS-485 ports: ISO1410 + SN6505B isolated 5 V each,\njumper-selectable 120R termination, SM712 TVS, 4-pole field terminal"
+		(exclude_from_sim no)
+		(at 22.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "98c3d6c4-3183-597f-ab5e-0e7628764ff1")
+	)
+	(text "8 x IEC 61131-2 type 1/3 inputs, 4 x ISO1212; DI1 ESTOP_A (U701), DI8 ESTOP_B (U704)\nfeed the chain; FB_A/B_MAIN (PELV GND) on J702 and in their own package U703"
+		(exclude_from_sim no)
+		(at 214.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "acee4570-d1b2-5dd4-8d77-b729ee8e966e")
+	)
+	(text "Isolation: CANB, MCAN, RS-485 A/B each have their own SN6505B supply and ground; the DI field side (DIF_GND) is a separate domain; PE is reached only through the RJ45 Bob-Smith node and the 470 pF DI field-ground capacitor. Budget: 16 A steady worst case, 20 A for 100 ms."
+		(exclude_from_sim no)
+		(at 20 252 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "b271d892-2591-5429-86b9-dd718390a84f")
+	)
+	(text "2 cabinet feeds (LM74700 ORing) + AUX-HV feed (LM74800 switch, cabinet priority, OV),\n2 mF surge reservoir, precision OV cut-off 26.13-26.42 V, PG_24V window, eFuse UVLO"
+		(exclude_from_sim no)
+		(at 22.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "b54a9748-161b-591a-9b9a-4e821a31e9cf")
+	)
+	(text "SYS-IO-AUX"
+		(exclude_from_sim no)
+		(at 20 28 0)
+		(effects
+			(font
+				(size 5 5)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "c86bffdf-7d3f-58b9-ab1a-439cfe39ca75")
+	)
+	(text "I2C: FM24CL64B F-RAM 0x50 (serial, calibration, fault log, hours), TMP1075 0x48;\nSPI_CS_IO_N: two MCP23S17 (HAEN, A0 0/1): faults, rail sense, channel self-test"
+		(exclude_from_sim no)
+		(at 310.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "ea5c700c-ed77-5303-9be0-f3179673556e")
+	)
+	(text "CANB module bus and MCAN CAN-FD service port: ISO1042 + SN6505B isolated 5 V each,\njumper-selectable split termination, ESD2CAN24 TVS, 4-pole field terminal"
+		(exclude_from_sim no)
+		(at 310.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "ec71856c-b021-50c1-a073-f55bead28efd")
+	)
+	(text "24 V: two cabinet feeds (fused 30 A, TVS 33 V, LM74700 ideal-diode ORing) and the AUX-HV bootstrap feed (fused, TVS, LM74800 load switch with OV cut-off and a CdVdT ramp; it connects only when no cabinet feed is healthy) onto 24V_OR with a 2 mF surge reservoir. Every outgoing"
+		(exclude_from_sim no)
+		(at 20 232 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "eca81423-89e8-56ec-85b8-53b9408561c5")
+	)
+	(text "+24V to CTRL-C2000 (2 A eFuse), +24V_GD gate-drive bias (5 A eFuse, channel B),\n5 V buck (LMR36015), 3.3 V LDO, rail LEDs and test points"
+		(exclude_from_sim no)
+		(at 118.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "ef4b4c5b-5b55-522c-b953-17910969a4bc")
+	)
+	(text "DO1..DO8 per interfaces.DO on 4 x TPS272C45D behind two series supply switches:\nswitch A (channel A, DO_PWR_EN) and switch B (channel B, CHB_OK); TVS coil clamps"
+		(exclude_from_sim no)
+		(at 22.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "f4c3b725-462d-5151-a8d9-57f8ff5a6a59")
+	)
+	(sheet
+		(at 308 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "0c6b541f-96e1-58b2-baeb-5eda9211a2a8")
+		(property "Sheetname" "04 Isolated CAN ports (CANB, MCAN)"
+			(at 308 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/04_can.kicad_sch"
+			(at 308 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "SYS-IO-AUX"
+				(path "/d53f4c90-215a-5ead-a32a-e34f02f4c228"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "23fdbd73-ef99-5014-a7f5-b2c7506d122b")
+		(property "Sheetname" "05 Isolated RS-485 ports (SCIA, SCIB)"
+			(at 20 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/05_rs485.kicad_sch"
+			(at 20 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "SYS-IO-AUX"
+				(path "/d53f4c90-215a-5ead-a32a-e34f02f4c228"
+					(page "6")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "2f0b11e9-dfb1-5964-be3b-36c371143f84")
+		(property "Sheetname" "02 24 V branches and local rails"
+			(at 116 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/02_rails.kicad_sch"
+			(at 116 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "SYS-IO-AUX"
+				(path "/d53f4c90-215a-5ead-a32a-e34f02f4c228"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "662f5962-19d6-5497-bee3-1cd2c883f50c")
+		(property "Sheetname" "09 Gated 24 V outputs (contactors, relays)"
+			(at 20 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/09_do.kicad_sch"
+			(at 20 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "SYS-IO-AUX"
+				(path "/d53f4c90-215a-5ead-a32a-e34f02f4c228"
+					(page "10")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "71916b6b-1b28-5a4a-9419-3fb8e6b84cf5")
+		(property "Sheetname" "01 24 V entry, protection and window"
+			(at 20 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/01_power_in.kicad_sch"
+			(at 20 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "SYS-IO-AUX"
+				(path "/d53f4c90-215a-5ead-a32a-e34f02f4c228"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "737daaf0-b50f-57cc-a773-9ab3bee61e1f")
+		(property "Sheetname" "06 Ethernet magnetics and chassis bond"
+			(at 116 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/06_eth.kicad_sch"
+			(at 116 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "SYS-IO-AUX"
+				(path "/d53f4c90-215a-5ead-a32a-e34f02f4c228"
+					(page "7")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "a9eb32b7-8701-58b4-a4c4-6cb644c2b9e8")
+		(property "Sheetname" "11 NTC inputs, ADC and supply monitors"
+			(at 212 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/11_ntc.kicad_sch"
+			(at 212 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "SYS-IO-AUX"
+				(path "/d53f4c90-215a-5ead-a32a-e34f02f4c228"
+					(page "12")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "b046aed4-18a2-5041-a43d-63fb63b489d0")
+		(property "Sheetname" "10 Fan channels"
+			(at 116 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/10_fans.kicad_sch"
+			(at 116 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "SYS-IO-AUX"
+				(path "/d53f4c90-215a-5ead-a32a-e34f02f4c228"
+					(page "11")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "ba0d8723-9dfd-51e8-b4f9-c8352e0ead1f")
+		(property "Sheetname" "08 Dual-channel safety chain and watchdog"
+			(at 308 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/08_chain.kicad_sch"
+			(at 308 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "SYS-IO-AUX"
+				(path "/d53f4c90-215a-5ead-a32a-e34f02f4c228"
+					(page "9")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "cf3ddb9f-1364-5806-adeb-aa681017c031")
+		(property "Sheetname" "03 CTRL-C2000 and BMU-GW connectors"
+			(at 212 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/03_ctrl_if.kicad_sch"
+			(at 212 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "SYS-IO-AUX"
+				(path "/d53f4c90-215a-5ead-a32a-e34f02f4c228"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "df4663a0-4ddf-5ff5-b58e-87476fa86627")
+		(property "Sheetname" "12 Service storage and diagnostics"
+			(at 308 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/12_service.kicad_sch"
+			(at 308 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "SYS-IO-AUX"
+				(path "/d53f4c90-215a-5ead-a32a-e34f02f4c228"
+					(page "13")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "f5d5f573-e999-520c-a174-5fddf9c695cb")
+		(property "Sheetname" "07 Isolated 24 V digital inputs"
+			(at 212 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/07_di.kicad_sch"
+			(at 212 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "SYS-IO-AUX"
+				(path "/d53f4c90-215a-5ead-a32a-e34f02f4c228"
+					(page "8")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+)

@@ -1,0 +1,1539 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "c156bf8e-d37d-5d70-b2d5-3fca91e0ce71")
+	(paper "A3")
+	(title_block
+		(title "PV-PWR-4 power board - Cover / Hierarchy")
+		(date "2026-10-04")
+		(rev "A1")
+		(comment 1 "Live board referenced to BUS-; gate islands functional; SELV winding reinforced; HV-PE basic")
+		(comment 2 "Schematics authored by Chinmoy Bhuyan")
+		(comment 3 "Sheet 1")
+		(comment 4 "Not bench-validated. Values read from sim/out/*.json; checks: design_check()")
+	)
+	(lib_symbols)
+	(text "DC terminals, nanocrystalline CM ring per port, X / Y capacitors, board\nentries (press-fit), PE links, heatsink, insulation monitor (port.lean_imd)"
+		(exclude_from_sim no)
+		(at 310.5 230 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "054c33b5-b11e-5b4e-aee4-b069d0015490")
+	)
+	(text "One tap per port (+ pole, terminal side), return = BUS-:\n2 x 20R R pulse-rated ahead of the 1 A / 1000 VDC fuse, BYG10Y OR;\n2 x 3.3 uF / 1300 V film = surge absorber (AUX-HV rev C1 input block)"
+		(exclude_from_sim no)
+		(at 118.5 274 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "05540665-a8d7-5c15-8625-dd11f4c827d3")
+	)
+	(text "interfaces.PC (2x32) to the control board, 3.3 -> 5 V command buffers,\nRDY / FLT_N, +5 V supervisor, port status glue, BUS- star points"
+		(exclude_from_sim no)
+		(at 22.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "10d656e0-a1e7-58aa-a98d-8a005a1eb9e4")
+	)
+	(text "Shared heatsink: Tj 110 C at 45 C inlet (R_sa target); heatsink OT trip must be <= 90 C. Dead time 211-554 ns. Sensor delay 0.33 us, error 1.8 % at 45 A after calibration."
+		(exclude_from_sim no)
+		(at 20 240 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "1cd3d3e5-a373-5378-956e-016fe8d76e00")
+	)
+	(text "Rev A1  |  2026-10-04  |  Schematics authored by Chinmoy Bhuyan  |  PV-P100/110: 4 interleaved FSBB phases, gate drive, sensing, ports, aux (D-044)"
+		(exclude_from_sim no)
+		(at 20 36 0)
+		(effects
+			(font
+				(size 2 2)
+			)
+			(justify left bottom)
+		)
+		(uuid "21f0db96-6f7f-5c87-9232-de8c3b7bdb42")
+	)
+	(text "Legs A/B (2 x SG2M040170HJ per switch), decoupling, dampers, bank share,\ninductor + STK-HO/A 75, NTC inputs, gate bias (gdrv.bias_phase)"
+		(exclude_from_sim no)
+		(at 214.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "245f15de-e828-501c-956e-38e1813b9f1d")
+	)
+	(text "gdrv.channel() rev 7, bias='ext': NSI6651ASC-Q1 +18/-3.5 V, 3.75/2.5 ohm per device,\nMiller clamps, SC booster 22R, interlock + dead-time stretch, DESAT to the drain"
+		(exclude_from_sim no)
+		(at 22.5 186 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "3dbb2d9c-782d-5a78-8909-186d15dcbf4d")
+	)
+	(text "gdrv.channel() rev 7, bias='ext': NSI6651ASC-Q1 +18/-3.5 V, 3.75/2.5 ohm per device,\nMiller clamps, SC booster 22R, interlock + dead-time stretch, DESAT to the drain"
+		(exclude_from_sim no)
+		(at 214.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "4d02b532-6c86-5f0a-a0f6-88a4f1fb2d82")
+	)
+	(text "gdrv.channel() rev 7, bias='ext': NSI6651ASC-Q1 +18/-3.5 V, 3.75/2.5 ohm per device,\nMiller clamps, SC booster 22R, interlock + dead-time stretch, DESAT to the drain"
+		(exclude_from_sim no)
+		(at 22.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "530711cb-d8a6-52ec-8a84-4f1a3e02111b")
+	)
+	(text "gdrv.channel() rev 7, bias='ext': NSI6651ASC-Q1 +18/-3.5 V, 3.75/2.5 ohm per device,\nMiller clamps, SC booster 22R, interlock + dead-time stretch, DESAT to the drain"
+		(exclude_from_sim no)
+		(at 118.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "595cd214-09ce-5a52-ac10-9db50e44a091")
+	)
+	(text "Legs A/B (2 x SG2M040170HJ per switch), decoupling, dampers, bank share,\ninductor + STK-HO/A 75, NTC inputs, gate bias (gdrv.bias_phase)"
+		(exclude_from_sim no)
+		(at 22.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "5a7d1477-6d94-5e0e-beae-425fedb47d1f")
+	)
+	(text "Live 24 V 23.7 W (economiser) <= aux live rating 24.0 W; module aux 80 W. Full fan speed is only guaranteed while the converter is switching."
+		(exclude_from_sim no)
+		(at 20 244 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "5b21e6de-4b07-5605-a7fe-853cf3e02314")
+	)
+	(text "References, BUS- shunt amplifier + hold-off / OC windows, dividers, dV amplifier,\npolarity and dV interlocks"
+		(exclude_from_sim no)
+		(at 118.5 230 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "5b3366c3-08f7-5fad-8fc2-22412b0eb556")
+	)
+	(text "gdrv.channel() rev 7, bias='ext': NSI6651ASC-Q1 +18/-3.5 V, 3.75/2.5 ohm per device,\nMiller clamps, SC booster 22R, interlock + dead-time stretch, DESAT to the drain"
+		(exclude_from_sim no)
+		(at 310.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "64b4684c-25d3-5e90-8951-8ed771db3880")
+	)
+	(text "Contactor: interlock logic, fail-safe high side, economiser;\npassive bank bleeder"
+		(exclude_from_sim no)
+		(at 310.5 186 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "64e1f76d-4b38-5d09-a40c-e97a74a2bf28")
+	)
+	(text "gdrv.channel() rev 7, bias='ext': NSI6651ASC-Q1 +18/-3.5 V, 3.75/2.5 ohm per device,\nMiller clamps, SC booster 22R, interlock + dead-time stretch, DESAT to the drain"
+		(exclude_from_sim no)
+		(at 118.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "65184f1b-5652-5ad5-9ffc-2e387feee0e4")
+	)
+	(text "Varistor Y + monitor, aR fuses"
+		(exclude_from_sim no)
+		(at 22.5 230 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "68ce3388-67d5-571f-a70a-d8b1662c5190")
+	)
+	(text "Legs A/B (2 x SG2M040170HJ per switch), decoupling, dampers, bank share,\ninductor + STK-HO/A 75, NTC inputs, gate bias (gdrv.bias_phase)"
+		(exclude_from_sim no)
+		(at 118.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "6c153a53-9ccc-5279-930f-a912bed0f2bb")
+	)
+	(text "Legs A/B (2 x SG2M040170HJ per switch), decoupling, dampers, bank share,\ninductor + STK-HO/A 75, NTC inputs, gate bias (gdrv.bias_phase)"
+		(exclude_from_sim no)
+		(at 310.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "70afd725-8e78-5992-9902-e6f98074eebf")
+	)
+	(text "UCC28C59-Q1 64.9 kHz, IV2Q171R0D7Z, Lp 0.485 mH, Np:Nlive:Nselv 48:8:9;\nlive 24 V regulated by the FB divider (no opto); VDD from the live 24 V\nthrough the BC817 follower; foldback detector on the live winding"
+		(exclude_from_sim no)
+		(at 310.5 274 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "7d0e3102-e0b7-525c-a87a-2149662ab763")
+	)
+	(text "Domains: LIVE (BUS- = GND = AGND), GD_PxSy gate islands (functional: NSI6651, T_BIAS4), PE (AlN pads, inductor cores, heatsink NTC lugs, Y / MOV3 / IMD crossings), SELV (AUX-T1 reinforced winding -> J_SELV). Coat to PD1."
+		(exclude_from_sim no)
+		(at 20 236 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "7d9eb531-e6d8-531e-8dff-4259518ac0f3")
+	)
+	(text "gdrv.channel() rev 7, bias='ext': NSI6651ASC-Q1 +18/-3.5 V, 3.75/2.5 ohm per device,\nMiller clamps, SC booster 22R, interlock + dead-time stretch, DESAT to the drain"
+		(exclude_from_sim no)
+		(at 214.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "800a6669-a57b-59ce-82f8-a550db14ca0e")
+	)
+	(text "References, BUS- shunt amplifier + hold-off / OC windows, dividers, dV amplifier,\npolarity and dV interlocks"
+		(exclude_from_sim no)
+		(at 214.5 186 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "87af4f59-4eb3-588a-9d9c-35de9f577f42")
+	)
+	(text "Live 23.62-24.68 V (FB); SELV 20.3-29.8 V over the load table,\ngates off 20.3-28.2 V; hold-up 52 ms at 11 W;\nstatus = TPS3700 OUTA (UV); OUTB (OV) pulls SS low"
+		(exclude_from_sim no)
+		(at 22.5 318 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "883e761f-5064-5742-a1ee-b72b97758a5e")
+	)
+	(text "Varistor Y + monitor"
+		(exclude_from_sim no)
+		(at 118.5 186 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "9aeb969f-5d52-518a-a146-ea949f24e6d5")
+	)
+	(text "Contactor + precharge relay: interlock logic, fail-safe high side, economiser;\npassive bank bleeder"
+		(exclude_from_sim no)
+		(at 214.5 230 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "b11f6441-7cc7-52f5-ab1c-ef8153c14c83")
+	)
+	(text "+24V (aux live) -> +5V and +5V_GD (LMR38020), +3V3 (TPS62130 from +5V_GD,\nramp-up and discharge), +5V_GD supervisor, SELV connector to the control board"
+		(exclude_from_sim no)
+		(at 22.5 274 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "c628d9bc-4166-5fd1-8ae2-a98f2dbe699f")
+	)
+	(text "PV-PWR-4 power board"
+		(exclude_from_sim no)
+		(at 20 28 0)
+		(effects
+			(font
+				(size 5 5)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "c86bffdf-7d3f-58b9-ab1a-439cfe39ca75")
+	)
+	(text "As AUX-HV rev C1 sheet 02: 3 x BSS126 cascode, TPS3710 brown-in 206-215 V,\nTLV3202 OV lockout 1107-1162 V and overload timer 35-80 ms"
+		(exclude_from_sim no)
+		(at 214.5 274 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "d42b19ff-2ba2-5ce0-b9d0-8220294dd94c")
+	)
+	(text "gdrv.channel() rev 7, bias='ext': NSI6651ASC-Q1 +18/-3.5 V, 3.75/2.5 ohm per device,\nMiller clamps, SC booster 22R, interlock + dead-time stretch, DESAT to the drain"
+		(exclude_from_sim no)
+		(at 310.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "d64cc4c8-5407-576b-a893-df4b9ab7134c")
+	)
+	(text "CALCULATED, not measured: design_check() asserts every number on each build (outputs/PV-PWR-4_design_check.txt); values are read from sim/out/*.json at build time."
+		(exclude_from_sim no)
+		(at 20 232 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "eca81423-89e8-56ec-85b8-53b9408561c5")
+	)
+	(sheet
+		(at 20 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "00a3da75-b2d0-5e43-9d6b-083f3c6e6ce3")
+		(property "Sheetname" "09 Phase 3 leg A gate drive (S1, S2)"
+			(at 20 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/09_ph3_gda.kicad_sch"
+			(at 20 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "10")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 314)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "026caf40-4a51-537f-b974-4924430ccca3")
+		(property "Sheetname" "23 AUX75 live 24 V, SELV 24 V, status"
+			(at 20 313.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/23_aux75_outputs.kicad_sch"
+			(at 20 340.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "26")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "12a6cfe6-22ff-551c-b19b-aa4bb4171ce2")
+		(property "Sheetname" "01 PC connector, command buffers, status"
+			(at 20 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/01_pc.kicad_sch"
+			(at 20 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "1ca05335-0905-52df-997d-bc1953296770")
+		(property "Sheetname" "11 Phase 4 power stage, bias, sensing"
+			(at 212 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/11_ph4_power.kicad_sch"
+			(at 212 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "12")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "4ca8ff1c-2747-5f97-ab39-f529a0c546e6")
+		(property "Sheetname" "04 Phase 1 leg B gate drive (S3, S4)"
+			(at 308 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/04_ph1_gdb.kicad_sch"
+			(at 308 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 182)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "503d31e2-17e3-5d65-bf51-986661264b0b")
+		(property "Sheetname" "15 Port A sensing and interlocks"
+			(at 212 181.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/15_leanA_ctrl.kicad_sch"
+			(at 212 208.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "16")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 270)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "537bb84f-4110-5acc-96d5-4b891271b84b")
+		(property "Sheetname" "21 AUX75 start-up, brown-in, OV, timer"
+			(at 212 269.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/21_aux75_startup.kicad_sch"
+			(at 212 296.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "24")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 226)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "6274e5a0-e8f3-5e90-bb45-d91a8cf1a09d")
+		(property "Sheetname" "16 Port B power path (battery)"
+			(at 20 225.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/16_leanB_power.kicad_sch"
+			(at 20 252.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "18")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "6429d5a2-b45a-52b5-9e37-71bd4a544e9d")
+		(property "Sheetname" "02 Phase 1 power stage, bias, sensing"
+			(at 116 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/02_ph1_power.kicad_sch"
+			(at 116 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 182)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "84b2365f-cf87-5e88-8d83-40032bd7664d")
+		(property "Sheetname" "13 Phase 4 leg B gate drive (S3, S4)"
+			(at 20 181.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/13_ph4_gdb.kicad_sch"
+			(at 20 208.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "14")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "8521bc6e-4fc1-5429-a042-a497965b53b1")
+		(property "Sheetname" "08 Phase 3 power stage, bias, sensing"
+			(at 308 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/08_ph3_power.kicad_sch"
+			(at 308 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "9")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "85e1d149-7d7c-5b41-a5a6-761e052a0ecb")
+		(property "Sheetname" "07 Phase 2 leg B gate drive (S3, S4)"
+			(at 212 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/07_ph2_gdb.kicad_sch"
+			(at 212 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "8")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 270)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "887f2585-6997-59fb-ba4f-8d76a6a8f5ec")
+		(property "Sheetname" "22 AUX75 PWM, SiC, clamp, AUX-T1"
+			(at 308 269.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/22_aux75_power.kicad_sch"
+			(at 308 296.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "25")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 182)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "c4467aa5-32ea-5a26-853f-9727f926593b")
+		(property "Sheetname" "14 Port A power path (pv)"
+			(at 116 181.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/14_leanA_power.kicad_sch"
+			(at 116 208.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "15")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 226)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "c45a7ad9-1e2e-51f4-8588-447d6bd6c4ea")
+		(property "Sheetname" "17 Port B sensing and interlocks"
+			(at 116 225.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/17_leanB_ctrl.kicad_sch"
+			(at 116 252.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "19")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "cc707751-d45f-5f81-b97c-e9d71fe92fc0")
+		(property "Sheetname" "03 Phase 1 leg A gate drive (S1, S2)"
+			(at 212 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/03_ph1_gda.kicad_sch"
+			(at 212 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "d048f5ab-5ab8-5140-bacc-efa457447f7f")
+		(property "Sheetname" "12 Phase 4 leg A gate drive (S1, S2)"
+			(at 308 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/12_ph4_gda.kicad_sch"
+			(at 308 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "13")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 226)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "d2c3b94f-d9ce-5e65-adb4-89de0dd59612")
+		(property "Sheetname" "18 Port B coil drives"
+			(at 212 225.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/18_leanB_drive.kicad_sch"
+			(at 212 252.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "20")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 270)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "d4555b08-755e-58e7-beb0-2449432198eb")
+		(property "Sheetname" "20 AUX75 input taps, OR, film"
+			(at 116 269.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/20_aux75_input.kicad_sch"
+			(at 116 296.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "23")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "d5c616b1-5c1e-544c-86ed-d46a9b948a77")
+		(property "Sheetname" "10 Phase 3 leg B gate drive (S3, S4)"
+			(at 116 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/10_ph3_gdb.kicad_sch"
+			(at 116 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "11")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 270)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "d78396b8-11d6-54d5-9229-462f6e93f85d")
+		(property "Sheetname" "19 Live 5 V / 3.3 V, SELV connector"
+			(at 20 269.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/19_supplies.kicad_sch"
+			(at 20 296.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "22")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 182)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "d88233fe-9883-5594-bbba-a23abdb5ff8f")
+		(property "Sheetname" "16 Port A coil drives"
+			(at 308 181.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/16_leanA_drive.kicad_sch"
+			(at 308 208.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "17")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "e1dbdb03-389d-53cc-aeda-732f873744dc")
+		(property "Sheetname" "06 Phase 2 leg A gate drive (S1, S2)"
+			(at 116 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/06_ph2_gda.kicad_sch"
+			(at 116 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "7")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 226)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "e94402ea-a0cf-5003-8228-2e35c9491c20")
+		(property "Sheetname" "18 Terminals, EMI filter, insulation test"
+			(at 308 225.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/18_terminals_imd.kicad_sch"
+			(at 308 252.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "21")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "ef00246a-0986-5f9f-ac10-0d8d129a3915")
+		(property "Sheetname" "05 Phase 2 power stage, bias, sensing"
+			(at 20 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/05_ph2_power.kicad_sch"
+			(at 20 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PWR-4"
+				(path "/c156bf8e-d37d-5d70-b2d5-3fca91e0ce71"
+					(page "6")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+)

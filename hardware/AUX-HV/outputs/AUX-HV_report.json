@@ -1,0 +1,42 @@
+{
+  "project": "AUX-HV",
+  "rev": "C1",
+  "date": "2026-10-04",
+  "sheets": 4,
+  "parts": 150,
+  "nets": 70,
+  "erc_waivers": {},
+  "passed": true,
+  "checks": [
+    {
+      "check": "Isolation domains (only declared isolators/crossings bridge two domains)",
+      "result": "pass",
+      "detail": "2 isolators, 0 crossings, 154 other parts each in one domain"
+    },
+    {
+      "check": "Stress: jellybean capacitor voltage <= 80 %, resistor power <= 60 % and working voltage",
+      "result": "pass",
+      "detail": "70 parts inside the rules, 17 on nets without a DC range (left to the design check)"
+    },
+    {
+      "check": "ERC (kicad-cli, all severities)",
+      "result": "pass",
+      "detail": "0 errors, 0 warnings (0 waived) - clean"
+    },
+    {
+      "check": "Netlist identity (kicad-cli XML export == design table)",
+      "result": "pass",
+      "detail": "70 nets, 150 components identical"
+    },
+    {
+      "check": "Schematic PDF rendered",
+      "result": "pass",
+      "detail": "hardware/AUX-HV/outputs/AUX-HV_schematic.pdf"
+    },
+    {
+      "check": "BOM: every line has manufacturer + MPN + datasheet on file, or is GENERIC/RFQ/CUSTOM",
+      "result": "pass",
+      "detail": "84 lines, 150 parts -> bom/AUX-HV_BOM.csv"
+    }
+  ]
+}

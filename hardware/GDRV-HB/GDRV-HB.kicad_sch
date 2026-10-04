@@ -1,0 +1,263 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "e4e48892-bf03-581d-8feb-3fe35feb6fe9")
+	(paper "A3")
+	(title_block
+		(title "GDRV-HB half-bridge gate driver - Cover / Hierarchy")
+		(date "2026-10-04")
+		(rev "J0")
+		(comment 1 "Barrier: NSI6651ASC + UCC14241-Q1 reinforced (VIOWM 2121 / 1414 VDC) vs 1000 V bus")
+		(comment 2 "Schematics authored by Chinmoy Bhuyan")
+		(comment 3 "Sheet 1")
+		(comment 4 "Not bench-validated. PELV = logic side; HS, LS = floating channels; DCP = DC+ sense.")
+	)
+	(lib_symbols)
+	(text "NSI6651ASC + UCC14241-Q1 +15/-4 V, DESAT (3 x US1M), interlock with PWM_L,\ngate/Kelvin pins to the module"
+		(exclude_from_sim no)
+		(at 118.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "1037a0ba-fec7-5fbe-ad02-835005bde931")
+	)
+	(text "Hardware dead time 105-385 ns at the gates = max(firmware, hardware); firmware >= 315 ns is never stretched. Module NTC: plain analog line on the power board (no AIN). Barrier: NSI6651ASC VIOWM 2121 VDC (certified), UCC14241-Q1 1414 VDC (certification planned); CMTI >= 150 V/ns."
+		(exclude_from_sim no)
+		(at 20 240 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "1cd3d3e5-a373-5378-956e-016fe8d76e00")
+	)
+	(text "Rev J0  |  2026-10-04  |  Schematics authored by Chinmoy Bhuyan  |  Two NSI6651ASC channels for one leg of a CBB011M12GM4T module (DAB-D60)"
+		(exclude_from_sim no)
+		(at 20 36 0)
+		(effects
+			(font
+				(size 2 2)
+			)
+			(justify left bottom)
+		)
+		(uuid "21f0db96-6f7f-5c87-9232-de8c3b7bdb42")
+	)
+	(text "Layout (not in this repo): card over the module signal pins, driver within 25 mm of J201/J301, gate loop < 100 mm (roadmap GDRV); D_H/D_L pins and DESAT strings need 1000 V + overshoot creepage per the ECO-10 insulation coordination."
+		(exclude_from_sim no)
+		(at 20 244 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "5b21e6de-4b07-5605-a7fe-853cf3e02314")
+	)
+	(text "DESAT trips at V_DS 5.4-8.3 V after 263-810 ns blanking; worst-case gate-off 0.71 us (module) / 0.75 us (3 discretes) vs tSC 3 us of IMZA120R020M1H. Wolfspeed CBB011M12GM4T / C3M datasheets give no tSC: unverified."
+		(exclude_from_sim no)
+		(at 20 236 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "7d9eb531-e6d8-531e-8dff-4259518ac0f3")
+	)
+	(text "NSI6651ASC + UCC14241-Q1 +15/-4 V, DESAT (3 x US1M), interlock with PWM_H,\ngate/Kelvin pins to the module"
+		(exclude_from_sim no)
+		(at 214.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "b6db8d87-2605-5723-ba73-8cd264e3d922")
+	)
+	(text "GDRV-HB half-bridge gate driver"
+		(exclude_from_sim no)
+		(at 20 28 0)
+		(effects
+			(font
+				(size 5 5)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "c86bffdf-7d3f-58b9-ab1a-439cfe39ca75")
+	)
+	(text "J101 to the power board: +24V, 3.3 V, PWM_H/PWM_L (single-ended, already\nreceived from RS-422 on the power board), EN, FLT_N, RDY (pin 15 spare: GND)"
+		(exclude_from_sim no)
+		(at 22.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "e0cc4df2-f706-5b41-9cd0-befcebb34a09")
+	)
+	(text "CALCULATED by gen/gdrv.py design_check(), not measured (full list in outputs/GDRV-HB_design_check.txt). Gate rails +14.78..15.45 / -3.95..-4.07 V. Bias 1.02 W of 2.0 W for the module at 100 kHz; worst case 3 x C3M0016120K 1.53 W. Peak gate current 4.1 / 7.2 A (10 A rating)."
+		(exclude_from_sim no)
+		(at 20 232 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "eca81423-89e8-56ec-85b8-53b9408561c5")
+	)
+	(sheet
+		(at 212 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "094b810c-c249-5e35-90a1-d8bcabb98d11")
+		(property "Sheetname" "03 Low-side channel"
+			(at 212 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/03_low.kicad_sch"
+			(at 212 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "GDRV-HB"
+				(path "/e4e48892-bf03-581d-8feb-3fe35feb6fe9"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "26c7f9fb-24bb-5763-aaaf-f4adbb6208bc")
+		(property "Sheetname" "01 Logic interface"
+			(at 20 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/01_interface.kicad_sch"
+			(at 20 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "GDRV-HB"
+				(path "/e4e48892-bf03-581d-8feb-3fe35feb6fe9"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "2c79d4c9-6ce1-535b-9049-b88f4cd0fa06")
+		(property "Sheetname" "02 High-side channel"
+			(at 116 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/02_high.kicad_sch"
+			(at 116 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "GDRV-HB"
+				(path "/e4e48892-bf03-581d-8feb-3fe35feb6fe9"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+)

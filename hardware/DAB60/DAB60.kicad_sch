@@ -1,0 +1,1028 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "7b61fb7f-727d-50aa-a6a1-41edb0cb1f57")
+	(paper "A3")
+	(title_block
+		(title "DAB60 power assembly - Cover / Hierarchy")
+		(date "2026-10-04")
+		(rev "B0")
+		(comment 1 "Interfaces: CELL x2 (C1, C2), PORT, SYS-IO-AUX harness + coolant loop (gen/interfaces.py)")
+		(comment 2 "Schematics authored by Chinmoy Bhuyan")
+		(comment 3 "Sheet 1")
+		(comment 4 "Not bench-validated. Domains PELV, HV1, HV2, PE, GD_B<b><sw> (8 gate drivers).")
+	)
+	(lib_symbols)
+	(text "HOB 130-P primary current, HV1 side -> AN1 (AMC3330),\nOC +/-210 A (ISO7720F), |I_dc| 5 A on AN1, AN2/AN3 temperatures"
+		(exclude_from_sim no)
+		(at 22.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "1aacba63-4af9-5ee7-8952-5d98daf712a3")
+	)
+	(text "Local trips, latched until EN low (no firmware): transformer OC +211/-210 A (0.78 us), |I_dc| 5.0 A (tau 1 ms), port OV 986 / 937 V (37 us), +24V UV, driver UVLO; DESAT gates all PWMs of its bridge. FLT reports all, also with EN low; RDY is driven."
+		(exclude_from_sim no)
+		(at 20 240 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "1cd3d3e5-a373-5378-956e-016fe8d76e00")
+	)
+	(text "CELL C1: PWM1-4 / EN RS-422 in (fail-safe), FLT, RDY, ID 20.0k\ntrip latch, PWM gating, +24V UV, 5 V / 3.3 V from the CELL +24V"
+		(exclude_from_sim no)
+		(at 310.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "1d8e0c38-4ea2-5a68-a0f1-6ed31e863b6d")
+	)
+	(text "Rev B0  |  2026-10-04  |  Schematics authored by Chinmoy Bhuyan  |  DAB-D60 60 kW 100 kHz isolated DAB: 2 x CBB011M12GM4T, 11:12 transformer, two DC ports"
+		(exclude_from_sim no)
+		(at 20 36 0)
+		(effects
+			(font
+				(size 2 2)
+			)
+			(justify left bottom)
+		)
+		(uuid "21f0db96-6f7f-5c87-9232-de8c3b7bdb42")
+	)
+	(text "VA bus side, VAX terminal side (AMC3330), IA current (AMC3302),\ntwo-channel hold logic, proof-test injection, readback RB1/RB2"
+		(exclude_from_sim no)
+		(at 22.5 186 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "266aac54-4be6-5682-99d9-4753d12f6471")
+	)
+	(text "UCC21710 + UCC14241-Q1, +15/-4 V, Ron/Roff 1/0.27 ohm, DESAT,\ninterlock H1<->L1; module NTC on the L1 driver AIN/APWM"
+		(exclude_from_sim no)
+		(at 118.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "2bb73c2d-3a78-5299-886c-c62a63bf6c2f")
+	)
+	(text "CELL C2: PWM1-4 / EN RS-422 in (fail-safe), FLT, RDY, ID 40.2k\ntrip latch, PWM gating, +24V UV, 5 V / 3.3 V from the CELL +24V"
+		(exclude_from_sim no)
+		(at 22.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "40a54373-4858-5df2-909e-6f19a27aa582")
+	)
+	(text "VB bus side, VBX terminal side (AMC3330), IB current (AMC3302),\ntwo-channel hold logic, proof-test injection, readback RB1/RB2"
+		(exclude_from_sim no)
+		(at 214.5 186 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "4533fc3d-e674-5b35-b8fd-bbfafcbdc602")
+	)
+	(text "UCC21710 + UCC14241-Q1, +15/-4 V, Ron/Roff 1/0.27 ohm, DESAT,\ninterlock H2<->L2"
+		(exclude_from_sim no)
+		(at 310.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "457f6e09-640f-5f07-8db8-17e777568561")
+	)
+	(text "AN1 = 5.005 mV/A on 1.44 V CM (AMC3330, 0.2 ohm). Domains: PELV, HV1, HV2, PE + 8 gate drivers. Isolators: UCC21710, UCC14241-Q1, UCC12050, AMC3330, ISO7720F, transformer, port AMC/TPSI, contactors."
+		(exclude_from_sim no)
+		(at 20 244 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "5b21e6de-4b07-5605-a7fe-853cf3e02314")
+	)
+	(text "Terminals, fuses, SPD, EMI filter, contactor, precharge relay,\ncoil drives, hold stage, shunt, discharge + time limit, bleeder"
+		(exclude_from_sim no)
+		(at 310.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "7c8ba50e-c49e-5a35-8376-42bd5fd55300")
+	)
+	(text "Fail-safe off: received pairs biased 470R/120R/470R -> undriven VID <= -0.29 V (receiver -0.2 V) = LOW = off; no 3.3 V -> UCC14241 ENA low, PWM/EN pulled low; +24V_GD below 19.7 V -> EN_DRV and PWM forced low before the bias UVLO."
+		(exclude_from_sim no)
+		(at 20 236 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "7d9eb531-e6d8-531e-8dff-4259518ac0f3")
+	)
+	(text "UCC21710 + UCC14241-Q1, +15/-4 V, Ron/Roff 1/0.27 ohm, DESAT,\ninterlock H2<->L2"
+		(exclude_from_sim no)
+		(at 214.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "890df276-f4c1-51e2-a769-645d2d394e2b")
+	)
+	(text "ECO-10 (layout): HV1/HV2-PELV reinforced >= 1000 V DC at every isolator footprint (8 mm parts: PD1 coating or slots); the HOB 130-P sits inside HV1/HV2 (functional). HV1-HV2 via the transformer, 1850 V DC basis."
+		(exclude_from_sim no)
+		(at 20 248 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "8c37ac55-9e92-5066-928b-a51d38b25ad7")
+	)
+	(text "HOB 130-P secondary current, HV2 side -> AN1 (AMC3330),\nOC +/-210 A (ISO7720F), |I_dc| 5 A on AN1, AN2/AN3 temperatures"
+		(exclude_from_sim no)
+		(at 118.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "aaca30d3-234a-53b5-a5a7-cf5a6a69d9b7")
+	)
+	(text "Terminals, fuses, SPD, EMI filter, contactor, precharge relay,\ncoil drives, hold stage, shunt, discharge + time limit, bleeder"
+		(exclude_from_sim no)
+		(at 118.5 186 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "b1d84e4d-35a8-5757-99fc-ec7182df491b")
+	)
+	(text "CBB011M12GM4T, port 2 (HV2), 3 x C4AQQEW5650A3BJ DC link,\nDD600N16K reverse clamp, 12 RC snubbers + 10 ceramics, AC out"
+		(exclude_from_sim no)
+		(at 118.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "b78b0f23-a650-5a70-8710-0c73f69bcd9a")
+	)
+	(text "DAB60 power assembly"
+		(exclude_from_sim no)
+		(at 20 28 0)
+		(effects
+			(font
+				(size 5 5)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "c86bffdf-7d3f-58b9-ab1a-439cfe39ca75")
+	)
+	(text "Transformer 11:12 and series inductor (CUSTOM, cold plate),\nbolted link = DC-blocking capacitor position (bank not fitted)"
+		(exclude_from_sim no)
+		(at 214.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "e05a8a53-73f8-57b3-a29c-55bd93c0d9ab")
+	)
+	(text "UCC21710 + UCC14241-Q1, +15/-4 V, Ron/Roff 1/0.27 ohm, DESAT,\ninterlock H1<->L1; module NTC on the L1 driver AIN/APWM"
+		(exclude_from_sim no)
+		(at 214.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "e3912deb-0992-5970-a5aa-6f79978e8510")
+	)
+	(text "PORT 26-way + ID readback, 14-way SYS-IO-AUX, +3V3S, AUX-HV tap,\nport OV comparators -> OV_OK, coolant loop -> SYS-IO-AUX J801"
+		(exclude_from_sim no)
+		(at 310.5 186 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "e94d3152-0ad1-5033-a9f0-55e9f7f681c7")
+	)
+	(text "CALCULATED, not bench-validated. Values from sim/out/dab_design/dab_spec.json, checked by design_check() (outputs/DAB60_design_check.txt). Bridge 1 -> CTRL-C2000 C1, bridge 2 -> C2 (HRPWM). Ports via port.port(): port 1 = tag A (HV1), port 2 = tag B (HV2)."
+		(exclude_from_sim no)
+		(at 20 232 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "eca81423-89e8-56ec-85b8-53b9408561c5")
+	)
+	(text "CBB011M12GM4T, port 1 (HV1), 3 x C4AQUEW5450A3BJ DC link,\nDD600N16K reverse clamp, 12 RC snubbers + 10 ceramics, AC out"
+		(exclude_from_sim no)
+		(at 22.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "f0ab9314-822e-573b-82e5-2af0e8b26107")
+	)
+	(sheet
+		(at 212 182)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "00ea6fa6-387d-558a-85c1-0f2634ffa17a")
+		(property "Sheetname" "15 Port B sensing and hold logic"
+			(at 212 181.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/15_portB_sense.kicad_sch"
+			(at 212 208.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57"
+					(page "16")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "1c706023-b815-5187-845a-48e11cc19845")
+		(property "Sheetname" "05 Bridge 1 sensing"
+			(at 20 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/05_b1_sense.kicad_sch"
+			(at 20 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57"
+					(page "6")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "26b3a29c-8fe8-5dfa-b7f7-65db78fc5c4e")
+		(property "Sheetname" "06 Bridge 2 power stage"
+			(at 116 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/06_b2_power.kicad_sch"
+			(at 116 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57"
+					(page "7")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "468eb9bf-f5b6-5d9e-99e2-aaafc5b454e3")
+		(property "Sheetname" "12 Port A power path"
+			(at 308 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/12_portA_power.kicad_sch"
+			(at 308 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57"
+					(page "13")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 182)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "50cf19b2-3486-54d5-9166-d9f7b42e82d3")
+		(property "Sheetname" "13 Port A sensing and hold logic"
+			(at 20 181.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/13_portA_sense.kicad_sch"
+			(at 20 208.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57"
+					(page "14")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "584f0e53-8d2b-5cb3-b25e-c222e9206481")
+		(property "Sheetname" "09 Bridge 2 CELL interface + logic"
+			(at 20 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/09_b2_if.kicad_sch"
+			(at 20 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57"
+					(page "10")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "5da70054-01d2-535f-96c1-d6dfad55896e")
+		(property "Sheetname" "04 Bridge 1 CELL interface + logic"
+			(at 308 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/04_b1_if.kicad_sch"
+			(at 308 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 182)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "6a9f94e4-6fdb-5797-8eee-5277c52212df")
+		(property "Sheetname" "14 Port B power path"
+			(at 116 181.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/14_portB_power.kicad_sch"
+			(at 116 208.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57"
+					(page "15")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "6c9ef79a-168a-51c6-a321-d66e5e73d4ad")
+		(property "Sheetname" "11 Transformer, inductor, DC-block link"
+			(at 212 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/11_magnetics.kicad_sch"
+			(at 212 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57"
+					(page "12")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "8b1b87b2-4115-5447-b20c-9d42eeb5fbc4")
+		(property "Sheetname" "01 Bridge 1 power stage"
+			(at 20 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/01_b1_power.kicad_sch"
+			(at 20 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "8e4a7c46-aa6f-543a-8fec-5ee4874a2172")
+		(property "Sheetname" "03 Bridge 1 gate drive leg B"
+			(at 212 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/03_b1_gateb.kicad_sch"
+			(at 212 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "92158a75-caf5-57c9-a01f-af2d05325be4")
+		(property "Sheetname" "07 Bridge 2 gate drive leg A"
+			(at 212 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/07_b2_gatea.kicad_sch"
+			(at 212 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57"
+					(page "8")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 182)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "99ef6f9b-2c3c-52a1-b203-1df7132ebae6")
+		(property "Sheetname" "16 Connectors, port OV trip, coolant loop"
+			(at 308 181.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/16_io.kicad_sch"
+			(at 308 208.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57"
+					(page "17")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "aca4e57c-ebcc-5f19-bb62-038b10521025")
+		(property "Sheetname" "08 Bridge 2 gate drive leg B"
+			(at 308 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/08_b2_gateb.kicad_sch"
+			(at 308 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57"
+					(page "9")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "bfd38cf1-5e91-5a6d-a1fe-0cd67c7cad7b")
+		(property "Sheetname" "02 Bridge 1 gate drive leg A"
+			(at 116 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/02_b1_gatea.kicad_sch"
+			(at 116 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "c88613ad-4ab6-5d8a-ae71-f9855b67683a")
+		(property "Sheetname" "10 Bridge 2 sensing"
+			(at 116 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/10_b2_sense.kicad_sch"
+			(at 116 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57"
+					(page "11")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+)

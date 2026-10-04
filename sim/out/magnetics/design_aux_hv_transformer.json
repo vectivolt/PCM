@@ -1,0 +1,281 @@
+{
+ "part": "aux_hv_transformer",
+ "revision": "M1",
+ "status": "proposed construction - calculated, not built or measured",
+ "basis": {
+  "spec": "sim/out/aux_hv_design/aux_hv_spec.json",
+  "spec_mtime": "2026-10-04 23:03",
+  "spec_rev": "C1"
+ },
+ "construction": "DMEGC EC34A (ETD 34/17/11 class) DMR95, centre-leg gap 1.16 mm, 90:15:16 in the converter engineer's order P1|SH|S|AUX|P2, copper set back 2.0 mm from the gapped leg (1.0 mm former wall + 1.0 mm spacer), secondary in TIW-litz, vacuum-potted in a case",
+ "electrical": {
+  "L_p_H": 0.0011482532937902013,
+  "L_p_tol": "+/-7 % at 10 kHz (gap ground to A_L)",
+  "A_L_H": 1.4175966590002486e-07,
+  "turns": "90:15:16",
+  "n": 6.0,
+  "f_sw_Hz": 64899.607788077825,
+  "mode": "DCM",
+  "I_pk_full_load_A": 0.9500178098775346,
+  "I_pk_limit_A": 1.74,
+  "B_pk_worst_T": 0.13092219982447473,
+  "B_limit_Amin_T": 0.25931804735305636,
+  "B_limit_rule_T": 0.3485000000000002,
+  "L_leak_1d_H": 1.5784589913387555e-05,
+  "L_leak_est_H": 3.156917982677511e-05,
+  "L_leak_max_H": 3.399480750541026e-05,
+  "C_switched_P1_SH_own_F": 2.4472226629764776e-11,
+  "C_switched_note": "own parallel-plate P1-SH value; on the same basis the ETD29 rev C0 stack gives 27 pF where the converter engineer states 36.3 pF -> scaled 32 pF vs limit 38.7 pF",
+  "winding_loss_max_W": 1.5187158662825824
+ },
+ "core": {
+  "maker": "DMEGC",
+  "part_number": "EC34A set (DMR95)",
+  "material": "DMR95",
+  "Ae_m2": 9.75e-05,
+  "A_min_m2": 9.16e-05,
+  "le_m": 0.0795,
+  "Ve_m3": 7.75125e-06,
+  "datasheet": "docs/datasheets/magnetics/DMEGC-EC34A.pdf p.1",
+  "note": "ETD 34/17/11 equivalent (Ae/Amin/le within 1 % of the MAS ETD 34/17/11 shape); standard ETD34 coil formers fit",
+  "gap": {
+   "type": "ground centre-leg gap",
+   "length_m": 0.0011556388336476445,
+   "note": "set by A_L; outer legs ungapped"
+  },
+  "asian_alternative": "DMEGC EC34A is itself the Asian part; ETD29-class DMEGC EC29A (Ae 83 mm2) exists but its outline vs ETD29 formers is not verified (drawing is an image)",
+  "western_reference": "TDK ETD 34/17/11 N97 set"
+ },
+ "windings": [
+  {
+   "order": 1,
+   "name": "P1",
+   "turns": 45,
+   "spec": "45 t enamelled Cu 0.30 mm grade 2, 1 layer, start = DRAIN pin (dot)"
+  },
+  {
+   "order": 2,
+   "name": "SH",
+   "turns": 1,
+   "spec": "copper foil 0.05 mm, 1 t, open with insulated overlap, -> PGND pin"
+  },
+  {
+   "order": 3,
+   "name": "S",
+   "turns": 15,
+   "spec": "15 t TIW-litz 64 x 0.10 mm (three-layer extruded insulation certified for reinforced insulation, IEC 61558-2-16 / IEC 62368-1 Annex J), 1 layer, start = rectifier anode (dot), insulation unbroken to the pin, exits in PTFE sleeve"
+  },
+  {
+   "order": 4,
+   "name": "AUX",
+   "turns": 16,
+   "spec": "16 t enamelled Cu 0.25 mm spaced over the breadth, start = aux rectifier anode (dot), finish = PGND"
+  },
+  {
+   "order": 5,
+   "name": "P2",
+   "turns": 45,
+   "spec": "45 t enamelled Cu 0.30 mm grade 2, 1 layer, finish = HV_BULK pin"
+  }
+ ],
+ "fit": {
+  "build_m": 0.00578,
+  "available_m": 0.00715,
+  "fits": true,
+  "breadth_m": 0.0216,
+  "widest_layer_m": 0.02025,
+  "stack": [
+   {
+    "layer": "wall+spacer",
+    "from_leg_mm": 0.0,
+    "to_mm": 2.0,
+    "MLT_m": 0.0402
+   },
+   {
+    "layer": "P1",
+    "from_leg_mm": 2.0,
+    "to_mm": 2.35,
+    "MLT_m": 0.0476
+   },
+   {
+    "layer": "tape",
+    "from_leg_mm": 5.66,
+    "to_mm": 5.78,
+    "MLT_m": 0.0699
+   },
+   {
+    "layer": "SH",
+    "from_leg_mm": 3.07,
+    "to_mm": 3.12,
+    "MLT_m": 0.0534
+   },
+   {
+    "layer": "S",
+    "from_leg_mm": 3.36,
+    "to_mm": 4.71,
+    "MLT_m": 0.0593
+   },
+   {
+    "layer": "AUX",
+    "from_leg_mm": 4.95,
+    "to_mm": 5.25,
+    "MLT_m": 0.066
+   },
+   {
+    "layer": "P2",
+    "from_leg_mm": 5.31,
+    "to_mm": 5.66,
+    "MLT_m": 0.0684
+   }
+  ]
+ },
+ "insulation": {
+  "system": "VACUUM-POTTED (epoxy, class F, void-free) in a case - REQUIRED for the PD routine test; reinforced insulation = TIW-litz three-layer extruded insulation + 4 layers 0.06 mm polyester tape on each side of S; tapes P1-SH 12 L set the switched capacitance; primary pins (P1, P2, AUX, SH) on one row, secondary pins on the opposite row; the core is a primary-side conductive part",
+  "min_solid_ps_m": 0.0003400000000000002,
+  "creepage_pins_m": 0.02,
+  "creepage_pins_note": "20 mm along the case / former between the pin rows (PD2, CTI unknown -> IIIa); 10 mm if the former and case material has CTI >= 600 (group I); inside the potting PD1: 6.4 mm",
+  "clearance_m": 0.010400000000000001,
+  "levels": [
+   {
+    "label": "Reinforced HV-PELV, AUX-HV flyback T1",
+    "u_rp": 1427.940915184597,
+    "pd_test": 2461.0,
+    "pd_ext": 1968.0,
+    "ac": 4400.0,
+    "imp": 8000.0,
+    "cr_pd1": 6.4,
+    "cr_pd2": 20.0,
+    "clearance": [
+     8.0,
+     9.2,
+     10.4
+    ]
+   }
+  ],
+  "routine_tests": "PD <= 10 pC at 2461.0 V pk (extinction >= 1968.0 V pk), primary+aux+shield to secondary",
+  "type_tests": "AC 4400.0 V rms 60 s; impulse 8000.0 V 1.2/50; thermal run at 30 W"
+ },
+ "loss_model": {
+  "core": {
+   "k": 0.0033626687766135665,
+   "alpha": 2.0182306625896125,
+   "beta": 3.0309313905981483,
+   "Ve_m3": 7.75125e-06,
+   "N": 90,
+   "Ae_m2": 9.75e-05,
+   "formula": "unipolar DCM flux 0 -> B_pk -> 0 (iGSE), B_pk = L_p I_pk / (N_p A_e)"
+  },
+  "winding": {
+   "R_ac_per_harmonic": null,
+   "referred_to": "n/a - use loss_table / loss_grid (DCM shape changes with V_in)",
+   "temperature_C": 100.0,
+   "formula": "1-D Dowell ramp + line-source gap fringing on each layer"
+  }
+ },
+ "loss_table": [
+  {
+   "point": "200 V, 30 W",
+   "I_rms_A": 0.35149029540707794,
+   "I_s_rms_A": 2.503625478891327,
+   "B_pk_T": 0.13064380319545565,
+   "P_core_W": 0.03200132786088599,
+   "P_cu_W": 0.6474966338303436,
+   "P_fringe_W": 0.11162421789202714,
+   "P_total_W": 0.6794979616912296
+  },
+  {
+   "point": "400 V, 30 W",
+   "I_rms_A": 0.24111503414658897,
+   "I_s_rms_A": 2.4303484067364356,
+   "B_pk_T": 0.1280730431573933,
+   "P_core_W": 0.0492308230782723,
+   "P_cu_W": 0.5733298189706877,
+   "P_fringe_W": 0.167747364945361,
+   "P_total_W": 0.62256064204896
+  },
+  {
+   "point": "600 V, 30 W",
+   "I_rms_A": 0.1979584069664062,
+   "I_s_rms_A": 2.4410951638492464,
+   "B_pk_T": 0.12847454270603997,
+   "P_core_W": 0.06832125569483016,
+   "P_cu_W": 0.5973116394996084,
+   "P_fringe_W": 0.22236435851620262,
+   "P_total_W": 0.6656328951944386
+  },
+  {
+   "point": "800 V, 30 W",
+   "I_rms_A": 0.17341422469881015,
+   "I_s_rms_A": 2.47111163765107,
+   "B_pk_T": 0.1295154532403649,
+   "P_core_W": 0.08864532929733117,
+   "P_cu_W": 0.6400260881208639,
+   "P_fringe_W": 0.27447242464373667,
+   "P_total_W": 0.7286714174181951
+  },
+  {
+   "point": "1000 V, 30 W",
+   "I_rms_A": 0.15781050834815905,
+   "I_s_rms_A": 2.511045692712138,
+   "B_pk_T": 0.13092219982447473,
+   "P_core_W": 0.11031203587175209,
+   "P_cu_W": 0.6897502702475371,
+   "P_fringe_W": 0.32435785127241984,
+   "P_total_W": 0.8000623061192892
+  }
+ ],
+ "loss_grid": {
+  "V_in_V": [
+   200,
+   400,
+   600,
+   800,
+   1000
+  ],
+  "P_total_W": [
+   0.6794979616912296,
+   0.62256064204896,
+   0.6656328951944386,
+   0.7286714174181951,
+   0.8000623061192892
+  ],
+  "note": "30 W output; loss scales ~ with P_out^1 (Ipk^2 x duty); interpolate in V_in"
+ },
+ "thermal": {
+  "T_rise_K": 13.0,
+  "basis": "potted case ~38 x 30 x 30 mm, natural convection + radiation ~10 W/m2K on 6400 mm2 -> ~15 K/W; internal gradient < 2 K at < 1 W",
+  "interface": "board-mounted, no heatsink"
+ },
+ "mass_kg": 0.07713403701985536,
+ "cost": {
+  "core_usd": 0.4,
+  "copper_usd": 1.6,
+  "insulation_usd": 1.5499999999999998,
+  "labour_usd": 1.7999999999999998,
+  "total_usd": 5.9,
+  "basis": "ESTIMATES, no quote: DMEGC EC34A set ~0.40 USD (39 g, Chinese small-core pricing ~10 USD/kg); ETD34 14-pin former (CTI >= 600 grade) 0.35; TIW-litz 64 x 0.10 mm ~1.3 m at ~0.9 USD/m; magnet wire, foil, tapes, spacer 0.40; case + vacuum epoxy potting 1.20; winding 1.20; PD + hipot routine test 0.60; +10 %",
+  "cost_estimates_row": "AUX-HV-T1 rev M1,5.9,\"ESTIMATE (sim/magnetics.py design_aux_hv_transformer.json rev M1): DMEGC EC34A DMR95 0.40 + ETD34 former 0.35 + TIW-litz 1.20 + wire/foil/tape 0.40 + case and vacuum potting 1.20 + winding 1.20 + PD/hipot test 0.60, +10 %; replaces the rev A0 row; no quote\",low"
+ },
+ "verification": {
+  "own": {
+   "P_cu_W": 0.6897502702475371,
+   "P_core_W": 0.11031203587175209,
+   "point_V": 1000,
+   "L_leak_1d_H": 1.5784589913387555e-05
+  },
+  "openmagnetics": {
+   "L_p_H": 0.0011031072175859778,
+   "P_core_W": 0.07617254383569022,
+   "P_cu_W": 1.0414356582018478,
+   "L_leak_H": 7.481447495111904e-06,
+   "point_V": 1000,
+   "note": "same former wall + spacer (2 mm); no tapes / shield / AUX layer in the OM model"
+  },
+  "previous_designer": {
+   "P_cu_W": null,
+   "core": "ETD 29/16/10 N97",
+   "B_lim_Amin_T": 0.25916933037587153,
+   "L_leak_est_H": 3.156917982677511e-05
+  }
+ }
+}

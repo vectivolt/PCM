@@ -1,0 +1,41 @@
+block,function,qty,part,maker,unit_cat_usd,ext_cat_usd,unit_5k_usd,ext_5k_usd,basis_cat,basis_5k
+POWER,"SiC MOSFET 1700 V 40 mOhm TO-247-4L, 6 per switch, two-level legs",36,SG2M040170HJ,Sichain (CN),4.07,146.52,3.46,124.56,"ESTIMATE (RFQ): the PV design's figure (costfirst_bom.csv), SG2M020170HJ scaled by R^1.26",ASSUMED x0.85 (the PV BOM's factor; RFQ)
+POWER,Device insulator Al2O3 0.635 mm + clip + grease (basic DC-PE),36,Al2O3 TO-247 pad + clip,generic (CN),0.4,14.4,0.3,10.8,ESTIMATE (costfirst_pcs_bom.csv),ASSUMED x0.75
+POWER,"DC-link film 140 uF 600 V (U_N 70 C), 5 per half, split bank",10,C3D1U147+M0A,Xiamen Faratronic (CN),4.9,49.0,4.17,41.7,ESTIMATE: LCSC C3D1X505 0.557 USD @1000 scaled by can volume (architect basis),ASSUMED x0.85
+POWER,Local decoupling film 2.2 uF 1300 V at every device pair (3 per pair),27,FCSA3DS225 (CBB138 DS),Jianghai (CN),0.45,12.15,0.383,10.34,ESTIMATE (costfirst_bom.csv PV row),ASSUMED x0.85
+POWER,RC damper per device pair: 2 x 4.7 nF 2000 V C0G + 6 x 15 ohm 2512,3,C0G 2220 + CRCW2512 class,Fenghua / Yageo class,5.73,17.19,4.86,14.58,PV BOM class prices,ASSUMED x0.85
+GATE DRIVE,"Isolated SiC gate driver, DESAT + soft turn-off + Miller clamp, one per switch position",6,NSI6651ASC-Q1SWR,NOVOSENSE (CN),2.978,17.87,1.544,9.26,prices.csv LCSC C33959952 @1,LCSC tier slope 0.52 (CA-IS3062W) - EVIDENCE-derived
+GATE DRIVE,"Channel discretes (gdrv.channel rev 6 incl. booster, per-gate clamp FET, R_G, R_KS) for 6 gates + NPN/PNP buffer",6,class (per channel),Nexperia / Diodes / TSC / Yageo,3.9,23.4,3.315,19.89,PV row 2.60 USD (2 gates) + 0.25 USD per extra gate (ESTIMATE) + 0.30 buffer,ASSUMED x0.85
+GATE DRIVE,Gate bias per phase: SN6505B + custom transformer (2 secondaries) + 2 regulators,3,SN6505BDBVR + GDB-T1 + 2 x reg,TI + CUSTOM,3.026,9.08,2.636,7.91,TI 1ku + ESTIMATE,"MIXED: TI 1ku list, rest ASSUMED x0.80/0.85"
+LCL FILTER,"L1 97 uH, 216 A rms / 344 A pk (5.7 J), amorphous C-core + Cu strip",3,L1-97u-216A (CUSTOM),CUSTOM (AT&M / Yunlu core),44.433,133.3,35.546,106.64,ESTIMATE: architect's 10 USD + 6 USD/J (42 USD for 100 uH),ASSUMED x0.80
+LCL FILTER,"L2 15 uH, 216 A rms (0.70 J), powder / Si-steel",3,L2-15u-216A (CUSTOM),CUSTOM,15.599,46.8,12.479,37.44,ESTIMATE: 10 USD + 8 USD/J (fits the architect's 22 USD for 30 uH),ASSUMED x0.80
+LCL FILTER,"C_f 50 uF per phase (2 x 25 uF 450 V AC MKP), star tied to the DC midpoint",6,25 uF 450 VAC MKP,Faratronic / Jianghai class (CN),3.0,18.0,2.55,15.3,ESTIMATE: 0.12 USD/uF (architect),ASSUMED x0.85
+LCL FILTER,Passive damping branch 2 ohm 25 W + 10 uF per phase,3,RX24 2R + 10 uF MKP,class,3.0,9.0,2.55,7.65,ESTIMATE (architect),ASSUMED x0.85
+SENSING,"Phase current sensor, open-loop TMR +-500 A (C_f side of L1)",3,STK-HO/A class,Sinomags (CN),6.0,18.0,4.8,14.4,"ESTIMATE (architect, range raised for the 450 A trip)",ASSUMED x0.80
+SENSING,DC shunt 2 x 200 uOhm + zero-drift amplifier,1,3920 strip x2 + SGM8552 class,class,2.2,2.2,1.87,1.87,ESTIMATE (PV),ASSUMED x0.85
+SENSING,"HV dividers 1 M 0.1 % (grid L1-3 at terminals and C_f, V_DC, V_mid, terminal, PE)",60,ARHV06BTC1004A,Viking Tech (TW),0.25,15.0,0.21,12.6,ESTIMATE (PV),ASSUMED x0.85
+SENSING,"Divider buffers and filters (no discrete trip comparators: CMPSS / ADC limits, D-049)",1,class,3PEAK / SGMICRO class,1.5,1.5,1.28,1.28,ESTIMATE,ASSUMED x0.85
+SENSING,"Residual-current sensor type B (fluxgate), 3 conductors",1,type-B RCM class,CN fluxgate class,10.0,10.0,8.0,8.0,ESTIMATE: no data sheet on file (R-10),ASSUMED x0.80
+SENSING,"NTC probes (heatsink 3, L1 3, inlet 1, DC link 1)",8,NTC 10k lug,EXSENSE / Shiheng class,0.5,4.0,0.4,3.2,ESTIMATE,ASSUMED x0.80
+SENSING,IMD strings + 2 x CA-IS3417WT (PV),1,16 x ARHV13 + 2 x CA-IS3417WT,Viking / Chipanalog,8.8,8.8,7.48,7.48,PV BOM,ASSUMED x0.85
+DC PORT,DC contactor 300 A 1000 V,1,HFE82V-300C/1000-24-H-C5-1,Hongfa (CN),55.0,55.0,38.0,38.0,ESTIMATE (PV basis),marketplace volume quote 32.47 USD @30 (prices.csv) - EVIDENCE
+DC PORT,"DC fuse aR 400 A 1000 V DC, one per pole",2,"aR 400 A (Hongfa HPE / Sinofuse RS306 class, RFQ)",Hongfa / Sinofuse (CN),25.0,50.0,17.0,34.0,ESTIMATE: no public price,ASSUMED x0.68 (RFQ)
+DC PORT,"Precharge relay + 220 ohm + coil drivers (PV), hold-off comparator (discrete, D-049)",1,G7L-2A-X + RXLG 220R + drivers,Omron / CN,18.6,18.6,15.0,15.0,PV rows + 0.5 USD comparator,ASSUMED x0.80
+DC PORT,DC varistor network + X/Y caps + CM core (PV rev-6 network),1,3 x TVT25751 + 2 x 002637115 + CNY65B ...,Thinking / ETI / Vishay,29.4,29.4,24.6,24.6,PV costfirst_bom rows,ASSUMED x0.85
+DC PORT,DC terminals M8 + busbars,1,2 x terminal + 3 x busbar (CUSTOM),CUSTOM,31.0,31.0,24.8,24.8,cost_estimates.csv basis,ASSUMED x0.80
+AC PORT,"AC disconnect: two 3-pole contactors in series (AC-1 >= 250 A, 24 V DC coil, U_i 1000 V)",2,NXC-225 / CJX2-185 class,CHINT / Delixi (CN),45.0,90.0,36.0,72.0,ESTIMATE: no OEM price (R-06),ASSUMED x0.80
+AC PORT,AC contactor coil drivers + economiser,2,class,class,0.7,1.4,0.6,1.2,PV basis,ASSUMED x0.85
+AC PORT,"AC surge protection type II on board, monitored",1,TVT25 (300 VAC) x3 + GDT,Thinking (TW) class,9.3,9.3,7.9,7.9,ESTIMATE (architect),ASSUMED x0.85
+AC PORT,AC common-mode choke >= 150 uH at 32 kHz: 3 nanocrystalline cores over the phase busbars + 3 x Y1,1,3 x ring core + 3 x Y1,Yunlu / AT&M class,18.9,18.9,15.1,15.1,ESTIMATE (architect's 2-core row x1.5),ASSUMED x0.80
+AC PORT,AC terminals (L1-L3 + PE) + busbars,1,4 x terminal + 3 x busbar,CUSTOM,39.0,39.0,31.2,31.2,ESTIMATE (architect),ASSUMED x0.80
+AUX SUPPLY,75 W flyback (PV AUX) on the DC link + 6-diode AC tap,1,AUX block (PV) + 6 x 1600 V diode,TI / InventChip / CUSTOM,37.3,37.3,31.0,31.0,PV costfirst_bom + 3.0 estimate,"MIXED: TI 1ku list, rest ASSUMED"
+CONTROL,"PV control board, PCS assembly variant (F280039C, no discrete latch/comparators per D-049, extra 2 x 8 header)",1,PV control board (F280039CSPZR),TI + class,9.7,9.7,8.6,8.6,PV costfirst_bom CONTROL 9.19 + header 0.5,"MIXED: TI 1ku list, rest x0.85"
+INTERFACE,"Reinforced barrier + SELV zone (CAN, RS-485, stop, status, fans) - PV design",1,CA-IS3062W + CA-IS3082WNX + 3 x CA-IS3821 + SELV,Chipanalog + class,8.09,8.09,7.5,7.5,PV costfirst_bom INTERFACE rows,MIXED: LCSC highest break - EVIDENCE for the isolators
+THERMAL,"Extruded heatsink, one 150 x 400 mm section per leg (4.0 kg each), earthed",3,Al extrusion (CUSTOM),CUSTOM,23.8,71.4,19.04,57.12,ESTIMATE: 4.7 USD/kg + 5 USD machining (architect basis),ASSUMED x0.80
+THERMAL,"Fan 120 x 38 mm 24 V, 1 per section, + guard",3,AFB1224SHE-F00,Delta Electronics (TW),13.15,39.45,9.24,27.72,Master Electronics 12.85 @504 + guard 0.30 (architect),ASSUMED x0.70 on the 504+ break
+MECH-ELEC,"Press-fit terminals, harness, standoffs",1,class,class,13.4,13.4,10.7,10.7,ESTIMATE (PV basis),ASSUMED x0.80
+4-WIRE OPTION,"Neutral leg: two-level half-bridge, 12 x SG2M040170HJ + pads + local decoupling + damper",1,SG2M040170HJ x12,Sichain (CN),63.42,63.42,53.427,53.43,rows above,rows above
+4-WIRE OPTION,Gate drive 2 channels + bias,1,2 x NSI6651 channel + buffer + 1 x bias,NOVOSENSE + CUSTOM,16.786,16.79,12.368,12.37,rows above,rows above
+4-WIRE OPTION,Neutral inductor L_N 97 uH (as L1: the neutral leg's ripple is that of a phase leg) + TMR sensor,1,L1 class + STK class,CUSTOM + Sinomags,50.433,50.43,40.346,40.35,rows above,rows above
+4-WIRE OPTION,Heatsink section + fan for the fourth leg,1,as THERMAL rows,CUSTOM + Delta,36.95,36.95,28.28,28.28,rows above,rows above
+4-WIRE OPTION,"4-pole instead of 3-pole AC contactors, N terminal and busbar, GDT N-PE",1,class,class,35.0,35.0,28.0,28.0,ESTIMATE (architect),ASSUMED x0.80

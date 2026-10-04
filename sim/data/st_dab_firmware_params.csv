@@ -1,0 +1,119 @@
+name,value_raw,value_decoded,unit,meaning,confidence,evidence
+SYSCLK=HCLK=PCLK1=PCLK2,HSI16;PLLM=4;PLLN=85;PLLR=2;AHB/APB1/APB2=/1;flash latency 4,170000000,Hz,"CPU and bus clock; used in: SystemClock_Config, HAL_RCC_GetPCLK2Freq (DPC_ACT_Init, DPC_MISC_APPL_Timer_Init)",high,SystemClock_Config@0x080020EA (RCC_OscInit/ClkInit stack words)
+TIM2.control_interrupt_rate,PSC=0;ARR=16999,10000,Hz,"control-loop interrupt (100 us), NVIC preempt priority 0; used in: HAL_TIM_PeriodElapsedCallback",high,main@0x08001FD8 passes 10000 to DPC_MISC_APPL_Timer_Init@0x08003FEC; MX_TIM2_Init PSC=0; ARR=170e6/(PSC+1)/10000-1
+TIM3.timeout_tick_rate,PSC=4;ARR=33999,1000,Hz,"FSM timeout tick (1 ms), priority 1; used in: TimeoutMng",high,main@0x08001FF2 passes 1000; MX_TIM3_Init PSC=4
+TIM6.reference_ramp_rate,PSC=0;ARR=56665,3000.035,Hz,"reference-ramp tick (333.3 us), priority 2; used in: DPC_LPCNTRL_DAB_Vramp, DPC_LPCNTRL_DAB_Vset",high,main@0x0800200C passes 3000; MX_TIM6_Init PSC=0
+TIM7.debug_timer,PSC=0;ARR=0;never started,0,Hz,"debug-DAC timer, never started; Debug_DATA_DAC never runs",high,MX_TIM7_Init; no HAL_TIM_Base_Start_IT(&htim7) in the image
+uwTickFreq (initial),1,1,-,"HAL tick frequency factor -> SysTick 1 kHz, priority 0; decoded from the IAR packbits init data (27 packed bytes at 0x08009B78); used in: HAL_InitTick",high,init table entry 0x08009980; HAL_InitTick@0x080068D8
+SystemCoreClock (initial),0x00F42400,16000000,Hz,HSI default before SystemClock_Config; updated to 170 MHz by HAL_RCC_ClockConfig,high,packbits init data -> 0x20000034
+NVIC.preempt_priorities,grouping 3 (4 bits),TIM2=0;TIM3=1;TIM6_DAC=2;ADC1_2=3;TIM7_DAC=4;DMA1_ch1-5=0;SysTick=0,level,interrupt priorities; TIM2 control ISR is preempted by none of the others,high,"HAL_NVIC_SetPriority calls in HAL_TIM_Base_MspInit@0x08001DE2, HAL_ADC_MspInit@0x08002E4E, MX_DMA_Init@0x08002C30, HAL_InitTick(0)"
+HRTIM.prescaler_CKPSC,PrescalerRatio=0,32,x,HRTIM clock multiplier; f_HRCK=32*170 MHz; used in: DPC_ACT_Init (maps CKPSC back to 32),high,MX_HRTIM1_Init@0x08003050 (all time bases PrescalerRatio=0); DPC_ACT_Init@0x08004424 jump table
+HRTIM.f_HRCK,32*170e6,5440000000,Hz,"HRTIM counter clock, 183.8 ps per count (assumes default HRTIM clock source = PCLK2)",high,calculated from SYSCLK and CKPSC; no HRTIM clock selection is programmed
+PWM_Freq_Desidered,0x186A0,100000,Hz,requested PWM frequency (argument 2 of DPC_ACT_Init),high,"main@0x0800202E: ldr r1,[0x08002588]; DPC_ACT_Init@0x08004424"
+"HRTIM.period (MPER, TAPER..TDPER)",54400,54400,counts,"period = float32(f_HRCK_kHz/f_pwm*1000), up-counting (UpDownMode=0); 10.000 us; used in: DPC_ACT_Init, DPC_ACT_TpzPWM_PS_Init, DPC_ACT_DAB_TpzPWM_PS_Update",high,DPC_ACT_Init@0x08004424; float32 emulation gives 54400.0
+BURST_PWM_Freq_Desidered,0x4E20,20000,Hz,requested burst frequency (argument 1 of DPC_ACT_Init); stored as 272000 counts in tDPC_PWM.BURST_PWM_Period; no burst code is linked,medium,"main@0x08002032 movw r0,#20000; DPC_ACT_Init str s16->[tDPC_PWM+16]"
+tDPC_PWM.BURST_PWM_Period,272000,272000,counts,never read,high,DPC_ACT_Init@0x0800456A; no reader in the image
+tDPC_PWM.dutyMaxLim,54304,54304,counts,= period - 96 (CKPSC x32); never read,high,DPC_ACT_Init@0x08004520
+tDPC_PWM.dutyMinLim,96,96,counts,never read,high,DPC_ACT_Init@0x08004522
+HRTIM.compare_min,40,40,counts,lower clamp (7.35 ns) of master compares MCMP1..4; used in: DPC_ACT_DAB_TpzPWM_PS_Update,high,"DPC_ACT_DAB_TpzPWM_PS_Update@0x08004624 (cmp rX,#40)"
+PS_Update.argument_clamp,0x3F800001 and -1.0,+/-1,normalised,"Duty1, Duty2 and PS arguments are clamped to [-1,+1]; used in: DPC_ACT_DAB_TpzPWM_PS_Update",high,DPC_ACT_DAB_TpzPWM_PS_Update@0x08004626 (vcmp with 1.0000001)
+PS_Update.half_period_scale,MPER/2,27200,counts per unit,compare tick = (MPER/2)*argument; negative ticks get +MPER,high,DPC_ACT_DAB_TpzPWM_PS_Update@0x08004688 (vcvt.f32.u16 #1)
+HRTIM.MCMP1R_start,27200,27200,counts,master compare 1 start value = T/2 (D1 ticks in run); used in: DPC_ACT_TpzPWM_PS_Init,high,DPC_ACT_TpzPWM_PS_Init@0x0800459E
+HRTIM.MCMP2R_start,13600,13600,counts,master compare 2 start value = T/4 (PS ticks in run),high,DPC_ACT_TpzPWM_PS_Init@0x0800459E
+HRTIM.MCMP3R_start,40800,40800,counts,master compare 3 start value = 0.75 T ((D2+PS) ticks in run),high,DPC_ACT_TpzPWM_PS_Init@0x0800459E
+HRTIM.TIMx_CMP1R_start (A..D),27200,27200,counts,each leg timer own CMP1 = T/2 (output reset source),high,DPC_ACT_TpzPWM_PS_Init@0x0800459E
+HRTIM.timer_reset_triggers,TA=0x10;TB=0x20;TC=0x40;TD=0x80,TA<-master CMP1;TB<-CMP2;TC<-CMP3;TD<-CMP4,event,leg timers are reset by master compare events; the control interrupt rewrites MCMP1..4 every 100 us,high,MX_HRTIM1_Init@0x08003050 HAL_HRTIM_WaveformTimerConfig ResetTrigger
+HRTIM.output_set_reset_sources,TA1=0x80;TB1=0x100;TC1=0x200;TD1=0x400;reset=0x8,set: master PER/CMP1/CMP2/CMP3; reset: own timer CMP1; outputs 2 complementary via dead-time insertion (DTEN 0x100),event,leg waveforms were not derived from this crossbar,high,MX_HRTIM1_Init@0x08003050 HAL_HRTIM_WaveformOutputConfig
+HRTIM.FaultEnable (timers A-D),0,none,-,no HRTIM fault input is enabled; HAL_HRTIM_FaultConfig is not linked,high,MX_HRTIM1_Init@0x08003050 HRTIM_TimerCfg.FaultEnable=0
+DeadTime.request,0x34D6BF95,4.0e-07,s,requested dead time = 400 ns for both bridges; used in: DPC_ACT_Calc_DeadTime,high,"main@0x08001FB2 vldr s16,[0x080022B4]; .sim build has 0x35210FB0 = 6.0e-07 s"
+DeadTime.tick (T_DTG),0x314A1DB9,2.941176e-09,s,dead-time count period = 16/5.44 GHz = t_HRTIM/2; used in: DPC_ACT_Calc_DeadTime,high,"DPC_ACT_Calc_DeadTime@0x080042B4 vldr s1,[0x08004420]"
+HRTIM.dead_time_prescaler DTPRSC,0x800,2 (t_DTG = t_HRTIM/2),-,"written by HAL_HRTIM_DeadTimeConfig for timers A-D with rising/falling values 0, real values written later",medium,MX_HRTIM1_Init@0x08003258 str 0x800 in HRTIM_DeadTimeCfg.Prescaler; meaning from RM0440
+DPC_DTG_DAB1_bin,136,136,counts,uint8(4e-7/2.941176e-9) = 399.99999 ns; rising and falling dead time of TIMA and TIMB; used in: DPC_ACT_DAB_Conf_DeadTime,high,"main@0x08001FBE str r0,[DAB+292]; DPC_ACT_DAB_Conf_DeadTime@0x080042C8; float32 emulation"
+DPC_DTG_DAB2_bin,136,136,counts,dead time of TIMC and TIMD (equal to bridge 1),high,"main@0x08001FCA str r0,[DAB+296]"
+DeadTime.as_phase,360*f_sw*t_d,14.4,deg,dead time expressed as phase of the 100 kHz period (calculated); .sim build 21.6 deg,high,calculated
+DeadTime.request (.sim build),0x35210FB0,6.0e-07,s,earlier .sim build requests 600 ns = 204 counts,high,".sim image literal at 0x080022B4 (instruction diff, section 1.5 of FIRMWARE-NOTES.md)"
+ADC_trigger.compare (MCMP4R start),0x9F60,40800,counts,ADC trigger position 0.75 T = 7.5 us; rewritten each control cycle with the (D2+PS) ticks by DPC_ACT_DAB_TpzPWM_PS_Update; .sim build 30800 [value read directly = high; effect on timing = medium],medium,"main@0x080020D0 movw r0,#40800 -> DPC_ADC_TrigSet@0x080042A6 (writes HRTIM+0x2C)"
+ADC_trigger.source,ADCTrigger=1;Trigger=0x8;postscaler=0,HRTIM master CMP4,event,HRTIM ADC trigger 1 fires on master compare 4,high,MX_HRTIM1_Init@0x080030D2 HAL_HRTIM_ADCTriggerConfig
+ADC.kernel_clock,Adc12ClockSelection=SYSCLK;ClockPrescaler=0x30000 (HCLK/4),42500000,Hz,ADC1 and ADC2 clock,high,HAL_ADC_MspInit@0x08002E4E; MX_ADC1_Init@0x08002CB4
+ADC.resolution,Init.Resolution=0,12,bit,"12-bit, right aligned, single-ended (0x7F), no oversampling",high,"MX_ADC1_Init, MX_ADC2_Init, DPC_MISC_Analog_Start"
+ADC.external_trigger,ExternalTrigConv=0x6A0 (EXTSEL=0x15); edge=0x400,"HRTIM-triggered, rising edge",-,"both ADCs; ADC1 1 conversion, ADC2 scan of 5 ranks with discontinuous mode, 1 conversion per trigger; circular DMA words",medium,"MX_ADC1_Init, MX_ADC2_Init; EXTSEL-to-HRTIM-trigger mapping is in RM0440"
+ADC.channel_map,"ADC2 ranks 1-5 = IN4,IN5,IN6,IN7,IN12; ADC1 rank 1 = IN8","IDAB2,IDAB1,VDAB2,VDAB1 (rank5 not used); ILK=ADC1 IN8",-,"DAB_ADC.VDAB1=ADC2 rank4, VDAB2=rank3, IDAB1=rank2, IDAB2=rank1, ILK=ADC1; pins PA7,PC4,PC0,PC1,PB2,PC2 from the G474 AF table [channel numbers = high; pin names from the G474 AF table = medium]",medium,"DATA_Acquisition_from_DMA@0x080057B0; MX_ADC2_Init@0x08002D52 channel words 0x10C00010,0x14F00020,0x19200040,0x1D500080,0x32601000; ADC1 0x21800100"
+T_ext,read from p_ADC1_Data[4] = 0x20000600 = p_ADC2_Data[3],duplicates VDAB1 raw count,counts,external-temperature variable; index is beyond the 1-word ADC1 buffer; never read [the address read is certain; the role is low confidence],low,"DATA_Acquisition_from_DMA@0x080057CA ldr r0,[r0,#16]"
+ADC.sampling_time ADC2 IN4-IN7,5,92.5,ADC cycles,conversion 105 cycles = 2.47 us at 42.5 MHz,high,MX_ADC2_Init@0x08002DAE
+ADC.sampling_time ADC1 IN8,4,47.5,ADC cycles,conversion 60 cycles = 1.41 us,high,MX_ADC1_Init@0x08002D2A
+ADC.sampling_time ADC2 IN12,0,2.5,ADC cycles,rank 5,high,MX_ADC2_Init@0x08002E28
+"ADC2.hardware_offset IN6,IN7",Offset=100;OffsetSign=0;saturation off (offset 1 and 2),100 (subtracted),counts,hardware offset on the VDAB2 and VDAB1 channels; software B_Vac and B_Vdc are 0 [values = high; sign semantics from HAL/RM = medium],medium,"MX_ADC2_Init@0x08002DEA, 0x08002E0E"
+G_Vac,0x4079A9FC,3.901,counts/V,"gain of VDAB1 (port 1, VHV); VDAB1=(count-B_Vac)/G_Vac; 4096 counts = 1050 V; used in: ADC2Phy_DAB_ProcessData",high,main@0x08001FA6 vldr s0 -> DPC_ADC_Init@0x0800424E; ADC2Phy_DAB_ProcessData@0x0800419C
+B_Vac,0x00000000,0.0,counts,offset of VDAB1,high,main@0x08001FA2 vldr s1
+G_Vdc,0x40C6978D,6.206,counts/V,"gain of VDAB2 (port 2, VLV, the regulated voltage); 4096 counts = 660 V; used in: ADC2Phy_DAB_ProcessData, DPC_LPCNTRL_DAB_Vset/Init (reference to counts)",high,main@0x08001F96 vldr s4
+B_Vdc,0x00000000,0.0,counts,offset of VDAB2,high,main@0x08001F92 vldr s5
+G_Idc,0x42CCCCCD,102.4,counts/A,"gain of IDAB1, IDAB2, ILK; (count-B_Idc)/G_Idc; +/-20.0 A; used in: ADC2Phy_DAB_ProcessData (values never used by control or protection)",high,main@0x08001F8E vldr s6
+B_Idc,0x45000000,2048.0,counts,"offset of IDAB1, IDAB2, ILK (mid-scale)",high,main@0x08001F8A vldr s7
+G_Iac,0x422AAE14,42.67,counts/A,set but not used by any DAB conversion (+/-48 A scale),high,main@0x08001F9E vldr s2
+B_Iac,0x45000000,2048.0,counts,set but unused,high,main@0x08001F9A vldr s3
+VDAB1.full_scale,4096/3.901,1050,V,calculated full scale of the port-1 channel,high,calculated
+VDAB2.full_scale,4096/6.206,660,V,calculated full scale of the port-2 channel,high,calculated
+Idc.full_scale,2048/102.4,+/-20,A,"calculated full scale of IDAB1, IDAB2, ILK",high,calculated
+pPI_VDC_CTRL.Kp (k0),0x3A83126F,0.001,1/count,"proportional gain of the voltage PI (error in ADC counts, output normalised phase shift); used in: DPC_PI",high,main@0x08002056 vldr s0 -> DPC_PI_Init@0x080047F0; DPC_PI@0x0800485C
+pPI_VDC_CTRL.Ki,0x3DCCCCCD,0.1,1/(count*s),integral gain; used in: DPC_PI via k1=Ki*Ts,high,main@0x0800203A vldr s1
+pPI_VDC_CTRL.Ts,0x38D1B717,1e-04,s,PI sample time = TIM2 period,high,main@0x08002052 vldr s2
+pPI_VDC_CTRL.k1 (Ki*Ts),computed in DPC_PI_Init,1e-05,1/count,integral increment per sample per count of error,high,"DPC_PI_Init@0x08004806 vmul s0,s1,s2"
+pPI_VDC_CTRL.PIsat_up,0x3ECCCCCD,0.4,normalised (x pi rad),upper output limit = 0.4*3.14159 = 1.2566 rad = 72 deg = 0.2 T; used in: DPC_PI,high,main@0x0800204E vldr s3
+pPI_VDC_CTRL.PIsat_down,0x00000000,0,normalised,lower output limit: no negative phase shift in the loop,high,main@0x0800204A vldr s4
+pPI_VDC_CTRL.satPI_toggle,1,SET,flag,output saturation enabled,high,"main@0x08002048 movs r1,#1"
+pPI_VDC_CTRL.antiwindPI_toggle,1,SET,flag,back-calculation anti-windup enabled,high,"main@0x08002046 movs r2,#1"
+pPI_VDC_CTRL.Antiwindup_Gain,0x3DCCCCCD,0.1,-,"Antiwindup_Term = gain*(PIout_sat - PIout), added to the integrator on the next sample",high,"main@0x08002042 vmov s5,s1"
+pPI_VDC_CTRL.resetValue,0x00000000,0,normalised,integral value while resetPI is set,high,main@0x0800203E vldr s6
+pPI_VDC_CTRL.PI_Q_FxP,16,16,bits,Q16 fixed-point mirror fields exist; DPC_PI does not use them,high,DPC_PI_Init@0x080047FA
+PhSh_PowerCTRL_rad.factor (pi),0x400921F9F01B866E,3.14159,rad per unit,double constant: PhSh_PowerCTRL_rad = PhSh_PowerCTRL * 3.14159; also pi in the TPZ formulas,high,DPC_LPCNTRL_DAB_Mode@0x080049F8; literal 0x08004CDC
+PI.phase_limit,0.4*3.14159,72,deg,maximum phase shift commanded by the voltage loop (calculated),high,calculated from PIsat_up
+PI.Kp_engineering,Kp*G_Vdc,6.206e-03 per V = 1.117 deg/V,-,calculated,high,calculated
+PI.Ki_engineering,Ki*G_Vdc,0.6206 per V per s = 111.7 deg/(V s),-,calculated,high,calculated
+PI.zero,Ki/Kp,100 rad/s = 15.9 Hz,-,PI zero (calculated),high,calculated
+DPC_LPCNTRL_DAB_Init.DAB_VDC_Ref,0x32,50,V,"boot reference of port-2 voltage (fDAB_VDC_Ref_V), 310 counts; used in: DPC_LPCNTRL_DAB_Init",high,"main@0x08002084 movs r2,#50 -> DPC_LPCNTRL_DAB_Init@0x08004900"
+DAB_VDC_Ref_BITs (boot),(uint16)(50*6.206+0),310,counts,reference in ADC counts at boot,high,DPC_LPCNTRL_DAB_Init@0x0800491E
+Vramp.step_up,0x3B5A740E,0.0033333334,V per TIM6 tick,reference moves +step per tick when Ref < RefNext; used in: DPC_LPCNTRL_DAB_Vramp,high,DPC_LPCNTRL_DAB_Vramp@0x0800496E
+Vramp.step_down,0xBB5A740E,-0.0033333334,V per TIM6 tick,reference moves -step per tick when Ref > RefNext,high,DPC_LPCNTRL_DAB_Vramp@0x0800498A
+Vramp.slew_rate,0.0033333*3000,10,V/s,"reference slew rate, both directions (calculated); 0 -> 449 V takes 45 s",high,calculated
+fDAB_VDC_RefNext_V,0 (BSS),0,V,"ramp target; nothing in the image writes it, so the 50 V boot reference decays to 0 V in about 5 s unless a debugger sets it",high,Vramp reads pDAB_CTRL+40; no writer
+DAB_CTRL_State (start),0,DAB_OPEN_LOOP,enum,start state; VOLTAGE_LOOP=1 must be written at run time,high,"DPC_LPCNTRL_DAB_Init@0x08004910 strb r1,[r0,#18] (r1=0)"
+ModTecnique (start),0 (BSS),SPWM,enum,"start modulation = single phase shift; TPZ=1, TRG=2, MAN=3 selected by writing the variable",high,DPC_LPCNTRL_DAB_ModulatorSelector@0x08004C5C reads pDAB_CTRL+16; no writer
+PhSh_CTRL_MAN (start),0 (BSS),0,normalised,manual phase shift (open loop and MAN); no writer,high,DPC_LPCNTRL_DAB_Mode@0x080049DC
+TpzDuty1_CTRL_MAN / TpzDuty2_CTRL_MAN,0 (BSS),0,normalised,manual duties for mode MAN; no writer,high,DPC_LPCNTRL_DAB_ModulatorSelector@0x08004C90
+VdcCTRL_Reset (start),0 (BSS),RESET,flag,becomes PI resetPI in voltage-loop mode,high,DPC_LPCNTRL_DAB_Mode@0x080049D0
+InitMode,0 (BSS),HV2LV_OPERATION,enum,never read by any linked code,high,no access to DAB+0
+Modulator.SPWM,mode 0,Duty1=Duty2=1.0; PS=PhSh_PowerCTRL,-,single phase shift; used in: DPC_LPCNTRL_DAB_ModulatorSelector,high,ModulatorSelector@0x08004C5C
+Modulator.TPZ,mode 1,Duty1=TpzDuty1; Duty2=TpzDuty2; PS=0,-,trapezoidal modulation with two inner shifts (formulas in FIRMWARE-NOTES.md 3.7),high,ModulatorSelector; DPC_LPCNTRL_DAB_TpzPWM_DutyTime_Calc@0x08004A0C
+Modulator.MAN,mode 3,Duty1/2=TpzDuty1/2_CTRL_MAN; PS=PhSh_CTRL_MAN,-,manual,high,ModulatorSelector@0x08004C90
+Modulator.TRG,mode 2 (and any value >3),Duty1=Duty2=0; PS=0,-,triangular mode declared but not implemented: commands zero,high,ModulatorSelector@0x08004CA6
+TPZ.half_pi_constant,0x3FF921F4B1EE2435,1.57079,rad,double constant 1.57079 in phi_rad_max_trian/trap,high,DutyTime_Calc@0x08004A42
+TPZ.pi_constant,0x400921F9F01B866E,3.14159,rad,double constant 3.14159 (also used for PhSh_PowerCTRL_rad),high,DutyTime_Calc@0x08004AAE
+TPZ.inner_shifts,closed form,"Omega2=(2*VHV*phi+(n*VLV-VHV)*pi)/(2*(VHV+n*VLV)); Omega1=phi-Omega2 if VHV>=n*VLV, else Omega1=(2*n*VLV*phi+(VHV-n*VLV)*pi)/(2*(VHV+n*VLV)); Omega2=phi-Omega1",rad,TpzD1_time=(Tsw/2)(1-2*Omega1/pi); TpzDuty1=+TpzD1_time/(Tsw/2); TpzDuty2=-TpzD2_time/(Tsw/2),high,DutyTime_Calc@0x08004A0C-0x08004BFA
+phi_rad_max_trian / phi_rad_max_trap,formula,1.57079*(1-n*VLV/VHV); 1.57079*(1-n*VHV*VLV/(n*VHV*VLV+VHV^2+(n*VLV)^2)),rad,"computed every cycle, written only, never used as a limit",high,"DutyTime_Calc@0x08004BFA, 0x08004BFE"
+Pmax_sps,formula,n*VHV*VLV/(8*f_sw*L),W,"written only; 28.57 kW at 800 V / 449.4 V with n=1.78, 100 kHz, 28 uH (calculated)",high,DPC_LPCNTRL_DAB_MaxPowerCalc@0x08004C10
+Pmax_tpz,formula,(n*VHV*VLV)^2/(4*f_sw*L*(n*VHV*VLV+VHV^2+(n*VLV)^2)),W,written only,high,DPC_LPCNTRL_DAB_MaxPowerCalc@0x08004C10
+pDAB_CTRL.swFreq_Hz,0x47C35000,100000.0,Hz,"switching frequency constant; used in: MaxPowerCalc (passed to DutyTime_Calc, which ignores it)",high,"DPC_LPCNTRL_DAB_Init@0x08004928 ldr r1,[0x08004CC0]"
+pDAB_CTRL.swPeriod_s,0x3727C5AC,1e-05,s,switching period constant; used in: DutyTime_Calc (Tsw); independent of swFreq_Hz and of the DPC_ACT_Init argument,high,DPC_LPCNTRL_DAB_Init@0x0800492A
+pDAB_CTRL.Inductance_H,0x37EAE18B,2.8e-05,H,series inductance 28 uH; used in: MaxPowerCalc only,high,DPC_LPCNTRL_DAB_Init@0x08004932
+pDAB_CTRL.trafoTurnRatio,0x3FE3D70A,1.78,-,"multiplies VLV: M = n*VLV/VHV; 1.78 matches 800 V to 449.4 V (calculated); used in: MaxPowerCalc, DutyTime_Calc",high,DPC_LPCNTRL_DAB_Init@0x08004930
+FSM.timeout #4 (WAIT),3000,3000,ms,"arms in WAIT; IDLE waits for it; used in: DPC_FSM_WAIT_Func, DPC_FSM_IDLE_Func, DPC_TO_Set/Check/Relase",high,"DPC_FSM_WAIT_Func@0x08002164 movw r1,#3000; TIM3 = 1 kHz"
+FSM.timeout #5 (IDLE),1000,1000,ms,armed when #4 elapsed; INIT waits for it,high,DPC_FSM_IDLE_Func@0x080021A4
+FSM.timeout #6 (INIT),1000,1000,ms,armed when #5 elapsed; never checked,high,DPC_FSM_INIT_Func@0x080021F0
+FSM.states,DPC_FSM_State_t,"WAIT0,IDLE1,INIT2,START3,RUN4,STOP5,ERROR6,FAULT7",enum,STOP->ERROR->FAULT always cascade; RUN stays unless a fault bit is set,high,DPC_FSM_Application@0x08004CF8
+FSM.time_reset_to_RUN,3000+1000 ms,4,s,about 4 s (calculated),high,calculated
+FSM.fan_relay,RELAY_FAN=0x80,GPIOC pin 12 high at end of INIT,-,"fan relay; used in: DPC_FSM_INIT_Func, DPC_MISC_RELAY_Cntl",high,DPC_FSM_INIT_Func@0x08002206; DPC_MISC_RELAY_Cntl@0x08004046
+uwFaultErrorVector,0 (BSS),0,bitmask,"only reader is DPC_FLT_Faulterror_Check; nothing writes it, so the software fault chain never triggers",high,xref of 0x20000C90: DPC_FLT_Faulterror_Check@0x08005670 only
+DC_Load_Limit.V_dc_Limit input,550,550,V,"stored limit, never read",high,"main@0x08002074 movw r1,#550 -> DPC_MISC_DCLoad_Init@0x08003EF8"
+DC_Load_Limit.V_dc_Limit,550*6.206+0,3413,counts,"stored at DAB+318, never read",high,float32 emulation of DPC_MISC_DCLoad_Init
+DC_Load_Limit.V_cap_Limit input,1000,1000,V,"stored limit, never read",high,main r2=r5=1000
+DC_Load_Limit.V_cap_Limit,1000*6.206+0,6206,counts,above the 12-bit range (4095): could never trigger; stored at DAB+302,high,float32 emulation
+DC_Load_Limit.I_No_load_Threshold,0.5 A: 2048+0.5*102.4,"2099 (max 2109, min 2089)",counts,no-load threshold with +/-20 % hysteresis; never read,high,"DPC_MISC_DCLoad_Init@0x08003EF8; literal 0.5 from vmov.f32 s0,#0.5"
+DC_Load_Limit.I_Low_load_Threshold,0x3F99999A (1.2 A),"2170 (max 2206, min 2134)",counts,low-load threshold with +/-30 % hysteresis; never read,high,main@0x0800206A vldr s1
+DC_Load_Limit.I_Over_load_Threshold,0x42C80000 (100.0 A),12288,counts,over-load threshold; beyond the 12-bit range and the +/-20 A scale; never read,high,main@0x08002066 vldr s2
+Protection.over_voltage/over_current/under_voltage/over_temperature,-,none active in software or HRTIM,-,no comparison of any measured value with a limit exists in the image; hard-fault handlers loop without stopping the PWM,high,"whole-image review: no readers of the DC_Load_Limit fields, T_ext or the current channels"
+OptionBytes.BOOT_LOCK,0x10000,set at start-up if not set (then option-byte reload),-,boot always from flash; used in: DPC_MISC_OB_Init,medium,DPC_MISC_OB_Init@0x0800415A
+USART2.baud,0xE100,57600,baud,"8 data bits, 1 stop, no parity, TX+RX, no flow control; initialised only, no transmit/receive function linked",high,MX_USART2_UART_Init@0x080037EC
+CAN,-,absent,-,"no FDCAN HAL, no CAN handler",high,symbol list
+I2C1.Timing,0x10802D9B,7-bit master,-,drives the SSD1306 OLED [value = high; role = medium],medium,MX_I2C1_Init@0x0800370C
+GPIOC.markers,"PC10,PC11,PC12,PC14,PC15 outputs; PC13 input",PC11=control-ISR marker; PC12=fan relay; PC14/PC15=ADC1/ADC2 DMA-complete markers; PC13 never read,-,scope timing marks and fan relay,high,MX_GPIO_Init@0x08002B90; HAL_TIM_PeriodElapsedCallback@0x08002320; HAL_ADC_ConvCpltCallback@0x08002422
+DAC_CH debug,"DPC_DAC_Init(12,3,4; gain 2048 x3; bias 2048 x3)",constant output,-,signal selection removed by the compiler; its timer TIM7 is never started,high,main@0x080020BC; Debug_DATA_DAC@0x080024AC

@@ -1,0 +1,302 @@
+{
+ "part": "port_cm_choke",
+ "revision": "M2",
+ "status": "proposed construction - calculated, not built or measured (cost-first port, D-044)",
+ "basis": {
+  "spec": "sim/out/port_design/port_spec.json",
+  "spec_mtime": "2026-10-04 22:42",
+  "ratings_from": "gen/port.py CMC160 / CMC200 desc (160 / 200 A DC, L_cm >= 0.5 mH @ 10 kHz, dT <= 40 K)"
+ },
+ "construction": "one flat-mu nanocrystalline ring 63/38/25 mm (Shincore SC-1K107-LP class, mu 30 000) around both bars of the port, single pass, in a clip-on case; the 16 dB CM attenuation of ARCHITECTURE-COSTFIRST 8.1 comes from raising the module's CM capacitance to PE to >= 127 nF (port engineer, with the PE measures below), not from the ring",
+ "electrical": {
+  "requirement": "architecture 8.1: emission estimate 106-112 dBuV at 150-300 kHz with Y caps 2 x 9.4 nF and a 150 ohm CM network; CISPR 11 class A DC-port AV limit (from memory, verify) -> >= 16 dB CM attenuation at 150-500 kHz, >= 6 dB above",
+  "need_db": {
+   "150 kHz": 16.0,
+   "500 kHz": 16.0,
+   "2000 kHz": 6.0
+  },
+  "derivation_check": {
+   "method": "I_AN / I_source = Z_Y / (Z_Y + Z_choke + Z_AN): the switch-node CM source is capacitive (~kohm), so the choke only acts between the Y-cap node and the port; Z_Y of 18.8 nF, Z_AN 150 ohm, nanocrystalline |Z| at 45 deg",
+   "choke_needed_for_16dB_ohm": {
+    "150 kHz": 1048.0,
+    "500 kHz": 900.0
+   },
+   "architecture_ring_100ohm_gives_dB": 2.8,
+   "single_ring_gives_dB": {
+    "150 kHz": 0.8,
+    "500 kHz": 1.6,
+    "2000 kHz": 1.7
+   },
+   "m1_gives_dB": {
+    "150 kHz": 8.8,
+    "500 kHz": 12.3,
+    "2000 kHz": 14.3
+   },
+   "choke_only_cheapest": {
+    "CMC160": {
+     "construction": "Magnetec Nanoperm 8000 (flat), 5 turns on 6 x 80/50/25",
+     "cost_usd": 144.0,
+     "IL_dB": {
+      "150 kHz": 16.9,
+      "500 kHz": 20.7,
+      "2000 kHz": 22.9
+     }
+    },
+    "CMC200": "none fits an 80/50/25 stack (window fill)"
+   }
+  },
+  "C_Y_total_needed_F": 1.2654090239634097e-07,
+  "IL_with_C_Y_and_ring_dB": {
+   "150 kHz": 17.2,
+   "500 kHz": 18.3,
+   "2000 kHz": 18.3
+  },
+  "LF_current_through_C_Y_A_rms": 0.011160171159562407,
+  "C_Y_consequence": "11.2 mA rms at 150 Hz into PE in the 800 V AC case: inside the 30 mA module limit (architecture 8.1) but above 3.5 mA touch current -> PE >= 10 mm2 Cu or a second PE terminal + warning label (IEC 62477-1 high-touch-current rule) - an architecture / safety decision",
+  "emission_margin_given_up_vs_M1_dB": {
+   "150 kHz": 8.0,
+   "500 kHz": 10.6,
+   "2000 kHz": 12.5
+  },
+  "ring_L_1turn_H": 5.324639660283078e-05,
+  "B_LF_caseB_T": 0.8320104185201002,
+  "B_LF_caseC_T": 0.9455956791405148,
+  "B_allow_T": 0.9199999999999999,
+  "B_HF_T": 0.010297678799756581,
+  "B_DM_T": 0.10922337764683239
+ },
+ "core": {
+  "maker": "Shincore (or Yunlu / AT&M flat grade) - RFQ",
+  "part_number": "nanocrystalline ring 63/38/25 mm, flat-loop, cased",
+  "material": "Shincore SC-1K107-LP (flat, Asian catalogue)",
+  "n_cores": 1,
+  "Ae_m2": 0.000234,
+  "le_m": 0.1587,
+  "mu_150Hz": 30320.0,
+  "mu_150kHz": 17618.0,
+  "B_sat_T": 1.2,
+  "gap": {
+   "type": "none"
+  },
+  "datasheet": "MAS material SC-1K107-LP (OpenMagnetics); Yunlu catalogue (docs/datasheets/magnetics/Yunlu-Nanocrystalline-Cores.pdf p.6) for the adjustable-mu grades",
+  "asian_alternative": "this is the Asian part",
+  "rejected": "high-mu 80 000 ring (architecture 8.1 default): saturates with the 150 Hz CM current (B ~3 T in case B)"
+ },
+ "windings": [
+  {
+   "name": "CMC160",
+   "turns": 1,
+   "conductor": "port bars pass through (10 x 5 mm tin-plated Cu (50 mm2))",
+   "arrangement": "+ and - bars side by side"
+  },
+  {
+   "name": "CMC200",
+   "turns": 1,
+   "conductor": "port bars pass through (10 x 7 mm tin-plated Cu (70 mm2))",
+   "arrangement": "+ and - bars side by side"
+  }
+ ],
+ "fit": {
+  "build_m": null,
+  "available_m": null,
+  "fits": true,
+  "hole_fill": {
+   "CMC160": 0.1468744690878911,
+   "CMC200": 0.1920666134226268
+  },
+  "fill_max": 0.45
+ },
+ "insulation": {
+  "system": "the ring sits on sleeved bars (>= 0.75 mm, >= 1.5 kV DC); case CTI >= 600; the ring is not an insulation part (bars' own insulation is the basic insulation, IC-09 levels unchanged)",
+  "creepage_terminals_m": 0.016,
+  "clearance_m": 0.0071,
+  "creepage_potted_m": 0.005,
+  "levels": [
+   {
+    "label": "Basic HV-PE, DC pole (Y caps, fuse bases, terminals)",
+    "kind": "B",
+    "u_w": 1000.0,
+    "u_rp": 1000.0,
+    "imp": 6000.0,
+    "imp_spd": 4781.25,
+    "ac": 2200.0,
+    "pd_test": 0.0,
+    "pd_ext": 0.0,
+    "cr_pd1": 3.2,
+    "cr_pd2": 5.0,
+    "cl_2000": 5.5,
+    "cl_3000": 6.3
+   }
+  ],
+  "routine_tests": "AC 2200 V rms 1 s (or 2640 V 1 s) pole-pole and poles-core/case; L_cm at 10 kHz",
+  "type_tests": "AC 2200 V rms 60 s; impulse 6 kV 1.2/50 (no surge credit); L_cm at 16/100 kHz with 1.7 A rms 150 Hz CM bias and rated DC; thermal run at rated DC (IC-09)"
+ },
+ "loss_model": {
+  "core": {
+   "formula": "Yunlu Pcm = 1.205e-3 (f/kHz)^1.826 (B/0.1 T)^2.077 W/kg (datasheet p.11)",
+   "mass_kg": 1.6770214283944016
+  },
+  "winding": {
+   "R_ac_per_harmonic": null,
+   "referred_to": "per pole, DC",
+   "temperature_C": 90.0,
+   "R_pole_ohm": {
+    "CMC160": 0.0004535479696,
+    "CMC200": 0.0003314822822857143
+   },
+   "formula": "P_cu = 2 I_dc^2 R_pole (DC; the HF CM current is < 0.1 A)"
+  }
+ },
+ "loss_table": [
+  {
+   "point": "CMC160 160 A DC",
+   "I_rms_A": 160.0,
+   "B_pk_T": 0.8320104185201002,
+   "P_core_W": 0.0010646335255223402,
+   "P_cu_W": 0.0,
+   "P_total_W": 0.0010646335255223402
+  },
+  {
+   "point": "CMC200 200 A DC",
+   "I_rms_A": 200.0,
+   "B_pk_T": 0.8593162629318082,
+   "P_core_W": 0.0010646335255223402,
+   "P_cu_W": 0.0,
+   "P_total_W": 0.0010646335255223402
+  }
+ ],
+ "loss_grid": {
+  "I_rms_A": [],
+  "P_cu_W": [],
+  "B_pk_T": [],
+  "P_core_W": [],
+  "note": "no winding; core loss from the 150 Hz CM flux, < 1 W"
+ },
+ "thermal": {
+  "dT_rated_K": 0.0,
+  "basis": "no winding loss; core loss < 1 W",
+  "interface": "clip-on case on the bars"
+ },
+ "mass_kg": {
+  "CMC160": 0.32144096837794,
+  "CMC200": 0.32144096837794
+ },
+ "cost": {
+  "per_variant": {
+   "CMC160": {
+    "core_usd": 6.9288193675588,
+    "copper_usd": 0.0,
+    "insulation_usd": 2.0,
+    "labour_usd": 1.0,
+    "total_usd": 10.9
+   },
+   "CMC200": {
+    "core_usd": 6.9288193675588,
+    "copper_usd": 0.0,
+    "insulation_usd": 2.0,
+    "labour_usd": 1.0,
+    "total_usd": 10.9
+   }
+  },
+  "basis": "ESTIMATES, no quote: flat nanocrystalline 20 USD/kg (0.27 kg) + case 1.5 + insulation 2 + labour 1, +10 %; the extra Y capacitance (~127 nF total) is the port engineer's BOM (~2 USD per port)",
+  "cost_estimates_row": "CM ring 63/38/25 (CUSTOM),11,\"ESTIMATE (sim/magnetics.py design_port_cm_choke.json rev M2): flat-mu nanocrystalline ring 0.27 kg at 20 USD/kg + case/insulation/labour 4.5, +10 %; one per port, both ratings; no quote\",low",
+  "total_usd": 10.9
+ },
+ "verification": {
+  "own": {
+   "IL_ring_dB": {
+    "150000.0": 0.774932199347793,
+    "500000.0": 1.6239814480725723,
+    "2000000.0": 1.7019460201001353
+   },
+   "IL_m1_dB": {
+    "150000.0": 8.78519702665017,
+    "500000.0": 12.267068132032083,
+    "2000000.0": 14.250112283395918
+   },
+   "B_caseB_T": 0.8320104185201002
+  },
+  "openmagnetics": {
+   "note": "MAS |mu(f)| of SC-1K107-LP / Nanoperm 8000 used for all impedances (get_material_permeability)"
+  },
+  "previous_designer": {
+   "architecture_8_1": "one high-mu ring per port, single turn, |Z| >= 100 ohm, 12 USD for two cores"
+  }
+ },
+ "reference_M1": {
+  "construction": "4 stacked flat-mu nanocrystalline toroids 80/50/25 mm (mu 11 000 +/-25 %), bifilar 3-turn formed copper bars (+ and - side by side), sleeved, potted with thermally conductive epoxy in a case bolted to the chassis; same core stack for CMC160 and CMC200, bar size differs",
+  "cost": {
+   "CMC160": {
+    "core_usd": 39.54042856788803,
+    "copper_usd": 18.773304,
+    "insulation_usd": 20.0,
+    "labour_usd": 13.0,
+    "total_usd": 100.0
+   },
+   "CMC200": {
+    "core_usd": 39.54042856788803,
+    "copper_usd": 26.892667199999988,
+    "insulation_usd": 20.0,
+    "labour_usd": 13.0,
+    "total_usd": 109.0
+   }
+  },
+  "IL_dB": {
+   "150000.0": 8.78519702665017,
+   "500000.0": 12.267068132032083,
+   "2000000.0": 14.250112283395918
+  }
+ },
+ "options": [
+  {
+   "option": "Shincore SC-1K107-LP (flat, Asian catalogue), 1 t x 1 core(s) nanocrystalline ring 6",
+   "rating": "CMC160",
+   "IL_150k_dB": 0.8,
+   "IL_500k_dB": 1.6,
+   "IL_2M_dB": 1.7,
+   "B_caseB_T": 0.83,
+   "cost_usd": 10.9,
+   "meets_16dB_alone": false
+  },
+  {
+   "option": "flat-mu nanocrystalline mu 11 000 +/-25 % (field-annealed, RFQ: Shincore / Yunlu / AT&M), 3 t x 4 core(s) nanocrystalline toroid",
+   "rating": "CMC160",
+   "IL_150k_dB": 8.8,
+   "IL_500k_dB": 12.3,
+   "IL_2M_dB": 14.3,
+   "B_caseB_T": 0.72,
+   "cost_usd": 100.0,
+   "meets_16dB_alone": false
+  },
+  {
+   "option": "Magnetec Nanoperm 8000 (flat), 5 t x 6 core(s) nanocrystalline toroid",
+   "rating": "CMC160",
+   "IL_150k_dB": 16.9,
+   "IL_500k_dB": 20.7,
+   "IL_2M_dB": 22.9,
+   "B_caseB_T": 0.84,
+   "cost_usd": 144.0,
+   "meets_16dB_alone": true
+  },
+  {
+   "option": "Shincore SC-1K107-LP (flat, Asian catalogue), 1 t x 1 core(s) nanocrystalline ring 6",
+   "rating": "CMC200",
+   "IL_150k_dB": 0.8,
+   "IL_500k_dB": 1.6,
+   "IL_2M_dB": 1.7,
+   "B_caseB_T": 0.86,
+   "cost_usd": 10.9,
+   "meets_16dB_alone": false
+  },
+  {
+   "option": "flat-mu nanocrystalline mu 11 000 +/-25 % (field-annealed, RFQ: Shincore / Yunlu / AT&M), 3 t x 4 core(s) nanocrystalline toroid",
+   "rating": "CMC200",
+   "IL_150k_dB": 8.8,
+   "IL_500k_dB": 12.3,
+   "IL_2M_dB": 14.3,
+   "B_caseB_T": 0.75,
+   "cost_usd": 109.0,
+   "meets_16dB_alone": false
+  }
+ ]
+}

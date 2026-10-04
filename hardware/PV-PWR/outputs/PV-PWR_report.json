@@ -1,0 +1,44 @@
+{
+  "project": "PV-PWR",
+  "rev": "A1",
+  "date": "2026-10-04",
+  "sheets": 22,
+  "parts": 1870,
+  "nets": 932,
+  "erc_waivers": {
+    "ground_pin_not_ground": "NSI6651ASC pin 3 is named GND2 in the datasheet (p3) but is the isolated driver-side reference = the device's Kelvin source (floating COM net), deliberately not the board GND"
+  },
+  "passed": true,
+  "checks": [
+    {
+      "check": "Isolation domains (only declared isolators/crossings bridge two domains)",
+      "result": "pass",
+      "detail": "46 isolators, 69 crossings, 1804 other parts each in one domain"
+    },
+    {
+      "check": "Stress: jellybean capacitor voltage <= 80 %, resistor power <= 60 % and working voltage",
+      "result": "pass",
+      "detail": "629 parts inside the rules, 417 on nets without a DC range (left to the design check)"
+    },
+    {
+      "check": "ERC (kicad-cli, all severities)",
+      "result": "pass",
+      "detail": "0 errors, 12 warnings (12 waived) - clean"
+    },
+    {
+      "check": "Netlist identity (kicad-cli XML export == design table)",
+      "result": "pass",
+      "detail": "932 nets, 1870 components identical"
+    },
+    {
+      "check": "Schematic PDF rendered",
+      "result": "pass",
+      "detail": "hardware/PV-PWR/outputs/PV-PWR_schematic.pdf"
+    },
+    {
+      "check": "BOM: every line has manufacturer + MPN + datasheet on file, or is GENERIC/RFQ/CUSTOM",
+      "result": "pass",
+      "detail": "220 lines, 1870 parts -> bom/PV-PWR_BOM.csv"
+    }
+  ]
+}

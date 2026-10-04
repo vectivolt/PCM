@@ -1,0 +1,14 @@
+* PVCELL VDMOS C_gd fit for IV3Q12035T4Z: drain ramp 0..800 V, gate held at -3.5 V
+.model m VDMOS(Vto=2.8 Kp=5 lambda=0.01 Rd=0.02084 Rs=0.5m Rg=2.5 Cgs=2.079e-09 Cgdmax=4.164e-10 Cgdmin=3e-12 a=0.03613 Cjo=1.505e-09 Vj=3 M=0.5 Is=7.58e-16 N=3 Rb=0.06554 Tt=0)
+Vg g 0 -3.5
+Vd dd 0 PWL(0 0 10u 800.0)
+Rd dd dn 1m
+M1 dn g 0 m
+.save i(Vg) v(dn)
+.tran 5n 10u
+.control
+run
+wrdata pv_fit_IV3Q12035T4Z.dat i(Vg) v(dn)
+quit
+.endc
+.end

@@ -1,0 +1,934 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "48124f7c-985a-5333-8eff-d9b7e5d1414b")
+	(paper "A3")
+	(title_block
+		(title "CTRL-C2000 control card - Cover / Hierarchy")
+		(date "2026-10-04")
+		(rev "E0")
+		(comment 1 "All interface contracts: gen/interfaces.py (CELL x4, PORT, SYS)")
+		(comment 2 "Schematics authored by Chinmoy Bhuyan")
+		(comment 3 "Sheet 1")
+		(comment 4 "Not bench-validated. Values marked calculated are not simulated.")
+	)
+	(lib_symbols)
+	(text "CELL contract 2x20: 8 PWM RS-422 drivers, 3 dual-range analog inputs, RDY, ID,\nNTC; gate-driver supply +24V_GD through a 1.5 A eFuse (TPS26600)"
+		(exclude_from_sim no)
+		(at 118.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "09419e34-ebb1-5fc4-8a1a-6c4512e67dae")
+	)
+	(text "CELL contract 2x20: 8 PWM RS-422 drivers, 3 dual-range analog inputs, RDY, ID,\nNTC; gate-driver supply +24V_GD through a 1.5 A eFuse (TPS26600)"
+		(exclude_from_sim no)
+		(at 310.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "0b1111ee-2426-5537-8d6f-b79330e0d74e")
+	)
+	(text "Cn_EN = GATE_EN AND CHB_OK AND MCU enable (74LVC11A); line drivers on only while\nCHB_OK, MCU enable and RDY; EN drivers with readback; fail-safe FLT receivers"
+		(exclude_from_sim no)
+		(at 118.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "118e42a4-3e52-5e36-8949-1f617eb1a001")
+	)
+	(text "CHB_OK, MCU enable and RDY; EN readback on GPIO100-103. +24V_GD feeds only the cell eFuses."
+		(exclude_from_sim no)
+		(at 20 240 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "1cd3d3e5-a373-5378-956e-016fe8d76e00")
+	)
+	(text "Rev E0  |  2026-10-04  |  Schematics authored by Chinmoy Bhuyan  |  TMS320F28388D common controller for PV-P75/100/110 and DAB-D60"
+		(exclude_from_sim no)
+		(at 20 36 0)
+		(effects
+			(font
+				(size 2 2)
+			)
+			(justify left bottom)
+		)
+		(uuid "21f0db96-6f7f-5c87-9232-de8c3b7bdb42")
+	)
+	(text "SPRSP14E 7.10.1.5: 0.1 uF per VDDIO/VDD3VFL/VDDOSC ball, 2.2 uF per VDDA ball,\n~22 uF total on VDD + one 56 R load, 22 uF per VREFHI (16-bit mode)"
+		(exclude_from_sim no)
+		(at 310.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "288c9b62-aa56-5e10-a9b3-d22e8dad7d62")
+	)
+	(text "80-way SYS contract: +24 V logic, +24V_GD (channel B), CAN, SCI, SPI, I2C, DI/DO,\nfault latch, GATE_EN, CHB_OK, watchdog, reset, fans, Ethernet MDI + centre tap"
+		(exclude_from_sim no)
+		(at 310.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "36302f6d-1968-54ab-9723-64c3ac2b9272")
+	)
+	(text "cTI-20 JTAG, CM debug UART, 24LC256 calibration EEPROM (0x57), status LEDs,\nERRORSTS, 8-channel SDFM expansion header (ECO-02 / ECO-09)"
+		(exclude_from_sim no)
+		(at 118.5 186 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "4145f7b1-6dd6-520b-8a2d-d10a3e463bad")
+	)
+	(text "All 337 balls, pin table extracted from SPRSP14E (gen/data/f28388d_pins.csv);\nnet per ball from the pin plan (gen/data/ctrl_c2000_pin_plan.csv)"
+		(exclude_from_sim no)
+		(at 214.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "5643c0e2-3802-5f00-ae22-1b2c4d966f77")
+	)
+	(text "Rails: 24 V -> 5 V (LMR38020) -> 3.3 V (TPS62133); its PG enables 1.2 V (TPS62130) and 3.3 V analog (TPS7A2033), so VDDIO leads VDD and VDDA (SPRSP14E table 7-1). Three TPS3703 hold XRSn (windows on 3.3 V and 3.3 V analog, UV on 1.2 V), every tolerance corner asserted. REF5025E"
+		(exclude_from_sim no)
+		(at 20 244 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "5b21e6de-4b07-5605-a7fe-853cf3e02314")
+	)
+	(text "+24V -> LMR38020 5 V -> TPS62133 3.3 V; PG chain enables TPS62130 1.2 V\nand TPS7A2033 3.3 V analog (VDDIO first, then VDD and VDDA)"
+		(exclude_from_sim no)
+		(at 22.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "7452ef57-b715-5c39-a85e-576c568327d6")
+	)
+	(text "INPUTXBAR6 -> TRIP6. CMPSS reference = VDAC = REF5025E; firmware nulls each channel at zero input at start-up; trip bands in the pin plan, asserted against sim/out/pv_control/control_spec.json. EN pair = GATE_EN AND CHB_OK AND MCU enable (74LVC11A); line drivers on only with"
+		(exclude_from_sim no)
+		(at 20 236 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "7d9eb531-e6d8-531e-8dff-4259518ac0f3")
+	)
+	(text "CELL contract 2x20: 8 PWM RS-422 drivers, 3 dual-range analog inputs, RDY, ID,\nNTC; gate-driver supply +24V_GD through a 1.5 A eFuse (TPS26600)"
+		(exclude_from_sim no)
+		(at 22.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "844ff370-71cc-542a-86f9-a6f4e0f7802c")
+	)
+	(text "runs from the analog rail, so VREFHI and VDAC never exceed VDDA."
+		(exclude_from_sim no)
+		(at 20 248 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "8c37ac55-9e92-5066-928b-a51d38b25ad7")
+	)
+	(text "PORT contract 2x13: VA, VAX, VB, VBX, IA, IB, AUX1, AUX2 isolated-amplifier pairs,\nbiased open-safe, through difference amp + RC + clamp; ID; +24V out through an eFuse"
+		(exclude_from_sim no)
+		(at 214.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "a1b4a133-90fd-5b77-9fc1-6e6bbc18c433")
+	)
+	(text "CELL contract 2x20: 8 PWM RS-422 drivers, 3 dual-range analog inputs, RDY, ID,\nNTC; gate-driver supply +24V_GD through a 1.5 A eFuse (TPS26600)"
+		(exclude_from_sim no)
+		(at 214.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "a8e0ce9b-cddb-59ca-a3b8-a0df8aad082b")
+	)
+	(text "Pin plan with mux positions and trip bands: gen/data/ctrl_c2000_pin_plan.csv (checked against SPRSP14E table 6-1 on every build). Pin table: gen/data/f28388d_pins.csv (from the PDF)."
+		(exclude_from_sim no)
+		(at 20 252 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "b271d892-2591-5429-86b9-dd718390a84f")
+	)
+	(text "REF5025E 2.5 V for VREFHIA-D; OPA2388 buffers VMID 1.25 V (diff-amp offset)\nand VBIAS 2.5 V (ID/NTC bias); TMUX1208 for 4 NTC + 4 ID; 24 V monitor; AGND star"
+		(exclude_from_sim no)
+		(at 22.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "b81f827b-9359-572c-ae9d-f7e19f0a0196")
+	)
+	(text "CTRL-C2000 control card"
+		(exclude_from_sim no)
+		(at 20 28 0)
+		(effects
+			(font
+				(size 5 5)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "c86bffdf-7d3f-58b9-ab1a-439cfe39ca75")
+	)
+	(text "MII to the CM EMAC (GPIO105-124, mux 14), own 25 MHz oscillator, 49.9 R MDI\nterminations to AVD; MDI pairs, LEDs and the centre-tap supply ETH_CT go to SYS"
+		(exclude_from_sim no)
+		(at 22.5 186 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "cc0388f0-e3c7-59c9-8758-2ba4f98d6215")
+	)
+	(text "TPS3703 windows on 3.3 V and 3.3 V analog, UV supervisor on 1.2 V -> XRSn;\n25 MHz CMOS clock into X1; boot straps GPIO72/GPIO84 (flash by default)"
+		(exclude_from_sim no)
+		(at 118.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "df947832-175d-5442-8b60-e1ea13b9fd50")
+	)
+	(text "SYS side: inputs via 74LVC244A / 74LVC1G17 (Ioff); I2C pull-ups and EEPROM 0x57 here; ETH_CT = PHY AVD; PORT +24V via its own eFuse."
+		(exclude_from_sim no)
+		(at 20 256 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "e242ab13-6676-563b-884c-af47e1a9844e")
+	)
+	(text "Protection without firmware: FLT_LATCH_N -> INPUTXBAR1 -> TZ1; each cell's FAULT (INPUTXBAR2-5) and AN1 CMPSS window -> TRIP4/5/7/8; port OV (ADC PPB on VA/VB, CMPSS backup), open inputs (CMPSS low), IA/IB SC (CMPSS) and OC (PPB), P_ID (PPB) -> TRIP9 for every cell; E-stop ->"
+		(exclude_from_sim no)
+		(at 20 232 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "eca81423-89e8-56ec-85b8-53b9408561c5")
+	)
+	(sheet
+		(at 116 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "136c89cb-adb5-5d3b-b9ed-916a9a26995f")
+		(property "Sheetname" "02 Supervisors, reset, clock, boot"
+			(at 116 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/02_reset.kicad_sch"
+			(at 116 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "CTRL-C2000"
+				(path "/48124f7c-985a-5333-8eff-d9b7e5d1414b"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "1fa608f1-e9f9-5047-9d22-966ce3449ef3")
+		(property "Sheetname" "05 ADC reference, VMID, slow mux"
+			(at 20 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/05_adcref.kicad_sch"
+			(at 20 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "CTRL-C2000"
+				(path "/48124f7c-985a-5333-8eff-d9b7e5d1414b"
+					(page "6")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "4bad33ed-842a-54b9-bf6f-fe6578c4369b")
+		(property "Sheetname" "12 SYS-IO-AUX connector"
+			(at 308 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/12_sys.kicad_sch"
+			(at 308 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "CTRL-C2000"
+				(path "/48124f7c-985a-5333-8eff-d9b7e5d1414b"
+					(page "13")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 182)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "601b2930-23cb-55cb-b9bc-3f626b07de74")
+		(property "Sheetname" "13 Ethernet PHY DP83822I"
+			(at 20 181.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/13_eth.kicad_sch"
+			(at 20 208.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "CTRL-C2000"
+				(path "/48124f7c-985a-5333-8eff-d9b7e5d1414b"
+					(page "14")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 182)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "6d40df9b-1eeb-5fab-81de-6643d415abf1")
+		(property "Sheetname" "14 JTAG, UART, EEPROM, LEDs, SDFM"
+			(at 116 181.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/14_debug.kicad_sch"
+			(at 116 208.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "CTRL-C2000"
+				(path "/48124f7c-985a-5333-8eff-d9b7e5d1414b"
+					(page "15")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "9286e948-0172-5ddf-8c5d-7dad9aad3131")
+		(property "Sheetname" "11 Port-board analog inputs"
+			(at 212 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/11_port.kicad_sch"
+			(at 212 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "CTRL-C2000"
+				(path "/48124f7c-985a-5333-8eff-d9b7e5d1414b"
+					(page "12")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "9a3d06cd-1ec1-54d7-b579-cc56c63874a2")
+		(property "Sheetname" "09 Cell port C3"
+			(at 20 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/09_cell3.kicad_sch"
+			(at 20 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "CTRL-C2000"
+				(path "/48124f7c-985a-5333-8eff-d9b7e5d1414b"
+					(page "10")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "9c3c444f-a7a7-507a-9708-65ab585f6680")
+		(property "Sheetname" "06 Fault receivers, enable, EN drivers"
+			(at 116 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/06_trip.kicad_sch"
+			(at 116 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "CTRL-C2000"
+				(path "/48124f7c-985a-5333-8eff-d9b7e5d1414b"
+					(page "7")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "ad571f6b-af17-5444-8b0b-f79ebc71fb39")
+		(property "Sheetname" "08 Cell port C2"
+			(at 308 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/08_cell2.kicad_sch"
+			(at 308 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "CTRL-C2000"
+				(path "/48124f7c-985a-5333-8eff-d9b7e5d1414b"
+					(page "9")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "aedf98cd-d5ca-566f-8eef-b1d1389f71bc")
+		(property "Sheetname" "10 Cell port C4"
+			(at 116 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/10_cell4.kicad_sch"
+			(at 116 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "CTRL-C2000"
+				(path "/48124f7c-985a-5333-8eff-d9b7e5d1414b"
+					(page "11")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "c422bab8-2ba6-5ae9-bc9e-f4b4ec4a26e2")
+		(property "Sheetname" "03 TMS320F28388D (ZWT 337-ball)"
+			(at 212 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/03_mcu.kicad_sch"
+			(at 212 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "CTRL-C2000"
+				(path "/48124f7c-985a-5333-8eff-d9b7e5d1414b"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "e2af6cd3-9bb2-5a49-a26f-8ebf550b6b79")
+		(property "Sheetname" "01 Power regulators"
+			(at 20 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/01_power.kicad_sch"
+			(at 20 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "CTRL-C2000"
+				(path "/48124f7c-985a-5333-8eff-d9b7e5d1414b"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "e5b77009-7573-59b4-8c0f-c6d680671cf4")
+		(property "Sheetname" "07 Cell port C1"
+			(at 212 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/07_cell1.kicad_sch"
+			(at 212 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "CTRL-C2000"
+				(path "/48124f7c-985a-5333-8eff-d9b7e5d1414b"
+					(page "8")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "fc4cbad3-a56f-5d7b-b2f3-0b3b27f81abf")
+		(property "Sheetname" "04 MCU supply decoupling"
+			(at 308 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/04_decoupling.kicad_sch"
+			(at 308 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "CTRL-C2000"
+				(path "/48124f7c-985a-5333-8eff-d9b7e5d1414b"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+)

@@ -1,0 +1,620 @@
+{
+ "title": "PV-P75 / PV-P100/110 module figures (calculated, not measured)",
+ "generated_by": "sim/pv_module.py",
+ "cell_spec": "sim/out/pv_design/cell_spec.json",
+ "port_inputs": "sim/out/port_design/port_spec.json + report.md",
+ "fan": {
+  "mpn": "9GT1224P1S001",
+  "manufacturer": "Sanyo Denki",
+  "datasheet": "docs/datasheets/thermal/9GT1224P1S001.pdf",
+  "count_per_cell": 1,
+  "rated_W": 26.4,
+  "rated_A": 1.1,
+  "channel_limit_A": 2.4,
+  "speed_law": {
+   "min_fraction": 0.3,
+   "heatsink_C_at_min": 40.0,
+   "heatsink_C_at_full": 60.0,
+   "inductor_C_at_min": 90.0,
+   "inductor_C_at_full": 115.0,
+   "law": "max of two linear ramps: heatsink NTC and inductor NTC"
+  },
+  "arrangement": "one 120 mm fan per cell in a common rear exhaust plenum, backflow shutter per fan (recommended)",
+  "ambient_rated_C": [
+   -40.0,
+   85.0
+  ],
+  "PV_20_inlet_C": [
+   -30.0,
+   60.0
+  ],
+  "min_speed_fraction": 0.518,
+  "speed_law_note": "PWM duty never below the datasheet's lowest specified duty (35 % = 2900 rpm for the San Ace 120T); speed capped so that all fans stay <= 65 dB(A) at 1 m",
+  "cold_restriction": null,
+  "selection": [
+   {
+    "fan": "PFC1224DE-F00",
+    "hold45": 1.0,
+    "noise_full45": 65.0,
+    "s_full45": 0.6525,
+    "q_cell": 134.0004,
+    "fail_flap": 1.0,
+    "fail_noflap": 1.0,
+    "i_ok": true,
+    "p_w": 48.0,
+    "cold_ok": false
+   },
+   {
+    "fan": "4414-2HHP",
+    "hold45": 1.0,
+    "noise_full45": 58.1206,
+    "s_full45": 0.8072,
+    "q_cell": 105.4482,
+    "fail_flap": 1.0,
+    "fail_noflap": 1.0,
+    "i_ok": true,
+    "p_w": 12.0,
+    "cold_ok": false
+   },
+   {
+    "fan": "4414FNH",
+    "hold45": 1.0,
+    "noise_full45": 59.1034,
+    "s_full45": 0.8066,
+    "q_cell": 105.9035,
+    "fail_flap": 1.0,
+    "fail_noflap": 1.0,
+    "i_ok": true,
+    "p_w": 12.0,
+    "cold_ok": false
+   },
+   {
+    "fan": "9GT1224P1S001",
+    "hold45": 1.0,
+    "noise_full45": 59.0034,
+    "s_full45": 0.7695,
+    "q_cell": 141.3856,
+    "fail_flap": 1.0,
+    "fail_noflap": 1.0,
+    "i_ok": true,
+    "p_w": 26.4,
+    "cold_ok": true
+   }
+  ]
+ },
+ "device_primary": {
+  "role": "primary",
+  "mpn": "SG2M040170HJ",
+  "manufacturer": "Sichain",
+  "parallel": 2,
+  "datasheet": "docs/datasheets/power-semiconductors/SG2M040170HJ.pdf",
+  "revision": "V01_02, 2025-12-30 (Final; p13 revision history: V01_00 2025-01-06, V01_01 2025-09-08)",
+  "qualification": "none stated: p1 lists only halogen-free / RoHS; p13 RoHS + REACH statements; p14 item 8 says to consult Sichain for high-reliability applications",
+  "price_usd": 4.07,
+  "price_source": "ESTIMATE: Sichain: RFQ; SG2M020170HJ 9.74 USD scaled by (R ratio)^1.26, the exponent of the Sichain 1200 V LCSC prices (13 mOhm 7.31, 27 mOhm 3.46, 33 mOhm 2.26 USD)",
+  "rg_on_ohm": 3.75,
+  "rg_off_ohm": 2.5,
+  "eta_corner_min": 0.9914446088310962,
+  "eta_corners": {
+   "550->950": 0.99188,
+   "950->550": 0.99185,
+   "550->550": 0.99144,
+   "950->950": 0.99481,
+   "611->950": 0.99278,
+   "950->611": 0.99275,
+   "611->611": 0.99203,
+   "1000->500": 0.99075,
+   "500->1000": 0.99076
+  },
+  "eta_peak": 0.99659,
+  "Tj_max_45C_C": 78.0,
+  "VDS_peak_V": 1396.0,
+  "turn_on_dvdt_V_per_ns": 124.0,
+  "miller_die_peak_V": 1.38,
+  "miller_limit_V": 1.94,
+  "rails_V": [
+   18.0,
+   -3.5
+  ],
+  "dead_time_at_gates_ns": [
+   181,
+   586
+  ],
+  "body_diode_peak_A_in_port_short": 50.8947525,
+  "t_sc_us": null,
+  "drive": {
+   "mpn": "SG2M040170HJ",
+   "peak_source_A": 4.278606965174129,
+   "peak_sink_A": 8.6,
+   "gate_power_W_per_channel": 0.10732799999999999,
+   "clamp_engaged_after_ns": null,
+   "vds_on_at_trip_175C_V": 3.1298399999999997,
+   "desat_margin": 2.715793778595711,
+   "sc_response_us": {
+    "Q1": 1.5691399999999998,
+    "industrial": 1.086656
+   }
+  }
+ },
+ "device_alternate": {
+  "role": "alternate",
+  "mpn": "MSC035SMA170B4",
+  "manufacturer": "Microchip",
+  "parallel": 2,
+  "datasheet": "docs/datasheets/power-semiconductors/MSC035SMA170B4.pdf",
+  "revision": "DS00005160A",
+  "qualification": null,
+  "price_usd": 39.44,
+  "price_source": "RS Components HK (web-search snippet) 2026-10-04, 309.46 HKD @600",
+  "rg_on_ohm": 6.0,
+  "rg_off_ohm": 4.0,
+  "eta_corner_min": 0.9914090064112686,
+  "eta_corners": {
+   "550->950": 0.9918,
+   "950->550": 0.99161,
+   "550->550": 0.99141,
+   "950->950": 0.99313,
+   "611->950": 0.99269,
+   "950->611": 0.99251,
+   "611->611": 0.99181,
+   "1000->500": 0.99039,
+   "500->1000": 0.99061
+  },
+  "eta_peak": 0.99571,
+  "Tj_max_45C_C": 80.3,
+  "VDS_peak_V": 1401.0,
+  "turn_on_dvdt_V_per_ns": 92.0,
+  "miller_die_peak_V": null,
+  "miller_limit_V": 1.48,
+  "rails_V": [
+   20.0,
+   -4.0
+  ],
+  "dead_time_at_gates_ns": [
+   181,
+   586
+  ],
+  "body_diode_peak_A_in_port_short": 87.631091,
+  "t_sc_us": null,
+  "drive": {
+   "mpn": "MSC035SMA170B4",
+   "peak_source_A": 4.085106382978723,
+   "peak_sink_A": 8.067226890756304,
+   "gate_power_W_per_channel": 0.273408,
+   "clamp_engaged_after_ns": null,
+   "vds_on_at_trip_175C_V": 2.37092625,
+   "desat_margin": 3.585096752798616,
+   "sc_response_us": {
+    "Q1": 1.9595999999999998,
+    "industrial": 1.24284
+   }
+  }
+ },
+ "module_basis_device": "MSC035SMA170B4",
+ "air": {
+  "density_basis": "ISA pressure + ideal gas at the inlet temperature",
+  "K_rest": 10.0,
+  "heatsink_dp_correlation": "Shah & London developing laminar parallel-plate f_app + Kays & London entrance/exit"
+ },
+ "modules": {
+  "PV-P75": {
+   "cells": 3,
+   "P_rated_kW": 75.0,
+   "P_max_kW": 82.5,
+   "I_port_max_A": 135.0,
+   "V_ports_V": [
+    250.0,
+    1000.0
+   ],
+   "V_full_power_V": [
+    550.0,
+    950.0
+   ],
+   "efficiency_peak_megarevo_comparable": 0.9949,
+   "efficiency_peak_at": {
+    "va": 900.0,
+    "vb": 1000.0,
+    "p_kW": 82.5,
+    "inlet_C": 25.0
+   },
+   "efficiency_basis": "everything inside the enclosure: cells (incl. gate-drive bias, cell sensing), port board, CTRL, SYS-IO-AUX, fans; the cabinet 24 V supply efficiency is outside the enclosure and excluded",
+   "efficiency_corners_25C": {
+    "550->950": 0.99072,
+    "950->550": 0.99056,
+    "550->550": 0.99002,
+    "950->950": 0.99259,
+    "611->950": 0.99168,
+    "950->611": 0.99153,
+    "611->611": 0.9906
+   },
+   "efficiency_corners_45C": {
+    "550->950": 0.99014,
+    "950->550": 0.98995,
+    "550->550": 0.9893,
+    "950->950": 0.99187,
+    "611->950": 0.99115,
+    "950->611": 0.99096,
+    "611->611": 0.98989
+   },
+   "losses_by_group_W_611V_611V_full_45C": {
+    "cells": 681.3,
+    "port": 111.4,
+    "ctrl_aux": 9.8,
+    "fans": 40.1
+   },
+   "heat_rejected_W_max_45C": 842.6,
+   "airflow_m3h_full_45C": 424.2,
+   "airflow_per_cell_m3h": 141.4,
+   "fan_speed_full_45C": 0.77,
+   "fan_power_W_full_45C": 40.1,
+   "fan_speed_cap": 0.971,
+   "noise_dBA_1m_all_fans_at_cap": 65.0,
+   "noise_dBA_1m_all_fans_100pct": 65.8,
+   "fan_power_W_min": 17.3,
+   "noise_dBA_1m_full_45C": 59.0,
+   "noise_dBA_1m_full_25C": 48.8,
+   "exhaust_C_full_45C": 51.4,
+   "derating_fraction_of_P_max": {
+    "inlet_C": [
+     25,
+     30,
+     35,
+     40,
+     45,
+     50,
+     55,
+     60
+    ],
+    "sea level": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     0.992,
+     0.956,
+     0.918
+    ],
+    "3000 m": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     0.992,
+     0.956,
+     0.918
+    ],
+    "1 fan failed (flap)": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     0.992,
+     0.956,
+     0.918
+    ],
+    "1 fan failed (no flap)": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     0.992,
+     0.956,
+     0.918
+    ]
+   },
+   "derating_kW_sea_level": [
+    82.5,
+    82.5,
+    82.5,
+    82.5,
+    82.5,
+    81.8,
+    78.8,
+    75.7
+   ],
+   "evt_roadmap_kW": {
+    "45": 75.0,
+    "50": 60.00000000000001,
+    "55": 44.99999999999999,
+    "60": 30.000000000000004
+   },
+   "altitude_m": [
+    0,
+    1000,
+    2000,
+    3000,
+    4000
+   ],
+   "derating_fraction_45C_vs_altitude": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "derating_fraction_60C_vs_altitude": [
+    0.918,
+    0.918,
+    0.918,
+    0.918,
+    0.918
+   ],
+   "worst_combined_60C_3000m_one_fan_no_flap": 0.918,
+   "derating_pessimistic_sea_level": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    0.992,
+    0.956,
+    0.918
+   ],
+   "derating_pessimistic_3000m": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    0.992,
+    0.956,
+    0.918
+   ],
+   "one_fan_failed_fraction_45C": {
+    "flap": 1.0,
+    "no flap": 1.0
+   },
+   "bus_capacitance_uF": {
+    "port_A": 270.0,
+    "port_B": 270.0,
+    "port_X_caps_uF": 4.4,
+    "note": "cell banks paralleled on the module bus + port-board X capacitors (2 x 2.2 uF per port)"
+   },
+   "standby_W_estimate": 18.7,
+   "port_current_limit_fraction_vs_inlet": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    0.992,
+    0.956,
+    0.918
+   ],
+   "rs3_2415d_cell_board_supply": {
+    "load_frac_per_rail": 0.462,
+    "allowed_ambient_C": 81.8,
+    "board_air_C_at_60C_inlet": 64.5,
+    "ok": 1.0
+   },
+   "port_variant": {
+    "I_A": 135.0,
+    "fuse": "HP10NH1GPV160",
+    "fuse_In_A": 160.0,
+    "fuse_derated_A_at_50C": 123.9,
+    "R_port_mOhm": 2.575
+   }
+  },
+  "PV-P100/110": {
+   "cells": 4,
+   "P_rated_kW": 100.0,
+   "P_max_kW": 110.0,
+   "I_port_max_A": 180.0,
+   "V_ports_V": [
+    250.0,
+    1000.0
+   ],
+   "V_full_power_V": [
+    550.0,
+    950.0
+   ],
+   "efficiency_peak_megarevo_comparable": 0.995,
+   "efficiency_peak_at": {
+    "va": 900.0,
+    "vb": 1000.0,
+    "p_kW": 88.0,
+    "inlet_C": 25.0
+   },
+   "efficiency_basis": "everything inside the enclosure: cells (incl. gate-drive bias, cell sensing), port board, CTRL, SYS-IO-AUX, fans; the cabinet 24 V supply efficiency is outside the enclosure and excluded",
+   "efficiency_corners_25C": {
+    "550->950": 0.99083,
+    "950->550": 0.99067,
+    "550->550": 0.99013,
+    "950->950": 0.99269,
+    "611->950": 0.99178,
+    "950->611": 0.99163,
+    "611->611": 0.9907
+   },
+   "efficiency_corners_45C": {
+    "550->950": 0.99025,
+    "950->550": 0.99006,
+    "550->550": 0.98942,
+    "950->950": 0.99197,
+    "611->950": 0.99125,
+    "950->611": 0.99106,
+    "611->611": 0.98999
+   },
+   "losses_by_group_W_611V_611V_full_45C": {
+    "cells": 908.4,
+    "port": 140.3,
+    "ctrl_aux": 9.8,
+    "fans": 53.4
+   },
+   "heat_rejected_W_max_45C": 1112.0,
+   "airflow_m3h_full_45C": 565.5,
+   "airflow_per_cell_m3h": 141.4,
+   "fan_speed_full_45C": 0.77,
+   "fan_power_W_full_45C": 53.4,
+   "fan_speed_cap": 0.925,
+   "noise_dBA_1m_all_fans_at_cap": 65.0,
+   "noise_dBA_1m_all_fans_100pct": 67.0,
+   "fan_power_W_min": 23.0,
+   "noise_dBA_1m_full_45C": 60.3,
+   "noise_dBA_1m_full_25C": 50.0,
+   "exhaust_C_full_45C": 51.3,
+   "derating_fraction_of_P_max": {
+    "inlet_C": [
+     25,
+     30,
+     35,
+     40,
+     45,
+     50,
+     55,
+     60
+    ],
+    "sea level": [
+     1.0,
+     1.0,
+     1.0,
+     0.956,
+     0.911,
+     0.861,
+     0.811,
+     0.756
+    ],
+    "3000 m": [
+     1.0,
+     1.0,
+     1.0,
+     0.956,
+     0.911,
+     0.861,
+     0.811,
+     0.756
+    ],
+    "1 fan failed (flap)": [
+     1.0,
+     1.0,
+     1.0,
+     0.956,
+     0.911,
+     0.861,
+     0.811,
+     0.756
+    ],
+    "1 fan failed (no flap)": [
+     1.0,
+     1.0,
+     1.0,
+     0.956,
+     0.911,
+     0.861,
+     0.811,
+     0.756
+    ]
+   },
+   "derating_kW_sea_level": [
+    110.0,
+    110.0,
+    110.0,
+    105.1,
+    100.2,
+    94.7,
+    89.2,
+    83.1
+   ],
+   "evt_roadmap_kW": {
+    "45": 100.0,
+    "50": 80.0,
+    "55": 60.0,
+    "60": 40.0
+   },
+   "altitude_m": [
+    0,
+    1000,
+    2000,
+    3000,
+    4000
+   ],
+   "derating_fraction_45C_vs_altitude": [
+    0.911,
+    0.911,
+    0.911,
+    0.911,
+    0.911
+   ],
+   "derating_fraction_60C_vs_altitude": [
+    0.756,
+    0.756,
+    0.756,
+    0.756,
+    0.756
+   ],
+   "worst_combined_60C_3000m_one_fan_no_flap": 0.756,
+   "derating_pessimistic_sea_level": [
+    1.0,
+    1.0,
+    1.0,
+    0.956,
+    0.911,
+    0.861,
+    0.811,
+    0.756
+   ],
+   "derating_pessimistic_3000m": [
+    1.0,
+    1.0,
+    1.0,
+    0.956,
+    0.911,
+    0.861,
+    0.811,
+    0.756
+   ],
+   "one_fan_failed_fraction_45C": {
+    "flap": 0.9111111111111111,
+    "no flap": 0.9111111111111111
+   },
+   "bus_capacitance_uF": {
+    "port_A": 360.0,
+    "port_B": 360.0,
+    "port_X_caps_uF": 4.4,
+    "note": "cell banks paralleled on the module bus + port-board X capacitors (2 x 2.2 uF per port)"
+   },
+   "standby_W_estimate": 20.7,
+   "port_current_limit_fraction_vs_inlet": [
+    1.0,
+    1.0,
+    1.0,
+    0.956,
+    0.911,
+    0.861,
+    0.811,
+    0.756
+   ],
+   "rs3_2415d_cell_board_supply": {
+    "load_frac_per_rail": 0.462,
+    "allowed_ambient_C": 81.8,
+    "board_air_C_at_60C_inlet": 63.7,
+    "ok": 1.0
+   },
+   "port_variant": {
+    "I_A": 180.0,
+    "fuse": "HP10NH2GPV250",
+    "fuse_In_A": 250.0,
+    "fuse_derated_A_at_50C": 193.6,
+    "R_port_mOhm": 1.89
+   }
+  }
+ },
+ "cost_usd": {
+  "PV-P75": {
+   "cells": 1103.0,
+   "fans": 339.0,
+   "total_cells_and_fans": 1442.0,
+   "per_kW_rated": 19.23
+  },
+  "PV-P100/110": {
+   "cells": 1471.0,
+   "fans": 452.0,
+   "total_cells_and_fans": 1923.0,
+   "per_kW_rated": 19.23
+  },
+  "basis": "cells: cell_spec.json cost_usd (Gate-0b cost model); fan 9GT1224P1S001: 112.92 USD (DigiKey (web-search snippet; page blocked) 2026-10-04, 112.92 USD @21); port board, CTRL, SYS-IO-AUX, enclosure, cabling and assembly NOT included"
+ }
+}

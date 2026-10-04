@@ -1,0 +1,2637 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "6c9ef79a-168a-51c6-a321-d66e5e73d4ad")
+	(paper "A3")
+	(title_block
+		(title "DAB60 power assembly - Transformer, inductor, DC-block link")
+		(date "2026-10-04")
+		(rev "B0")
+		(comment 1 "Interfaces: CELL x2 (C1, C2), PORT, SYS-IO-AUX harness + coolant loop (gen/interfaces.py)")
+		(comment 2 "Schematics authored by Chinmoy Bhuyan")
+		(comment 3 "Sheet 12")
+		(comment 4 "Not bench-validated. Domains PELV, HV1, HV2, PE, GD_B<b><sw> (8 gate drivers).")
+	)
+	(lib_symbols
+		(symbol "dcdc:C4AQ_45U"
+			(pin_names
+				(offset 0.762)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "C"
+				(at -7.62 6.35 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left bottom)
+				)
+			)
+			(property "Value" "C4AQUEW5450A3BJ"
+				(at -7.62 -6.35 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 -8.89 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" "docs/datasheets/passives-capacitors/C4AQ.pdf"
+				(at 0 -11.43 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "DC-link PP film 45 uF, 1300 VDC at 70 C hot spot (1100 V at 85 C, 850 V at 105 C), ESR 3.1 mOhm, Irms 34.0 A (10 kHz, dT 30 K)"
+				(at 0 -13.97 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "C4AQ_45U_1_1"
+				(rectangle
+					(start -7.62 5.08)
+					(end 7.62 -5.08)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(pin passive line
+					(at -12.7 0 0)
+					(length 5.08)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -12.7 -2.54 0)
+					(length 5.08)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 12.7 0 180)
+					(length 5.08)
+					(name "B"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 12.7 -2.54 180)
+					(length 5.08)
+					(name "B"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "dcdc:LINK"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "JP"
+				(at 0 1.905 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Jumper_2_Bridged"
+				(at 0 -2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 -5.08 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Jumper, 2-pole, closed/bridged"
+				(at 0 -7.62 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "Jumper SPST"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "Jumper* TestPoint*2Pads* TestPoint*Bridge*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "LINK_0_0"
+				(circle
+					(center -2.032 0)
+					(radius 0.508)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 2.032 0)
+					(radius 0.508)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "LINK_0_1"
+				(arc
+					(start -1.524 0.254)
+					(mid 0 0.762)
+					(end 1.524 0.254)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "LINK_1_1"
+				(pin passive line
+					(at -5.08 0 0)
+					(length 2.54)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 5.08 0 180)
+					(length 2.54)
+					(name "B"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "dcdc:LSER"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "L"
+				(at -1.27 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "L"
+				(at 1.905 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Inductor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "inductor choke coil reactor magnetic"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "Choke_* *Coil* Inductor_* L_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "LSER_0_1"
+				(arc
+					(start 0 2.54)
+					(mid 0.6323 1.905)
+					(end 0 1.27)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(arc
+					(start 0 1.27)
+					(mid 0.6323 0.635)
+					(end 0 0)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(arc
+					(start 0 0)
+					(mid 0.6323 -0.635)
+					(end 0 -1.27)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(arc
+					(start 0 -1.27)
+					(mid 0.6323 -1.905)
+					(end 0 -2.54)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "LSER_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "dcdc:XFMR"
+			(pin_names
+				(offset 0.762)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "T"
+				(at -7.62 11.43 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left bottom)
+				)
+			)
+			(property "Value" "XFMR"
+				(at -7.62 -11.43 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 -13.97 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 -16.51 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "CUSTOM HF power transformer (COLD-PLATE MOUNTED), N1:N2 = 11:12 (n 0.9167); L_sigma 4.38 uH +/-20 % (design target, referred to N1); L_m 150 uH +/-10 % (gapped, ~1.74 mm total); 4.75 mVs per half period, B_pk 126 mT at 950 V; I_rms 118.5 / 111.9 A, I_pk 176.9 / 162.1 A (prim / sec); loss <= 159 W; hot spot <= 130 C (coolant 50 C); insulation basic (pending system decision), working-voltage basis 1850 V DC, PD <= 10 pC at the ECO-10 level (hipot/PD: TBD by ECO-10 insulation coordination); reference core TDK PM 114/93 N95 (B65733A0000R095 ground to gap) + bobbin B65734B1000T001 - reference only; embedded NTC 10 k +/-2 %, R/T 8016 (B25/100 3988 K, as TDK B57703M0103) at the winding hot spot, leads TH1/TH2 reinforced to PELV. Full RFQ: sim/out/dab_design/report.md sec. 9"
+				(at 0 -19.05 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "XFMR_1_1"
+				(rectangle
+					(start -7.62 10.16)
+					(end 7.62 -10.16)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(pin passive line
+					(at -12.7 7.62 0)
+					(length 5.08)
+					(name "P1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "P1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -12.7 0 0)
+					(length 5.08)
+					(name "P2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "P2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 12.7 7.62 180)
+					(length 5.08)
+					(name "S1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "S1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 12.7 0 180)
+					(length 5.08)
+					(name "S2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "S2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -12.7 -5.08 0)
+					(length 5.08)
+					(name "NTC"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "TH1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -12.7 -7.62 0)
+					(length 5.08)
+					(name "NTC"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "TH2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+	)
+	(rectangle
+		(start 156.7 14)
+		(end 281.5 67.32)
+		(stroke
+			(width 0.254)
+			(type dash)
+			(color 72 72 160 1)
+		)
+		(fill
+			(type none)
+		)
+		(uuid "69e0583f-9211-5271-8165-555c6d7b2912")
+	)
+	(rectangle
+		(start 12 14)
+		(end 151.7 84.75)
+		(stroke
+			(width 0.254)
+			(type dash)
+			(color 72 72 160 1)
+		)
+		(fill
+			(type none)
+		)
+		(uuid "b65d1d59-0000-5c4f-9aaf-131cf1a453c7")
+	)
+	(text "PRIMARY AC PATH (HV1): LEG A - HOB - LINK - L - P1 / P2 - LEG B"
+		(exclude_from_sim no)
+		(at 14 19 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "032bfbaf-f0e6-5474-812f-ea0f9908d323")
+	)
+	(text "P1/S1 = dotted ends. Secondary: leg A of bridge 2 - HOB - S1 / S2 - leg B of bridge 2. TH1/TH2: embedded\nNTC -> bridge 1 AN3. L_sigma 4.38 uH +/-20 %, L_m 150 uH +/-10 %, 119 / 112 A rms, 177 / 162 A peak, <= 159 W,\nhot spot <= 130 C. Insulation basic (pending system decision) on a 1850 V DC working basis; hipot/PD from ECO-10, PD <= 10 pC.\nFull text in the part description and report.md sec. 9."
+		(exclude_from_sim no)
+		(at 158.7 64.82 0)
+		(effects
+			(font
+				(size 1.1 1.1)
+			)
+			(justify left bottom)
+		)
+		(uuid "6e49a8c0-37a4-5285-8206-b8f3b24dea02")
+	)
+	(text "Link FITTED. Provision: unbolt it and fit the blocking bank 5 x C4AQUEW5450A3BJ (225 uF) (DNP below, 225 uF).\nFirmware flux-balance loop on AN1 + gapped core (L_m 150 uH) + hardware |I_dc| trip is the baseline.\nSeries L (CUSTOM): 2.12 uH nominal, trimmed 1.24-2.99 uH so that leakage + L = 6.50 uH +/-5 % (leakage + external, measured as a matched set);\n119 A rms, 177 A peak, no saturation to 275 A, <= 11 W."
+		(exclude_from_sim no)
+		(at 14 82.2523 0)
+		(effects
+			(font
+				(size 1.1 1.1)
+			)
+			(justify left bottom)
+		)
+		(uuid "a9f19abc-29f6-5f63-82ca-8044888d7615")
+	)
+	(text "TRANSFORMER 11:12 (HV1 / HV2 BARRIER, CUSTOM)"
+		(exclude_from_sim no)
+		(at 158.7 19 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "dda073bd-dee2-5512-b0c0-acf5c4c3715d")
+	)
+	(wire
+		(pts
+			(xy 68.58 48.26) (xy 68.58 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "069ae5ae-5c4f-5a5b-bed3-8316a0fa6f03")
+	)
+	(wire
+		(pts
+			(xy 50.8 48.26) (xy 53.34 48.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "08d214a4-4c5b-5555-a1ed-55c39b5bb1a3")
+	)
+	(wire
+		(pts
+			(xy 114.3 50.8) (xy 111.76 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "10fe658a-9a9b-5d7b-995a-0163fe267b0a")
+	)
+	(wire
+		(pts
+			(xy 198.12 35.56) (xy 200.66 35.56)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "11f8797b-8745-5aba-a567-8ec8f6ea6c0b")
+	)
+	(wire
+		(pts
+			(xy 71.12 48.26) (xy 68.58 48.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1366dc1e-2d15-5068-b9b1-a96090b5b319")
+	)
+	(wire
+		(pts
+			(xy 124.46 33.02) (xy 127 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "13e31ef3-9c95-5278-9bd1-a569ae7ffcab")
+	)
+	(wire
+		(pts
+			(xy 96.52 30.48) (xy 96.52 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "15328b3d-606d-510d-9628-4b9163bdbcd8")
+	)
+	(wire
+		(pts
+			(xy 53.34 48.26) (xy 53.34 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "19d249c9-2a85-556c-82e3-490544e987b1")
+	)
+	(wire
+		(pts
+			(xy 139.7 48.26) (xy 142.24 48.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1b33c879-6e38-5884-ac51-49740a5b3998")
+	)
+	(wire
+		(pts
+			(xy 35.56 25.4) (xy 38.1 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "25ac1057-1dee-58b4-a532-b196ddaceb94")
+	)
+	(wire
+		(pts
+			(xy 22.86 48.26) (xy 22.86 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "26b6d1cb-b142-55b0-a4ae-a351e41e28a0")
+	)
+	(wire
+		(pts
+			(xy 99.06 48.26) (xy 99.06 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3582d9bc-f2ad-5cef-8acc-af9a2768f0d9")
+	)
+	(wire
+		(pts
+			(xy 24.13 63.5) (xy 21.59 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4509742b-bc29-5dd7-8cae-e7561fa4bf7c")
+	)
+	(wire
+		(pts
+			(xy 96.52 48.26) (xy 99.06 48.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "48b49261-1265-5235-b4d2-d52085c4995e")
+	)
+	(wire
+		(pts
+			(xy 96.52 50.8) (xy 99.06 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4c00cb8f-e253-5d4a-b6a1-953e6fa0b7ed")
+	)
+	(wire
+		(pts
+			(xy 172.72 40.64) (xy 170.18 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5d7e78ff-c158-5412-b9ae-3354f677fa5a")
+	)
+	(wire
+		(pts
+			(xy 111.76 48.26) (xy 111.76 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "779ea319-65a4-5e9c-8774-36467c1e69c2")
+	)
+	(wire
+		(pts
+			(xy 172.72 35.56) (xy 170.18 35.56)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "77a46222-f667-58dc-adfd-26cc109d02f5")
+	)
+	(wire
+		(pts
+			(xy 124.46 30.48) (xy 127 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "849ab52f-c6ce-5a4b-8b27-b1abb9c0269d")
+	)
+	(wire
+		(pts
+			(xy 71.12 50.8) (xy 68.58 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "864dc7df-2eaa-5afa-b199-47975c3b8be4")
+	)
+	(wire
+		(pts
+			(xy 198.12 27.94) (xy 200.66 27.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "875533f2-cb06-5e0e-aa83-48a6679fed28")
+	)
+	(wire
+		(pts
+			(xy 114.3 48.26) (xy 111.76 48.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a13dd5a3-3b12-558f-889f-4acaabf21a57")
+	)
+	(wire
+		(pts
+			(xy 50.8 50.8) (xy 53.34 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a7dbaccf-b8c0-5741-9540-6ed2a0466a0d")
+	)
+	(wire
+		(pts
+			(xy 139.7 50.8) (xy 142.24 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b0c751c7-492d-554d-bbc9-8b762b49ba7b")
+	)
+	(wire
+		(pts
+			(xy 55.88 33.02) (xy 53.34 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b3e45666-4f07-595d-8a5c-13f52d62cb72")
+	)
+	(wire
+		(pts
+			(xy 25.4 50.8) (xy 22.86 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b4628dac-b8bc-52e4-ae2f-ca5ccf147393")
+	)
+	(wire
+		(pts
+			(xy 83.82 30.48) (xy 83.82 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b7511cc0-06ec-557a-9282-fd7f57049d36")
+	)
+	(wire
+		(pts
+			(xy 25.4 48.26) (xy 22.86 48.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bda85aad-07d9-5c21-9d66-51b31ff792cb")
+	)
+	(wire
+		(pts
+			(xy 31.75 63.5) (xy 34.29 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "befaacb8-fd66-50bf-87ee-4c01c7fb69cf")
+	)
+	(wire
+		(pts
+			(xy 81.28 33.02) (xy 83.82 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c4e46554-e9b6-5db2-a0f1-3b69c826e3f5")
+	)
+	(wire
+		(pts
+			(xy 99.06 30.48) (xy 96.52 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c6c6386d-19f5-5373-a297-38708dbedea4")
+	)
+	(wire
+		(pts
+			(xy 142.24 48.26) (xy 142.24 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d3d9ca54-87a5-5e75-9a19-50d656cf1703")
+	)
+	(wire
+		(pts
+			(xy 172.72 43.18) (xy 170.18 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d8c664e3-8fb2-55ff-9bc5-9c666335cb49")
+	)
+	(wire
+		(pts
+			(xy 172.72 27.94) (xy 170.18 27.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "db079572-f07b-5299-8754-e8514ffbb5ee")
+	)
+	(wire
+		(pts
+			(xy 99.06 33.02) (xy 96.52 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "dbf74463-4592-5d0b-a822-69f6665b50c7")
+	)
+	(wire
+		(pts
+			(xy 53.34 30.48) (xy 53.34 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e2e14b79-113d-5022-9edb-bf4a91c50f4a")
+	)
+	(wire
+		(pts
+			(xy 25.4 25.4) (xy 22.86 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f2afab8e-c97d-53f7-97a2-94ff67c33cfe")
+	)
+	(wire
+		(pts
+			(xy 55.88 30.48) (xy 53.34 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f4ea3905-d2d3-5fc6-9e5c-664d93627ec3")
+	)
+	(wire
+		(pts
+			(xy 81.28 30.48) (xy 83.82 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fa644b8b-4eb8-5425-9abf-1148613c64ca")
+	)
+	(wire
+		(pts
+			(xy 127 30.48) (xy 127 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fe82808a-8670-5981-873b-93b9a67e7b3f")
+	)
+	(label "XP_B"
+		(at 99.06 48.26 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "19f59718-91d4-5132-a024-57cf1fb15537")
+	)
+	(label "XP_B"
+		(at 38.1 25.4 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "1ae0c8ff-7666-5198-a1bd-1fbbce99477f")
+	)
+	(label "XP_B"
+		(at 142.24 48.26 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "4220921c-ade8-5aea-9ee7-717d95d5954a")
+	)
+	(label "XP_C"
+		(at 34.29 63.5 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "46f8cded-0708-5c7c-945d-302fc607ef55")
+	)
+	(label "XP_C"
+		(at 170.18 27.94 180)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right bottom)
+		)
+		(uuid "5fa6ed4e-ab41-5e4e-9441-c42ae3658315")
+	)
+	(label "XP_B"
+		(at 127 30.48 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "7aa05747-4897-5e07-a5ee-b017ce1d0849")
+	)
+	(label "XP_B"
+		(at 21.59 63.5 180)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right bottom)
+		)
+		(uuid "98b31969-90b6-5c4a-93a1-65bfb5567cc7")
+	)
+	(label "XP_B"
+		(at 53.34 48.26 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "9b515f0a-b448-561e-8b23-b3c27aab4426")
+	)
+	(label "XP_B"
+		(at 83.82 30.48 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "e4599c46-7cfc-5871-ae76-88f79167f888")
+	)
+	(global_label "B2_ACB"
+		(shape bidirectional)
+		(at 200.66 35.56 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "0a1a0043-b175-50c0-b667-5d05eafa9ceb")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 200.66 35.56 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "XS_A"
+		(shape bidirectional)
+		(at 200.66 27.94 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "0a24151a-78a5-5d27-81c6-98492d25efb8")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 200.66 27.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "XP_A"
+		(shape bidirectional)
+		(at 53.34 30.48 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "458142e0-eeb4-5ee7-9293-1fc91cc5a84d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 53.34 30.48 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "XP_A"
+		(shape bidirectional)
+		(at 68.58 48.26 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "65d16bd0-21b6-581f-9e39-079835188cc0")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 68.58 48.26 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "B1_AN3S"
+		(shape bidirectional)
+		(at 170.18 43.18 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "68ed7f71-33a8-5df8-b5ac-fa8128a8b632")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 170.18 43.18 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "XP_A"
+		(shape bidirectional)
+		(at 22.86 25.4 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "7825dae0-aa1c-523c-a679-593b0ab2a13d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 22.86 25.4 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "B1_ACB"
+		(shape bidirectional)
+		(at 170.18 35.56 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "7b23a867-2554-58eb-9a0a-0310ddb26c4d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 170.18 35.56 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "B1_AN3H"
+		(shape bidirectional)
+		(at 170.18 40.64 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "7bf95419-fc4d-51e9-a032-32e66e98729f")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 170.18 40.64 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "XP_A"
+		(shape bidirectional)
+		(at 96.52 30.48 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "9baa4ae4-5d19-552e-9ab1-707b36fd550b")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 96.52 30.48 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "XP_A"
+		(shape bidirectional)
+		(at 111.76 48.26 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "aecc2b3d-3b72-594a-aabe-a7370a8ebdd8")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 111.76 48.26 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "XP_A"
+		(shape bidirectional)
+		(at 22.86 48.26 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "b2726594-b381-5697-9633-858612757fc0")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 22.86 48.26 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C4AQ_45U")
+		(at 127 48.26 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp yes)
+		(uuid "212b3de1-662d-5852-b95d-827c32bb2943")
+		(property "Reference" "C1105"
+			(at 127 41.78 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "C4AQUEW5450A3BJ"
+			(at 127 54.74 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 127 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/passives-capacitors/C4AQ.pdf"
+			(at 127 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "DC-link PP film 45 uF, 1300 VDC at 70 C hot spot (1100 V at 85 C, 850 V at 105 C), ESR 3.1 mOhm, Irms 34.0 A (10 kHz, dT 30 K)"
+			(at 127 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "KEMET"
+			(at 127 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "C4AQUEW5450A3BJ"
+			(at 127 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "radial box 57.5 x 45 x 65 mm, 4 leads (S 52.5, S1 20.3)"
+			(at 127 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 127 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 127 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "323082a8-caf6-50c6-b921-848fc8546df5")
+		)
+		(pin "2"
+			(uuid "85b06d3a-4a42-561a-a3de-be774ff7a029")
+		)
+		(pin "3"
+			(uuid "3e910506-43a3-5161-b876-3444a5c7249c")
+		)
+		(pin "4"
+			(uuid "f9f7545b-6fc7-5979-919b-d0549e326d09")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/6c9ef79a-168a-51c6-a321-d66e5e73d4ad"
+					(reference "C1105")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C4AQ_45U")
+		(at 38.1 48.26 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp yes)
+		(uuid "59f5176d-bb5b-538f-a4cc-28f821e819c9")
+		(property "Reference" "C1103"
+			(at 38.1 41.78 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "C4AQUEW5450A3BJ"
+			(at 38.1 54.74 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 38.1 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/passives-capacitors/C4AQ.pdf"
+			(at 38.1 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "DC-link PP film 45 uF, 1300 VDC at 70 C hot spot (1100 V at 85 C, 850 V at 105 C), ESR 3.1 mOhm, Irms 34.0 A (10 kHz, dT 30 K)"
+			(at 38.1 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "KEMET"
+			(at 38.1 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "C4AQUEW5450A3BJ"
+			(at 38.1 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "radial box 57.5 x 45 x 65 mm, 4 leads (S 52.5, S1 20.3)"
+			(at 38.1 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 38.1 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 38.1 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "4af9f562-6dfa-52b4-8fc3-bd9e0832e5eb")
+		)
+		(pin "2"
+			(uuid "c0592646-9522-575a-872c-5d22fab1a01d")
+		)
+		(pin "3"
+			(uuid "006fa7ee-6f5a-5294-9c27-619591137b31")
+		)
+		(pin "4"
+			(uuid "4b59a185-b273-5e6a-b370-28cbc6e39561")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/6c9ef79a-168a-51c6-a321-d66e5e73d4ad"
+					(reference "C1103")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:XFMR")
+		(at 185.42 35.56 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "7f09519d-5c0e-58c7-a02c-e8d5f9503bd7")
+		(property "Reference" "T1101"
+			(at 185.42 23.8 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "Transformer 11:12 (CUSTOM)"
+			(at 185.42 47.32 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 185.42 35.56 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 185.42 35.56 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "CUSTOM HF power transformer (COLD-PLATE MOUNTED), N1:N2 = 11:12 (n 0.9167); L_sigma 4.38 uH +/-20 % (design target, referred to N1); L_m 150 uH +/-10 % (gapped, ~1.74 mm total); 4.75 mVs per half period, B_pk 126 mT at 950 V; I_rms 118.5 / 111.9 A, I_pk 176.9 / 162.1 A (prim / sec); loss <= 159 W; hot spot <= 130 C (coolant 50 C); insulation basic (pending system decision), working-voltage basis 1850 V DC, PD <= 10 pC at the ECO-10 level (hipot/PD: TBD by ECO-10 insulation coordination); reference core TDK PM 114/93 N95 (B65733A0000R095 ground to gap) + bobbin B65734B1000T001 - reference only; embedded NTC 10 k +/-2 %, R/T 8016 (B25/100 3988 K, as TDK B57703M0103) at the winding hot spot, leads TH1/TH2 reinforced to PELV. Full RFQ: sim/out/dab_design/report.md sec. 9"
+			(at 185.42 35.56 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 185.42 35.56 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 185.42 35.56 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "cold-plate mounted, PM 114/93 class"
+			(at 185.42 35.56 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "CUSTOM"
+			(at 185.42 35.56 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "ISOLATOR"
+			(at 185.42 35.56 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "P1"
+			(uuid "f546f471-78fc-53ba-a359-c0656c86fd23")
+		)
+		(pin "P2"
+			(uuid "45e639dd-287f-515a-88ef-21185d1d44f2")
+		)
+		(pin "TH1"
+			(uuid "a80bf09d-5f30-5940-bdb5-6bedd96caaf8")
+		)
+		(pin "TH2"
+			(uuid "b8fa6837-235f-5a72-b49d-56d3926773d4")
+		)
+		(pin "S1"
+			(uuid "3934e265-c25e-53df-be67-4513410365c8")
+		)
+		(pin "S2"
+			(uuid "5ae1f076-6189-521b-a841-b4f50d256821")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/6c9ef79a-168a-51c6-a321-d66e5e73d4ad"
+					(reference "T1101")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:LSER")
+		(at 27.94 63.5 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "948e9d7a-e26c-5986-8706-553a430859db")
+		(property "Reference" "L1101"
+			(at 27.94 61.4677 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "2.12 uH series L (CUSTOM)"
+			(at 27.94 64.9 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 27.94 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 27.94 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "CUSTOM series inductor (COLD-PLATE MOUNTED), primary (port-1) side, in series with the transformer: L 2.12 uH nominal, trim 1.24-2.99 uH so that leakage + L = 6.50 uH +/-5 % (leakage + external, measured as a matched set); I_rms 118.5 A, I_pk 176.9 A, no saturation to 275 A; loss <= 11.2 W; reference PM 114/93 N95, 3 turns, 9.2 mm total gap in >=4 distributed gaps"
+			(at 27.94 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 27.94 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 27.94 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "cold-plate mounted"
+			(at 27.94 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "CUSTOM"
+			(at 27.94 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 27.94 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "3f7941d8-d588-5eef-bba0-c3e21cf1b4d3")
+		)
+		(pin "2"
+			(uuid "a9c2ca23-073a-55ba-87b3-9bcbf1652434")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/6c9ef79a-168a-51c6-a321-d66e5e73d4ad"
+					(reference "L1101")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C4AQ_45U")
+		(at 83.82 48.26 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp yes)
+		(uuid "9e91b719-f1d5-5e60-a5a5-9bdcd49e1a10")
+		(property "Reference" "C1104"
+			(at 83.82 41.78 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "C4AQUEW5450A3BJ"
+			(at 83.82 54.74 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 83.82 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/passives-capacitors/C4AQ.pdf"
+			(at 83.82 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "DC-link PP film 45 uF, 1300 VDC at 70 C hot spot (1100 V at 85 C, 850 V at 105 C), ESR 3.1 mOhm, Irms 34.0 A (10 kHz, dT 30 K)"
+			(at 83.82 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "KEMET"
+			(at 83.82 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "C4AQUEW5450A3BJ"
+			(at 83.82 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "radial box 57.5 x 45 x 65 mm, 4 leads (S 52.5, S1 20.3)"
+			(at 83.82 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 83.82 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 83.82 48.26 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "ffc5357a-7343-5c86-9a3e-90a92615ee82")
+		)
+		(pin "2"
+			(uuid "7a72fbd0-da13-5543-b6ee-fdaf9cfe49fb")
+		)
+		(pin "3"
+			(uuid "abaf1dc6-cf56-5d56-9b81-0d34886d464e")
+		)
+		(pin "4"
+			(uuid "62412dba-1dff-5602-9c5c-e2e3bd49ace2")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/6c9ef79a-168a-51c6-a321-d66e5e73d4ad"
+					(reference "C1104")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C4AQ_45U")
+		(at 111.76 30.48 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp yes)
+		(uuid "b9cb4a20-28c4-5db6-a649-88b53f1fe93b")
+		(property "Reference" "C1102"
+			(at 111.76 24 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "C4AQUEW5450A3BJ"
+			(at 111.76 36.96 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 111.76 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/passives-capacitors/C4AQ.pdf"
+			(at 111.76 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "DC-link PP film 45 uF, 1300 VDC at 70 C hot spot (1100 V at 85 C, 850 V at 105 C), ESR 3.1 mOhm, Irms 34.0 A (10 kHz, dT 30 K)"
+			(at 111.76 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "KEMET"
+			(at 111.76 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "C4AQUEW5450A3BJ"
+			(at 111.76 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "radial box 57.5 x 45 x 65 mm, 4 leads (S 52.5, S1 20.3)"
+			(at 111.76 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 111.76 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 111.76 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "214e57a2-fc13-5d47-93b8-d59f85317513")
+		)
+		(pin "2"
+			(uuid "daa1494f-6de5-5248-9397-93670493fcbf")
+		)
+		(pin "3"
+			(uuid "ec3a6d28-cd5b-5eae-a0b0-07680b69569a")
+		)
+		(pin "4"
+			(uuid "2ac64e28-ffbf-54a8-b7e2-29c73332abee")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/6c9ef79a-168a-51c6-a321-d66e5e73d4ad"
+					(reference "C1102")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:LINK")
+		(at 30.48 25.4 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "cb434db8-a1c9-527e-a571-38cd56662731")
+		(property "Reference" "JL1101"
+			(at 30.48 23.238 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "DC-block link (CUSTOM)"
+			(at 30.48 27.308 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 30.48 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 30.48 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "CUSTOM bolted busbar link in the primary AC bus, FITTED: bolted link in the primary AC bus so a blocking-cap module can be added. Remove to insert the DC-blocking capacitor module (5 x C4AQUEW5450A3BJ (225 uF), not fitted; C_min 39 uF by the TI rule, 8.7 W)"
+			(at 30.48 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 30.48 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 30.48 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "bolted busbar link"
+			(at 30.48 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "CUSTOM"
+			(at 30.48 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 30.48 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "46129a93-e5e0-5450-9d31-858f453f40d1")
+		)
+		(pin "2"
+			(uuid "856f7c61-1e98-5d36-a1ab-5c3a93b0dbaf")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/6c9ef79a-168a-51c6-a321-d66e5e73d4ad"
+					(reference "JL1101")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C4AQ_45U")
+		(at 68.58 30.48 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp yes)
+		(uuid "d2abbc45-f4f4-54c7-89e3-91ac540dfbd8")
+		(property "Reference" "C1101"
+			(at 68.58 24 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "C4AQUEW5450A3BJ"
+			(at 68.58 36.96 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 68.58 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/passives-capacitors/C4AQ.pdf"
+			(at 68.58 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "DC-link PP film 45 uF, 1300 VDC at 70 C hot spot (1100 V at 85 C, 850 V at 105 C), ESR 3.1 mOhm, Irms 34.0 A (10 kHz, dT 30 K)"
+			(at 68.58 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "KEMET"
+			(at 68.58 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "C4AQUEW5450A3BJ"
+			(at 68.58 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "radial box 57.5 x 45 x 65 mm, 4 leads (S 52.5, S1 20.3)"
+			(at 68.58 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 68.58 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 68.58 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "32e630f3-9e08-5d28-990a-5138d3919c05")
+		)
+		(pin "2"
+			(uuid "9376ace9-4cd2-544b-b1d0-100db3188aa7")
+		)
+		(pin "3"
+			(uuid "9569947d-bfe1-5dd2-a229-59fbc69d0571")
+		)
+		(pin "4"
+			(uuid "c68e0209-4f39-5976-adb7-54c29d2814da")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/6c9ef79a-168a-51c6-a321-d66e5e73d4ad"
+					(reference "C1101")
+					(unit 1)
+				)
+			)
+		)
+	)
+)

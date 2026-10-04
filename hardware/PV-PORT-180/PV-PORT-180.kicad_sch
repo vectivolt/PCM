@@ -1,0 +1,481 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "092e7e3b-92c0-5187-ac36-600c1d7358c1")
+	(paper "A3")
+	(title_block
+		(title "PV-PORT 180 A port board - Cover / Hierarchy")
+		(date "2026-10-04")
+		(rev "F0")
+		(comment 1 "HV-PELV reinforced (1000 VDC, OVC II, PD2, coated to PD1); HV-PE basic + bonding")
+		(comment 2 "Schematics authored by Chinmoy Bhuyan")
+		(comment 3 "Sheet 1")
+		(comment 4 "Not bench-validated. Values: sim/port_design.py -> port_spec.json")
+	)
+	(lib_symbols)
+	(text "VA bus side, VAX terminal side (AMC3330), IA current (AMC3302),\ntwo-channel hold logic, proof-test injection, readback RB1/RB2"
+		(exclude_from_sim no)
+		(at 214.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "061e3da6-21bb-5fb0-9184-be53d664d2ab")
+	)
+	(text "Terminals, fuses, SPD, EMI filter, contactor, precharge relay,\ncoil drives, hold stage, shunt, discharge + time limit, bleeder"
+		(exclude_from_sim no)
+		(at 310.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "1bf549ab-e65d-5306-ac54-2a04de7c8f25")
+	)
+	(text "Isolators (checked on every build): AMC3330/AMC3302, TPSI3050-Q1, CNY65B, contactor and relay coil-contact. Declared HV-PE crossings: MOV3 of each varistor Y, Y capacitors, the PE-side SiC of each insulation-measurement pair, the PE-end element of the AUX dividers."
+		(exclude_from_sim no)
+		(at 20 240 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "1cd3d3e5-a373-5378-956e-016fe8d76e00")
+	)
+	(text "PORT 26-way to CTRL-C2000, 14-way to SYS-IO-AUX, ID + hold readback,\n+24V -> +3V3S buck, AGND tie, PE bond"
+		(exclude_from_sim no)
+		(at 22.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "1fe080c3-3909-5e50-99a1-d29ce0e0e7d5")
+	)
+	(text "Rev F0  |  2026-10-04  |  Schematics authored by Chinmoy Bhuyan  |  Ports A (PV) and B (bus/battery) of PV-P100/110, common negative BUS-"
+		(exclude_from_sim no)
+		(at 20 36 0)
+		(effects
+			(font
+				(size 2 2)
+			)
+			(justify left bottom)
+		)
+		(uuid "21f0db96-6f7f-5c87-9232-de8c3b7bdb42")
+	)
+	(text "Terminals, fuses, SPD, EMI filter, contactor, precharge relay,\ncoil drives, hold stage, shunt, discharge + time limit, bleeder"
+		(exclude_from_sim no)
+		(at 118.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "4b1131f0-ea92-5f5d-85db-7f566ea21ed8")
+	)
+	(text "IC-17/IC-18: the whole board is conformal-coated to PD1 (IEC 60664-3 Type 1) over all HV copper and every HV-PELV isolator footprint (8-8.5 mm packages < 10 mm reinforced at PD2). Only the NH fuse links / bases and the DC terminals sit in the cooling-air path (PD3); the board,"
+		(exclude_from_sim no)
+		(at 20 244 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "5b21e6de-4b07-5605-a7fe-853cf3e02314")
+	)
+	(text "SYS-IO-AUX: K_DISCH energised first at power-up; the port block itself inhibits the discharge of a closed port. Coil flyback never reaches the DO clamps in normal operation (two-switch coil drives, varistor / zener across each coil)."
+		(exclude_from_sim no)
+		(at 20 260 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "5d476972-5a96-5933-9709-236ee499ff23")
+	)
+	(text "drawn here with their real MPN or an RFQ / CUSTOM specification."
+		(exclude_from_sim no)
+		(at 20 236 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "7d9eb531-e6d8-531e-8dff-4259518ac0f3")
+	)
+	(text "varistor network and branch fuses are in the closed PD2 compartment."
+		(exclude_from_sim no)
+		(at 20 248 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "8c37ac55-9e92-5066-928b-a51d38b25ad7")
+	)
+	(text "Surge credit (D-032, IC-01/02/03): the on-board varistor Y limits pole-PE and pole-pole to 3.8 kV at In 3 kA (calculated) and is monitored: reinforced is dimensioned for 6 kV (AMC3302 6.25 kV, AMC3330 7.7 kV pass on this case only). IC-04 OPEN: the G7L coil-contact rating (4000 V"
+		(exclude_from_sim no)
+		(at 20 252 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "b271d892-2591-5429-86b9-dd718390a84f")
+	)
+	(text "VB bus side, VBX terminal side (AMC3330), IB current (AMC3302),\ntwo-channel hold logic, proof-test injection, readback RB1/RB2"
+		(exclude_from_sim no)
+		(at 22.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "b9d01177-0921-5ec7-a40c-1e9367bb67ef")
+	)
+	(text "PV-PORT 180 A port board"
+		(exclude_from_sim no)
+		(at 20 28 0)
+		(effects
+			(font
+				(size 5 5)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "c86bffdf-7d3f-58b9-ab1a-439cfe39ca75")
+	)
+	(text "AC) is below reinforced - fix in rev F1 (own isolated coil supply)."
+		(exclude_from_sim no)
+		(at 20 256 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "e242ab13-6676-563b-884c-af47e1a9844e")
+	)
+	(text "Common negative: port A and port B share BUS- (non-isolated buck-boost), so both ports are one HV domain; the main contactors switch the + pole only, fuses are in both poles. Chassis-mounted parts (terminals, fuses, CM choke, contactors, RST 200 resistors, thermostats, shunt) are"
+		(exclude_from_sim no)
+		(at 20 232 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "eca81423-89e8-56ec-85b8-53b9408561c5")
+	)
+	(text "AUX1 = V(PE-BUS-), AUX2 = V(PE-A+) (AMC3330); 992 k test strings\nA+ -> PE, BUS- -> PE, each with a common-source SiC pair (TPSI3050)"
+		(exclude_from_sim no)
+		(at 118.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "fc7cd7c7-7bd9-5b30-8048-37613f7e28f4")
+	)
+	(sheet
+		(at 116 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "2f209fed-709c-58bb-b128-fb2fa1ef85a3")
+		(property "Sheetname" "06 Insulation measurement"
+			(at 116 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/06_imd.kicad_sch"
+			(at 116 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PORT-180"
+				(path "/092e7e3b-92c0-5187-ac36-600c1d7358c1"
+					(page "7")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "407dee27-b55f-536e-b81e-bba196ee3b12")
+		(property "Sheetname" "03 Port A sensing and hold logic"
+			(at 212 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/03_portA_sense.kicad_sch"
+			(at 212 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PORT-180"
+				(path "/092e7e3b-92c0-5187-ac36-600c1d7358c1"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "5305e580-1efd-518e-80bb-048fdf783b81")
+		(property "Sheetname" "04 Port B power path"
+			(at 308 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/04_portB_power.kicad_sch"
+			(at 308 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PORT-180"
+				(path "/092e7e3b-92c0-5187-ac36-600c1d7358c1"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "85436bbb-5fb8-5347-b127-a7ecf48d5665")
+		(property "Sheetname" "01 Connectors and sensor supply"
+			(at 20 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/01_io.kicad_sch"
+			(at 20 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PORT-180"
+				(path "/092e7e3b-92c0-5187-ac36-600c1d7358c1"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "9db478a1-2266-5a6b-b44e-62f5f9f3c905")
+		(property "Sheetname" "02 Port A power path"
+			(at 116 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/02_portA_power.kicad_sch"
+			(at 116 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PORT-180"
+				(path "/092e7e3b-92c0-5187-ac36-600c1d7358c1"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "de0491b1-b343-5871-9c80-74086a8b0a27")
+		(property "Sheetname" "05 Port B sensing and hold logic"
+			(at 20 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/05_portB_sense.kicad_sch"
+			(at 20 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-PORT-180"
+				(path "/092e7e3b-92c0-5187-ac36-600c1d7358c1"
+					(page "6")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+)

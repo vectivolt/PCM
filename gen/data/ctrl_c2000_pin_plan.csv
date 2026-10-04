@@ -1,0 +1,175 @@
+signal,ball,pin,mux_pos,function,direction,route,trip_band,reaches
+P_VB,T4,ADCIN14,analog,ADCIN14+CMPIN4P,ain,"OV primary + open: ADC-C PPB1 (ADCIN14 converted by ADC-C every <= 10 us) > ADCCEVT1 > G1.3 > TRIP9 (all cells); OV backup (high) and open (low): CMPSS4 > G6.1 > TRIP9 (all cells); start-up null at zero input, then threshold = null +/- d","OV 1100 V (PPB): 1084.1-1115.9 V | OV backup 1110 V (CMPSS high): 1055.6-1164.4 V | open input -120 V (CMPSS low + PPB low): -144.1..-95.9 V, an open conductor or unpowered port board reads <= -181 V",J1101.9 J1101.10
+P_VBX,U4,ADCIN15,analog,ADCIN15,ain,"monitor only (moved off ADCINB0 = VDAC, INT-05)",,J1101.11 J1101.12
+P_VAX,U1,ADCINA0,analog,ADCINA0,ain,monitor only; 50 k internal pull-down on this ball (SPRSP14E table 6-1): -0.094 % gain (47 R / 50 k) - calibrate the gain and store it in the EEPROM (CSR-08),,J1101.7 J1101.8
+P_AUX1,T1,ADCINA1,analog,ADCINA1,ain,monitor only; 50 k internal pull-down on this ball (SPRSP14E table 6-1): -0.094 % gain (47 R / 50 k) - calibrate the gain and store it in the EEPROM (CSR-08),,J1101.19 J1101.20
+C1_AN1,U2,ADCINA2,analog,ADCINA2+CMPIN1P,ain,"CMPSS1 window > G0.1 > TRIP4 (with C1_FAULT); start-up null at zero input, then threshold = null +/- d","OC backup +/-91.5 A (CMPSS window): 84.4-98.6 A | both lines open reads <= -141 A (trips); one line open reads <= -56 A (idle null check, > 5 A rejected)",J701.31 J701.32
+C3_AN3,T2,ADCINA3,analog,ADCINA3,ain,,,J901.35 J901.36
+P_IA,U3,ADCINA4,analog,ADCINA4+CMPIN2P,ain,"SC: CMPSS2 window > G2.1 > TRIP9 (all cells); OC + open conductor: ADC-A PPB1 limits > ADCAEVT1 > G0.2 > TRIP9 (all cells); start-up null at zero input, then threshold = null +/- d","SC +/-405 A (CMPSS): 383.6-426.4 A | OC +/-202.5 A (PPB): 198.6-206.4 A | one open conductor reads <= -312 A, both <= -529 A",J1101.15 J1101.16
+C4_AN2,T3,ADCINA5,analog,ADCINA5,ain,,,J1001.33 J1001.34
+VREF2V5,V2,ADCINB0,ALT,VDAC,ain,CMPSS DAC reference = REF5025E 2.5 V (COMPDACCTL.SELREF = VDAC): ratiometric with the ADC; 1 uF at the ball (table 6-1); 8 CMPSS x 6 k load = 3.3 mA,,on-board C450.1 C451.1 C452.1 C453.1 C454.1 C503.1 R501.1 TP501.1 U501.6 U502.5
+P_AUX2,W2,ADCINB1,analog,ADCINB1,ain,monitor only; 50 k internal pull-down on this ball (SPRSP14E table 6-1): -0.094 % gain (47 R / 50 k) - calibrate the gain and store it in the EEPROM (CSR-08),,J1101.21 J1101.22
+C2_AN1,V3,ADCINB2,analog,ADCINB2+CMPIN3P,ain,"CMPSS3 window > G4.1 > TRIP5 (with C2_FAULT); start-up null at zero input, then threshold = null +/- d","OC backup +/-91.5 A (CMPSS window): 84.4-98.6 A | both lines open reads <= -141 A (trips); one line open reads <= -56 A (idle null check, > 5 A rejected)",J801.31 J801.32
+C1_AN2,W3,ADCINB3,analog,ADCINB3,ain,,,J701.33 J701.34
+C4_AN3,V4,ADCINB4,analog,ADCINB4,ain,,,J1001.35 J1001.36
+V24_MON,W4,ADCINB5,analog,ADCINB5,ain,,,on-board C507.1 D501.3 R503.2 R504.1
+C3_AN1,R3,ADCINC2,analog,ADCINC2+CMPIN6P,ain,"CMPSS6 window > G10.1 > TRIP7 (with C3_FAULT); start-up null at zero input, then threshold = null +/- d","OC backup +/-91.5 A (CMPSS window): 84.4-98.6 A | both lines open reads <= -141 A (trips); one line open reads <= -56 A (idle null check, > 5 A rejected)",J901.31 J901.32
+C1_AN3,P3,ADCINC3,analog,ADCINC3,ain,,,J701.35 J701.36
+P_IB,R4,ADCINC4,analog,ADCINC4+CMPIN5P,ain,"SC: CMPSS5 window > G8.1 > TRIP9 (all cells); OC + open conductor: ADC-C PPB2 limits > ADCCEVT2 > G3.3 > TRIP9 (all cells); start-up null at zero input, then threshold = null +/- d","SC +/-405 A (CMPSS): 383.6-426.4 A | OC +/-202.5 A (PPB): 198.6-206.4 A | one open conductor reads <= -312 A, both <= -529 A",J1101.17 J1101.18
+C2_AN2,P4,ADCINC5,analog,ADCINC5,ain,,,J801.33 J801.34
+C4_AN1,T5,ADCIND0,analog,ADCIND0+CMPIN7P,ain,"CMPSS7 window > G12.1 > TRIP8 (with C4_FAULT); start-up null at zero input, then threshold = null +/- d","OC backup +/-91.5 A (CMPSS window): 84.4-98.6 A | both lines open reads <= -141 A (trips); one line open reads <= -56 A (idle null check, > 5 A rejected)",J1001.31 J1001.32
+C2_AN3,U5,ADCIND1,analog,ADCIND1,ain,,,J801.35 J801.36
+P_VA,T6,ADCIND2,analog,ADCIND2+CMPIN8P,ain,"OV primary + open: ADC-D PPB1 (VA converted every <= 10 us) > ADCDEVT1 > G9.3 > TRIP9 (all cells); OV backup (high) and open (low): CMPSS8 > G14.1 > TRIP9 (all cells); start-up null at zero input, then threshold = null +/- d","OV 1100 V (PPB): 1084.1-1115.9 V | OV backup 1110 V (CMPSS high): 1055.6-1164.4 V | open input -120 V (CMPSS low + PPB low): -144.1..-95.9 V, an open conductor or unpowered port board reads <= -181 V",J1101.5 J1101.6
+C3_AN2,U6,ADCIND3,analog,ADCIND3,ain,,,J901.33 J901.34
+MUX_OUT,T7,ADCIND4,analog,ADCIND4,ain,,"ID decode, ADC counts at 12 bit, worst case (pull-up, reference, ADC, board resistors, ribbon ground); band < threshold < next band: short -7-36 < 690 < PVCELL-25 1345-1402 < 2056 < DAB60-B1 2710-2761 < 3011 < DAB60-B2 3262-3304 < 3694 < open / no board 4084-4095",J701.30 J701.39 J801.30 J801.39 J901.30 J901.39 J1001.30 J1001.39
+P_ID,U7,ADCIND5,analog,ADCIND5,ain,supervised continuously: ADC-D PPB2 window over the fitted code's bands > ADCDEVT2 > G11.3 > TRIP9 (all cells); firmware decodes the readback state (table in trip_band),"ID decode, ADC counts at 12 bit, worst case (pull-up, reference, ADC, board resistors, ribbon ground); band < threshold < next band: short -7-31 < 418 < DAB60-PORT A0 B0 805-846 < 892 < DAB60-PORT A1 B0 938-990 < 1000 < DAB60-PORT unpowered 1009-1050 < 1061 < DAB60-PORT A2 B0 1071-1135 < 1161 < DAB60-PORT A0 B1 1188-1261 < 1291 < DAB60-PORT A1 B1 1322-1405 < 1430 < DAB60-PORT A2 B1 1455-1549 < 1560 < DAB60-PORT A0 B2 1571-1676 < 1690 < DAB60-PORT A1 B2 1704-1820 < 1829 < DAB60-PORT A2 B2 1837-1965 < 1999 < PV-PORT A0 B0 2033-2073 < 2163 < PV-PORT A1 B0 2252-2308 < 2389 < PV-PORT A2 B0 2469-2544 < 2594 < PV-PORT A0 B1 2645-2729 < 2796 < PV-PORT A1 B1 2863-2964 < 2984 < PV-PORT unpowered 3004-3038 < 3060 < PV-PORT A2 B1 3081-3199 < 3227 < PV-PORT A0 B2 3254-3388 < 3430 < PV-PORT A1 B2 3472-3622 < 3657 < PV-PORT A2 B2 3691-3857 < 3971 < open / no board 4084-4095 | PPB2 window = the fitted code's lowest..highest band: open, short or a foreign code trips; an unpowered board is decoded by firmware and trips in hardware on VA/VB (INT-07)",J1101.25
+I2C_SDA,C8,GPIO0,6,I2CA_SDA,io,or CM-I2CA_SDA (mux 9),,J1201.35
+I2C_SCL,D8,GPIO1,6,I2CA_SCL,io,or CM-I2CA_SCL (mux 9),,J1201.36
+FLT_LATCH_N,A7,GPIO2,0,GPIO,in,INPUTXBAR1>TZ1 (TZn active low: TRM 26.9.2) one-shot trip of all ePWM,,J1201.59
+C1_FAULT,B7,GPIO3,0,GPIO,in,"INPUTXBAR2>ePWM-XBAR mux G3.1 > TRIP4 > DCAH, TZDCSEL event on high (TRM 26.11.4; or TRIPOUTINV) - fault is active high",,J701.25 J701.26
+C2_FAULT,C7,GPIO4,0,GPIO,in,"INPUTXBAR3>ePWM-XBAR mux G5.1 > TRIP5 > DCAH, TZDCSEL event on high (TRM 26.11.4; or TRIPOUTINV) - fault is active high",,J801.25 J801.26
+C3_FAULT,D7,GPIO5,0,GPIO,in,"INPUTXBAR4>ePWM-XBAR mux G7.1 > TRIP7 > DCAH, TZDCSEL event on high (TRM 26.11.4; or TRIPOUTINV) - fault is active high",,J901.25 J901.26
+C4_FAULT,A6,GPIO6,0,GPIO,in,"INPUTXBAR5>ePWM-XBAR mux G9.1 > TRIP8 > DCAH, TZDCSEL event on high (TRM 26.11.4; or TRIPOUTINV) - fault is active high",,J1001.25 J1001.26
+ESTOP_N,B6,GPIO7,0,GPIO,in,INPUTXBAR6>TRIP6 > DC event on low (TRM table 17-1),,J1201.64
+GATE_EN,G2,GPIO8,0,GPIO,in,monitor: channel A; firmware trips on a lasting GATE_EN/CHB_OK disagreement,,J1201.61
+C1_EN_MCU,G3,GPIO9,0,GPIO,out,"AND GATE_EN AND CHB_OK (74LVC11A) > EN pair; AND CHB_OK AND C1_RDY (74LVC11A) = C1_DRV_EN, enables the PWM and EN line drivers (low = pairs high impedance)",,J701.27 J701.28
+C2_EN_MCU,B2,GPIO10,0,GPIO,out,"AND GATE_EN AND CHB_OK (74LVC11A) > EN pair; AND CHB_OK AND C2_RDY (74LVC11A) = C2_DRV_EN, enables the PWM and EN line drivers (low = pairs high impedance)",,J801.27 J801.28
+C3_EN_MCU,C1,GPIO11,0,GPIO,out,"AND GATE_EN AND CHB_OK (74LVC11A) > EN pair; AND CHB_OK AND C3_RDY (74LVC11A) = C3_DRV_EN, enables the PWM and EN line drivers (low = pairs high impedance)",,J901.27 J901.28
+C4_EN_MCU,C2,GPIO12,0,GPIO,out,"AND GATE_EN AND CHB_OK (74LVC11A) > EN pair; AND CHB_OK AND C4_RDY (74LVC11A) = C4_DRV_EN, enables the PWM and EN line drivers (low = pairs high impedance)",,J1001.27 J1001.28
+FLT_CLR,D1,GPIO13,0,GPIO,out,,,J1201.60
+WDI,D2,GPIO14,0,GPIO,out,,,J1201.62
+PG_24V,D3,GPIO15,0,GPIO,in,,,J1201.75
+SPI_SIMO,E1,GPIO16,1,SPIA_SIMO,out,or SSIA_TX (mux 11),,J1201.38
+SPI_SOMI,E2,GPIO17,1,SPIA_SOMI,in,or SSIA_RX (mux 11),,J1201.39
+SPI_CLK,E3,GPIO18,1,SPIA_CLK,out,or SSIA_CLK (mux 11),,J1201.37
+SPI_CS_ADC_N,E4,GPIO19,1,SPIA_STEn,out,or SSIA_FSS (mux 11),,J1201.40
+SPI_CS_IO_N,F2,GPIO20,0,GPIO,out,,,J1201.41
+PG_HVAUX,F3,GPIO21,0,GPIO,in,,,J1201.76
+CHB_OK,J4,GPIO22,0,GPIO,in,monitor: channel B; firmware trips on a lasting GATE_EN/CHB_OK disagreement,,J1201.78
+FAN_PWM1,K3,GPIO24,1,OUTPUTXBAR1,out,"eCAP1 APWM > Output X-BAR mux G0.3 ECAP1_OUT (TRM 24.4, table 17-5)",,J1201.67
+FAN_PWM2,K2,GPIO25,1,OUTPUTXBAR2,out,"eCAP2 APWM > Output X-BAR mux G2.3 ECAP2_OUT (TRM 24.4, table 17-5)",,J1201.68
+FAN_PWM3,K1,GPIO26,"1,5",OUTPUTXBAR3,out,"eCAP3 APWM > Output X-BAR mux G4.3 ECAP3_OUT (TRM 24.4, table 17-5)",,J1201.69
+FAN_PWM4,L1,GPIO27,"1,5",OUTPUTXBAR4,out,"eCAP4 APWM > Output X-BAR mux G6.3 ECAP4_OUT (TRM 24.4, table 17-5)",,J1201.70
+SCIA_RX,V11,GPIO28,1,SCIA_RX,in,default SCI-boot pins,,J1201.18
+SCIA_TX,W11,GPIO29,1,SCIA_TX,out,default SCI-boot pins,,J1201.17
+SCIC_DE,T11,GPIO30,0,GPIO,out,,,J1201.25
+LED_CPU1_N,U11,GPIO31,0,GPIO,out,,,on-board D1402.1
+C1_RDY_F,U13,GPIO32,0,GPIO,in,,,J701.29
+C2_RDY_F,T13,GPIO33,0,GPIO,in,,,J801.29
+C3_RDY_F,U14,GPIO34,0,GPIO,in,,,J901.29
+C4_RDY_F,T14,GPIO35,0,GPIO,in,,,J1001.29
+CANA_RX,V16,GPIO36,6,CANA_RX,in,default CAN-boot pins,,J1201.10
+CANA_TX,U16,GPIO37,6,CANA_TX,out,default CAN-boot pins,,J1201.9
+CANB_TX,T16,GPIO38,6,CANB_TX,out,,,J1201.11
+CANB_RX,W17,GPIO39,6,CANB_RX,in,,,J1201.12
+SCIA_DE,V17,GPIO40,0,GPIO,out,,,J1201.19
+SCIB_DE,U17,GPIO41,0,GPIO,out,,,J1201.22
+DBG_TX,D19,GPIO42,11,UARTA_TX,out,CM-UART-A; or SCIA_TX (mux 15),,J1402.2
+DBG_RX,C19,GPIO43,11,UARTA_RX,in,CM-UART-A; or SCIA_RX (mux 15),,J1402.3
+LED_CPU2_N,K18,GPIO44,0,GPIO,out,,,on-board D1403.1
+LED_CM_N,K19,GPIO45,0,GPIO,out,,,on-board D1404.1
+LED_FLT_N,E19,GPIO46,0,GPIO,out,,,on-board D1405.1
+EEPROM_WP,E18,GPIO47,0,GPIO,out,,,on-board R1408.2 U1401.7
+SD1_D1,R16,GPIO48,7,SD1_D1,in,,,J1403.7
+SD_CLK_RET,R17,GPIO49,7,SD1_C1,in,,,J1403.5
+SD1_D2,R18,GPIO50,7,SD1_D2,in,,,J1403.8
+SD_CLK_RET,R19,GPIO51,7,SD1_C2,in,,,J1403.5
+SD1_D3,P16,GPIO52,7,SD1_D3,in,,,J1403.9
+SD_CLK_RET,P17,GPIO53,7,SD1_C3,in,,,J1403.5
+SD1_D4,P18,GPIO54,7,SD1_D4,in,,,J1403.10
+SD_CLK_RET,P19,GPIO55,7,SD1_C4,in,,,J1403.5
+SD2_D1,N16,GPIO56,7,SD2_D1,in,,,J1403.13
+SD_CLK_RET,N18,GPIO57,7,SD2_C1,in,,,J1403.5
+SD2_D2,N17,GPIO58,7,SD2_D2,in,,,J1403.14
+SD_CLK_RET,M16,GPIO59,7,SD2_C2,in,,,J1403.5
+SD2_D3,M17,GPIO60,7,SD2_D3,in,,,J1403.15
+SD_CLK_RET,L16,GPIO61,7,SD2_C3,in,,,J1403.5
+SD2_D4,J17,GPIO62,7,SD2_D4,in,,,J1403.16
+SD_CLK_RET,J16,GPIO63,7,SD2_C4,in,,,J1403.5
+DI1,L17,GPIO64,0,GPIO,in,,,J1201.43
+DI2,K16,GPIO65,0,GPIO,in,,,J1201.44
+DI3,K17,GPIO66,0,GPIO,in,,,J1201.45
+DI4,B19,GPIO67,0,GPIO,in,,,J1201.46
+DI5,C18,GPIO68,0,GPIO,in,,,J1201.47
+DI6,B18,GPIO69,0,GPIO,in,,,J1201.48
+DI7,A17,GPIO70,0,GPIO,in,,,J1201.49
+DI8,B17,GPIO71,0,GPIO,in,,,J1201.50
+BOOT1,B16,GPIO72,0,GPIO,in,"boot-mode strap (pin 1), pull-up = flash",,JP201.1
+SD_XCLK,A16,GPIO73,3,XCLKOUT,out,"SDFM modulator clock: CLKSRCCTL3.XCLKOUTSEL = XTAL (25 MHz), XCLKOUTDIVSEL /2 = 12.5 MHz (TRM 3.7.4; AMC1306-class 5-20 MHz)",,on-board R1415.1
+MCAN_TX,C17,GPIO74,9,MCAN_TX,out,,,J1201.13
+MCAN_RX,D16,GPIO75,9,MCAN_RX,in,,,J1201.14
+DO1,C16,GPIO76,0,GPIO,out,,,J1201.51
+DO2,A15,GPIO77,0,GPIO,out,,,J1201.52
+DO3,B15,GPIO78,0,GPIO,out,,,J1201.53
+DO4,C15,GPIO79,0,GPIO,out,,,J1201.54
+DO5,D15,GPIO80,0,GPIO,out,,,J1201.55
+DO6,A14,GPIO81,0,GPIO,out,,,J1201.56
+DO7,B14,GPIO82,0,GPIO,out,,,J1201.57
+DO8,C14,GPIO83,0,GPIO,out,,,J1201.58
+BOOT0,A11,GPIO84,0,GPIO,in,"boot-mode strap (pin 0), pull-up = flash",,JP202.1
+SCIB_TX,C11,GPIO86,5,SCIB_TX,out,,,J1201.20
+SCIB_RX,D11,GPIO87,5,SCIB_RX,in,,,J1201.21
+SCIC_TX,D6,GPIO89,6,SCIC_TX,out,,,J1201.23
+SCIC_RX,A5,GPIO90,6,SCIC_RX,in,,,J1201.24
+MUX_A0,B5,GPIO91,0,GPIO,out,TMUX1208 address,,on-board U503.1
+MUX_A1,A4,GPIO92,0,GPIO,out,TMUX1208 address,,on-board U503.16
+MUX_A2,B4,GPIO93,0,GPIO,out,TMUX1208 address,,on-board U503.15
+FAN_TACH4,C3,GPIO96,5,EQEP1_A,in,"eQEP1 QDECCTL.QSRC=2 up-count frequency mode + unit timer, PCRM=3, synchronous GPIO qualification (TRM 27.4.1.3, 27.8); never mux EQEP1_B (GPIO97 stays GPIO)",,J1201.74
+FAN_TACH1,A2,GPIO97,0,GPIO,in,"INPUTXBAR13>eCAP5 capture, ECCTL0.INPUTSEL=12 (TRM table 24-1)",,J1201.71
+FAN_TACH2,F1,GPIO98,0,GPIO,in,"INPUTXBAR14>eCAP6 capture, ECCTL0.INPUTSEL=13 (TRM table 24-1)",,J1201.72
+FAN_TACH3,G1,GPIO99,0,GPIO,in,"INPUTXBAR15>eCAP7 capture, ECCTL0.INPUTSEL=14 (TRM table 24-1)",,J1201.73
+C1_EN_RB,H1,GPIO100,0,GPIO,in,"EN pair readback (THVD1450 receiver at the CTRL end). Start-up test with GATE_EN low (latch not yet cleared), CHB_OK, C1_EN_MCU and RDY high: must read 0; after FLT_CLR: 1. Commissioning proof test per board: same state, one minimum PWM pulse -> no current on C1_AN1. With the drivers disabled it reads the power board's fail-safe bias (0) or an idle line (1)",,J701.27 J701.28
+C2_EN_RB,H2,GPIO101,0,GPIO,in,"EN pair readback (THVD1450 receiver at the CTRL end). Start-up test with GATE_EN low (latch not yet cleared), CHB_OK, C2_EN_MCU and RDY high: must read 0; after FLT_CLR: 1. Commissioning proof test per board: same state, one minimum PWM pulse -> no current on C2_AN1. With the drivers disabled it reads the power board's fail-safe bias (0) or an idle line (1)",,J801.27 J801.28
+C3_EN_RB,H3,GPIO102,0,GPIO,in,"EN pair readback (THVD1450 receiver at the CTRL end). Start-up test with GATE_EN low (latch not yet cleared), CHB_OK, C3_EN_MCU and RDY high: must read 0; after FLT_CLR: 1. Commissioning proof test per board: same state, one minimum PWM pulse -> no current on C3_AN1. With the drivers disabled it reads the power board's fail-safe bias (0) or an idle line (1)",,J901.27 J901.28
+C4_EN_RB,J1,GPIO103,0,GPIO,in,"EN pair readback (THVD1450 receiver at the CTRL end). Start-up test with GATE_EN low (latch not yet cleared), CHB_OK, C4_EN_MCU and RDY high: must read 0; after FLT_CLR: 1. Commissioning proof test per board: same state, one minimum PWM pulse -> no current on C4_AN1. With the drivers disabled it reads the power board's fail-safe bias (0) or an idle line (1)",,J1001.27 J1001.28
+ETH_MDC,J3,GPIO105,14,ENET_MDIO_CLK,out,CM EMAC MII,,on-board U1301.20
+ETH_MDIO,L2,GPIO106,14,ENET_MDIO_DATA,io,CM EMAC MII,,on-board R1302.2 U1301.19
+ETH_INT_N,L4,GPIO108,14,ENET_MII_INTR,in,CM EMAC MII,,on-board R1303.2 U1301.8
+ETH_CRS,N2,GPIO109,14,ENET_MII_CRS,in,CM EMAC MII,,on-board U1301.27
+ETH_COL,M2,GPIO110,14,ENET_MII_COL,in,CM EMAC MII,,on-board U1301.29
+ETH_RX_CLK,M4,GPIO111,14,ENET_MII_RX_CLK,in,CM EMAC MII,,on-board U1301.25
+ETH_RX_DV,M3,GPIO112,14,ENET_MII_RX_DV,in,CM EMAC MII,,on-board U1301.26
+ETH_RX_ER,N4,GPIO113,14,ENET_MII_RX_ERR,in,CM EMAC MII,,on-board U1301.28
+ETH_RXD0,N3,GPIO114,14,ENET_MII_RX_DATA0,in,CM EMAC MII,,on-board U1301.30
+ETH_RXD1,V12,GPIO115,14,ENET_MII_RX_DATA1,in,CM EMAC MII,,on-board U1301.31
+ETH_RXD2,W10,GPIO116,14,ENET_MII_RX_DATA2,in,CM EMAC MII,,on-board U1301.32
+ETH_RXD3,U12,GPIO117,14,ENET_MII_RX_DATA3,in,CM EMAC MII,,on-board U1301.1
+ETH_TX_EN,T12,GPIO118,14,ENET_MII_TX_EN,out,CM EMAC MII,,on-board U1301.3
+ETH_RST_N,T15,GPIO119,0,GPIO,out,PHY reset (pulled low until firmware releases it),,on-board R1304.1 U1301.18
+ETH_TX_CLK,U15,GPIO120,14,ENET_MII_TX_CLK,in,CM EMAC MII,,on-board U1301.2
+ETH_TXD0,W16,GPIO121,14,ENET_MII_TX_DATA0,out,CM EMAC MII,,on-board U1301.4
+ETH_TXD1,T8,GPIO122,14,ENET_MII_TX_DATA1,out,CM EMAC MII,,on-board U1301.5
+ETH_TXD2,U8,GPIO123,14,ENET_MII_TX_DATA2,out,CM EMAC MII,,on-board U1301.6
+ETH_TXD3,V8,GPIO124,14,ENET_MII_TX_DATA3,out,CM EMAC MII,,on-board U1301.7
+C4_PWM1,T18,GPIO137,1,EPWM13A,out,no HRPWM (ePWM9-16),,J1001.5 J1001.6
+C4_PWM2,T19,GPIO138,1,EPWM13B,out,no HRPWM (ePWM9-16),,J1001.7 J1001.8
+C4_PWM3,N19,GPIO139,1,EPWM14A,out,no HRPWM (ePWM9-16),,J1001.9 J1001.10
+C4_PWM4,M19,GPIO140,1,EPWM14B,out,no HRPWM (ePWM9-16),,J1001.11 J1001.12
+C4_PWM5,M18,GPIO141,1,EPWM15A,out,no HRPWM (ePWM9-16),,J1001.15 J1001.16
+C4_PWM6,L19,GPIO142,1,EPWM15B,out,no HRPWM (ePWM9-16),,J1001.17 J1001.18
+C4_PWM7,F18,GPIO143,1,EPWM16A,out,no HRPWM (ePWM9-16),,J1001.19 J1001.20
+C4_PWM8,F17,GPIO144,1,EPWM16B,out,no HRPWM (ePWM9-16),,J1001.21 J1001.22
+C1_PWM1,E17,GPIO145,1,EPWM1A,out,"HRPWM (ePWM1-8): the DAB phase shift at 100 kHz must use C1 and C2, one bridge per port",,J701.5 J701.6
+C1_PWM2,D18,GPIO146,1,EPWM1B,out,"HRPWM (ePWM1-8): the DAB phase shift at 100 kHz must use C1 and C2, one bridge per port",,J701.7 J701.8
+C1_PWM3,D17,GPIO147,1,EPWM2A,out,"HRPWM (ePWM1-8): the DAB phase shift at 100 kHz must use C1 and C2, one bridge per port",,J701.9 J701.10
+C1_PWM4,D14,GPIO148,1,EPWM2B,out,"HRPWM (ePWM1-8): the DAB phase shift at 100 kHz must use C1 and C2, one bridge per port",,J701.11 J701.12
+C1_PWM5,A13,GPIO149,1,EPWM3A,out,"HRPWM (ePWM1-8): the DAB phase shift at 100 kHz must use C1 and C2, one bridge per port",,J701.15 J701.16
+C1_PWM6,B13,GPIO150,1,EPWM3B,out,"HRPWM (ePWM1-8): the DAB phase shift at 100 kHz must use C1 and C2, one bridge per port",,J701.17 J701.18
+C1_PWM7,C13,GPIO151,1,EPWM4A,out,"HRPWM (ePWM1-8): the DAB phase shift at 100 kHz must use C1 and C2, one bridge per port",,J701.19 J701.20
+C1_PWM8,D13,GPIO152,1,EPWM4B,out,"HRPWM (ePWM1-8): the DAB phase shift at 100 kHz must use C1 and C2, one bridge per port",,J701.21 J701.22
+C2_PWM1,A12,GPIO153,1,EPWM5A,out,"HRPWM (ePWM1-8): the DAB phase shift at 100 kHz must use C1 and C2, one bridge per port",,J801.5 J801.6
+C2_PWM2,B12,GPIO154,1,EPWM5B,out,"HRPWM (ePWM1-8): the DAB phase shift at 100 kHz must use C1 and C2, one bridge per port",,J801.7 J801.8
+C2_PWM3,C12,GPIO155,1,EPWM6A,out,"HRPWM (ePWM1-8): the DAB phase shift at 100 kHz must use C1 and C2, one bridge per port",,J801.9 J801.10
+C2_PWM4,D12,GPIO156,1,EPWM6B,out,"HRPWM (ePWM1-8): the DAB phase shift at 100 kHz must use C1 and C2, one bridge per port",,J801.11 J801.12
+C2_PWM5,B10,GPIO157,1,EPWM7A,out,"HRPWM (ePWM1-8): the DAB phase shift at 100 kHz must use C1 and C2, one bridge per port",,J801.15 J801.16
+C2_PWM6,C10,GPIO158,1,EPWM7B,out,"HRPWM (ePWM1-8): the DAB phase shift at 100 kHz must use C1 and C2, one bridge per port",,J801.17 J801.18
+C2_PWM7,D10,GPIO159,1,EPWM8A,out,"HRPWM (ePWM1-8): the DAB phase shift at 100 kHz must use C1 and C2, one bridge per port",,J801.19 J801.20
+C2_PWM8,B9,GPIO160,1,EPWM8B,out,"HRPWM (ePWM1-8): the DAB phase shift at 100 kHz must use C1 and C2, one bridge per port",,J801.21 J801.22
+C3_PWM1,C9,GPIO161,1,EPWM9A,out,no HRPWM (ePWM9-16),,J901.5 J901.6
+C3_PWM2,D9,GPIO162,1,EPWM9B,out,no HRPWM (ePWM9-16),,J901.7 J901.8
+C3_PWM3,A8,GPIO163,1,EPWM10A,out,no HRPWM (ePWM9-16),,J901.9 J901.10
+C3_PWM4,B8,GPIO164,1,EPWM10B,out,no HRPWM (ePWM9-16),,J901.11 J901.12
+C3_PWM5,C5,GPIO165,1,EPWM11A,out,no HRPWM (ePWM9-16),,J901.15 J901.16
+C3_PWM6,D5,GPIO166,1,EPWM11B,out,no HRPWM (ePWM9-16),,J901.17 J901.18
+C3_PWM7,C4,GPIO167,1,EPWM12A,out,no HRPWM (ePWM9-16),,J901.19 J901.20
+C3_PWM8,D4,GPIO168,1,EPWM12B,out,no HRPWM (ePWM9-16),,J901.21 J901.22

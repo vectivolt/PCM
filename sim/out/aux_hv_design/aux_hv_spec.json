@@ -1,0 +1,984 @@
+{
+  "start_up_voltage_V": 232.4,
+  "start_up_voltage_nominal_V": 227.6,
+  "stop_voltage_V": [
+    174.8,
+    183.0,
+    190.0
+  ],
+  "project": "AUX-HV",
+  "rev": "C1",
+  "generated_by": "sim/aux_hv_design.py",
+  "note": "CALCULATED, not bench-validated",
+  "switch": {
+    "design": "IV2Q171R0D7Z",
+    "main": "IV2Q171R0D7Z",
+    "alternate": "SG2M1K0170J2J",
+    "compare": {
+      "IV2Q171R0D7Z": {
+        "loss_1000V_W": 2.2463955148284613,
+        "tj_1000V_C": 143.22895382439447,
+        "eta": {
+          "200": 0.8077469214918548,
+          "400": 0.8404992111458165,
+          "600": 0.8352539849471856,
+          "800": 0.8218820505352215,
+          "1000": 0.804314753976566
+        },
+        "qualification": "AEC-Q101 (datasheet p1)"
+      },
+      "SG2M1K0170J2J": {
+        "loss_1000V_W": 1.4839904378332465,
+        "tj_1000V_C": 116.09483855009671,
+        "eta": {
+          "200": 0.8086140841840439,
+          "400": 0.8453539663009509,
+          "600": 0.8438167738876611,
+          "800": 0.8345540534831775,
+          "1000": 0.821186748636541
+        },
+        "qualification": "none stated in the datasheet"
+      }
+    },
+    "vgs_V": [
+      15.463999999999999,
+      18.11
+    ]
+  },
+  "rating": {
+    "continuous_W": 30.0,
+    "short_W": 38,
+    "short_ms": 90.9769736753208,
+    "post_inhibit_W": 27.83969894545877,
+    "port_hold_W": 30.15469894545877,
+    "port_hold_s": 200,
+    "black_start_peak_W": 37.255421022025,
+    "handover_peak_W": 37.979270801096426,
+    "timer_node_peak_V": 2.345872688675136,
+    "timer_trip_min_V": 2.467,
+    "stress_black_start_0A7": {
+      "p_peak_W": 39.52950718133543,
+      "trip": false,
+      "note": "not possible in service: port contactors open"
+    }
+  },
+  "standby": {
+    "200": {
+      "no_load_W": 0.8002377270170391,
+      "standby_in_W": 17.07706741633783,
+      "standby_out_W": 13.949698945458772
+    },
+    "400": {
+      "no_load_W": 1.1111941176461415,
+      "standby_in_W": 16.958684286848147,
+      "standby_out_W": 13.949698945458772
+    },
+    "600": {
+      "no_load_W": 1.3049049244334314,
+      "standby_in_W": 17.360239124611105,
+      "standby_out_W": 13.949698945458772
+    },
+    "800": {
+      "no_load_W": 1.2434385285082452,
+      "standby_in_W": 17.96612308161996,
+      "standby_out_W": 13.949698945458772
+    },
+    "1000": {
+      "no_load_W": 1.2161599434427581,
+      "standby_in_W": 18.73434278443872,
+      "standby_out_W": 13.949698945458772
+    }
+  },
+  "builds": {
+    "PV": "all parts fitted (both ports)",
+    "DAB": "port-B input parts not fitted: 2 studs, 2 x R_LIM, fuse, 2 OR diodes (port 1 only, D-021)",
+    "counts": {
+      "per_port": {
+        "R_LIM": 2,
+        "F_PORT": 1,
+        "OR_DIODES": 2,
+        "STUDS": 2
+      }
+    }
+  },
+  "values": {
+    "F_PORT": {
+      "value": "1A",
+      "why": "per-port fuse 1000 VDC gPV behind 44R: fault current <= 25 A (breaking 20 kA not needed), hot-plug I2t 0.091 A2s = 16 % of melting"
+    },
+    "R_LIM": {
+      "value": "22R",
+      "why": "2 per port AHEAD of the fuse (AC10 pulse-rated): fuse-clearing 24 J each vs ~57 J; surge 1500 V each vs 4.5 kV",
+      "n": 2
+    },
+    "C_BULK": {
+      "value": "3.3u 1300V",
+      "why": "2 x film = RC surge absorber with 44R: 4 kV / 20 us residual -> 1199 V (UR 1300 V); filter corner 546 Hz",
+      "n": 2
+    },
+    "C_HF": {
+      "value": "22n",
+      "why": "HV MLCC at the switching loop",
+      "volt": "2kV",
+      "diel": "X7R",
+      "pkg": "1812",
+      "n": 2
+    },
+    "R_STR": {
+      "value": "10M",
+      "why": "3 sections: start-up gate taps + line sense + OV tap; 367 V each at 1100 V (CRHV2512 3 kV)",
+      "n": 3
+    },
+    "C_STR": {
+      "value": "100p",
+      "why": "string compensation (tau 1.0 ms per section)",
+      "volt": "1kV",
+      "diel": "C0G",
+      "pkg": "1206",
+      "tol": "5%",
+      "n": 3
+    },
+    "R_D1": {
+      "value": "11.5k",
+      "why": "string bottom LSO-LS: OV lockout trip 1142 V (1114-1170), release 1119 V",
+      "tol": "0.1%"
+    },
+    "C_D1": {
+      "value": "68n",
+      "why": "compensation (78 % of the string time constant)",
+      "volt": "50V",
+      "diel": "C0G",
+      "pkg": "1206",
+      "tol": "5%"
+    },
+    "R_D2": {
+      "value": "53.6k",
+      "why": "string bottom LS-PGND: brown-in 228 V (223-232), brown-out 183 V (175-190)",
+      "tol": "0.1%"
+    },
+    "C_D2": {
+      "value": "15n",
+      "why": "compensation (80 %)",
+      "volt": "50V",
+      "diel": "C0G",
+      "pkg": "0805",
+      "tol": "5%"
+    },
+    "R_HYS": {
+      "value": "3.57M",
+      "why": "brown-in hysteresis from LINE_OK"
+    },
+    "R_LINE_PU": {
+      "value": "47k",
+      "why": "LINE_OK pull-up to VREF"
+    },
+    "R_LSF": {
+      "value": "1k",
+      "why": "OV comparator input filter"
+    },
+    "C_LSF": {
+      "value": "220p",
+      "why": "OV comparator input filter (0.22 us)",
+      "volt": "50V",
+      "diel": "C0G"
+    },
+    "R_REF": {
+      "value": "4.7k",
+      "why": "primary ATL431 2.5 V reference bias from VREF (0.53 mA)"
+    },
+    "R_OVH1": {
+      "value": "10k",
+      "why": "OV reference series resistor (hysteresis)"
+    },
+    "R_OVH2": {
+      "value": "1M",
+      "why": "OV hysteresis from 1OUT: release 1119 V"
+    },
+    "R_SU_S": {
+      "value": "4.7k",
+      "why": "start-up current 0.27-0.43 mA"
+    },
+    "R_SU_G": {
+      "value": "1M",
+      "why": "start-up gate bias to VDD"
+    },
+    "R_SU_EN": {
+      "value": "10k",
+      "why": "VREF -> start-up disable FET gate"
+    },
+    "R_SU_EN_PD": {
+      "value": "100k",
+      "why": "start-up disable FET gate pull-down"
+    },
+    "R_T": {
+      "value": "13.7k",
+      "why": "oscillator 129.8 kHz -> fsw 64.9 kHz (58.3-74.2)"
+    },
+    "C_T": {
+      "value": "1n",
+      "why": "oscillator capacitor",
+      "volt": "50V",
+      "diel": "C0G",
+      "tol": "5%"
+    },
+    "C_TX": {
+      "value": "10n",
+      "why": "foldback: switched onto RT/CT below 7.7-10.1 V output -> fsw 5.9 kHz (5.3-6.8)",
+      "volt": "50V",
+      "diel": "C0G",
+      "pkg": "0805",
+      "tol": "5%"
+    },
+    "R_FBK": {
+      "value": "47k",
+      "why": "foldback FET gate pull-up to VREF"
+    },
+    "R_AF1": {
+      "value": "4.7k",
+      "why": "aux-plateau detector charge (tau 1.8 us, rejects the clamp spike)"
+    },
+    "C_AF": {
+      "value": "470p",
+      "why": "aux-plateau detector",
+      "volt": "50V",
+      "diel": "C0G"
+    },
+    "R_AF2": {
+      "value": "22k",
+      "why": "aux-plateau detector discharge (tau 10 us)"
+    },
+    "R_QG": {
+      "value": "1M",
+      "why": "Q_INV gate hold / pull-down"
+    },
+    "C_VREF": {
+      "value": "1u",
+      "why": "VREF bypass (SLUSEV2C 9.2.2.10)",
+      "volt": "25V"
+    },
+    "C_VDD": {
+      "value": "10u",
+      "why": "56 uF effective: VDD hold-up 17.6 ms",
+      "volt": "50V",
+      "pkg": "1210",
+      "n": 8
+    },
+    "C_AUX": {
+      "value": "10u",
+      "why": "aux reservoir ahead of the VDD follower",
+      "volt": "50V",
+      "pkg": "1210",
+      "n": 2
+    },
+    "R_ZREG": {
+      "value": "10k",
+      "why": "follower Zener bias: VDD = gate drive 15.46-18.11 V (BZX84-A18, -40..85 C)",
+      "pkg": "1206"
+    },
+    "R_VDDE": {
+      "value": "10k",
+      "why": "AX-05: BAT54 leakage sink, V_EB 0.4 V at 85 C / 3.3 V at 125 C (< 5 V)"
+    },
+    "R_AUX": {
+      "value": "22R",
+      "why": "aux rectifier series resistor: limits peak charging by the leakage spike"
+    },
+    "R_AUXS": {
+      "value": "1k",
+      "why": "aux sense filter (backup loop)"
+    },
+    "C_AUXS": {
+      "value": "10n",
+      "why": "aux sense filter",
+      "volt": "50V"
+    },
+    "R_FBT": {
+      "value": "105k",
+      "why": "backup loop: Vout 23.82-30.97 V if the opto loop fails",
+      "tol": "0.1%"
+    },
+    "R_FBB": {
+      "value": "10k",
+      "why": "FB divider bottom",
+      "tol": "0.1%"
+    },
+    "R_EA": {
+      "value": "22k",
+      "why": "backup loop type II zero resistor"
+    },
+    "C_EA": {
+      "value": "150n",
+      "why": "backup loop integrator",
+      "volt": "25V"
+    },
+    "C_EAHF": {
+      "value": "1.5n",
+      "why": "backup loop HF pole",
+      "volt": "50V",
+      "diel": "C0G"
+    },
+    "R_PU": {
+      "value": "2.2k",
+      "why": "COMP pull-up = opto load resistor"
+    },
+    "C_P": {
+      "value": "2.2n",
+      "why": "COMP pole 32.9 kHz",
+      "volt": "50V",
+      "diel": "C0G"
+    },
+    "R_SS": {
+      "value": "100k",
+      "why": "soft start charge"
+    },
+    "C_SS": {
+      "value": "2.2u",
+      "why": "soft start ~4.8 ms",
+      "volt": "16V"
+    },
+    "R_TA": {
+      "value": "59k",
+      "why": "overload timer from COMP: trips when COMP > 3.89-4.06 V (34-88 W out)"
+    },
+    "R_TB": {
+      "value": "100k",
+      "why": "overload timer divider bottom"
+    },
+    "C_TMR": {
+      "value": "2.2u",
+      "why": "overload timer: 91-189 ms at full COMP",
+      "volt": "25V",
+      "pkg": "1206",
+      "tol": "10%"
+    },
+    "R_SSG": {
+      "value": "1k",
+      "why": "soft-start crowbar gate drive from 2OUT"
+    },
+    "R_SSG_PD": {
+      "value": "100k",
+      "why": "soft-start crowbar gate pull-down"
+    },
+    "R_G": {
+      "value": "10R",
+      "why": "gate resistor"
+    },
+    "R_GS": {
+      "value": "10k",
+      "why": "gate-source pull-down"
+    },
+    "R_CS": {
+      "value": "1.5R",
+      "why": "2 in parallel = 0.750 R: limit 1.19-1.48 A (+0.26 A delay)",
+      "pkg": "1206",
+      "note": "0.25 W",
+      "n": 2
+    },
+    "R_CSF": {
+      "value": "1k",
+      "why": "CS RC filter (no internal blanking)"
+    },
+    "C_CSF": {
+      "value": "150p",
+      "why": "CS RC filter",
+      "volt": "50V",
+      "diel": "C0G"
+    },
+    "R_SN": {
+      "value": "150R",
+      "why": "output rectifier snubber: 0.19 W at 1100 V",
+      "pkg": "2512",
+      "note": "1 W"
+    },
+    "C_SN": {
+      "value": "68p",
+      "why": "output rectifier snubber",
+      "volt": "500V",
+      "diel": "C0G",
+      "pkg": "1206"
+    },
+    "C_OUT_MLCC": {
+      "value": "10u",
+      "why": "output HF",
+      "volt": "50V",
+      "pkg": "1210",
+      "n": 2
+    },
+    "C_OUT_POL": {
+      "value": "100u 35V",
+      "why": "polymer bulk: 80 mV pk-pk ripple at 600 V (calc), 0.60 A rms each",
+      "n": 3
+    },
+    "R_PRELOAD": {
+      "value": "10k",
+      "why": "output preload / bleed",
+      "pkg": "1206"
+    },
+    "R_LED": {
+      "value": "560R",
+      "why": "fast-lane: LED current up to 10.1 mA needed (R <= 1.74k), 60 mW at that current",
+      "pkg": "0805"
+    },
+    "R_BIAS": {
+      "value": "4.7k",
+      "why": "ATL431 minimum current across the LED"
+    },
+    "R_UP": {
+      "value": "137k",
+      "why": "Vout set point 22.770 V nominal, 22.40-23.15 V",
+      "tol": "0.1%"
+    },
+    "R_LO": {
+      "value": "16.9k",
+      "why": "ATL431 divider bottom",
+      "tol": "0.1%"
+    },
+    "C_Z": {
+      "value": "47n",
+      "why": "integrator zero 25 Hz",
+      "volt": "50V"
+    },
+    "R_FF": {
+      "value": "33k",
+      "why": "feed-forward to REF: no start-up / hand-over overshoot (max 23.20 V vs SYS OV 23.97 V)"
+    },
+    "C_FF": {
+      "value": "39n",
+      "why": "feed-forward to REF",
+      "volt": "50V"
+    },
+    "R_PG_A": {
+      "value": "619k",
+      "why": "PG window: UV falling 20.61-21.39 V, OV rising 24.93-25.54 V",
+      "tol": "0.1%"
+    },
+    "R_PG_B": {
+      "value": "1.82k",
+      "why": "PG window middle",
+      "tol": "0.1%"
+    },
+    "R_PG_C": {
+      "value": "10k",
+      "why": "PG window bottom",
+      "tol": "0.1%"
+    },
+    "C_PGF": {
+      "value": "1n",
+      "why": "PG divider filter: 0.6 ms with the 619k string",
+      "volt": "50V"
+    },
+    "R_PGR": {
+      "value": "10k",
+      "why": "PG 3.3 V Zener rail from the output (42 mW)",
+      "pkg": "1206"
+    },
+    "C_PGR": {
+      "value": "100n",
+      "why": "PG rail decoupling",
+      "volt": "16V"
+    },
+    "R_PGW": {
+      "value": "10k",
+      "why": "TPS3700 open-drain pull-up to the PG rail"
+    },
+    "R_PGO": {
+      "value": "1k",
+      "why": "PG_HVAUX series resistor (high 2.51-2.77 V into the SYS 100k pull-down)"
+    },
+    "C_DEC": {
+      "value": "100n",
+      "why": "local decoupling (VDD pin, TPS3710/TLV3202 supply)",
+      "volt": "50V"
+    }
+  },
+  "transformer": {
+    "desc": "CUSTOM flyback transformer AUX-HV T1 rev M1 (proposed construction - calculated, not built or measured; build to the winding sheet sim/out/magnetics/spec_aux_hv_transformer.md). DMEGC EC34A (ETD 34/17/11 class) DMR95, centre-leg gap 1.16 mm, 90:15:16 in the converter engineer's order P1|SH|S|AUX|P2, copper set back 2.0 mm from the gapped leg (1.0 mm former wall + 1.0 mm spacer), secondary in TIW-litz, vacuum-potted in a case. Core DMEGC EC34A set (DMR95), ETD 34/17/11 equivalent (Ae/Amin/le within 1 % of the MAS ETD 34/17/11 shape), gap 1.16 mm (A_L 142 nH). Lp 1.148 mH +/-7 % at 10 kHz (gap ground to A_L); leakage (S shorted) estimate 31.6 uH, <= 34.0 uH. Windings in order: P1: 45 t enamelled Cu 0.30 mm grade 2, 1 layer, start = DRAIN pin (dot); SH: copper foil 0.05 mm, 1 t, open with insulated overlap, -> PGND pin; S: 15 t TIW-litz 64 x 0.10 mm (three-layer extruded insulation certified for reinforced insulation, IEC 61558-2-16 / IEC 62368-1 Annex J), 1 layer, start = rectifier anode (dot), insulation unbroken to the pin, exits in PTFE sleeve; AUX: 16 t enamelled Cu 0.25 mm spaced over the breadth, start = aux rectifier anode (dot), finish = PGND; P2: 45 t enamelled Cu 0.30 mm grade 2, 1 layer, finish = HV_BULK pin. Insulation: VACUUM-POTTED (epoxy, class F, void-free) in a case - REQUIRED for the PD routine test; reinforced insulation = TIW-litz three-layer extruded insulation + 4 layers 0.06 mm polyester tape on each side of S; tapes P1-SH 12 L set the switched capacitance; primary pins (P1, P2, AUX, SH) on one row, secondary pins on the opposite row; the core is a primary-side conductive part. Creepage: 20 mm along the case / former between the pin rows (PD2, CTI unknown -> IIIa); 10 mm if the former and case material has CTI >= 600 (group I); inside the potting PD1: 6.4 mm; clearance >= 10.4 mm. ROUTINE test (every unit): PD <= 10 pC at 2461.0 V pk (extinction >= 1968.0 V pk), primary+aux+shield to secondary. TYPE tests: AC 4400.0 V rms 60 s; impulse 8000.0 V 1.2/50; thermal run at 30 W. Working voltage 1000 V DC, recurring peak 1323 V at 65 kHz (1428 V at the 1100 V trip). Peak primary current 0.95 A (limit max 1.74 A), 259 mT on A_min at the limit.",
+    "core": "DMEGC EC34A set (DMR95)",
+    "rev": "M1",
+    "cost_usd": 5.9,
+    "mpn": "AUX-HV-T1 rev M1",
+    "al_nh": 141.75966590002486,
+    "gap_mm": 1.1556388336476444,
+    "lp_mh": 1.1482532937902012,
+    "llk_est_uh": 31.56917982677511,
+    "llk_1d_uh": 15.784589913387554,
+    "np": 90,
+    "ns": 15,
+    "na": 16,
+    "stack_height_mm": 5.78,
+    "b_fl_mT": 123.96410895503226,
+    "b_lim_mT": 243.4862632044085,
+    "b_lim_amin_mT": 259.16933037587154,
+    "c_w_pf": 32.91219379557339,
+    "insulation": {
+      "u_rp": [
+        1323.1358227840894,
+        1427.940915184597
+      ],
+      "pd_v": 2461.0,
+      "pd_ext": 1968.0,
+      "pd_q": 10.0,
+      "ac_v": 4400.0,
+      "ac_t": 60.0,
+      "imp_v": 8000.0,
+      "clr": [
+        8.0,
+        9.2,
+        10.4
+      ],
+      "cpg_pd2_iiia": 20.0,
+      "cpg_pd1": 6.4
+    },
+    "requirements": {
+      "lp_mH": {
+        "value": 1.1482532937902012,
+        "tol_pct": 7.000000000000001,
+        "at": "10 kHz"
+      },
+      "turns": {
+        "np": 90,
+        "ns": 15,
+        "na": 16,
+        "n": 6.0,
+        "aux_ratio": 1.0666666666666667,
+        "note": "ratios are the requirement (n = Np/Ns = 6.0, Na/Ns = 16/15: VDD headroom and the backup loop); absolute turns may change with the core"
+      },
+      "frequency_kHz": [
+        58.310519126754556,
+        64.89960778807783,
+        74.2133879795058
+      ],
+      "mode": "DCM at every input and full load",
+      "vin_V": {
+        "min": 200.0,
+        "max": 1000.0,
+        "transient": 1100.0
+      },
+      "pout_W": 30.0,
+      "ipk_full_load_A": 0.9500178151653086,
+      "ipk_max_A": 1.7390021229029642,
+      "b_max_on_Amin_mT": {
+        "limit": 348.50000000000017,
+        "at_A": 1.7390021229029642,
+        "lp": "+7 %",
+        "design_m1": 259.16933037587154,
+        "rule": "<= 0.85 x Bs(100 C); vendor measures L(I) to 1.86 A at 120 C (MG-12)"
+      },
+      "leakage_max_uH": 33.994807505410265,
+      "switched_capacitance_max_pF": 38.51581100011131,
+      "winding_loss_max_W": {
+        "limit": 1.5187158662825824,
+        "at": "30 W out, full load, any input",
+        "budget": {
+          "efficiency >= 80 % at 400-800 V": 1.6759855911135677,
+          "lowest current limit >= SYS black-start peak 38.0 W": 1.5187158662825824
+        },
+        "design_m1": 1.0414356582018478,
+        "note": "design M1 at 30 W: 0.69 W own / 1.04 W OpenMagnetics (the higher is used)"
+      },
+      "core_loss_W": 0.11031203709973982,
+      "insulation": {
+        "u_rp": [
+          1323.1358227840894,
+          1427.940915184597
+        ],
+        "pd_v": 2461.0,
+        "pd_ext": 1968.0,
+        "pd_q": 10.0,
+        "ac_v": 4400.0,
+        "ac_t": 60.0,
+        "imp_v": 8000.0,
+        "clr": [
+          8.0,
+          9.2,
+          10.4
+        ],
+        "cpg_pd2_iiia": 20.0,
+        "cpg_pd1": 6.4
+      },
+      "changed_by_asian_switch": "switched winding capacitance <= 39 pF (was 40 pF): the IV2Q171R0D7Z turn-on loss (its Eoss + 0.5 C_W V^2) sets Tj 143 C at 1000 V; nothing else changes"
+    },
+    "design_file": "sim/out/magnetics/design_aux_hv_transformer.json",
+    "design_file_present": true
+  },
+  "summary": {
+    "fsw": 64899.607788077825,
+    "f_fold": 5937.485694793712,
+    "lp": 0.0011482532937902013,
+    "llk_est": 3.156917982677511e-05,
+    "np": 90,
+    "ns": 15,
+    "na": 16,
+    "vr": 142.10208323693124,
+    "vds_cont": 1323.1358227840894,
+    "vds_trans": 1427.940915184597,
+    "eta": {
+      "200": 0.8077469214918548,
+      "400": 0.8404992111458165,
+      "600": 0.8352539849471856,
+      "800": 0.8218820505352215,
+      "1000": 0.804314753976566
+    },
+    "vout": [
+      22.39850896852071,
+      22.77038218934911,
+      23.146691099999998
+    ],
+    "backup_band": [
+      23.82394268809314,
+      30.972838845787276
+    ],
+    "ov_lockout": [
+      1113.6536596911178,
+      1141.755753636976,
+      1169.7255125000079
+    ],
+    "surge_bulk_max": 1198.8889282614052,
+    "timer_ms": [
+      90.9769736753208,
+      129.37103139604784,
+      188.86480844214736
+    ],
+    "trip_w": [
+      34.09463181826696,
+      52.39979933782169,
+      88.14923148772338
+    ],
+    "sys_bus_takeover_ms": 12.3,
+    "aux_takeover_V": 14.466204531396787,
+    "vdd_hold_ms": 17.59754859691675,
+    "overshoot_max": 23.199674446758127,
+    "handover_bus_min": 16.315571749498393,
+    "step_vmin_with_bus": 22.146291779437814,
+    "step_vmin_alone": 21.838550886714113
+  },
+  "spice": {
+    "normal": [
+      {
+        "vin": 200.0,
+        "ipk_c": 0.9473389381621565,
+        "ipk_s": 0.93281,
+        "vds_c": 451.46950781888233,
+        "vds_s": 444.65,
+        "vo_c": 22.77038218934911,
+        "vo_s": 22.7818,
+        "rip_s": 0.05870000000000175,
+        "eta_c": 0.8077469214918548,
+        "eta_s": 0.8611991362227238,
+        "fsw_s": 64845.376200450024,
+        "fbk": 0.000531858
+      },
+      {
+        "vin": 600.0,
+        "ipk_c": 0.9475992438854103,
+        "ipk_s": 0.930786,
+        "vds_c": 851.4710931394525,
+        "vds_s": 849.936,
+        "vo_c": 22.77038218934911,
+        "vo_s": 22.8012,
+        "rip_s": 0.06050000000000111,
+        "eta_c": 0.8352539849471856,
+        "eta_s": 0.8785323769582131,
+        "fsw_s": 65003.86773012995,
+        "fbk": 0.000531858
+      },
+      {
+        "vin": 1000.0,
+        "ipk_c": 0.9500178151653086,
+        "ipk_s": 0.921035,
+        "vds_c": 1251.4858227840896,
+        "vds_s": 1250.98,
+        "vo_c": 22.77038218934911,
+        "vo_s": 22.8227,
+        "rip_s": 0.06299999999999883,
+        "eta_c": 0.804314753976566,
+        "eta_s": 0.8585224116566252,
+        "fsw_s": 64948.1389110795,
+        "fbk": 0.000531858
+      }
+    ],
+    "short_nofold": {
+      "vout_avg": 0.707052,
+      "vout_max": 0.715315,
+      "vout_min": 0.609363,
+      "vds_max": 1260.29,
+      "ipk_max": 2.56144,
+      "pin_avg": 34.8594,
+      "pout_avg": 0.0289372,
+      "fbk_max": 0.0,
+      "comp_avg": 5.52889,
+      "cs_max": 1.38814,
+      "tper": 1.5389e-05,
+      "ipk_all": 2.5622,
+      "vds_all": 1260.3,
+      "ipk_early": 2.45155
+    },
+    "short": {
+      "vout_avg": 0.295045,
+      "vout_max": 0.382534,
+      "vout_min": 0.144278,
+      "vds_max": 1255.54,
+      "ipk_max": 1.53492,
+      "pin_avg": 7.73905,
+      "pout_avg": 0.00528648,
+      "fbk_max": 4.99977,
+      "comp_avg": 5.52889,
+      "cs_max": 1.05564,
+      "tper": 0.000166535,
+      "ipk_all": 1.63836,
+      "vds_all": 1255.56,
+      "ipk_early": 1.63836
+    },
+    "surge": {
+      "vout_avg": 22.8252,
+      "vout_max": 22.9428,
+      "vout_min": 22.3187,
+      "vds_max": 1439.25,
+      "ipk_max": 1.57489,
+      "pin_avg": 4420.68,
+      "pout_avg": 30.146,
+      "fbk_max": 0.000531858,
+      "comp_avg": 2.48175,
+      "cs_max": 1.07428,
+      "tper": 1.53869e-05,
+      "bulk_max": 1197.54,
+      "vds_all": 1439.25,
+      "t_lock": 0.000312945,
+      "out_min": 22.3187,
+      "ipk_all": 1.57489
+    }
+  },
+  "system_model": {
+    "alone/min": {
+      "vmax": 22.761346888644418,
+      "vmin_after": 99.0,
+      "bus_min": 99.0,
+      "compf_max": 0.836765072011809,
+      "vdd_min": 13.842909226234,
+      "trip": false,
+      "t_settle": 0.048265999999999996,
+      "t_trip": null,
+      "ov_latched": false,
+      "t_take": 0.0123,
+      "v_take": 14.466204531396787,
+      "t_ramp": 0.042527999999999996,
+      "uvlo": false,
+      "p_peak": 0.1386073215742399,
+      "t_over": 0.0,
+      "t_cond": null,
+      "t_peak": 0.09999799999999999,
+      "v_end": 22.761346888644418,
+      "bus_end": 0.0
+    },
+    "black/min": {
+      "vmax": 22.827255404332305,
+      "vmin_after": 99.0,
+      "bus_min": 99.0,
+      "compf_max": 2.319318172806996,
+      "vdd_min": 13.842909226228537,
+      "trip": false,
+      "t_settle": 0.444204,
+      "t_trip": null,
+      "ov_latched": false,
+      "t_take": 0.0123,
+      "v_take": 14.46604086054472,
+      "t_ramp": 0.042527999999999996,
+      "uvlo": false,
+      "p_peak": 37.255421022025,
+      "t_over": 0.04718799999999114,
+      "t_cond": 0.08347199999999999,
+      "t_peak": 0.333216,
+      "v_end": 22.76627218935431,
+      "bus_end": 22.76627218935431
+    },
+    "handover/min": {
+      "vmax": 22.82671535967464,
+      "vmin_after": 21.433015742188584,
+      "bus_min": 17.11340421368513,
+      "compf_max": 2.2859647755585506,
+      "vdd_min": 15.8,
+      "trip": false,
+      "t_settle": 0.09562,
+      "t_trip": null,
+      "ov_latched": false,
+      "t_take": 0.0,
+      "v_take": 22.77038218934911,
+      "t_ramp": null,
+      "uvlo": false,
+      "p_peak": 35.63965377085674,
+      "t_over": 0.021400000000001543,
+      "t_cond": 0.005984,
+      "t_peak": 0.005984,
+      "v_end": 22.76627218935431,
+      "bus_end": 22.76627218935431
+    },
+    "alone/typ": {
+      "vmax": 22.760220050096017,
+      "vmin_after": 99.0,
+      "bus_min": 99.0,
+      "compf_max": 0.6831291466872289,
+      "vdd_min": 13.896689444244805,
+      "trip": false,
+      "t_settle": 0.048569999999999995,
+      "t_trip": null,
+      "ov_latched": false,
+      "t_take": 0.011961999999999999,
+      "v_take": 14.516621539918399,
+      "t_ramp": 0.042645999999999996,
+      "uvlo": false,
+      "p_peak": 0.13858831530666302,
+      "t_over": 0.0,
+      "t_cond": null,
+      "t_peak": 0.09999799999999999,
+      "v_end": 22.760220050096017,
+      "bus_end": 0.0
+    },
+    "black/typ": {
+      "vmax": 22.777372844620533,
+      "vmin_after": 99.0,
+      "bus_min": 99.0,
+      "compf_max": 2.0475224866998243,
+      "vdd_min": 13.896371218097416,
+      "trip": false,
+      "t_settle": 0.838344,
+      "t_trip": null,
+      "ov_latched": false,
+      "t_take": 0.011963999999999999,
+      "v_take": 14.517333676584848,
+      "t_ramp": 0.042644,
+      "uvlo": false,
+      "p_peak": 35.06931761751578,
+      "t_over": 0.02522400000000205,
+      "t_cond": 0.124556,
+      "t_peak": 0.61886,
+      "v_end": 22.766272189354304,
+      "bus_end": 22.766272189354304
+    },
+    "handover/typ": {
+      "vmax": 22.777372553187124,
+      "vmin_after": 22.211454593171645,
+      "bus_min": 16.749582292523538,
+      "compf_max": 2.0150497255820636,
+      "vdd_min": 15.8,
+      "trip": false,
+      "t_settle": 0.193696,
+      "t_trip": null,
+      "ov_latched": false,
+      "t_take": 0.0,
+      "v_take": 22.77038218934911,
+      "t_ramp": null,
+      "uvlo": false,
+      "p_peak": 33.88259074193299,
+      "t_over": 0.0,
+      "t_cond": 0.005031999999999998,
+      "t_peak": 0.005031999999999998,
+      "v_end": 22.766272189354304,
+      "bus_end": 22.766272189354304
+    },
+    "alone/max": {
+      "vmax": 22.76040164918347,
+      "vmin_after": 99.0,
+      "bus_min": 99.0,
+      "compf_max": 0.5772827749199514,
+      "vdd_min": 14.017615378233598,
+      "trip": false,
+      "t_settle": 0.047782,
+      "t_trip": null,
+      "ov_latched": false,
+      "t_take": 0.011202,
+      "v_take": 14.630577024664921,
+      "t_ramp": 0.041822,
+      "uvlo": false,
+      "p_peak": 0.13859137838989927,
+      "t_over": 0.0,
+      "t_cond": null,
+      "t_peak": 0.09999799999999999,
+      "v_end": 22.76040164918347,
+      "bus_end": 0.0
+    },
+    "black/max": {
+      "vmax": 22.769123151467397,
+      "vmin_after": 99.0,
+      "bus_min": 99.0,
+      "compf_max": 1.7721698467323082,
+      "vdd_min": 14.017297152086547,
+      "trip": false,
+      "t_settle": 1.624728,
+      "t_trip": null,
+      "ov_latched": false,
+      "t_take": 0.011203999999999999,
+      "v_take": 14.631892974625211,
+      "t_ramp": 0.041819999999999996,
+      "uvlo": false,
+      "p_peak": 34.18118345717479,
+      "t_over": 1.9999999999999998e-05,
+      "t_cond": 0.212028,
+      "t_peak": 1.1903679999999999,
+      "v_end": 22.766272189354307,
+      "bus_end": 22.766272189354307
+    },
+    "handover/max": {
+      "vmax": 22.769122967689317,
+      "vmin_after": 22.379248163567055,
+      "bus_min": 16.315571749498393,
+      "compf_max": 1.7408353758662323,
+      "vdd_min": 15.8,
+      "trip": false,
+      "t_settle": 0.403908,
+      "t_trip": null,
+      "ov_latched": false,
+      "t_take": 0.0,
+      "v_take": 22.77038218934911,
+      "t_ramp": null,
+      "uvlo": false,
+      "p_peak": 33.49831156202244,
+      "t_over": 0.0,
+      "t_cond": 0.003835999999999999,
+      "t_peak": 0.003835999999999999,
+      "v_end": 22.766272256947747,
+      "bus_end": 22.766272256947747
+    },
+    "black07/min": {
+      "vmax": 22.966801009082978,
+      "vmin_after": 99.0,
+      "bus_min": 99.0,
+      "compf_max": 2.4033754428072043,
+      "vdd_min": 13.842909226228537,
+      "trip": false,
+      "t_settle": 0.4442,
+      "t_trip": null,
+      "ov_latched": false,
+      "t_take": 0.0123,
+      "v_take": 14.46604086054472,
+      "t_ramp": 0.042527999999999996,
+      "uvlo": false,
+      "p_peak": 39.52950718133543,
+      "t_over": 0.09409600000001149,
+      "t_cond": 0.08347199999999999,
+      "t_peak": 0.333216,
+      "v_end": 22.766272189354325,
+      "bus_end": 22.766272189354325
+    },
+    "handover07/min": {
+      "vmax": 22.824950657015982,
+      "vmin_after": 21.379495891704412,
+      "bus_min": 17.04915424122395,
+      "compf_max": 2.345872688675136,
+      "vdd_min": 15.8,
+      "trip": false,
+      "t_settle": 0.09632399999999999,
+      "t_trip": null,
+      "ov_latched": false,
+      "t_take": 0.0,
+      "v_take": 22.77038218934911,
+      "t_ramp": null,
+      "uvlo": false,
+      "p_peak": 37.979270801096426,
+      "t_over": 0.07366399999999106,
+      "t_cond": 0.005672,
+      "t_peak": 0.005672,
+      "v_end": 22.766272189354325,
+      "bus_end": 22.766272189354325
+    }
+  }
+}

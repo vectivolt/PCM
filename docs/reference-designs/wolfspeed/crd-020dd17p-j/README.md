@@ -1,0 +1,7 @@
+# CRD-020DD17P-J - 20 W, 60-1000 V input auxiliary flyback (Wolfspeed)
+1700 V SiC single-switch primary-side-regulated flyback for bootstrap/control power; optional second secondary.
+- **What we hold:** the user guide of the 25 W **sibling** KIT-CRD-025DD17P-J (PRD-09375 Rev 1, Jul 2025), NOT of the 20 W board, and the 20 W board's design-files ZIP (rev 1.0, Jul 2025, no login). The ZIP holds only Altium files (SchDoc, PcbDoc, PrjPcb): no PDF schematic and no BOM, so the four small Altium files are unpacked in `design-files/` and need Altium (or a viewer) to open. A string scan of the SchDoc (not rendered, indicative only) names C3M0900170J (1700 V, 900 mohm SiC MOSFET, TO-263-7) and a Wurth 750321162 transformer symbol ("800uH").
+- **Ratings of the 25 W kit** (section 2.1): Vin 60-1000 V DC; Vout 15 V (14.7 V at full load, Vin 1000 V); max 1.67 A / 25 W at 300-1000 V (1.5 A at 100-300 V, 1.2 A at 60-100 V); 42.5 kHz at 800 V; efficiency 81.5 % peak (400 V), 75.4 % full-load at 1000 V; output is thermally limited (tested at 25 degC).
+- **20 W board (page headline only, not from a PDF):** 20 W, 60-1000 V in, 15 V out.
+- **Informs:** AUX-HV (ECO-06): HV bootstrap -> protected 24 V rail -> isolated point-of-load supplies.
+- **Limitation (roadmap):** 20 W cannot supply the whole low-voltage subsystem (fans, controls); bootstrap role only. At 75-82 % efficiency the kit dissipates roughly 6-8 W at 25 W out (our arithmetic).

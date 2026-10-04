@@ -1,0 +1,465 @@
+Item,Qty,Used on,Value,Description,Manufacturer,MPN,Package,Sourcing,Datasheet
+1,1,chassis: 1,AUX-HV input harness,"Port A and port B terminal-side taps (after the port fuses) to AUX-HV PA+/PA- and PB+/PB-, 1.5 kV-rated wire",,,harness,CUSTOM,
+2,1,chassis: 1,AUX-HV output harness,"AUX-HV to SYS-IO-AUX, 3-way (gen/interfaces.py AUX)",,,harness,CUSTOM,
+3,2,PV-PORT: 2,CM choke 160 A (CUSTOM),"CHASSIS-MOUNTED CUSTOM common-mode choke (135 A port): 2 windings, 160 A DC continuous each, 1000 VDC working, L_cm >= 0.5 mH @ 10 kHz and |Z_cm| >= 50 ohm 16-100 kHz (port_spec cm_choke), no saturation with the 150 Hz CM current of port_spec cm_choke and the DM flux at rated current (core, material and construction to be set by the magnetics design, MG-10); basic winding-core / winding-winding: impulse >= 6 kV, 2200 V rms 60 s, creepage >= 5.0 mm (PD2) (IC-09); dT <= 40 K at 160 A",,,busbar toroid,CUSTOM,
+4,2,PV-PORT: 2,DC terminal + (CUSTOM),"CHASSIS-MOUNTED CUSTOM DC terminal: M8 busbar stud feed-through, 200 A, 1000 VDC, touch cover, external creepage to PE >= 12.5 mm (group I) / 16.0 mm (IIIa), PD3 cooling-air path (IC-18/IC-21)",,,M8 stud,CUSTOM,
+5,2,PV-PORT: 2,DC terminal - (CUSTOM),"CHASSIS-MOUNTED CUSTOM DC terminal: M8 busbar stud feed-through, 200 A, 1000 VDC, touch cover, external creepage to PE >= 12.5 mm (group I) / 16.0 mm (IIIa), PD3 cooling-air path (IC-18/IC-21)",,,M8 stud,CUSTOM,
+6,1,chassis: 1,J801 link plug,"4-pole 3.81 mm plug with a wire link 1-2 for the SYS-IO-AUX spare trip loop J801: the PV module has no coolant loop, and safety channel A cannot arm with the loop open",,,harness,CUSTOM,
+7,3,PVCELL-25: 3,L_CELL 224uH (CUSTOM),"OFF-BOARD CUSTOM power inductor rev M2 (sim/out/magnetics/design_pv_inductor.json; winding-house sheet sim/out/magnetics/spec_pv_inductor.md; electrical requirement sim/out/pv_design/cell_spec.json): 2 x POCO NPC290026 (NPC 26, 74/45/35 mm) stacked toroid (as M1), 37 turns of solid round enamelled Cu 3.15 mm grade 2, 1 layer, core wrapped 2 x 0.13 mm Nomex 410 + polyimide, VPI class H, NTC at the bore-side winding centre in a reinforced pocket; insulating base with a centre clamp in the cell air stream. L0 244 uH +/-8 %, 226 uH nom / 208 uH min at 45 A (>= 207.8 uH required), L(trip 72.4 A)/L0 0.81; ripple 34.6 App at 32 kHz; R_dc 22.2 mOhm at 110 C; loss 25.4 W core + 58.3 W copper (45 A); hot spot 145 C (<= 155 C); 1.74 kg. Embedded NTC 10 k 2 % B25/100 3988 K (R/T 8016). INSULATION (IC-16): winding-core basic: core wrapped 2 x 0.13 mm Nomex 410 + 1 x 0.05 mm polyimide over the epoxy coating (coating not counted), grade-2 enamel (not counted as insulation), VPI class H varnish (no air at the core edges); NTC in a reinforced pocket (3 layers polyimide + silicone sleeve) at the inner-side winding centre. Winding-core BASIC (U_rp 1273 V): PD <= 10 pC at 1910 Vpk (extinction >= 1528 Vpk), AC 2200 Vrms, impulse 6000 V; NTC-winding REINFORCED: PD <= 10 pC at 2387 Vpk, AC 4400 Vrms, impulse 8000 V. Routine: PD-free (<= 10 pC) at 1910 V pk winding-core; AC 2200 V rms 1 s; NTC-winding AC 4400 V rms 1 s. Type: AC 2200 V rms 1 min winding-core, 4400 V rms NTC-winding, impulse 6 kV / 8 kV; L(I) to 72.4 A; thermal run at 54 W in 150 m3/h. Core and clamp bonded to PE. LEAD A (through the LA 150-P on the cell board): flexible insulated lead, SUPPLEMENTARY insulation for 1000 V DC working, type-tested to the basic levels above, <= 10 mm outer size for the 13.5 x 10 mm aperture, <= 100 C there; copper screen over the aperture length, pigtail to PE (pin SCR)",,,"off-board, 2 power lugs + NTC lead",CUSTOM,
+8,24,PVCELL-25: 24,PAD AlN 1 mm (CUSTOM),"TO-247 heatsink INSULATOR, basic HV-PE (IC-07, D-032): AlN ceramic (aluminium nitride), 1.0 mm, size tab 15.9 x 20.9 mm + 2 x overhang, overhang >= 6.5 mm (creepage 5.0 mm (PD2) and clearance 7.1 mm at 4000 m (insulation report row 'Basic HV-PE, switch node'): 6.5 mm surface + 1.0 mm thickness >= 7.1 mm); Rth c-s 0.20 K/W (AlN 170 W/mK x 1.0 mm, two grease bond lines 50 um at 2.5 W/mK over 15.5 x 20 mm, + 0.05 K/W contact allowance; k values are handbook values (no pad datasheet on file) - confirm with the supplier's data and a thermal test). MOUNTING: spring clip on the plastic body (no screw through the tab hole: a PE screw would need its own insulating bushing and creepage), clip force per the device maker (TO-247: ~50-80 N, ASSUMED). TESTS: type test on the assembled heatsink: AC 2200 V rms 1 min, impulse 6 kV, PD extinction >= 1528 Vpk with <= 10 pC at 1910 Vpk (insulation report); at the claimed altitude's pressure for the PD test",,,"ceramic pad, tab 15.9 x 20.9 mm + 2 x overhang",CUSTOM,
+9,3,chassis: 3,backflow shutter,"Gravity backflow shutter for a 120 mm fan (one-fan-failed case, sim/out/pv_design/module_report.md)",,,chassis,CUSTOM,
+10,1,chassis: 1,busbar set,"A_BUS+, B_BUS+, BUS- between PV-PORT and the cells, sized for 135 A",,,chassis,CUSTOM,
+11,3,chassis: 3,cell harness,"40-way 2.54 mm IDC ribbon, CTRL-C2000 cell port to PVCELL-25, 1:1",,,harness,CUSTOM,
+12,1,chassis: 1,coil/feedback harness,"PV-PORT control connector to the SYS-IO-AUX DO/DI terminals (gen/interfaces.py DO, DI)",,,harness,CUSTOM,
+13,3,chassis: 3,heatsink,"Plate-fin aluminium extrusion per cell, 150 x 300 mm base, 30 fins x 60 mm, insulated TO-247 mounting - geometry in sim/out/pv_design/report.md section 3",,,chassis,CUSTOM,
+14,1,chassis: 1,port harness,"26-way 2.54 mm IDC ribbon, CTRL-C2000 to PV-PORT, 1:1",,,harness,CUSTOM,
+15,1,AUX-HV: 1,AUX-HV-T1 rev M1,"CUSTOM flyback transformer AUX-HV T1 rev M1 (proposed construction - calculated, not built or measured; build to the winding sheet sim/out/magnetics/spec_aux_hv_transformer.md). DMEGC EC34A (ETD 34/17/11 class) DMR95, centre-leg gap 1.16 mm, 90:15:16 in the converter engineer's order P1|SH|S|AUX|P2, copper set back 2.0 mm from the gapped leg (1.0 mm former wall + 1.0 mm spacer), secondary in TIW-litz, vacuum-potted in a case. Core DMEGC EC34A set (DMR95), ETD 34/17/11 equivalent (Ae/Amin/le within 1 % of the MAS ETD 34/17/11 shape), gap 1.16 mm (A_L 142 nH). Lp 1.148 mH +/-7 % at 10 kHz (gap ground to A_L); leakage (S shorted) estimate 31.6 uH, <= 34.0 uH. Windings in order: P1: 45 t enamelled Cu 0.30 mm grade 2, 1 layer, start = DRAIN pin (dot); SH: copper foil 0.05 mm, 1 t, open with insulated overlap, -> PGND pin; S: 15 t TIW-litz 64 x 0.10 mm (three-layer extruded insulation certified for reinforced insulation, IEC 61558-2-16 / IEC 62368-1 Annex J), 1 layer, start = rectifier anode (dot), insulation unbroken to the pin, exits in PTFE sleeve; AUX: 16 t enamelled Cu 0.25 mm spaced over the breadth, start = aux rectifier anode (dot), finish = PGND; P2: 45 t enamelled Cu 0.30 mm grade 2, 1 layer, finish = HV_BULK pin. Insulation: VACUUM-POTTED (epoxy, class F, void-free) in a case - REQUIRED for the PD routine test; reinforced insulation = TIW-litz three-layer extruded insulation + 4 layers 0.06 mm polyester tape on each side of S; tapes P1-SH 12 L set the switched capacitance; primary pins (P1, P2, AUX, SH) on one row, secondary pins on the opposite row; the core is a primary-side conductive part. Creepage: 20 mm along the case / former between the pin rows (PD2, CTI unknown -> IIIa); 10 mm if the former and case material has CTI >= 600 (group I); inside the potting PD1: 6.4 mm; clearance >= 10.4 mm. ROUTINE test (every unit): PD <= 10 pC at 2461.0 V pk (extinction >= 1968.0 V pk), primary+aux+shield to secondary. TYPE tests: AC 4400.0 V rms 60 s; impulse 8000.0 V 1.2/50; thermal run at 30 W. Working voltage 1000 V DC, recurring peak 1323 V at 65 kHz (1428 V at the 1100 V trip). Peak primary current 0.95 A (limit max 1.74 A), 259 mT on A_min at the limit.",CUSTOM,AUX-HV-T1 rev M1,"DMEGC EC34A set (DMR95) (ETD 34 class) potted case, 14-pin former",CUSTOM,
+16,24,PVCELL-25: 24,0.5R,"Resistor 0.5R 1% 1206 Kelvin decoupling, pulse-rated thick film",,,1206,GENERIC,
+17,12,PVCELL-25: 12,0R,Resistor 0R 1% 0603 fit for NSI6651ASC (pin 1 = VEE2),,,0603,GENERIC,
+18,1,PV-PORT: 1,0R,Resistor 0R 1% 0603 single AGND-GND tie,,,0603,GENERIC,
+19,1,CTRL-C2000: 1,1.0k,Resistor 1.0k 1% 0603,,,0603,GENERIC,
+20,3,PVCELL-25: 3,1.47k,Resistor 1.47k 0.1% 0603,,,0603,GENERIC,
+21,24,CTRL-C2000: 24,1.50k,Resistor 1.50k 1% 0603,,,0603,GENERIC,
+22,12,PVCELL-25: 12,1.58k,Resistor 1.58k 1% 1206,,,1206,GENERIC,
+23,2,AUX-HV: 2,1.5R,Resistor 1.5R 1% 1206 0.25 W,,,1206,GENERIC,
+24,12,PVCELL-25: 12,1.5k,Resistor 1.5k 1% 0603,,,0603,GENERIC,
+25,3,PV-PORT: 3,1.5k,"Resistor 1.5k 1% 2512 1 W: aux wetting 14-18 mA (>= 10 mA, TDK p3) and FB inversion",,,2512,GENERIC,
+26,1,PV-PORT: 1,1.5k,Resistor 1.5k 1% 2512 1 W: DI pull-up (both closed),,,2512,GENERIC,
+27,1,AUX-HV: 1,1.5n 50V,Capacitor 1.5n 50V C0G 0603,,,0603,GENERIC,
+28,1,SYS-IO-AUX: 1,1.78k,Resistor 1.78k 0.1% 0603 10 ppm/K thin film,,,0603,GENERIC,
+29,1,AUX-HV: 1,1.82k,Resistor 1.82k 0.1% 0603,,,0603,GENERIC,
+30,1,SYS-IO-AUX: 1,1.91k,Resistor 1.91k 0.1% 0603 10 ppm/K thin film,,,0603,GENERIC,
+31,2,SYS-IO-AUX: 2,1.93k,Resistor 1.93k 0.1% 0603 10 ppm/K thin film,,,0603,GENERIC,
+32,46,CTRL-C2000: 46,10.0k,Resistor 10.0k 0.1% 0603 10ppm/K,,,0603,GENERIC,
+33,30,CTRL-C2000: 6; PVCELL-25: 24,10.0k,Resistor 10.0k 0.1% 0603,,,0603,GENERIC,
+34,1,CTRL-C2000: 1,10.0k,Resistor 10.0k 1% 0603,,,0603,GENERIC,
+35,48,CTRL-C2000: 3; PVCELL-25: 36; SYS-IO-AUX: 9,100R,Resistor 100R 1% 0603,,,0603,GENERIC,
+36,81,AUX-HV: 4; CTRL-C2000: 28; PV-PORT: 7; PVCELL-25: 18; SYS-IO-AUX: 24,100k,Resistor 100k 1% 0603,,,0603,GENERIC,
+37,6,SYS-IO-AUX: 6,100k,Resistor 100k 0.1% 0603 10 ppm/K thin film,,,0603,GENERIC,
+38,4,PVCELL-25: 3; SYS-IO-AUX: 1,100k,Resistor 100k 0.1% 0603,,,0603,GENERIC,
+39,3,SYS-IO-AUX: 3,100k,Resistor 100k 1% 0603 test off by default,,,0603,GENERIC,
+40,2,SYS-IO-AUX: 2,100k,Resistor 100k 1% 0603 CTRL expects the pull-down on SYS,,,0603,GENERIC,
+41,1,SYS-IO-AUX: 1,100k,Resistor 100k 1% 0603 fans OFF until firmware enables (INT-09),,,0603,GENERIC,
+42,1,SYS-IO-AUX: 1,100k,Resistor 100k 1% 0603 readback cannot hold OV_CUT,,,0603,GENERIC,
+43,1,SYS-IO-AUX: 1,100k,Resistor 100k 1% 0603 readback cannot hold UV_OK,,,0603,GENERIC,
+44,1,SYS-IO-AUX: 1,100k,Resistor 100k 1% 0603 service-jumper readback,,,0603,GENERIC,
+45,1,SYS-IO-AUX: 1,100k,Resistor 100k 1% 0603 readback cannot hold AUX_INH_N,,,0603,GENERIC,
+46,2,PV-PORT: 2,100k,Resistor 100k 1% 0603 gate pull-down: off when the driver is unpowered,,,0603,GENERIC,
+47,2,PV-PORT: 2,100k,Resistor 100k 1% 0603 EN pull-down behind the diode-OR,,,0603,GENERIC,
+48,4,PV-PORT: 4,100k,"Resistor 100k 1% 0603 FB 24 V -> logic, max 5.4 V (5.5 V tolerant)",,,0603,GENERIC,
+49,4,PV-PORT: 4,100k,Resistor 100k 1% 0603 hold off while the logic is unpowered,,,0603,GENERIC,
+50,1,PV-PORT: 1,100k,Resistor 100k 1% 0603 defined low when both contactors are open,,,0603,GENERIC,
+51,2,PV-PORT: 2,100k,Resistor 100k 1% 0603 gate-source: switch open when the driver is unpowered,,,0603,GENERIC,
+52,22,CTRL-C2000: 6; PVCELL-25: 3; SYS-IO-AUX: 13,100n 100V,Capacitor 100n 100V X7R 0603,,,0603,GENERIC,
+53,34,CTRL-C2000: 34,100n 16V,Capacitor 100n 16V X7R 0402,,,0402,GENERIC,
+54,5,AUX-HV: 1; SYS-IO-AUX: 4,100n 16V,Capacitor 100n 16V X7R 0603,,,0603,GENERIC,
+55,11,PV-PORT: 8; SYS-IO-AUX: 3,100n 25V,Capacitor 100n 25V X7R 0603,,,0603,GENERIC,
+56,337,AUX-HV: 3; BMU-GW: 7; CTRL-C2000: 49; PV-PORT: 49; PVCELL-25: 153; SYS-IO-AUX: 76,100n 50V,Capacitor 100n 50V X7R 0603,,,0603,GENERIC,
+57,1,CTRL-C2000: 1,100n 50V,Capacitor 100n 5% 50V C0G 0805,,,0805,GENERIC,
+58,2,CTRL-C2000: 1; SYS-IO-AUX: 1,100n 50V,Capacitor 100n 10% 50V X7R 0603,,,0603,GENERIC,
+59,8,PV-PORT: 8,100n 50V,Capacitor 100n 50V C0G 1206,,,1206,GENERIC,
+60,3,AUX-HV: 3,100p 1kV,Capacitor 100p 5% 1kV C0G 1206,,,1206,GENERIC,
+61,45,PVCELL-25: 45,100p 50V,Capacitor 100p 5% 50V C0G 0603,,,0603,GENERIC,
+62,1,AUX-HV: 1,105k,Resistor 105k 0.1% 0603,,,0603,GENERIC,
+63,7,AUX-HV: 1; PV-PORT: 6,10R,Resistor 10R 1% 0603,,,0603,GENERIC,
+64,195,AUX-HV: 5; BMU-GW: 3; CTRL-C2000: 65; PV-PORT: 5; PVCELL-25: 84; SYS-IO-AUX: 33,10k,Resistor 10k 1% 0603,,,0603,GENERIC,
+65,5,PV-PORT: 4; SYS-IO-AUX: 1,10k,Resistor 10k 1% 0805,,,0805,GENERIC,
+66,1,SYS-IO-AUX: 1,10k,Resistor 10k 1% 0603 switch A off when the driver is unpowered,,,0603,GENERIC,
+67,1,SYS-IO-AUX: 1,10k,Resistor 10k 1% 0603 GD switch and switch B off when the driver is unpowered,,,0603,GENERIC,
+68,12,SYS-IO-AUX: 12,10k,Resistor 10k 0.1% 0603 25 ppm,,,0603,GENERIC,
+69,3,AUX-HV: 3,10k,Resistor 10k 1% 1206,,,1206,GENERIC,
+70,44,AUX-HV: 2; PVCELL-25: 42,10k,Resistor 10k 0.1% 0603,,,0603,GENERIC,
+71,3,PVCELL-25: 3,10k,Resistor 10k 1% 0603 EN_DRV low with the gate unpowered,,,0603,GENERIC,
+72,3,PVCELL-25: 3,10k,Resistor 10k 1% 0603 pull-down: unpowered gate = drivers disabled,,,0603,GENERIC,
+73,12,PVCELL-25: 12,10k,Resistor 10k 1% 0603 pull-down: open input = gate off,,,0603,GENERIC,
+74,12,PVCELL-25: 12,10k,Resistor 10k 1% 0603 clamp-FET gate supply,,,0603,GENERIC,
+75,2,PV-PORT: 2,10k,"Resistor 10k 1% 0805 gate-source: off by default, VGS 13 V",,,0805,GENERIC,
+76,4,PV-PORT: 4,10k,Resistor 10k 1% 0603 limits the input clamp current on the falling edge,,,0603,GENERIC,
+77,9,SYS-IO-AUX: 9,10n 100V,Capacitor 10n 10% 100V X7R 0603,,,0603,GENERIC,
+78,2,CTRL-C2000: 2,10n 16V,Capacitor 10n 16V X7R 0402,,,0402,GENERIC,
+79,23,AUX-HV: 1; CTRL-C2000: 4; PVCELL-25: 15; SYS-IO-AUX: 3,10n 50V,Capacitor 10n 50V X7R 0603,,,0603,GENERIC,
+80,7,SYS-IO-AUX: 7,10n 50V,Capacitor 10n 10% 50V X7R 0603,,,0603,GENERIC,
+81,1,AUX-HV: 1,10n 50V,Capacitor 10n 5% 50V C0G 0805,,,0805,GENERIC,
+82,2,PV-PORT: 2,10n 50V,Capacitor 10n 50V C0G 0603,,,0603,GENERIC,
+83,17,BMU-GW: 3; CTRL-C2000: 2; SYS-IO-AUX: 12,10u 16V,Capacitor 10u 16V X7R 0805,,,0805,GENERIC,
+84,2,CTRL-C2000: 2,10u 25V,Capacitor 10u 25V X7R 1210,,,1210,GENERIC,
+85,20,CTRL-C2000: 5; SYS-IO-AUX: 15,10u 50V,Capacitor 10u 10% 50V X7R 1210,,,1210,GENERIC,
+86,39,AUX-HV: 12; PVCELL-25: 27,10u 50V,Capacitor 10u 50V X7R 1210,,,1210,GENERIC,
+87,1,CTRL-C2000: 1,10u 6.3V,Capacitor 10u 10% 6.3V X7R 0805,,,0805,GENERIC,
+88,1,AUX-HV: 1,11.5k,Resistor 11.5k 0.1% 0603,,,0603,GENERIC,
+89,8,PV-PORT: 8,113k,Resistor 113k 0.1% 0603,,,0603,GENERIC,
+90,2,PV-PORT: 2,118k,Resistor 118k 0.1% 0603 hold readback,,,0603,GENERIC,
+91,8,PV-PORT: 8,118k,Resistor 118k 0.1% 0603,,,0603,GENERIC,
+92,1,CTRL-C2000: 1,12.1k,Resistor 12.1k 1% 0603,,,0603,GENERIC,
+93,7,CTRL-C2000: 4; PVCELL-25: 3,120R,Resistor 120R 1% 0603,,,0603,GENERIC,
+94,3,BMU-GW: 1; SYS-IO-AUX: 2,120R,Resistor 120R 1% 0805,,,0805,GENERIC,
+95,12,PVCELL-25: 12,120R,"Resistor 120R 1% 1206 unused pair, termination only",,,1206,GENERIC,
+96,15,PVCELL-25: 15,120R,Resistor 120R 1% 1206 termination (1206: full 3.3 V swing = 0.1 W),,,1206,GENERIC,
+97,1,CTRL-C2000: 1,120k,Resistor 120k 1% 0603,,,0603,GENERIC,
+98,3,SYS-IO-AUX: 3,121k,Resistor 121k 1% 0603,,,0603,GENERIC,
+99,3,PVCELL-25: 3,127k,Resistor 127k 0.1% 0603,,,0603,GENERIC,
+100,1,AUX-HV: 1,13.7k,Resistor 13.7k 1% 0603,,,0603,GENERIC,
+101,1,AUX-HV: 1,137k,Resistor 137k 0.1% 0603,,,0603,GENERIC,
+102,1,SYS-IO-AUX: 1,14.7k,Resistor 14.7k 1% 0603,,,0603,GENERIC,
+103,1,AUX-HV: 1,150R,Resistor 150R 1% 2512 1 W,,,2512,GENERIC,
+104,12,PVCELL-25: 12,150R,Resistor 150R 1% 0603 lifts the CLAMP node at turn-on,,,0603,GENERIC,
+105,1,AUX-HV: 1,150n 25V,Capacitor 150n 25V X7R 0603,,,0603,GENERIC,
+106,1,AUX-HV: 1,150p 50V,Capacitor 150p 50V C0G 0603,,,0603,GENERIC,
+107,7,PV-PORT: 4; SYS-IO-AUX: 3,15k,Resistor 15k 1% 0603,,,0603,GENERIC,
+108,1,AUX-HV: 1,15n 50V,Capacitor 15n 5% 50V C0G 0805,,,0805,GENERIC,
+109,1,SYS-IO-AUX: 1,16.9k,Resistor 16.9k 0.1% 0603 10 ppm/K thin film,,,0603,GENERIC,
+110,1,AUX-HV: 1,16.9k,Resistor 16.9k 0.1% 0603,,,0603,GENERIC,
+111,1,SYS-IO-AUX: 1,18.7k,Resistor 18.7k 0.1% 0603 10 ppm/K thin film,,,0603,GENERIC,
+112,1,SYS-IO-AUX: 1,1M,Resistor 1M 1% 0603 hysteresis,,,0603,GENERIC,
+113,5,BMU-GW: 1; SYS-IO-AUX: 4,1M,Resistor 1M 1% 1206,,,1206,GENERIC,
+114,11,AUX-HV: 3; PV-PORT: 8,1M,Resistor 1M 1% 0603,,,0603,GENERIC,
+115,36,AUX-HV: 5; CTRL-C2000: 5; PVCELL-25: 12; SYS-IO-AUX: 14,1k,Resistor 1k 1% 0603,,,0603,GENERIC,
+116,1,SYS-IO-AUX: 1,1k,Resistor 1k 1% 0603 HGATE series R1,,,0603,GENERIC,
+117,9,SYS-IO-AUX: 9,1k,Resistor 1k 1% MELF 0204 0.25 W RTHR,,,MELF 0204,GENERIC,
+118,2,SYS-IO-AUX: 2,1k,Resistor 1k 1% 0603 CTRL input cannot back-drive the chain,,,0603,GENERIC,
+119,4,SYS-IO-AUX: 4,1k,Resistor 1k 1% 0603 SNS unused (datasheet table 6-2),,,0603,GENERIC,
+120,1,BMU-GW: 1,1k,Resistor 1k 1% 0603 5 mA preload,,,0603,GENERIC,
+121,3,PVCELL-25: 3,1k,Resistor 1k 0.1% 0603,,,0603,GENERIC,
+122,12,PVCELL-25: 12,1k,Resistor 1k 1% 0603 NSI6651 TEST low / UCC21750 APWM load,,,0603,GENERIC,
+123,24,AUX-HV: 1; CTRL-C2000: 20; PVCELL-25: 3,1n 50V,Capacitor 1n 5% 50V C0G 0603,,,0603,GENERIC,
+124,35,AUX-HV: 1; CTRL-C2000: 4; PV-PORT: 24; PVCELL-25: 6,1n 50V,Capacitor 1n 50V X7R 0603,,,0603,GENERIC,
+125,5,SYS-IO-AUX: 5,1n 50V,Capacitor 1n 10% 50V X7R 0603,,,0603,GENERIC,
+126,2,PV-PORT: 2,1n 50V,Capacitor 1n 50V C0G 0603,,,0603,GENERIC,
+127,25,CTRL-C2000: 6; PV-PORT: 1; PVCELL-25: 15; SYS-IO-AUX: 3,1u 16V,Capacitor 1u 16V X7R 0603,,,0603,GENERIC,
+128,3,CTRL-C2000: 2; SYS-IO-AUX: 1,1u 16V,Capacitor 1u 10% 16V X7R 0603,,,0603,GENERIC,
+129,1,AUX-HV: 1,1u 25V,Capacitor 1u 25V X7R 0603,,,0603,GENERIC,
+130,16,PV-PORT: 16,1u 25V,Capacitor 1u 25V X7R 0805,,,0805,GENERIC,
+131,6,CTRL-C2000: 6,1u 50V,Capacitor 1u 50V X7R 1206,,,1206,GENERIC,
+132,24,PVCELL-25: 24,1u 50V,Capacitor 1u 50V X7R 0805,,,0805,GENERIC,
+133,2,PV-PORT: 2,1u 50V,Capacitor 1u 10% 50V X7R 1206,,,1206,GENERIC,
+134,14,CTRL-C2000: 14,1u 6.3V,Capacitor 1u 10% 6.3V X7R 0402,,,0402,GENERIC,
+135,1,SYS-IO-AUX: 1,2.00k,Resistor 2.00k 0.1% 0603 10 ppm/K thin film,,,0603,GENERIC,
+136,3,PVCELL-25: 3,2.00k,Resistor 2.00k 1% 0603 RDY wired-AND pull-up to the drivers' VCC1 (+5V lost = not ready),,,0603,GENERIC,
+137,1,SYS-IO-AUX: 1,2.15k,Resistor 2.15k 0.1% 0603 10 ppm/K thin film,,,0603,GENERIC,
+138,18,AUX-HV: 1; CTRL-C2000: 5; PVCELL-25: 12,2.2k,Resistor 2.2k 1% 0603,,,0603,GENERIC,
+139,1,SYS-IO-AUX: 1,2.2k,Resistor 2.2k 1% 1206,,,1206,GENERIC,
+140,1,SYS-IO-AUX: 1,2.2k,Resistor 2.2k 1% 2010 0.75 W,,,2010,GENERIC,
+141,1,AUX-HV: 1,2.2n 50V,Capacitor 2.2n 50V C0G 0603,,,0603,GENERIC,
+142,1,SYS-IO-AUX: 1,2.2u 100V,Capacitor 2.2u 10% 100V X7R 1210,,,1210,GENERIC,
+143,2,AUX-HV: 1; CTRL-C2000: 1,2.2u 16V,Capacitor 2.2u 16V X7R 0603,,,0603,GENERIC,
+144,6,CTRL-C2000: 2; SYS-IO-AUX: 4,2.2u 16V,Capacitor 2.2u 10% 16V X7R 0603,,,0603,GENERIC,
+145,1,AUX-HV: 1,2.2u 25V,Capacitor 2.2u 10% 25V X7R 1206,,,1206,GENERIC,
+146,12,PVCELL-25: 12,2.2u 50V,Capacitor 2.2u 50V X7R 0805,,,0805,GENERIC,
+147,2,CTRL-C2000: 2,2.49k,Resistor 2.49k 1% 0603,,,0603,GENERIC,
+148,24,PVCELL-25: 24,2.5R,"Resistor 2.5R 1% 2512 Roff, pulse-rated thick film 1 W",,,2512,GENERIC,
+149,2,SYS-IO-AUX: 2,200k,Resistor 200k 1% 0603,,,0603,GENERIC,
+150,3,PVCELL-25: 3,20R,"Resistor 20R 0.1% 1206 RM, 25 ppm/K thin film",,,1206,GENERIC,
+151,15,PVCELL-25: 15,220R,Resistor 220R 1% 0603,,,0603,GENERIC,
+152,2,PV-PORT: 2,220k,Resistor 220k 1% 0603 SPD_N high = varistor network open,,,0603,GENERIC,
+153,7,PV-PORT: 1; PVCELL-25: 6,220n 50V,Capacitor 220n 50V X7R 0603,,,0603,GENERIC,
+154,1,AUX-HV: 1,220p 50V,Capacitor 220p 50V C0G 0603,,,0603,GENERIC,
+155,1,AUX-HV: 1,22R,Resistor 22R 1% 0603,,,0603,GENERIC,
+156,24,PVCELL-25: 24,22R,Resistor 22R 1% 1206 SC booster: sets two-level gate and turn-off di/dt,,,1206,GENERIC,
+157,14,AUX-HV: 2; PVCELL-25: 12,22k,Resistor 22k 1% 0603,,,0603,GENERIC,
+158,5,PV-PORT: 5,22k,Resistor 22k 1% 0603 gate-GND: off when the gate source is off,,,0603,GENERIC,
+159,2,PV-PORT: 2,22k,Resistor 22k 1% 0603 gate-GND,,,0603,GENERIC,
+160,8,SYS-IO-AUX: 8,22n 16V,Capacitor 22n 10% 16V X7R 0603,,,0603,GENERIC,
+161,2,AUX-HV: 2,22n 2kV,Capacitor 22n 2kV X7R 1812,,,1812,GENERIC,
+162,4,CTRL-C2000: 4,22u 10V,Capacitor 22u 10% 10V X7R 0805,,,0805,GENERIC,
+163,4,CTRL-C2000: 4,22u 10V,Capacitor 22u 10% 10V X7R 1206,,,1206,GENERIC,
+164,14,PV-PORT: 2; PVCELL-25: 12,22u 10V,Capacitor 22u 10V X7R 1206,,,1206,GENERIC,
+165,3,CTRL-C2000: 3,22u 16V,Capacitor 22u 10% 16V X7R 1206,,,1206,GENERIC,
+166,2,SYS-IO-AUX: 2,22u 16V,Capacitor 22u 20% 16V X7R 1210,,,1210,GENERIC,
+167,36,PVCELL-25: 36,22u 25V,Capacitor 22u 25V X7R 1210,,,1210,GENERIC,
+168,2,PV-PORT: 2,22u 25V,Capacitor 22u 10% 25V X7R 1206,,,1206,GENERIC,
+169,5,CTRL-C2000: 1; PVCELL-25: 3; SYS-IO-AUX: 1,24.9k,Resistor 24.9k 1% 0603,,,0603,GENERIC,
+170,4,PV-PORT: 4,25.5k,Resistor 25.5k 1% 0603,,,0603,GENERIC,
+171,4,PV-PORT: 4,270n 25V,Capacitor 270n 5% 25V C0G 1210,,,1210,GENERIC,
+172,2,SYS-IO-AUX: 2,28.7k,Resistor 28.7k 1% 0603,,,0603,GENERIC,
+173,1,PV-PORT: 1,28k,Resistor 28k 0.1% 0603 board ID PV-PORT with the readback network (interfaces.ID_OHM),,,0603,GENERIC,
+174,2,SYS-IO-AUX: 2,3.01k,Resistor 3.01k 1% 0603,,,0603,GENERIC,
+175,2,CTRL-C2000: 2,3.3n 50V,Capacitor 3.3n 10% 50V X7R 0603,,,0603,GENERIC,
+176,4,PV-PORT: 4,3.3u 25V,Capacitor 3.3u 10% 25V X7R 0805,,,0805,GENERIC,
+177,1,AUX-HV: 1,3.57M,Resistor 3.57M 1% 0603,,,0603,GENERIC,
+178,1,SYS-IO-AUX: 1,3.57k,Resistor 3.57k 1% 0603,,,0603,GENERIC,
+179,24,PVCELL-25: 24,3.75R,"Resistor 3.75R 1% 2512 Ron, pulse-rated thick film 1 W",,,2512,GENERIC,
+180,3,PVCELL-25: 3,309k,Resistor 309k 0.1% 0603,,,0603,GENERIC,
+181,14,PVCELL-25: 12; SYS-IO-AUX: 2,330R,Resistor 330R 1% 0603,,,0603,GENERIC,
+182,24,PVCELL-25: 24,330p 50V,Capacitor 330p 5% 50V C0G 0603,,,0603,GENERIC,
+183,3,CTRL-C2000: 3,33R,Resistor 33R 1% 0603,,,0603,GENERIC,
+184,1,AUX-HV: 1,33k,Resistor 33k 1% 0603,,,0603,GENERIC,
+185,1,AUX-HV: 1,39n 50V,Capacitor 39n 50V X7R 0603,,,0603,GENERIC,
+186,24,CTRL-C2000: 24,4.02k,Resistor 4.02k 0.1% 0603 10ppm/K,,,0603,GENERIC,
+187,12,PVCELL-25: 12,4.02k,Resistor 4.02k 1% 0603,,,0603,GENERIC,
+188,12,PVCELL-25: 12,4.02k,Resistor 4.02k 0.1% 0603,,,0603,GENERIC,
+189,2,PV-PORT: 2,4.7M,Resistor 4.7M 1% 0603,,,0603,GENERIC,
+190,24,PVCELL-25: 24,4.7R,Resistor 4.7R 1% 0603,,,0603,GENERIC,
+191,14,AUX-HV: 4; CTRL-C2000: 2; SYS-IO-AUX: 8,4.7k,Resistor 4.7k 1% 0603,,,0603,GENERIC,
+192,1,SYS-IO-AUX: 1,4.7k,Resistor 4.7k 1% 0603 fan supplies off when the gate is unpowered,,,0603,GENERIC,
+193,2,SYS-IO-AUX: 2,4.7n 100V,Capacitor 4.7n 10% 100V X7R 0603,,,0603,GENERIC,
+194,1,BMU-GW: 1,4.7n 100V,Capacitor 4.7n 100V X7R 0603,,,0603,GENERIC,
+195,4,SYS-IO-AUX: 4,4.7n 1kV,Capacitor 4.7n 10% 1kV X7R 1206,,,1206,GENERIC,
+196,1,BMU-GW: 1,4.7n 1kV,Capacitor 4.7n 1kV X7R 1206,,,1206,GENERIC,
+197,12,PVCELL-25: 12,4.7n 2000V,Capacitor 4.7n 5% 2000V C0G 2220,,,2220,GENERIC,
+198,6,PV-PORT: 6,4.7n 50V,Capacitor 4.7n 5% 50V C0G 0603,,,0603,GENERIC,
+199,6,PVCELL-25: 6,4.7u 25V,Capacitor 4.7u 25V X7R 1206,,,1206,GENERIC,
+200,2,CTRL-C2000: 2,4.7u 50V,Capacitor 4.7u 50V X7R 1210,,,1210,GENERIC,
+201,2,SYS-IO-AUX: 2,4.7u 50V,Capacitor 4.7u 10% 50V X7R 1210,,,1210,GENERIC,
+202,10,PV-PORT: 1; PVCELL-25: 9,4.7u 50V,Capacitor 4.7u 50V X7R 1206,,,1206,GENERIC,
+203,1,CTRL-C2000: 1,4.87k,Resistor 4.87k 1% 0603,,,0603,GENERIC,
+204,4,SYS-IO-AUX: 4,4.99k,Resistor 4.99k 1% 0603,,,0603,GENERIC,
+205,3,PVCELL-25: 3,4.99k,Resistor 4.99k 0.1% 0603 board ID (interfaces.ID_OHM),,,0603,GENERIC,
+206,3,PVCELL-25: 3,4.99k,Resistor 4.99k 1% 0603 driver FLT wired-OR pull-up to VCC1 (+5V lost = fault),,,0603,GENERIC,
+207,2,PV-PORT: 2,42.2k,Resistor 42.2k 0.1% 0603 hold readback,,,0603,GENERIC,
+208,4,PV-PORT: 1; PVCELL-25: 3,43.2k,Resistor 43.2k 1% 0603,,,0603,GENERIC,
+209,5,SYS-IO-AUX: 5,470R,Resistor 470R 1% 0603,,,0603,GENERIC,
+210,30,PVCELL-25: 30,470R,Resistor 470R 1% 0603 fail-safe bias,,,0603,GENERIC,
+211,1,SYS-IO-AUX: 1,470p 2kV,Capacitor 470p 5% 2kV C0G 1206,,,1206,GENERIC,
+212,1,AUX-HV: 1,470p 50V,Capacitor 470p 50V C0G 0603,,,0603,GENERIC,
+213,26,CTRL-C2000: 20; PVCELL-25: 6,47R,Resistor 47R 1% 0603,,,0603,GENERIC,
+214,12,AUX-HV: 2; PV-PORT: 10,47k,Resistor 47k 1% 0603,,,0603,GENERIC,
+215,4,PV-PORT: 4,47k,Resistor 47k 1% 0603 DO line pull-down,,,0603,GENERIC,
+216,20,PV-PORT: 20,47k,"Resistor 47k 1% 2512 1 W thick film, >= 500 V working",,,2512,GENERIC,
+217,2,PV-PORT: 2,47k,Resistor 47k 1% 0603 DIAG pull-up (SBASA11B Fig 7-5),,,0603,GENERIC,
+218,1,AUX-HV: 1,47n 50V,Capacitor 47n 50V X7R 0603,,,0603,GENERIC,
+219,12,PVCELL-25: 12,47p 50V,Capacitor 47p 5% 50V C0G 0603,,,0603,GENERIC,
+220,4,CTRL-C2000: 4,49.9R,Resistor 49.9R 1% 0603,,,0603,GENERIC,
+221,16,PV-PORT: 16,49.9k,Resistor 49.9k 0.1% 0603,,,0603,GENERIC,
+222,1,CTRL-C2000: 1,499R,Resistor 499R 0.1% 0603 10ppm/K,,,0603,GENERIC,
+223,3,PVCELL-25: 3,499k,Resistor 499k 0.1% 0603,,,0603,GENERIC,
+224,1,CTRL-C2000: 1,5.23k,Resistor 5.23k 0.1% 0603 10ppm/K,,,0603,GENERIC,
+225,1,SYS-IO-AUX: 1,5.23k,Resistor 5.23k 0.1% 0603 10 ppm/K thin film,,,0603,GENERIC,
+226,16,CTRL-C2000: 16,5.76k,Resistor 5.76k 0.1% 0603 10ppm/K,,,0603,GENERIC,
+227,1,AUX-HV: 1,53.6k,Resistor 53.6k 0.1% 0603,,,0603,GENERIC,
+228,8,CTRL-C2000: 8,560R,Resistor 560R 1% 0603,,,0603,GENERIC,
+229,1,AUX-HV: 1,560R,Resistor 560R 1% 0805,,,0805,GENERIC,
+230,9,SYS-IO-AUX: 9,562R,Resistor 562R 1% 0603,,,0603,GENERIC,
+231,1,CTRL-C2000: 1,56R,Resistor 56R 1% 0805,,,0805,GENERIC,
+232,8,CTRL-C2000: 8,56p 50V,Capacitor 56p 5% 50V C0G 0603,,,0603,GENERIC,
+233,1,AUX-HV: 1,59k,Resistor 59k 1% 0603,,,0603,GENERIC,
+234,1,SYS-IO-AUX: 1,6.49k,Resistor 6.49k 0.1% 0603 10 ppm/K thin film,,,0603,GENERIC,
+235,6,BMU-GW: 2; SYS-IO-AUX: 4,60.4R,Resistor 60.4R 1% 0805,,,0805,GENERIC,
+236,1,AUX-HV: 1,619k,Resistor 619k 0.1% 0603,,,0603,GENERIC,
+237,1,CTRL-C2000: 1,64.9k,Resistor 64.9k 1% 0603,,,0603,GENERIC,
+238,4,CTRL-C2000: 4,680R,Resistor 680R 1% 0603,,,0603,GENERIC,
+239,4,CTRL-C2000: 4,680n 50V,Capacitor 680n 10% 50V X7R 0603,,,0603,GENERIC,
+240,1,AUX-HV: 1,68n 50V,Capacitor 68n 5% 50V C0G 1206,,,1206,GENERIC,
+241,1,AUX-HV: 1,68p 500V,Capacitor 68p 500V C0G 1206,,,1206,GENERIC,
+242,6,PVCELL-25: 6,7.32k,Resistor 7.32k 0.1% 0603,,,0603,GENERIC,
+243,4,PV-PORT: 4,7.32k,Resistor 7.32k 1% 0603 R_PXFR: two-wire EN current 1.9 mA (SLVSFJ7D table 8-2),,,0603,GENERIC,
+244,1,CTRL-C2000: 1,732R,Resistor 732R 0.1% 0603 10ppm/K,,,0603,GENERIC,
+245,12,PVCELL-25: 12,76.8k,Resistor 76.8k 0.1% 0603,,,0603,GENERIC,
+246,4,CTRL-C2000: 4,8.06k,Resistor 8.06k 1% 0603,,,0603,GENERIC,
+247,1,SYS-IO-AUX: 1,8.06k,Resistor 8.06k 0.1% 0603,,,0603,GENERIC,
+248,24,PV-PORT: 24,82.5k,"Resistor 82.5k 1% 2512 monitor loop, <= 300 V per element in an In surge",,,2512,GENERIC,
+249,12,CTRL-C2000: 12,82p 50V,Capacitor 82p 5% 50V C0G 0603,,,0603,GENERIC,
+250,8,PV-PORT: 8,86.6k,Resistor 86.6k 0.1% 0603 proof-test injection,,,0603,GENERIC,
+251,8,PV-PORT: 8,88.7k,Resistor 88.7k 0.1% 0603,,,0603,GENERIC,
+252,1,SYS-IO-AUX: 1,9.09k,Resistor 9.09k 1% 0603,,,0603,GENERIC,
+253,1,SYS-IO-AUX: 1,95.3k,Resistor 95.3k 1% 0603,,,0603,GENERIC,
+254,12,PVCELL-25: 12,97.6R,Resistor 97.6R 1% 0805,,,0805,GENERIC,
+255,1,SYS-IO-AUX: 1,Chassis (PE) bonding mounting hole,Chassis (PE) bonding mounting hole,,,M3 plated hole,NOPART,
+256,4,CTRL-C2000: 1; PVCELL-25: 3,Net tie: single AGND-GND star point,Net tie: single AGND-GND star point,,,net tie,NOPART,
+257,1,PV-PORT: 1,PE bond M4,PE bond: plated M4 mounting hole + serrated washer to chassis PE,,,plated M4 hole,NOPART,
+258,1,PV-PORT: 1,PE bond M4 (IMD divider reference),PE bond: plated M4 mounting hole + serrated washer to chassis PE,,,plated M4 hole,NOPART,
+259,3,PVCELL-25: 3,"PE bond M4 (lead screen, heatsink)",PE bond: plated M4 mounting hole + serrated washer to chassis PE,,,plated M4 hole,NOPART,
+260,2,PV-PORT: 2,"PE_T link to chassis PE: removable strap, OPEN for the hipot test (IC-23)","PE_T link to chassis PE: removable strap, OPEN for the hipot test (IC-23)",,,2 plated M4 holes + removable strap,NOPART,
+261,8,BMU-GW: 2; CTRL-C2000: 2; SYS-IO-AUX: 4,"Solder jumper, open by default","Solder jumper, open by default",,,solder jumper,NOPART,
+262,86,AUX-HV: 5; CTRL-C2000: 23; PV-PORT: 4; PVCELL-25: 27; SYS-IO-AUX: 27,TP,Test point,,,TP,NOPART,
+263,2,CTRL-C2000: 2,ASDMB-25.000MHZ-XC-T,"MEMS oscillator 25.000 MHz CMOS, 3.3 V, +/-50 ppm, -40..105 C",Abracon,ASDMB-25.000MHZ-XC-T,2.5x2.0 mm 4-pad,ORDERABLE,docs/datasheets/timing/ASDMB.pdf
+264,3,BMU-GW: 1; SYS-IO-AUX: 2,CDSOT23-SM712,"RS-485 asymmetric TVS array, -7 V / +12 V working",Bourns,CDSOT23-SM712,SOT-23,ORDERABLE,docs/datasheets/protection/CDSOT23-SM712.pdf
+265,2,PV-PORT: 2,CSM2F-8518-L100J01,"BUSBAR-MOUNTED shunt 100 uOhm 5 % 36 W, Kelvin test points (pins 3/4)",Bourns,CSM2F-8518-L100J01,busbar shunt 85x18 mm,ORDERABLE,docs/datasheets/sensing/CSM2F-8518.pdf
+266,3,SYS-IO-AUX: 3,SF-2923HC30C-2,"Fuse 30 A 60 VDC, 300 A interrupting, single blow",Bourns,SF-2923HC30C-2,2923 SMD,ORDERABLE,docs/datasheets/protection/SF-2923HC.pdf
+267,8,SYS-IO-AUX: 8,SMAJ12A,"TVS unidirectional 400 W, VRWM 12 V, VBR 13.3-14.7 V",Bourns,SMAJ12A,DO-214AC (SMA),ORDERABLE,docs/datasheets/protection/SMAJ_Bourns.pdf
+268,4,SYS-IO-AUX: 4,SMAJ33A,"TVS unidirectional 400 W, VRWM 33 V, VBR 36.7-40.6 V",Bourns,SMAJ33A,DO-214AC (SMA),ORDERABLE,docs/datasheets/protection/SMAJ_Bourns.pdf
+269,8,SYS-IO-AUX: 8,SMAJ36A,"TVS unidirectional 400 W, VRWM 36 V, VBR 40-44.2 V",Bourns,SMAJ36A,DO-214AC (SMA),ORDERABLE,docs/datasheets/protection/SMAJ_Bourns.pdf
+270,2,PV-PORT: 2,SMBJ33A,"TVS 33 V unidirectional, relay coil clamp zener",Bourns,SMBJ33A,SMB,ORDERABLE,docs/datasheets/protection/SMBJ_Bourns.pdf
+271,3,SYS-IO-AUX: 3,SMCJ33CA,"TVS bidirectional 1500 W, VRWM 33 V, VC 53.3 V",Bourns,SMCJ33CA,DO-214AB (SMC),ORDERABLE,docs/datasheets/protection/SMCJ_Bourns.pdf
+272,3,AUX-HV: 3,SMCJ70A,"TVS unidirectional 1500 W, VRWM 70 V, VBR 77.8-86.0 V (clamp, 3 in series)",Bourns,SMCJ70A,DO-214AB (SMC),ORDERABLE,docs/datasheets/protection/SMCJ_Bourns.pdf
+273,2,PV-PORT: 2,KF2EDGR-3.5-2P,Shunt NTC to SYS-IO-AUX NTC input (harness),Cixi Kefa,KF2EDGR-3.5-2P,2p 3.5 mm pluggable header,ORDERABLE,docs/datasheets/connectors/KEFA-KF2EDGR-3.5.pdf
+274,1,BMU-GW: 1,KF2EDGR-3.81-6P,"Pluggable header 6-pos 3.81 mm right angle, 300 V 8 A, -40..+105 C, BMS field wiring (plug KF2EDGK-3.81-6P)",Cixi Kefa Electronic,KF2EDGR-3.81-6P,pluggable header 6-pos 3.81 mm,ORDERABLE,docs/datasheets/connectors/KEFA-KF2EDGR-3.81.pdf
+275,4,PV-PORT: 4,MMBT3906-7-F,PNP 40 V 200 mA,Diodes Inc,MMBT3906-7-F,SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/MMBT3906.pdf
+276,6,PV-PORT: 6,S2M-13-F,Rectifier 1000 V 1.5 A,Diodes Inc,S2M-13-F,SMB,ORDERABLE,docs/datasheets/power-semiconductors/S2M.pdf
+277,2,SYS-IO-AUX: 2,BAT54C-7-F,Dual common-cathode Schottky 30 V 200 mA,Diodes Incorporated,BAT54C-7-F,SOT-23,ORDERABLE,docs/datasheets/protection/BAT54S-Diodes.pdf
+278,21,CTRL-C2000: 21,BAT54S-7-F,Dual series Schottky 30 V 200 mA (ADC input clamp),Diodes Incorporated,BAT54S-7-F,SOT-23,ORDERABLE,docs/datasheets/protection/BAT54S-Diodes.pdf
+279,5,SYS-IO-AUX: 5,BAT54S-7-F,"Dual series Schottky 30 V 200 mA, input clamp to 3V3/GND",Diodes Incorporated,BAT54S-7-F,SOT-23,ORDERABLE,docs/datasheets/protection/BAT54S-Diodes.pdf
+280,3,AUX-HV: 3,US1G-13-F,Ultrafast rectifier 400 V 1 A,Diodes Incorporated,US1G-13-F,SMA,ORDERABLE,docs/datasheets/power-semiconductors/US1M.pdf
+281,4,PV-PORT: 4,36A gPV 14x51,"Varistor branch fuse CH14x51 gPV 36 A 1000 V DC, 30 kA (L/R 2 ms), pre-arc 450 A2s",ETI,002637115,14x51 cartridge in 2 x CH14-PCB clips,ORDERABLE,docs/datasheets/protection/ETI-Green-Protect.pdf
+282,2,PV-PORT: 2,004110760,"CHASSIS-MOUNTED fuse link NH1 gBat 200 A 1000 V DC, 30 kA (L/R 1 ms), battery ports 135 / 180 A",ETI,004110760,"NH1 blade, ETI NH1 base 1000 V DC",ORDERABLE,docs/datasheets/protection/ETI-Green-Protect.pdf
+283,8,PV-PORT: 8,006710340,Fuse clip CH14-PCB (two per varistor branch fuse),ETI,006710340,PCB clip for 14 mm cartridge,ORDERABLE,docs/datasheets/protection/ETI-Green-Protect.pdf
+284,3,AUX-HV: 3,BSS126H6327XTSA2,"N-MOSFET 600 V depletion mode, IDSS >= 7 mA (HV start-up cascode)",Infineon,BSS126H6327XTSA2,SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/BSS126.pdf
+285,1,SYS-IO-AUX: 1,FM24CL64B-GTR,"F-RAM 64 kbit I2C, 1e14 write cycles",Infineon,FM24CL64B-GTR,SOIC-8,ORDERABLE,docs/datasheets/controllers/FM24CL64B.pdf
+286,1,AUX-HV: 1,IV2Q171R0D7Z,"SiC MOSFET 1700 V 1 Ohm, Kelvin source, AEC-Q101; alternate Sichain SG2M1K0170J2J (same pin-out)",InventChip,IV2Q171R0D7Z,TO-263-7,ORDERABLE,docs/datasheets/power-semiconductors/IV2Q171R0D7Z.pdf
+287,2,AUX-HV: 2,3.3u 1300V,"Film capacitor 3.3 uF 1300 VDC, PP DC link, IEC 61071 (input surge absorber); was KEMET C4AQUBU4330A11J",Jianghai,FCSA3DS335K050ID90BE3,"radial 27.5 mm, 2 pins 5.0 mm, 32 x 28 x 18 mm",ORDERABLE,docs/datasheets/passives-capacitors/Jianghai-JE26-Film.pdf
+288,3,AUX-HV: 3,PCV1HVF101MB12FV-WE3,"Aluminium polymer capacitor 100 uF 50 V, ESR 25 mOhm, 3.8 A, 3000 h @ 105 C (JE26 p17); was Wurth 875115655003",Jianghai,PCV1HVF101MB12FV-WE3,SMD V-chip 8.0 x 12.2 mm,ORDERABLE,docs/datasheets/passives-capacitors/Jianghai-JE26-Polymer.pdf
+289,18,PVCELL-25: 18,C4AQUBU4220A1YJ,"PP film 2.2 uF 5 %, 1300 VDC (1100 V at 85 C), 63 A peak, 7.1 Arms, 24 nH (leg decoupling)",KEMET,C4AQUBU4220A1YJ,radial 2-lead 27.5 mm,ORDERABLE,docs/datasheets/passives-capacitors/C4AQ.pdf
+290,12,PVCELL-25: 12,C4AQUEW5450A3BJ,"DC-link PP film 45 uF 5 %, 1300 VDC (1100 V at 85 C), 34 Arms, 3.1 mOhm, 19 nH",KEMET,C4AQUEW5450A3BJ,radial 4-lead 57.5x45x65 mm,ORDERABLE,docs/datasheets/passives-capacitors/C4AQ.pdf
+291,3,PVCELL-25: 3,LA 150-P,"Closed-loop Hall current transducer, IPN 150 A, IPM +/-212 A, 1:2000, tD90 < 0.5 us, basic 1000 V",LEM,LA 150-P,"PCB mount 37 x 33 x 16 mm, aperture 13.5 x 10 mm",ORDERABLE,docs/datasheets/sensing/LA_150-P.pdf
+292,1,SYS-IO-AUX: 1,LPJ4012AHNL,"RJ45 10/100BASE-T, integrated magnetics and LEDs, -40..+85 C, 1500 Vrms hipot",LINK-PP,LPJ4012AHNL,"RJ45 THT tab down, 1:1 magnetics, 2 LEDs",ORDERABLE,docs/datasheets/connectors/LINK-PP-LPJ4012AHNL.pdf
+293,2,PV-PORT: 2,HP10NH1GPV160,"CHASSIS-MOUNTED fuse link gPV 1000 VDC 160 A NH1 (135 A port; base HPBB11PPR, Uimp 8 kV; inlet air path; 135 A to 45 C inlet, then the firmware current limit)",Mersen,HP10NH1GPV160,"NH1 blade, in base HPBB11PPR",ORDERABLE,docs/datasheets/protection/NH-gPV-1000VDC.pdf
+294,1,CTRL-C2000: 1,24LC256T-I/SN,"256 kbit I2C EEPROM, 400 kHz, hardware write protect",Microchip,24LC256T-I/SN,SOIC-8 (SN),ORDERABLE,docs/datasheets/controllers/24LC256.pdf
+295,2,SYS-IO-AUX: 2,MCP23S17T-E/SS,16-bit SPI I/O expander,Microchip,MCP23S17T-E/SS,SSOP-28,ORDERABLE,docs/datasheets/controllers/MCP23S17.pdf
+296,12,PVCELL-25: 12,NSI6651ASC-Q1SWR,"Isolated smart SiC gate driver 10 A, DESAT + soft turn-off, Miller clamp, FLT/RDY; reinforced VDE 0884-17 (40052820) VIORM 2121 Vpk, UL 1577 5.7 kVrms; AEC-Q100 grade 1. Alternate: NSI6651ASC-DSWR",NOVOSENSE,NSI6651ASC-Q1SWR,SOW-16 (10.3 x 7.5 mm),ORDERABLE,docs/datasheets/gate-drivers/NSI66x1A-Q1.pdf
+297,12,PVCELL-25: 12,2N7002BK,N-MOSFET 60 V 350 mA logic level,Nexperia,2N7002BK,SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/2N7002BK.pdf
+298,7,SYS-IO-AUX: 7,"2N7002BK,215","N-MOSFET 60 V 350 mA, fan PWM open-drain driver",Nexperia,"2N7002BK,215",SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/2N7002BK.pdf
+299,4,AUX-HV: 4,"2N7002BK,215",N-MOSFET 60 V 350 mA (logic switch),Nexperia,"2N7002BK,215",SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/2N7002BK.pdf
+300,12,PV-PORT: 12,BAS16,"Switching diode 100 V 215 mA, low leakage",Nexperia,BAS16,SOT-23,ORDERABLE,docs/datasheets/protection/BAS16.pdf
+301,1,AUX-HV: 1,"BAS16,215","Switching diode 100 V 215 mA, low leakage (timer latch)",Nexperia,"BAS16,215",SOT-23,ORDERABLE,docs/datasheets/protection/BAS16.pdf
+302,36,PVCELL-25: 36,BAT54,"Schottky diode 30 V 200 mA, trr <= 5 ns",Nexperia,BAT54,SOT-23,ORDERABLE,docs/datasheets/protection/BAT54.pdf
+303,3,AUX-HV: 3,"BAT54,215",Schottky diode 30 V 200 mA,Nexperia,"BAT54,215",SOT-23,ORDERABLE,docs/datasheets/protection/BAT54.pdf
+304,12,PVCELL-25: 12,BAT54S,Dual series Schottky 30 V 200 mA (sense-node clamp to COM and VDD),Nexperia,BAT54S,SOT-23,ORDERABLE,docs/datasheets/protection/BAT54S.pdf
+305,1,AUX-HV: 1,"BAT54S,215",Dual series Schottky 30 V (soft start: clamp + discharge),Nexperia,"BAT54S,215",SOT-23,ORDERABLE,docs/datasheets/protection/BAT54S.pdf
+306,1,AUX-HV: 1,"BC817-25,215",NPN 45 V 500 mA (VDD emitter follower),Nexperia,"BC817-25,215",SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/BC817.pdf
+307,8,PV-PORT: 8,BSS138BK,N-MOSFET 60 V 360 mA,Nexperia,BSS138BK,SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/BSS138BK.pdf
+308,1,AUX-HV: 1,"BZX84-A18,215",Zener 18 V 1 % (VDD follower reference = SiC gate drive),Nexperia,"BZX84-A18,215",SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+309,24,PVCELL-25: 24,BZX84-B10,Zener 10 V 2 % 250 mW (SC trigger level / booster gate clamp),Nexperia,BZX84-B10,SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+310,1,AUX-HV: 1,"BZX84-B20,215",Zener 20 V 2 % (VDD / gate over-voltage clamp),Nexperia,"BZX84-B20,215",SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+311,24,PVCELL-25: 24,"BZX84-B20,215","Zener 20 V 2 % 250 mW (gate clamp, positive, +18 V rail)",Nexperia,"BZX84-B20,215",SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+312,24,PVCELL-25: 24,BZX84-B3V3,Zener 3.3 V 2 % 250 mW (clamp-FET gate supply / trigger shift),Nexperia,BZX84-B3V3,SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+313,1,AUX-HV: 1,"BZX84-B3V3,215",Zener 3.3 V 2 % (PG buffer rail),Nexperia,"BZX84-B3V3,215",SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+314,24,PVCELL-25: 24,BZX84-B4V7,"Zener 4.7 V 2 % 250 mW (gate clamp, negative, -3/-3.5 V rail)",Nexperia,BZX84-B4V7,SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+315,12,PVCELL-25: 12,BZX84-B5V6,"Zener 5.6 V 2 % 250 mW (gate clamp, negative)",Nexperia,BZX84-B5V6,SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+316,1,AUX-HV: 1,"BZX84-B6V8,215",Zener 6.8 V 2 % (foldback threshold),Nexperia,"BZX84-B6V8,215",SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+317,1,SYS-IO-AUX: 1,"BZX84-C12,215",Zener 12 V 5 % 250 mW,Nexperia,"BZX84-C12,215",SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+318,2,PV-PORT: 2,BZX84-C15,Zener 15 V 250 mW,Nexperia,BZX84-C15,SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+319,24,PVCELL-25: 24,"MMBT3904,215",NPN 40 V 200 mA (clamp release / SC trigger),Nexperia,"MMBT3904,215",SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/Nexperia-MMBT3904.pdf
+320,2,PV-PORT: 2,"MMBT3904,215",NPN 40 V 200 mA,Nexperia,"MMBT3904,215",SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/Nexperia-MMBT3904.pdf
+321,24,PVCELL-25: 24,"MMBT3906,215",PNP 40 V 200 mA (clamp inverter / SC booster),Nexperia,"MMBT3906,215",SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/Nexperia-MMBT3906.pdf
+322,34,BMU-GW: 2; PVCELL-25: 24; SYS-IO-AUX: 8,PMEG4010CEJ,Schottky rectifier 40 V 1 A low Vf,Nexperia,PMEG4010CEJ,SOD-323F,ORDERABLE,https://www.nexperia.com/product/PMEG4010CEJ
+323,36,PVCELL-25: 36,PMV30ENEAR,"N-MOSFET 40 V 4.8 A (19 A pulse), <= 40 mOhm at VGS 4.5 V, AEC-Q101: Miller clamp / SC booster",Nexperia,PMV30ENEAR,SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/Nexperia-PMV30ENEA.pdf
+324,2,PV-PORT: 2,G7L-2A-X DC24,"Precharge relay DPST-NO, poles in series: 25 A @ 1000 VDC normal polarity only, 24 V coil 250 ohm",Omron,G7L-2A-X DC24,PCB relay 52.5x35.5 mm,ORDERABLE,docs/datasheets/protection/G7L-X.pdf
+325,2,SYS-IO-AUX: 2,1720466,"PCB header 2-pos 7.62 mm, 41 A 630 V (maker listing), 24 V feed",Phoenix Contact,1720466,PC 5/ 2-G-7.62 THT,ORDERABLE,https://www.phoenixcontact.com/en-us/products/pcb-header-pc-5-2-g-762-1720466
+326,1,SYS-IO-AUX: 1,1720479,"PCB header 3-pos 7.62 mm, 41 A 630 V (maker listing), AUX-HV feed",Phoenix Contact,1720479,PC 5/ 3-G-7.62 THT,ORDERABLE,https://www.phoenixcontact.com/en-us/products/pcb-header-pc-5-3-g-762-1720479
+327,1,AUX-HV: 1,1720479,PCB header 3-pos 7.62 mm (interfaces.AUX output),Phoenix Contact,1720479,PC 5/ 3-G-7.62 THT,ORDERABLE,https://www.phoenixcontact.com/en-us/products/pcb-header-pc-5-3-g-762-1720479
+328,15,SYS-IO-AUX: 15,1803293,"PCB header 4-pos 3.81 mm, 8 A 160 V (maker listing)",Phoenix Contact,1803293,MC 1.5/ 4-G-3.81 THT,ORDERABLE,https://www.phoenixcontact.com/en-us/products/pcb-header-mc-15-4-g-381-1803293
+329,3,SYS-IO-AUX: 3,1803358,"PCB header 10-pos 3.81 mm, 8 A 160 V (maker listing)",Phoenix Contact,1803358,MC 1.5/10-G-3.81 THT,ORDERABLE,https://www.phoenixcontact.com/en-us/products/pcb-header-mc-15-10-g-381-1803358
+330,10,PV-PORT: 10,FVF06FT-2004,"HV thick-film resistor 2.00 M 1 % 100 ppm/K, 707 V working",Prosperity Dielectrics,FVF06FT-2004,1206,ORDERABLE,docs/datasheets/passives-capacitors/PDC-FVF.pdf
+331,3,PVCELL-25: 3,RS3-2415D,"DC/DC 3 W regulated, 18-36 V in, +/-15 V +/-100 mA (LA 150-P supply; isolation not used)",RECOM,RS3-2415D,SIP8,ORDERABLE,docs/datasheets/power-supply/RS3.pdf
+332,2,SYS-IO-AUX: 2,50ZLH1000MEFC16X25,"Aluminium electrolytic 1000 uF 50 V 20 %, low impedance 21 mOhm @ 100 kHz",Rubycon,50ZLH1000MEFC16X25,radial 16x25 mm,ORDERABLE,docs/datasheets/passives-capacitors/Rubycon-ZLH.pdf
+333,3,PVCELL-25: 3,50ZLH100MEFC8X11.5,Aluminium electrolytic 100 uF 20 % 50 V 105 C low Z,Rubycon,50ZLH100MEFC8X11.5,radial 8x11.5 mm,ORDERABLE,docs/datasheets/passives-capacitors/Rubycon-ZLH.pdf
+334,3,PVCELL-25: 3,3405.0163.24,"Fuse UMF 250 0.5 A quick-acting, 125 VDC, -55..125 C",SCHURTER,3405.0163.24,SMD 3 x 10.1 mm,ORDERABLE,docs/datasheets/protection/UMF250.pdf
+335,1,CTRL-C2000: 1,FTSH-110-01-L-DV-K,"cTI-20 JTAG header 2x10 1.27 mm, keying shroud",Samtec,FTSH-110-01-L-DV-K,2x10 1.27 mm SMT keyed,ORDERABLE,docs/datasheets/connectors/Samtec-FTSH.pdf
+336,1,SYS-IO-AUX: 1,SSW-105-01-G-D,"Socket strip 2x5 2.54 mm, BMU-GW",Samtec,SSW-105-01-G-D,2x5 2.54 mm socket THT,ORDERABLE,docs/datasheets/connectors/Samtec-SSW.pdf
+337,1,SYS-IO-AUX: 1,SSW-140-01-G-D,"Socket strip 2x40 2.54 mm, mates TSW-140-07-G-D on CTRL-C2000, 4.7 A/pin",Samtec,SSW-140-01-G-D,2x40 2.54 mm socket THT,ORDERABLE,docs/datasheets/connectors/Samtec-SSW.pdf
+338,1,SYS-IO-AUX: 1,TSW-102-07-G-S,Service jumper header (fit a 2.54 mm shunt only for programming / debug),Samtec,TSW-102-07-G-S,1x2 2.54 mm header,ORDERABLE,docs/datasheets/connectors/Samtec-TSW.pdf
+339,1,CTRL-C2000: 1,TSW-103-07-G-S,"Debug UART header 1x3, 3.3 V TTL",Samtec,TSW-103-07-G-S,1x3 2.54 mm THT,ORDERABLE,docs/datasheets/connectors/Samtec-TSW.pdf
+340,1,CTRL-C2000: 1,TSW-110-07-G-D,SDFM expansion header 2x10 (8 modulators),Samtec,TSW-110-07-G-D,2x10 2.54 mm THT,ORDERABLE,docs/datasheets/connectors/Samtec-TSW.pdf
+341,1,CTRL-C2000: 1,TSW-140-07-G-D,"Board-to-board header 2x40, SYS contract",Samtec,TSW-140-07-G-D,2x40 2.54 mm THT,ORDERABLE,docs/datasheets/connectors/Samtec-TSW.pdf
+342,1,AUX-HV: 1,0090.1001,"Fuse 1 A 1000 VDC gPV, 20 kA breaking, PCB pins (one per DC port, behind 2 x 22 R)",Schurter,0090.1001,"10.3 x 38 mm, PCB pins",ORDERABLE,docs/datasheets/protection/ASO-0090.1001.pdf
+343,1,AUX-HV: 1,0090.1001,"Fuse 1 A 1000 VDC gPV, 20 kA breaking, PCB pins (one per DC port, behind 2 x 22 R) (PV build only; not fitted on DAB-D60)",Schurter,0090.1001,"10.3 x 38 mm, PCB pins",ORDERABLE,docs/datasheets/protection/ASO-0090.1001.pdf
+344,24,PVCELL-25: 24,SG2M040170HJ,"SiC MOSFET 1700 V 40 mOhm, TO-247-4L with driver source, VGS -8/+22 V abs, -4/+18 V op; no qualification stated (Sichain p14: consult for high reliability). Mount on PAD_ALN",Sichain,SG2M040170HJ,TO-247-4L (tab = drain),ORDERABLE,docs/datasheets/power-semiconductors/SG2M040170HJ.pdf
+345,6,PVCELL-25: 6,B57703M0103A018,"NTC probe 10 k 2 %, B25/100 3988 K, metal tag screwed to the heatsink, 125 C category",TDK Electronics,B57703M0103A018,"M703 metal-tag probe, 200 mm leads",ORDERABLE,docs/datasheets/sensing/B57703M.pdf
+346,2,PV-PORT: 2,B57703M0103A018,"CHASSIS: shunt NTC 10 k, clamped to the shunt copper over a REINFORCED insulating pad (1000 VDC working, OVC II - the probe's own 1000 VAC/1 s test is not enough). Pad spec (IC-20): reinforced, AC 4400 V rms 60 s, impulse >= 6 kV (8 kV without the surge credit), creepage around the tag >= 10.0 mm (PD2) and >= the clearance at the claimed altitude; to SYS-IO-AUX NTC input",TDK Electronics,B57703M0103A018,"metal-tag probe, 200 mm leads",ORDERABLE,docs/datasheets/sensing/B57703M.pdf
+347,3,PV-PORT: 3,B72210S0300K101,"Varistor S10K30 38 VDC, contactor coil clamp",TDK Electronics,B72210S0300K101,disc 10 mm,ORDERABLE,docs/datasheets/protection/SIOV-Leaded-Standard.pdf
+348,3,PV-PORT: 3,B88269X7340C011,"CHASSIS-MOUNTED main contactor HVC43-250A-24MC, 1000 VDC, 250 A, bidirectional (no polarity), 24 V coil 96 ohm, mirror aux contact NC",TDK Electronics,B88269X7340C011,"chassis, M6 studs + Micro-Fit 4p",ORDERABLE,docs/datasheets/protection/HVC43MC.pdf
+349,36,PVCELL-25: 36,US1MH,"Ultrafast rectifier 1000 V 1 A trr 75 ns, AEC-Q101 (DESAT string)",Taiwan Semiconductor,US1MH,SMA (DO-214AC),ORDERABLE,docs/datasheets/power-semiconductors/TSC-US1xH.pdf
+350,1,SYS-IO-AUX: 1,ADS7953SDBTR,"16-ch 12-bit 1 MSPS SAR ADC, SPI",Texas Instruments,ADS7953SDBTR,TSSOP-38 (DBT),ORDERABLE,docs/datasheets/sensing/ADS7953.pdf
+351,11,CTRL-C2000: 8; PVCELL-25: 3,AM26LV31EIDR,"Quad RS-422 line driver, 3.3 V, 32 MHz, -40..85 C",Texas Instruments,AM26LV31EIDR,SOIC-16 (D),ORDERABLE,docs/datasheets/isolation-interface/AM26LV31E.pdf
+352,7,CTRL-C2000: 1; PVCELL-25: 6,AM26LV32EIDR,"Quad RS-422 line receiver, 3.3 V, open-circuit fail-safe, -40..85 C",Texas Instruments,AM26LV32EIDR,SOIC-16 (D),ORDERABLE,docs/datasheets/isolation-interface/AM26LV32E.pdf
+353,2,PV-PORT: 2,AMC3302DWE,"Reinforced isolated amplifier +/-50 mV in, gain 41, integrated DC/DC, VIOWM 1700 VDC",Texas Instruments,AMC3302DWE,SOIC-16 wide (DWE),ORDERABLE,docs/datasheets/sensing/AMC3302.pdf
+354,6,PV-PORT: 6,AMC3330DWE,"Reinforced isolated amplifier +/-1 V in, gain 2, integrated DC/DC, VIOWM 1700 VDC",Texas Instruments,AMC3330DWE,SOIC-16 wide (DWE),ORDERABLE,docs/datasheets/sensing/AMC3330.pdf
+355,2,AUX-HV: 2,ATL431BIDBZR,"Shunt reference 2.5 V 0.5 %, Ika(min) 35 uA, 36 V",Texas Instruments,ATL431BIDBZR,SOT-23-3 (DBZ),ORDERABLE,docs/datasheets/power-supply/ATL431.pdf
+356,4,SYS-IO-AUX: 4,CSD18532Q5B,"N-MOSFET 60 V 2.5 mOhm, ideal-diode ORing switch",Texas Instruments,CSD18532Q5B,SON 5x6 (DQJ),ORDERABLE,docs/datasheets/power-semiconductors/CSD18532Q5B.pdf
+357,1,CTRL-C2000: 1,DP83822IRHBR,"10/100 Ethernet PHY, MII/RMII, -40..85 C",Texas Instruments,DP83822IRHBR,VQFN-32 5x5 (RHB),ORDERABLE,docs/datasheets/isolation-interface/DP83822I.pdf
+358,3,BMU-GW: 1; SYS-IO-AUX: 2,ESD2CAN24DBZRQ1,2-channel 24 V CAN bus ESD/TVS diode,Texas Instruments,ESD2CAN24DBZRQ1,SOT-23 (DBZ),ORDERABLE,docs/datasheets/protection/ESD2CAN24-Q1.pdf
+359,1,CTRL-C2000: 1,F28388DZWTS,"TMS320F28388D dual C28x + CLA + CM Cortex-M4 MCU, 337-ball ZWT, -40..125 C TJ (S)",Texas Instruments,F28388DZWTS,nFBGA-337 (ZWT) 16x16 mm 0.8 mm,ORDERABLE,docs/datasheets/controllers/TMS320F28388D.pdf
+360,3,BMU-GW: 1; SYS-IO-AUX: 2,ISO1042DWR,"Isolated CAN FD transceiver, 5 kVrms reinforced, +/-70 V bus fault protection",Texas Instruments,ISO1042DWR,SOIC-16W (DW),ORDERABLE,docs/datasheets/isolation-interface/ISO1042.pdf
+361,1,SYS-IO-AUX: 1,ISO1211DR,"Isolated 24-60 V digital input, IEC 61131-2 type 1/2/3 (spare trip loop)",Texas Instruments,ISO1211DR,SOIC-8 (D),ORDERABLE,docs/datasheets/isolation-interface/ISO1211.pdf
+362,4,SYS-IO-AUX: 4,ISO1212DBQR,"Dual isolated 24-60 V digital input, IEC 61131-2 type 1/2/3, 2500 Vrms basic",Texas Instruments,ISO1212DBQR,SSOP-16 (DBQ),ORDERABLE,docs/datasheets/isolation-interface/ISO1211.pdf
+363,3,BMU-GW: 1; SYS-IO-AUX: 2,ISO1410DWR,"Isolated half-duplex RS-485 transceiver, 500 kbps, 5 kVrms reinforced",Texas Instruments,ISO1410DWR,SOIC-16W (DW),ORDERABLE,docs/datasheets/isolation-interface/ISO1410.pdf
+364,1,SYS-IO-AUX: 1,LM2903BIDR,"Dual comparator, +/-4 mV, open collector",Texas Instruments,LM2903BIDR,SOIC-8 (D),ORDERABLE,docs/datasheets/sensing/LM2903B.pdf
+365,3,PVCELL-25: 3,LM4040AIM3-2.5/NOPB,"Shunt reference 2.500 V 0.1 % (0.75 % -40..85 C), 65 uA-15 mA",Texas Instruments,LM4040AIM3-2.5/NOPB,SOT-23 (DBZ),ORDERABLE,docs/datasheets/sensing/LM4040.pdf
+366,2,SYS-IO-AUX: 2,LM74700QDBVRQ1,"Ideal-diode controller 3.2-65 V, reverse blocking / ORing",Texas Instruments,LM74700QDBVRQ1,SOT-23-6 (DBV),ORDERABLE,docs/datasheets/power-supply/LM74700-Q1.pdf
+367,1,SYS-IO-AUX: 1,LM74800QDRRRQ1,"Ideal-diode + load-disconnect controller 3-65 V, UVLO and OV, back-to-back FETs",Texas Instruments,LM74800QDRRRQ1,WSON-12 (DRR),ORDERABLE,docs/datasheets/power-supply/LM7480-Q1.pdf
+368,1,SYS-IO-AUX: 1,LMR36015ARNXR,"Synchronous buck 4.2-60 V in, 1.5 A, 400 kHz",Texas Instruments,LMR36015ARNXR,VQFN-HR-12 (RNX),ORDERABLE,docs/datasheets/power-supply/LMR36015.pdf
+369,6,PVCELL-25: 6,LMR36015ARNXR,"Buck 4.2-60 V in, 1.5 A, 400 kHz (cell logic 3.3 V / 5 V)",Texas Instruments,LMR36015ARNXR,VQFN-HR-12 (RNX),ORDERABLE,docs/datasheets/power-supply/LMR36015.pdf
+370,1,PV-PORT: 1,LMR36015ARNXR,"Buck 4.2-60 V in, 1.5 A, 400 kHz, sensor supply 3.3 V",Texas Instruments,LMR36015ARNXR,VQFN-HR-12 (RNX),ORDERABLE,docs/datasheets/power-supply/LMR36015.pdf
+371,1,CTRL-C2000: 1,LMR38020FDDAR,"Sync buck 4.2-80 V in, 2 A, FPWM, 1.0 V ref, PG",Texas Instruments,LMR38020FDDAR,SO-8 PowerPAD (DDA),ORDERABLE,docs/datasheets/power-supply/LMR38020.pdf
+372,3,PVCELL-25: 3,OPA2322AIDGKR,"Dual RRIO CMOS op amp 20 MHz, 10 V/us, 1.8-5.5 V",Texas Instruments,OPA2322AIDGKR,VSSOP-8 (DGK),ORDERABLE,docs/datasheets/sensing/OPA4322.pdf
+373,1,CTRL-C2000: 1,OPA2388IDR,"Dual zero-drift RRIO op amp, 10 MHz, 2.5-5.5 V",Texas Instruments,OPA2388IDR,SOIC-8 (D),ORDERABLE,docs/datasheets/sensing/OPA4388.pdf
+374,3,PVCELL-25: 3,OPA4322AIPWR,"Quad RRIO CMOS op amp 20 MHz, 10 V/us, 1.8-5.5 V",Texas Instruments,OPA4322AIPWR,TSSOP-14 (PW),ORDERABLE,docs/datasheets/sensing/OPA4322.pdf
+375,6,CTRL-C2000: 6,OPA4388IPWR,"Quad zero-drift RRIO op amp, 10 MHz, 2.5-5.5 V",Texas Instruments,OPA4388IPWR,TSSOP-14 (PW),ORDERABLE,docs/datasheets/sensing/OPA4388.pdf
+376,1,SYS-IO-AUX: 1,REF3025AIDBZR,Voltage reference 2.5 V 0.2 %,Texas Instruments,REF3025AIDBZR,SOT-23-3 (DBZ),ORDERABLE,docs/datasheets/sensing/REF3030.pdf
+377,4,PV-PORT: 4,REF3030EAIDBZR,Voltage reference 3.0 V 0.1 % 15 ppm/K (hold threshold),Texas Instruments,REF3030EAIDBZR,SOT-23-3 (DBZ),ORDERABLE,docs/datasheets/sensing/REF3030.pdf
+378,1,SYS-IO-AUX: 1,REF5025EID,Precision reference 2.5 V 0.025 % 2.5 ppm/C,Texas Instruments,REF5025EID,SOIC-8 (D),ORDERABLE,docs/datasheets/sensing/REF5025E.pdf
+379,1,CTRL-C2000: 1,REF5025EIDR,"Voltage reference 2.500 V, 0.025 %, 2.5 ppm/C, enable, CL 1-100 uF",Texas Instruments,REF5025EIDR,SOIC-8 (D),ORDERABLE,docs/datasheets/sensing/REF5025E.pdf
+380,5,BMU-GW: 1; SYS-IO-AUX: 4,SN6505BDBVR,"Push-pull transformer driver, 1 A, 420 kHz, soft start",Texas Instruments,SN6505BDBVR,SOT-23-6 (DBV),ORDERABLE,docs/datasheets/power-supply/SN6505B.pdf
+381,3,PVCELL-25: 3,SN74AHCT08DR,"Quad 2-input AND gate, 5 V, TTL inputs (VIH 2.0 V): 3.3 V -> 5 V level for the NSI6651 inputs",Texas Instruments,SN74AHCT08DR,SOIC-14 (D),ORDERABLE,docs/datasheets/isolation-interface/SN74AHCT08.pdf
+382,3,PVCELL-25: 3,SN74AHCT1G08DBVR,"Single 2-input AND gate, 5 V, TTL inputs: EN_DRV -> EN_GD at the NSI6651 RST/EN level",Texas Instruments,SN74AHCT1G08DBVR,SOT-23-5 (DBV),ORDERABLE,docs/datasheets/isolation-interface/SN74AHCT1G08.pdf
+383,2,SYS-IO-AUX: 2,SN74LVC08APWR,Quad 2-input AND,Texas Instruments,SN74LVC08APWR,TSSOP-14 (PW),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC08A.pdf
+384,7,CTRL-C2000: 4; PVCELL-25: 3,SN74LVC11ADR,"Triple 3-input AND gate, 1.65-3.6 V, Ioff",Texas Instruments,SN74LVC11ADR,SOIC-14 (D),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC11A.pdf
+385,5,SYS-IO-AUX: 5,SN74LVC1G08DBVR,Single 2-input AND,Texas Instruments,SN74LVC1G08DBVR,SOT-23-5 (DBV),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC1G08.pdf
+386,6,PVCELL-25: 6,SN74LVC1G08DBVR,"Single 2-input AND gate, Ioff",Texas Instruments,SN74LVC1G08DBVR,SOT-23-5 (DBV),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC1G08.pdf
+387,7,PV-PORT: 4; SYS-IO-AUX: 3,SN74LVC1G11DBVR,Single 3-input AND,Texas Instruments,SN74LVC1G11DBVR,SOT-23-6 (DBV),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC1G11.pdf
+388,1,CTRL-C2000: 1,SN74LVC1G17DBVR,"Single Schmitt-trigger buffer, Ioff",Texas Instruments,SN74LVC1G17DBVR,SOT-23-5 (DBV),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC1G17.pdf
+389,4,SYS-IO-AUX: 4,SN74LVC1G17DBVR,Single Schmitt-trigger buffer,Texas Instruments,SN74LVC1G17DBVR,SOT-23-5 (DBV),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC1G17.pdf
+390,1,AUX-HV: 1,SN74LVC1G17DBVR,"Single Schmitt-trigger buffer, Ioff (PG_HVAUX driver)",Texas Instruments,SN74LVC1G17DBVR,SOT-23-5 (DBV),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC1G17.pdf
+391,23,PV-PORT: 8; PVCELL-25: 15,SN74LVC1G17DBVR,"Single Schmitt-trigger buffer, 3.3 V",Texas Instruments,SN74LVC1G17DBVR,SOT-23-5 (DBV),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC1G17.pdf
+392,8,PV-PORT: 8,SN74LVC1G32DBVR,Single 2-input OR,Texas Instruments,SN74LVC1G32DBVR,SOT-23-5 (DBV),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC1G32.pdf
+393,2,SYS-IO-AUX: 2,SN74LVC1G74DCUR,D flip-flop with async preset / clear,Texas Instruments,SN74LVC1G74DCUR,VSSOP-8 (DCU),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC1G74.pdf
+394,3,PVCELL-25: 3,SN74LVC1G74DCUR,"D flip-flop with preset and clear, Ioff (fault latch)",Texas Instruments,SN74LVC1G74DCUR,VSSOP-8 (DCU),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC1G74.pdf
+395,3,CTRL-C2000: 3,SN74LVC244ADWR,"Octal buffer, 3-state, Ioff (SYS inputs before VDDIO is up)",Texas Instruments,SN74LVC244ADWR,SOIC-20 (DW),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC244A.pdf
+396,4,CTRL-C2000: 4,THVD1450DR,"RS-485 transceiver 3.3-5 V, 50 Mbps, driver enable (EN line driver + readback)",Texas Instruments,THVD1450DR,SOIC-8 (D),ORDERABLE,docs/datasheets/isolation-interface/THVD1450.pdf
+397,1,AUX-HV: 1,TLV3202AIDGKR,"Dual comparator 40 ns, 40 uA/ch, push-pull, rail-to-rail inputs",Texas Instruments,TLV3202AIDGKR,VSSOP-8 (DGK),ORDERABLE,docs/datasheets/sensing/TLV3202.pdf
+398,6,PVCELL-25: 6,TLV3502AID,"Dual 4.5 ns rail-to-rail comparator, push-pull outputs, 2.7-5.5 V",Texas Instruments,TLV3502AID,SOIC-8 (D),ORDERABLE,docs/datasheets/sensing/TLV3502.pdf
+399,4,PV-PORT: 4,TLV3502AIDCNR,Dual comparator rail-to-rail push-pull: over-current detect for the contactor hold,Texas Instruments,TLV3502AIDCNR,SOT-23-8 (DCN),ORDERABLE,docs/datasheets/sensing/TLV3502.pdf
+400,1,SYS-IO-AUX: 1,TMP1075DR,I2C temperature sensor +/-1 C,Texas Instruments,TMP1075DR,SOIC-8 (D),ORDERABLE,docs/datasheets/sensing/TMP1075.pdf
+401,1,CTRL-C2000: 1,TMUX1208PWR,"8:1 analog multiplexer, 1.08-5.5 V, low leakage",Texas Instruments,TMUX1208PWR,TSSOP-16 (PW),ORDERABLE,docs/datasheets/sensing/TMUX1208.pdf
+402,8,SYS-IO-AUX: 8,TPS16630PWPR,"eFuse 60 V 6 A 31 mOhm, adjustable ILIM, UVLO, OVP, IMON, FLT",Texas Instruments,TPS16630PWPR,HTSSOP-20 (PWP),ORDERABLE,docs/datasheets/power-supply/TPS1663.pdf
+403,5,CTRL-C2000: 5,TPS26600PWPR,"eFuse 4.2-60 V, 150 mR, 0.1-2.23 A adjustable limit",Texas Instruments,TPS26600PWPR,HTSSOP-16 PowerPAD (PWP),ORDERABLE,docs/datasheets/power-supply/TPS26600.pdf
+404,4,SYS-IO-AUX: 4,TPS272C45DRHFR,"Dual 45 mOhm 24 V industrial smart high-side switch, adjustable ILIM, per-channel fault",Texas Instruments,TPS272C45DRHFR,VQFN-24 (RHF),ORDERABLE,docs/datasheets/isolation-interface/TPS272C45.pdf
+405,4,SYS-IO-AUX: 4,TPS3700DDCR,"Window comparator 400 mV, two open-drain outputs",Texas Instruments,TPS3700DDCR,SOT-6 (DDC),ORDERABLE,docs/datasheets/power-supply/TPS3700.pdf
+406,1,AUX-HV: 1,TPS3700DDCR,"Window voltage detector, 400 mV, two open-drain outputs",Texas Instruments,TPS3700DDCR,SOT-6 (DDC),ORDERABLE,docs/datasheets/power-supply/TPS3700.pdf
+407,2,CTRL-C2000: 2,TPS3703A4330DSER,"Window supervisor 3.30 V +/-4 %, 0.7 %, 10 ms, MR",Texas Instruments,TPS3703A4330DSER,WSON-6 1.5x1.5 (DSE),ORDERABLE,docs/datasheets/power-supply/TPS3703.pdf
+408,1,CTRL-C2000: 1,TPS3703F6050DSER,"UV supervisor 0.470 V (0.50 V -6 %), 1 %, 20 ms, MR",Texas Instruments,TPS3703F6050DSER,WSON-6 1.5x1.5 (DSE),ORDERABLE,docs/datasheets/power-supply/TPS3703.pdf
+409,2,AUX-HV: 1; SYS-IO-AUX: 1,TPS3710DDCR,"Voltage detector 400 mV, open drain",Texas Instruments,TPS3710DDCR,SOT-6 (DDC),ORDERABLE,docs/datasheets/power-supply/TPS3710.pdf
+410,6,PVCELL-25: 6,TPS3710DDCR,"Voltage detector 400 mV 1 %, open-drain output, 1.8-18 V",Texas Instruments,TPS3710DDCR,SOT-23-6 (DDC),ORDERABLE,docs/datasheets/power-supply/TPS3710.pdf
+411,1,SYS-IO-AUX: 1,TPS3850G33DRCR,Supervisor 3.3 V +/-4 % window + programmable window watchdog,Texas Instruments,TPS3850G33DRCR,VSON-10 (DRC),ORDERABLE,docs/datasheets/power-supply/TPS3850.pdf
+412,1,CTRL-C2000: 1,TPS62130RGTR,"Sync buck 3-17 V in, 3 A, adjustable (VFB 0.8 V)",Texas Instruments,TPS62130RGTR,VQFN-16 3x3 (RGT),ORDERABLE,docs/datasheets/power-supply/TPS62130.pdf
+413,1,CTRL-C2000: 1,TPS62133RGTR,"Sync buck 3-17 V in, 3 A, fixed 3.3 V out",Texas Instruments,TPS62133RGTR,VQFN-16 3x3 (RGT),ORDERABLE,docs/datasheets/power-supply/TPS62130.pdf
+414,1,CTRL-C2000: 1,TPS7A2033PDBVR,"LDO 300 mA, 3.3 V fixed, low noise, active discharge",Texas Instruments,TPS7A2033PDBVR,SOT-23-5 (DBV),ORDERABLE,docs/datasheets/power-supply/TPS7A20.pdf
+415,1,SYS-IO-AUX: 1,TPS7A2033PDBVR,"LDO 3.3 V 300 mA, +/-1.5 % over line, load, temperature",Texas Instruments,TPS7A2033PDBVR,SOT-23-5 (DBV),ORDERABLE,docs/datasheets/power-supply/TPS7A20.pdf
+416,4,SYS-IO-AUX: 4,TPS7A2650DRVR,"LDO 5.0 V 500 mA +/-1 %, 18 V in (isolated port supply)",Texas Instruments,TPS7A2650DRVR,WSON-6 (DRV),ORDERABLE,docs/datasheets/power-supply/TPS7A26.pdf
+417,4,PV-PORT: 4,TPSI3050QDWZRQ1,"Reinforced isolated switch driver, two-wire mode from a 24 V DO (EN), 10 V gate drive",Texas Instruments,TPSI3050QDWZRQ1,SOIC-8 wide (DWZ),ORDERABLE,docs/datasheets/isolation-interface/TPSI3050-Q1.pdf
+418,12,PVCELL-25: 12,UCC14241QDWNRQ1,"Isolated DC/DC module 24 V in, 2 W, adjustable VDD-VEE and COM-VEE, PG, reinforced (planned VDE 0884-17) VIOWM 1414 VDC, CIO < 3.5 pF, CMTI > 150 V/ns",Texas Instruments,UCC14241QDWNRQ1,SSOP-36 (DWN),ORDERABLE,docs/datasheets/gate-drivers/UCC14241-Q1.pdf
+419,1,AUX-HV: 1,UCC28C59QDRQ1,"Current-mode PWM controller for SiC, UVLO 16/12.5 V, max duty 48 %, AEC-Q100",Texas Instruments,UCC28C59QDRQ1,SOIC-8 (D),ORDERABLE,docs/datasheets/power-supply/UCC28C58-Q1.pdf
+420,6,PV-PORT: 6,TVT25751KFKG,"Thermally protected varistor 615 VDC, Vc 1240 V @ 150 A, Imax 25 kA, thermal link + monitor lead",Thinking Electronic,TVT25751KFKG,"25 mm disc, 3 leads, potted",ORDERABLE,docs/datasheets/protection/Thinking-TVT-Series.pdf
+421,3,AUX-HV: 3,BYG10Y-E3/TR,"Avalanche rectifier 1600 V 1.5 A, standard recovery",Vishay,BYG10Y-E3/TR,SMA (DO-214AC),ORDERABLE,docs/datasheets/power-semiconductors/BYG10Y.pdf
+422,2,AUX-HV: 2,BYG10Y-E3/TR,"Avalanche rectifier 1600 V 1.5 A, standard recovery (PV build only; not fitted on DAB-D60)",Vishay,BYG10Y-E3/TR,SMA (DO-214AC),ORDERABLE,docs/datasheets/power-semiconductors/BYG10Y.pdf
+423,1,AUX-HV: 1,CNY65B,"Optocoupler phototransistor, reinforced, VIORM 1800 Vpk, creepage/clearance >= 14 mm, CTR 100-200 %",Vishay,CNY65B,DIP-4 HV 600 mil (15.24 mm),ORDERABLE,docs/datasheets/isolation-interface/CNY65.pdf
+424,2,PV-PORT: 2,CNY65B,"Optocoupler phototransistor, reinforced, VIOTM 12 kV, creepage >= 14 mm: varistor-network monitor",Vishay,CNY65B,DIP-4 HV 600 mil (15.24 mm),ORDERABLE,docs/datasheets/isolation-interface/CNY65.pdf
+425,36,PVCELL-25: 36,15R,"Pulse-proof thick film 2512 15.0 ohm 1 %, 1.5 W at 70 C, 500 V (leg damper)",Vishay,CRCW251215R0FKEGHP,2512,ORDERABLE,docs/datasheets/passives-capacitors/CRCW-HP.pdf
+426,3,AUX-HV: 3,10M,"Resistor 10 M 1 % 2512 high-voltage thick film, 3000 V",Vishay,CRHV2512AF10M0FKFB,2512,ORDERABLE,docs/datasheets/passives-capacitors/CRHV.pdf
+427,8,PV-PORT: 8,IRFL214TRPbF,N-MOSFET 250 V 2.0 ohm: coil low-side switch,Vishay,IRFL214TRPbF,SOT-223,ORDERABLE,docs/datasheets/power-semiconductors/IRFL214.pdf
+428,2,PV-PORT: 2,IRFR9214TRPbF,P-MOSFET -250 V 3.0 ohm: hold-closed high-side switch,Vishay,IRFR9214TRPbF,DPAK (TO-252),ORDERABLE,docs/datasheets/power-semiconductors/IRFR9214.pdf
+429,36,PV-PORT: 36,TNPV12061M00BEEA,HV thin-film resistor 1.00 M 0.1 % 25 ppm/K 700 V,Vishay,TNPV12061M00BEEA,1206,ORDERABLE,docs/datasheets/passives-capacitors/TNPV-e3.pdf
+430,64,PV-PORT: 16; PVCELL-25: 48,TNPV1210124KBEEA,HV thin-film resistor 124 k 0.1 % 25 ppm/K 1000 V,Vishay,TNPV1210124KBEEA,1210,ORDERABLE,docs/datasheets/passives-capacitors/TNPV-e3.pdf
+431,6,PV-PORT: 6,TNPW12064K99BEEA,Thin-film resistor 4.99 k 0.1 % 25 ppm/K,Vishay,TNPW12064K99BEEA,1206,ORDERABLE,docs/datasheets/passives-capacitors/TNPW-e3.pdf
+432,1,AUX-HV: 1,VS-8ETU04S-M3,Ultrafast rectifier 400 V 8 A FRED Pt (output),Vishay,VS-8ETU04S-M3,D2PAK (TO-263AB),ORDERABLE,docs/datasheets/power-semiconductors/VS-8ETU04S-M3.pdf
+433,4,PV-PORT: 4,VY1472M63Y5UQ63V0,Y1 capacitor 4.7 nF 500 VAC / 1500 VDC,Vishay,VY1472M63Y5UQ63V0,"disc 16 mm, 10 mm leads",ORDERABLE,docs/datasheets/passives-capacitors/VY1.pdf
+434,2,AUX-HV: 2,22R,"Resistor 22 R 5 % 10 W cemented wirewound, pulse-rated (current limit ahead of the port fuse)",Vishay Draloric,AC10000002209JAB00,"axial cemented wirewound 10 W, 44 x 8 mm",ORDERABLE,docs/datasheets/passives-capacitors/AC-AC-AT-AC-NI.pdf
+435,2,AUX-HV: 2,22R,"Resistor 22 R 5 % 10 W cemented wirewound, pulse-rated (current limit ahead of the port fuse) (PV build only; not fitted on DAB-D60)",Vishay Draloric,AC10000002209JAB00,"axial cemented wirewound 10 W, 44 x 8 mm",ORDERABLE,docs/datasheets/passives-capacitors/AC-AC-AT-AC-NI.pdf
+436,48,PVCELL-25: 48,WND75P16W6,"Rectifier 1600 V 75 A, IFSM 1050 A (10 ms), I2t 5513 A2s (film-bank reverse clamp)",WeEn Semiconductors,WND75P16W6,TO247-2L (mb = cathode),ORDERABLE,docs/datasheets/power-semiconductors/WND75P16W6.pdf
+437,6,PV-PORT: 6,C2M1000170D,SiC MOSFET 1700 V 1 ohm,Wolfspeed,C2M1000170D,TO-247-3,ORDERABLE,docs/datasheets/power-semiconductors/C2M1000170D.pdf
+438,1,CTRL-C2000: 1,150060RS75000,"LED red 0603, VF 2.0 V typ",Wurth Elektronik,150060RS75000,0603,ORDERABLE,docs/datasheets/passives-capacitors/WE-150060RS75000.pdf
+439,2,SYS-IO-AUX: 2,150060RS75000,"LED 0603 red 625 nm, VF 2.0 V",Wurth Elektronik,150060RS75000,0603,ORDERABLE,docs/datasheets/passives-capacitors/WE-150060RS75000.pdf
+440,4,CTRL-C2000: 4,150060VS75000,"LED bright green 0603, VF 2.0 V typ",Wurth Elektronik,150060VS75000,0603,ORDERABLE,docs/datasheets/passives-capacitors/WE-150060VS75000.pdf
+441,5,SYS-IO-AUX: 5,150060VS75000,"LED 0603 bright green 570 nm, VF 2.0 V",Wurth Elektronik,150060VS75000,0603,ORDERABLE,docs/datasheets/passives-capacitors/WE-150060VS75000.pdf
+442,1,CTRL-C2000: 1,434121025816,"Tact switch WS-TASV, 12 V 50 mA (manual reset)",Wurth Elektronik,434121025816,SMD 6.0x3.8 mm,ORDERABLE,docs/datasheets/connectors/WE-434121025816.pdf
+443,1,CTRL-C2000: 1,61202621621,"Shrouded box header 2x13, PORT contract",Wurth Elektronik,61202621621,WR-BHD 2x13 2.54 mm THT,ORDERABLE,docs/datasheets/connectors/WE-61202621621.pdf
+444,4,CTRL-C2000: 4,61204021621,"Shrouded box header 2x20, CELL contract",Wurth Elektronik,61204021621,WR-BHD 2x20 2.54 mm THT,ORDERABLE,docs/datasheets/connectors/WE-61204021621.pdf
+445,1,PV-PORT: 1,691322310014,"Control connector to SYS-IO-AUX: 8 DO lines, FB lines each with its own GND return, coil returns",Wurth Elektronik,691322310014,14p 3.81 mm pluggable header,ORDERABLE,docs/datasheets/connectors/WE-691322310014.pdf
+446,2,CTRL-C2000: 2,742792641,"Ferrite bead 300 R at 100 MHz, 1.5 A, 0.15 R max",Wurth Elektronik,742792641,0603,ORDERABLE,docs/datasheets/magnetics/WE-742792641.pdf
+447,1,CTRL-C2000: 1,74437368150,"Power inductor 15 uH, ISAT(10%) 5.55 A, 45 mR max",Wurth Elektronik,74437368150,WE-LHMI,ORDERABLE,docs/datasheets/magnetics/WE-74437368150.pdf
+448,2,CTRL-C2000: 2,74438356022,"Power inductor 2.2 uH, ISAT(10%) 4.05 A, 35 mR max",Wurth Elektronik,74438356022,WE-MAPI 4020,ORDERABLE,docs/datasheets/magnetics/WE-74438356022.pdf
+449,1,SYS-IO-AUX: 1,74439346100,"Power inductor 10 uH 20 %, Isat 5.05 A, 26.5 mOhm",Wurth Elektronik,74439346100,WE-XHMI 6060,ORDERABLE,docs/datasheets/magnetics/WE-74439346100.pdf
+450,7,PV-PORT: 1; PVCELL-25: 6,74439346100,Power inductor 10 uH 5 A,Wurth Elektronik,74439346100,SMD 4040,ORDERABLE,docs/datasheets/magnetics/WE-74439346100.pdf
+451,2,AUX-HV: 2,7461057,HV wire terminal for an M3 ring lug (1000 VDC by board spacing),Wurth Elektronik,7461057,REDCUBE press-fit M3,ORDERABLE,docs/datasheets/connectors/WE-7461057.pdf
+452,2,AUX-HV: 2,7461057,HV wire terminal for an M3 ring lug (1000 VDC by board spacing) (PV build only; not fitted on DAB-D60),Wurth Elektronik,7461057,REDCUBE press-fit M3,ORDERABLE,docs/datasheets/connectors/WE-7461057.pdf
+453,21,PV-PORT: 6; PVCELL-25: 15,7461057,"PCB HV connection point (ring lug / busbar), M3, 100 A",Wurth Elektronik,7461057,REDCUBE press-fit M3,ORDERABLE,docs/datasheets/connectors/WE-7461057.pdf
+454,1,BMU-GW: 1,750315371,"Push-pull transformer 1:1.1 CT:CT, 72 uH, 8.6 Vus, 2500 VAC test, AEC-Q200",Wurth Elektronik,750315371,SMD 6-pin 8.3x12.6 mm,ORDERABLE,docs/datasheets/magnetics/WE-750315371.pdf
+455,4,SYS-IO-AUX: 4,760390014,"Push-pull transformer 1:1.3 CT:CT, 475 uH, 11 Vus, 2500 VAC test, AEC-Q200",Wurth Elektronik,760390014,SMD 6-pin 10.2x7.1 mm,ORDERABLE,docs/datasheets/magnetics/WE-760390014.pdf
+456,3,PVCELL-25: 3,X6511WV-02H-C60D30,"Header 1x2 2.54 mm, inductor winding NTC (PELV)",XKB Connection,X6511WV-02H-C60D30,1x2 2.54 mm THT,ORDERABLE,docs/datasheets/connectors/XKB-X6511W.pdf
+457,1,BMU-GW: 1,X6521WV-2x05H-C60D30,"Host header 2x5, 2.54 mm, -40..+105 C (mates X6521FV-2x05 on SYS-IO-AUX)",XKB Connection,X6521WV-2x05H-C60D30,2x5 2.54 mm THT,ORDERABLE,docs/datasheets/connectors/XKB-X6521W.pdf
+458,1,PV-PORT: 1,X9555WV-2x13-6TV01,PORT connector to CTRL-C2000 (26-way ribbon),XKB Connection,X9555WV-2x13-6TV01,2x13 2.54 mm box header,ORDERABLE,docs/datasheets/connectors/XKB-X9555WV.pdf
+459,3,PVCELL-25: 3,X9555WV-2x20-6TV01,"Shrouded box header 2x20 2.54 mm, CELL contract (3 A, 250 V, -40..125 C)",XKB Connection,X9555WV-2x20-6TV01,2x20 2.54 mm box header THT,ORDERABLE,docs/datasheets/connectors/XKB-X9555WV.pdf
+460,2,PV-PORT: 2,220R RST200 RFQ,"CHASSIS-MOUNTED RFQ Miba RST 200 precharge resistor 220 ohm +/-5 %, <= 1000 V DC, pulse 2300 J at tau 0.1 s, 3000 W for 3 s, insulation 3.5 kV rms",,,"Miba RST 200 aluminium housing, M5",RFQ,docs/datasheets/protection/Miba-RST-200.pdf
+461,4,PV-PORT: 4,300R RST200 RFQ,"CHASSIS-MOUNTED RFQ Miba RST 200 discharge resistor 300 ohm +/-5 %, <= 1000 V DC, pulse 4000 J at tau 0.5 s, 3000 W for 3 s, insulation 3.5 kV rms",,,"Miba RST 200 aluminium housing, M5",RFQ,docs/datasheets/protection/Miba-RST-200.pdf
+462,2,PV-PORT: 2,KSD301 NO 80C RFQ,"RESISTOR-MOUNTED RFQ KSD301-class bimetal thermostat, NORMALLY OPEN, closes 80 +/-5 C rising, ~15 K differential; class data 1000 V AC 1 min terminals-cap, <= 50 mOhm; dry-circuit duty here (<= 0.2 mA at 15 V): gold or minimum-load statement required; sits at HV - mount over a basic-insulating pad (1000 VDC working, 2200 V rms, OVC II)",,,"KSD301 disc, metal cap, 2 screw feet",RFQ,
+463,4,PV-PORT: 4,X 2.2u 1300V RFQ,"RFQ X capacitor film 2.2 uF, 1300 VDC at 70 C (1100 V at 85 C), ESR <= 16 mOhm, impulse >= 4.5 kV peak (>= 1.1 x the 3.8 kV pole-pole level of the varistor Y, IC-10; leads at the varistor network), no lifetime surge-count limit below 1000 events",,,"radial film, 27.5 mm pitch",RFQ,
+464,3,chassis: 3,9GT1224P1S001,"Fan 119 x 119 x 38 mm 24 V, ordered with PWM speed input and tach output (options of this type) - one per cell, 26.4 W",Sanyo Denki,9GT1224P1S001,chassis,RFQ,docs/datasheets/thermal/9GT1224P1S001.pdf

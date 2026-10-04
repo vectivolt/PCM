@@ -1,0 +1,1462 @@
+{
+  "project": "AUX75 (AUX-T1, 75 W module supply)",
+  "rev": "A0",
+  "generated_by": "sim/aux_hv_design.py (case AUX75)",
+  "note": "CALCULATED, not bench-validated; transformer values are estimates (A-41..A-47) until sim/out/magnetics/design_aux75_transformer.json exists",
+  "basis": "docs/requirements/ARCHITECTURE-COSTFIRST.md sec. 3 (D-044)",
+  "design_point": {
+    "fsw_kHz": 64.89960778807783,
+    "lp_mH": 0.48518573815795213,
+    "n": 6.0,
+    "vr_V": 148.37657142857142,
+    "ipk_A": 2.2129031281985028,
+    "duty_200V": 0.358122939576666,
+    "duty_1000V": 0.0793782419064709,
+    "p_design_W": 95.26,
+    "outputs": {
+      "live": {
+        "V": [
+          23.624608391608398,
+          24.15,
+          24.677210210210205
+        ],
+        "rating_W": 24.0,
+        "ref": "BUS-",
+        "regulated": "FB divider"
+      },
+      "selv": {
+        "rating_W": 62.6,
+        "ref": "SELV 0 V",
+        "regulated": "cross-regulated"
+      }
+    }
+  },
+  "switch": {
+    "primary": "IV2Q171R0D7Z",
+    "alternate": "SG2M1K0170J2J",
+    "per_device": {
+      "IV2Q171R0D7Z": {
+        "200": {
+          "loss_W": 1.2739212724257518,
+          "tj_C": 88.08996405698784
+        },
+        "400": {
+          "loss_W": 1.3654737182442913,
+          "tj_C": 90.10869548728662
+        },
+        "600": {
+          "loss_W": 1.740179966805988,
+          "tj_C": 98.37096826807203
+        },
+        "800": {
+          "loss_W": 2.422994548973233,
+          "tj_C": 113.42702980485979
+        },
+        "1000": {
+          "loss_W": 3.3462215699573035,
+          "tj_C": 133.78418561755853
+        }
+      },
+      "SG2M1K0170J2J": {
+        "200": {
+          "loss_W": 1.7158464425337825,
+          "tj_C": 99.12129888977024
+        },
+        "400": {
+          "loss_W": 1.5124862078476269,
+          "tj_C": 94.48468553892589
+        },
+        "600": {
+          "loss_W": 1.6003715775446823,
+          "tj_C": 96.48847196801876
+        },
+        "800": {
+          "loss_W": 2.0116928461054866,
+          "tj_C": 105.8665968912051
+        },
+        "1000": {
+          "loss_W": 2.6529743993922,
+          "tj_C": 120.48781630614215
+        }
+      }
+    },
+    "board_rth_KW": 20.0
+  },
+  "transformer_requirement": {
+    "turns": {
+      "np": 48,
+      "n_live": 8,
+      "n_selv": 9,
+      "ratio_p_live": 6.0,
+      "ratio_selv_live": 1.125,
+      "note": "ratios are the requirement; absolute turns may change with the core if Np x A_min holds"
+    },
+    "lp_mH": {
+      "value": 0.48518573815795213,
+      "tol_pct": 7.000000000000001,
+      "at": "10 kHz"
+    },
+    "frequency_kHz": [
+      58.310519126754556,
+      64.89960778807783,
+      74.2133879795058
+    ],
+    "mode": "DCM at every input >= 185 V and 82.5 W",
+    "ipk_A": {
+      "full_load": 2.452458924208664,
+      "limit_max": 3.905788063751778
+    },
+    "volt_seconds_max_Vs": 0.00202768495133592,
+    "np_x_amin_min_m2": 0.005818321237692737,
+    "design_np_x_amin_m2": 0.0061776,
+    "b_limit_on_amin_mT": 348.50000000000017,
+    "flux_estimate_mT": 328.23182972933176,
+    "rms_A": {
+      "primary": 0.764571042911636,
+      "live": 1.94884663289994,
+      "selv": 3.881510621860065
+    },
+    "leakage_primary_max_uH": 16.242321980820712,
+    "leakage_estimate_uH": 13.535268317350594,
+    "leakage_note": "measured on every unit at 100 kHz, live and SELV shorted (routine); every check of this case runs at the limit: TVS 130 C (rating 150), drain 1316 V",
+    "leakage_live_selv_max_uH": 0.6986547246413414,
+    "switched_capacitance_max_pF": 63.67373662397481,
+    "switched_capacitance_design_pF": 53.64419875492751,
+    "switched_capacitance_max_pF_magnetics_basis": 47.345312886297,
+    "switched_capacitance_note": "limit keeps the hotter switch <= 141 C at 1000 V (10 % of its rise below 150 C) with the A-44 board; the magnetics P1-SH value x 1.345 = this model's basis (as A-33)",
+    "np_x_amin_min_m2_10pct": 0.0064648013752141515,
+    "winding_loss_max_W": 1.5,
+    "core_loss_estimate_W": 0.5388396239702393,
+    "shield": "copper-foil shield between the primary and both secondaries, to BUS- (as M1)",
+    "insulation": {
+      "primary - live 24 V (both on BUS-)": {
+        "kind": "functional (B3)",
+        "pd_free_Vpk": 1750.0,
+        "note": "the live winding sits at BUS-; the primary swings to the drain peak"
+      },
+      "primary + live + shield - SELV": {
+        "kind": "REINFORCED (B1, insulation_spec 'Reinforced HV-PELV, AUX-HV flyback T1' levels)",
+        "u_rp_V": 1315.9235629727114,
+        "routine_pd": "<= 10 pC at 2467 Vpk on every unit (extinction >= 1974 Vpk); M1's 2505 Vpk covers it",
+        "ac_type_test_Vrms": 4400.0,
+        "impulse_V": 8000.0,
+        "creepage_mm": {
+          "pd1": 6.4,
+          "pd2": 20.0
+        },
+        "clearance_mm": [
+          8.0,
+          9.2,
+          10.4
+        ],
+        "construction": "SELV winding in TIW-litz with tapes as the M1 rules; vacuum-potted case; core = conductive part on the BUS- side"
+      }
+    },
+    "thermal": "potted case; total transformer loss <= 1.9 W at 75 W, rise <= 40 K"
+  },
+  "values": {
+    "F_PORT": {
+      "value": "1A",
+      "why": "(30 W case, unchanged) per-port fuse 1000 VDC gPV behind 44R: fault current <= 25 A (breaking 20 kA not needed), hot-plug I2t 0.091 A2s = 16 % of melting"
+    },
+    "R_LIM": {
+      "value": "20R",
+      "why": "2 per tap AHEAD of the fuse (AC10 pulse-rated, 20 R = the smallest E24 value inside AX-01 / 02: hot-plug I2t 18.1 % of the fuse melting I2t (rule 20 %), film surge 1218 V); 4.14 W each at 200 V / 75 W",
+      "n": 2,
+      "part": "AC10_20R"
+    },
+    "C_BULK": {
+      "value": "3.3u 1300V",
+      "why": "(30 W case, unchanged) 2 x film = RC surge absorber with 44R: 4 kV / 20 us residual -> 1199 V (UR 1300 V); filter corner 546 Hz",
+      "n": 2
+    },
+    "C_HF": {
+      "value": "22n",
+      "why": "(30 W case, unchanged) HV MLCC at the switching loop",
+      "volt": "2kV",
+      "diel": "X7R",
+      "pkg": "1812",
+      "n": 2
+    },
+    "R_STR": {
+      "value": "10M",
+      "why": "(30 W case, unchanged) 3 sections: start-up gate taps + line sense + OV tap; 367 V each at 1100 V (CRHV2512 3 kV)",
+      "n": 3
+    },
+    "C_STR": {
+      "value": "100p",
+      "why": "(30 W case, unchanged) string compensation (tau 1.0 ms per section)",
+      "volt": "1kV",
+      "diel": "C0G",
+      "pkg": "1206",
+      "tol": "5%",
+      "n": 3
+    },
+    "R_LINE_PU": {
+      "value": "47k",
+      "why": "(30 W case, unchanged) LINE_OK pull-up to VREF"
+    },
+    "R_LSF": {
+      "value": "1k",
+      "why": "(30 W case, unchanged) OV comparator input filter"
+    },
+    "C_LSF": {
+      "value": "220p",
+      "why": "(30 W case, unchanged) OV comparator input filter (0.22 us)",
+      "volt": "50V",
+      "diel": "C0G"
+    },
+    "R_REF": {
+      "value": "4.7k",
+      "why": "(30 W case, unchanged) primary ATL431 2.5 V reference bias from VREF (0.53 mA)"
+    },
+    "R_OVH1": {
+      "value": "10k",
+      "why": "(30 W case, unchanged) OV reference series resistor (hysteresis)"
+    },
+    "R_OVH2": {
+      "value": "1M",
+      "why": "(30 W case, unchanged) OV hysteresis from 1OUT: release 1119 V"
+    },
+    "R_SU_S": {
+      "value": "4.7k",
+      "why": "(30 W case, unchanged) start-up current 0.27-0.43 mA"
+    },
+    "R_SU_G": {
+      "value": "1M",
+      "why": "(30 W case, unchanged) start-up gate bias to VDD"
+    },
+    "R_SU_EN": {
+      "value": "10k",
+      "why": "(30 W case, unchanged) VREF -> start-up disable FET gate"
+    },
+    "R_SU_EN_PD": {
+      "value": "100k",
+      "why": "(30 W case, unchanged) start-up disable FET gate pull-down"
+    },
+    "R_T": {
+      "value": "13.7k",
+      "why": "(30 W case, unchanged) oscillator 129.8 kHz -> fsw 64.9 kHz (58.3-74.2)"
+    },
+    "C_T": {
+      "value": "1n",
+      "why": "(30 W case, unchanged) oscillator capacitor",
+      "volt": "50V",
+      "diel": "C0G",
+      "tol": "5%"
+    },
+    "C_TX": {
+      "value": "10n",
+      "why": "(30 W case, unchanged) foldback: switched onto RT/CT below 7.7-10.1 V output -> fsw 5.9 kHz (5.3-6.8)",
+      "volt": "50V",
+      "diel": "C0G",
+      "pkg": "0805",
+      "tol": "5%"
+    },
+    "R_FBK": {
+      "value": "47k",
+      "why": "(30 W case, unchanged) foldback FET gate pull-up to VREF"
+    },
+    "R_AF1": {
+      "value": "4.7k",
+      "why": "(30 W case, unchanged) aux-plateau detector charge (tau 1.8 us, rejects the clamp spike)"
+    },
+    "C_AF": {
+      "value": "470p",
+      "why": "(30 W case, unchanged) aux-plateau detector",
+      "volt": "50V",
+      "diel": "C0G"
+    },
+    "R_AF2": {
+      "value": "22k",
+      "why": "(30 W case, unchanged) aux-plateau detector discharge (tau 10 us)"
+    },
+    "R_QG": {
+      "value": "1M",
+      "why": "(30 W case, unchanged) Q_INV gate hold / pull-down"
+    },
+    "C_VREF": {
+      "value": "1u",
+      "why": "(30 W case, unchanged) VREF bypass (SLUSEV2C 9.2.2.10)",
+      "volt": "25V"
+    },
+    "C_VDD": {
+      "value": "10u",
+      "why": "(30 W case, unchanged) 56 uF effective: VDD hold-up 17.6 ms",
+      "volt": "50V",
+      "pkg": "1210",
+      "n": 8
+    },
+    "R_ZREG": {
+      "value": "10k",
+      "why": "(30 W case, unchanged) follower Zener bias: VDD = gate drive 15.46-18.11 V (BZX84-A18, -40..85 C)",
+      "pkg": "1206"
+    },
+    "R_VDDE": {
+      "value": "10k",
+      "why": "(30 W case, unchanged) AX-05: BAT54 leakage sink, V_EB 0.4 V at 85 C / 3.3 V at 125 C (< 5 V)"
+    },
+    "R_SS": {
+      "value": "100k",
+      "why": "(30 W case, unchanged) soft start charge"
+    },
+    "C_SS": {
+      "value": "2.2u",
+      "why": "(30 W case, unchanged) soft start ~4.8 ms",
+      "volt": "16V"
+    },
+    "R_TB": {
+      "value": "100k",
+      "why": "(30 W case, unchanged) overload timer divider bottom"
+    },
+    "R_SSG": {
+      "value": "1k",
+      "why": "(30 W case, unchanged) soft-start crowbar gate drive from 2OUT"
+    },
+    "R_SSG_PD": {
+      "value": "100k",
+      "why": "(30 W case, unchanged) soft-start crowbar gate pull-down"
+    },
+    "R_G": {
+      "value": "10R",
+      "why": "(30 W case, unchanged) gate resistor"
+    },
+    "R_GS": {
+      "value": "10k",
+      "why": "(30 W case, unchanged) gate-source pull-down"
+    },
+    "R_CSF": {
+      "value": "1k",
+      "why": "(30 W case, unchanged) CS RC filter (no internal blanking)"
+    },
+    "C_CSF": {
+      "value": "150p",
+      "why": "(30 W case, unchanged) CS RC filter",
+      "volt": "50V",
+      "diel": "C0G"
+    },
+    "R_SN": {
+      "value": "150R",
+      "why": "(30 W case, unchanged) output rectifier snubber: 0.19 W at 1100 V",
+      "pkg": "2512",
+      "note": "1 W"
+    },
+    "C_SN": {
+      "value": "68p",
+      "why": "(30 W case, unchanged) output rectifier snubber",
+      "volt": "500V",
+      "diel": "C0G",
+      "pkg": "1206"
+    },
+    "R_PGR": {
+      "value": "10k",
+      "why": "(30 W case, unchanged) PG 3.3 V Zener rail from the output (42 mW)",
+      "pkg": "1206"
+    },
+    "C_PGR": {
+      "value": "100n",
+      "why": "(30 W case, unchanged) PG rail decoupling",
+      "volt": "16V"
+    },
+    "C_PGF": {
+      "value": "1n",
+      "why": "(30 W case, unchanged) PG divider filter: 0.6 ms with the 619k string",
+      "volt": "50V"
+    },
+    "C_DEC": {
+      "value": "100n",
+      "why": "(30 W case, unchanged) local decoupling (VDD pin, TPS3710/TLV3202 supply)",
+      "volt": "50V"
+    },
+    "R_D1": {
+      "value": "8.45k",
+      "why": "string tap, brown-in 206-215 V, brown-out 179-192 V",
+      "tol": "0.1%"
+    },
+    "R_D2": {
+      "value": "57.6k",
+      "why": "string bottom (same solve)",
+      "tol": "0.1%"
+    },
+    "R_HYS": {
+      "value": "6.81M",
+      "why": "brown-in hysteresis (same solve); OV lockout 1107-1162 V"
+    },
+    "C_D1": {
+      "value": "68n",
+      "why": "string compensation, under-compensated as the 30 W case",
+      "volt": "50V",
+      "diel": "C0G",
+      "pkg": "1206",
+      "tol": "5%"
+    },
+    "C_D2": {
+      "value": "12n",
+      "why": "string compensation",
+      "volt": "50V",
+      "diel": "C0G",
+      "pkg": "0805",
+      "tol": "5%"
+    },
+    "R_CS": {
+      "value": "0.91R",
+      "why": "3 in parallel = 0.303333R: lowest limit 2.90 A delivers 103 W (>= 110 % of 75 W) at every input; highest 3.91 A with the line feed-forward (4.27 A without)",
+      "pkg": "1206",
+      "note": "0.25 W",
+      "n": 3
+    },
+    "R_FF": {
+      "value": "10M",
+      "why": "line feed-forward HV_BULK -> CS (CRHV2512): CS offset 101 mV at 1000 V cancels most of the 155-250 ns CS-delay overshoot, so the highest current limit no longer rises with the input",
+      "part": "CRHV_10M",
+      "n": 1
+    },
+    "R_FBT": {
+      "value": "86.6k",
+      "why": "live 24 V into FB: 23.62 / 24.15 / 24.68 V (VFB 2.45-2.55 V, 0.1 %)",
+      "pkg": "0603",
+      "tol": "0.1%"
+    },
+    "R_FBB": {
+      "value": "10k",
+      "why": "FB divider bottom",
+      "pkg": "0603",
+      "tol": "0.1%"
+    },
+    "R_EA": {
+      "value": "348k",
+      "why": "type II: mid-band gain 4.0; crossover 241-667 Hz, phase margin >= 58 deg"
+    },
+    "C_EA": {
+      "value": "3.3n",
+      "why": "type II zero 139 Hz",
+      "diel": "C0G"
+    },
+    "C_EAHF": {
+      "value": "120p",
+      "why": "type II pole 3811 Hz",
+      "diel": "C0G"
+    },
+    "R_TA": {
+      "value": "68.1k",
+      "why": "timer divider: trips above 103 / 160 / 256 W (no trip at 75 W + 6 W pull-in)"
+    },
+    "C_TMR": {
+      "value": "680n",
+      "why": "timer 35-80 ms",
+      "volt": "25V",
+      "pkg": "1206",
+      "tol": "10%"
+    },
+    "R_PG_A": {
+      "value": "649k",
+      "why": "TPS3700 window on the live 24 V: UV falls 21.02-21.81 V (status), OV rises 26.13-26.76 V (SS pulled low)",
+      "tol": "0.1%"
+    },
+    "R_PG_B": {
+      "value": "2.15k",
+      "why": "window middle",
+      "tol": "0.1%"
+    },
+    "R_PG_C": {
+      "value": "10k",
+      "why": "window bottom",
+      "tol": "0.1%"
+    },
+    "C_LIVE_MLCC": {
+      "value": "10u",
+      "why": "live 24 V HF bypass",
+      "volt": "50V",
+      "diel": "X7R",
+      "pkg": "1210",
+      "n": 2
+    },
+    "C_SELV_MLCC": {
+      "value": "10u",
+      "why": "SELV 24 V HF bypass",
+      "volt": "50V",
+      "diel": "X7R",
+      "pkg": "1210",
+      "n": 2
+    }
+  },
+  "parts": {
+    "AC10_20R": 4,
+    "FUSE_HV": 2,
+    "BYG10Y": 3,
+    "C4AQ_3U3": 2,
+    "CRHV_10M": 4,
+    "BSS126": 3,
+    "2N7002BK": 4,
+    "TPS3710": 1,
+    "TLV3202": 1,
+    "ATL431": 1,
+    "BAT54": 4,
+    "BAS16": 1,
+    "BAT54S": 1,
+    "UCC28C59": 1,
+    "BZX84-B20": 1,
+    "US1G": 1,
+    "BZX84-B6V8": 1,
+    "SW1700": 1,
+    "SMCJ33A": 6,
+    "AUXT1_75": 1,
+    "VS-8ETU04S": 2,
+    "CHOLD1500": 2,
+    "CPOL100": 4,
+    "BC817-25": 1,
+    "BZX84-A18": 1,
+    "TPS3700": 1,
+    "BZX84-B3V3": 1
+  },
+  "ratings": {
+    "3 phases (PV-P75)": {
+      "live_W": 20.0,
+      "live_peak_W": 32.0,
+      "selv_W": 40.6,
+      "total_W": 60.6
+    },
+    "4 phases (PV-P100/110)": {
+      "live_W": 24.0,
+      "live_peak_W": 32.0,
+      "selv_W": 62.6,
+      "total_W": 86.6
+    },
+    "design (one design for both)": {
+      "continuous_W": 86.6,
+      "peak_1s_W": 94.6,
+      "current_limit_min_W": 103.30213472420037,
+      "from_V": 250.0,
+      "below_250V": "gates off: live <= 8.0 W, fans any"
+    }
+  },
+  "efficiency": {
+    "rating 24 + 62.6 W (200 V: gates off, fans 100 %)": {
+      "200": 0.7757834039210464,
+      "250": 0.7989203288939999,
+      "400": 0.843180944990648,
+      "600": 0.8545803211023711,
+      "800": 0.8529208120666298,
+      "1000": 0.8460041984135438
+    },
+    "PV-P75 (3 phases), full power, fans 100 %": {
+      "250": 0.8223281782389398,
+      "400": 0.851571401262245,
+      "600": 0.8558341870315754,
+      "800": 0.8493503732312893,
+      "1000": 0.8379157742552842
+    },
+    "PV-P100/110 (4 phases), full power, fans 100 %": {
+      "250": 0.7989203288939999,
+      "400": 0.843180944990648,
+      "600": 0.8545803211023711,
+      "800": 0.8529208120666298,
+      "1000": 0.8460041984135438
+    }
+  },
+  "losses_1000V": {
+    "switch conduction": 0.2687259382973765,
+    "switch turn-on (C_oss + winding C)": 2.467539068406905,
+    "switch turn-off": 0.609956563253022,
+    "TVS clamp": 6.352606282130405,
+    "live rectifier": 0.8080807843990645,
+    "SELV rectifier": 2.034788059848121,
+    "rectifier RC snubbers": 0.36385261406500885,
+    "transformer core": 0.5388396239702393,
+    "transformer copper": 1.3736386230419118,
+    "current-sense resistors": 0.04827295037051054,
+    "output capacitor ESR": 0.07503232480818449,
+    "controller, VDD follower, FB, status": 0.17132497232832503,
+    "HV divider string": 0.03333333333333333,
+    "CS feed-forward resistor": 0.1,
+    "input path": 0.5175670596800583
+  },
+  "losses_200V": {
+    "switch conduction": 0.9871009590732892,
+    "switch turn-on (C_oss + winding C)": 0.15587036708279126,
+    "switch turn-off": 0.13094994626967144,
+    "TVS clamp": 5.074691157388408,
+    "live rectifier": 0.26663207029556435,
+    "SELV rectifier": 2.1853270691025086,
+    "rectifier RC snubbers": 0.03253106274877486,
+    "transformer core": 0.12903292709889397,
+    "transformer copper": 2.1891377967807655,
+    "current-sense resistors": 0.17731922682989265,
+    "output capacitor ESR": 0.08349756417291797,
+    "controller, VDD follower, FB, status": 0.17132497232832503,
+    "HV divider string": 0.0013333333333333333,
+    "CS feed-forward resistor": 0.004,
+    "input path": 8.816034123618582
+  },
+  "temperatures": {
+    "75 W, 200 V": {
+      "IV2Q171R0D7Z": {
+        "t_C": 88.08996405698784,
+        "p_W": 1.273921272425752,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 live": {
+        "t_C": 69.86538660093588,
+        "p_W": 0.26663207029556435,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 SELV": {
+        "t_C": 140.85710155679283,
+        "p_W": 2.1853270691025086,
+        "limit_C": 175.0
+      },
+      "SMCJ33A (each)": {
+        "t_C": 106.5180022760604,
+        "p_W": 0.8457818595647346,
+        "limit_C": 150.0
+      },
+      "AUX-T1": {
+        "t_C": 91.20397115446886,
+        "p_W": 2.3181707238796596,
+        "limit_C": 130.0
+      }
+    },
+    "75 W, 400 V": {
+      "IV2Q171R0D7Z": {
+        "t_C": 90.10869548728662,
+        "p_W": 1.3654737182442913,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 live": {
+        "t_C": 89.89898902276539,
+        "p_W": 0.8080807843990645,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 SELV": {
+        "t_C": 135.2871582143805,
+        "p_W": 2.034788059848121,
+        "limit_C": 175.0
+      },
+      "SMCJ33A (each)": {
+        "t_C": 118.23222425286204,
+        "p_W": 1.0587677136884008,
+        "limit_C": 150.0
+      },
+      "AUX-T1": {
+        "t_C": 89.16498280815146,
+        "p_W": 2.1666924691611786,
+        "limit_C": 130.0
+      }
+    },
+    "75 W, 600 V": {
+      "IV2Q171R0D7Z": {
+        "t_C": 98.37096826807203,
+        "p_W": 1.740179966805988,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 live": {
+        "t_C": 89.89898902276539,
+        "p_W": 0.8080807843990645,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 SELV": {
+        "t_C": 135.2871582143805,
+        "p_W": 2.034788059848121,
+        "limit_C": 175.0
+      },
+      "SMCJ33A (each)": {
+        "t_C": 118.23222425286204,
+        "p_W": 1.0587677136884008,
+        "limit_C": 150.0
+      },
+      "AUX-T1": {
+        "t_C": 86.40519980463858,
+        "p_W": 1.9616657393473995,
+        "limit_C": 130.0
+      }
+    },
+    "75 W, 800 V": {
+      "IV2Q171R0D7Z": {
+        "t_C": 113.42702980485979,
+        "p_W": 2.422994548973233,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 live": {
+        "t_C": 89.89898902276539,
+        "p_W": 0.8080807843990645,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 SELV": {
+        "t_C": 135.2871582143805,
+        "p_W": 2.034788059848121,
+        "limit_C": 175.0
+      },
+      "SMCJ33A (each)": {
+        "t_C": 118.23222425286204,
+        "p_W": 1.0587677136884008,
+        "limit_C": 150.0
+      },
+      "AUX-T1": {
+        "t_C": 85.66822071768902,
+        "p_W": 1.9069149085950978,
+        "limit_C": 130.0
+      }
+    },
+    "75 W, 1000 V": {
+      "IV2Q171R0D7Z": {
+        "t_C": 133.78418561755853,
+        "p_W": 3.3462215699573035,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 live": {
+        "t_C": 89.89898902276539,
+        "p_W": 0.8080807843990645,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 SELV": {
+        "t_C": 135.2871582143805,
+        "p_W": 2.034788059848121,
+        "limit_C": 175.0
+      },
+      "SMCJ33A (each)": {
+        "t_C": 118.23222425286204,
+        "p_W": 1.0587677136884008,
+        "limit_C": 150.0
+      },
+      "AUX-T1": {
+        "t_C": 85.74310659632602,
+        "p_W": 1.912478247012151,
+        "limit_C": 130.0
+      }
+    },
+    "75 W, 200 V, SG2M1K0170J2J": {
+      "SG2M1K0170J2J": {
+        "t_C": 99.12129888977024,
+        "p_W": 1.7158464425337825,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 live": {
+        "t_C": 69.86538660093588,
+        "p_W": 0.26663207029556435,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 SELV": {
+        "t_C": 140.85710155679283,
+        "p_W": 2.1853270691025086,
+        "limit_C": 175.0
+      },
+      "SMCJ33A (each)": {
+        "t_C": 106.5180022760604,
+        "p_W": 0.8457818595647346,
+        "limit_C": 150.0
+      },
+      "AUX-T1": {
+        "t_C": 91.20397115446886,
+        "p_W": 2.3181707238796596,
+        "limit_C": 130.0
+      }
+    },
+    "75 W, 400 V, SG2M1K0170J2J": {
+      "SG2M1K0170J2J": {
+        "t_C": 94.48468553892589,
+        "p_W": 1.512486207847627,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 live": {
+        "t_C": 89.89898902276539,
+        "p_W": 0.8080807843990645,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 SELV": {
+        "t_C": 135.2871582143805,
+        "p_W": 2.034788059848121,
+        "limit_C": 175.0
+      },
+      "SMCJ33A (each)": {
+        "t_C": 118.23222425286204,
+        "p_W": 1.0587677136884008,
+        "limit_C": 150.0
+      },
+      "AUX-T1": {
+        "t_C": 89.16498280815146,
+        "p_W": 2.1666924691611786,
+        "limit_C": 130.0
+      }
+    },
+    "75 W, 600 V, SG2M1K0170J2J": {
+      "SG2M1K0170J2J": {
+        "t_C": 96.48847196801876,
+        "p_W": 1.6003715775446823,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 live": {
+        "t_C": 89.89898902276539,
+        "p_W": 0.8080807843990645,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 SELV": {
+        "t_C": 135.2871582143805,
+        "p_W": 2.034788059848121,
+        "limit_C": 175.0
+      },
+      "SMCJ33A (each)": {
+        "t_C": 118.23222425286204,
+        "p_W": 1.0587677136884008,
+        "limit_C": 150.0
+      },
+      "AUX-T1": {
+        "t_C": 86.40519980463858,
+        "p_W": 1.9616657393473995,
+        "limit_C": 130.0
+      }
+    },
+    "75 W, 800 V, SG2M1K0170J2J": {
+      "SG2M1K0170J2J": {
+        "t_C": 105.8665968912051,
+        "p_W": 2.0116928461054866,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 live": {
+        "t_C": 89.89898902276539,
+        "p_W": 0.8080807843990645,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 SELV": {
+        "t_C": 135.2871582143805,
+        "p_W": 2.034788059848121,
+        "limit_C": 175.0
+      },
+      "SMCJ33A (each)": {
+        "t_C": 118.23222425286204,
+        "p_W": 1.0587677136884008,
+        "limit_C": 150.0
+      },
+      "AUX-T1": {
+        "t_C": 85.66822071768902,
+        "p_W": 1.9069149085950978,
+        "limit_C": 130.0
+      }
+    },
+    "75 W, 1000 V, SG2M1K0170J2J": {
+      "SG2M1K0170J2J": {
+        "t_C": 120.48781630614215,
+        "p_W": 2.6529743993922,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 live": {
+        "t_C": 89.89898902276539,
+        "p_W": 0.8080807843990645,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 SELV": {
+        "t_C": 135.2871582143805,
+        "p_W": 2.034788059848121,
+        "limit_C": 175.0
+      },
+      "SMCJ33A (each)": {
+        "t_C": 118.23222425286204,
+        "p_W": 1.0587677136884008,
+        "limit_C": 150.0
+      },
+      "AUX-T1": {
+        "t_C": 85.74310659632602,
+        "p_W": 1.912478247012151,
+        "limit_C": 130.0
+      }
+    },
+    "75 W, 1000 V, worst leakage": {
+      "IV2Q171R0D7Z": {
+        "t_C": 133.91683451405018,
+        "p_W": 3.352237392927446,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 live": {
+        "t_C": 89.8355579132526,
+        "p_W": 0.8063664300879082,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 SELV": {
+        "t_C": 135.2318999859041,
+        "p_W": 2.0332945942136242,
+        "limit_C": 175.0
+      },
+      "SMCJ33A (each)": {
+        "t_C": 130.39048751358484,
+        "p_W": 1.2798270457015424,
+        "limit_C": 150.0
+      },
+      "AUX-T1": {
+        "t_C": 85.76430717902741,
+        "p_W": 1.9140532571255844,
+        "limit_C": 130.0
+      }
+    },
+    "hiccup at the highest limit (STRESS, see open)": {
+      "IV2Q171R0D7Z": {
+        "t_C": 82.71033012023072,
+        "p_W": 0.6616241752630342,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 live": {
+        "t_C": 145.59999889519068,
+        "p_W": 1.7478045165061513,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 SELV": {
+        "t_C": 121.19263210926583,
+        "p_W": 1.2494481326854687,
+        "limit_C": 175.0
+      },
+      "SMCJ33A (each)": {
+        "t_C": 144.498237407793,
+        "p_W": 0.5834789874311007,
+        "limit_C": 150.0
+      },
+      "AUX-T1": {
+        "t_C": 93.7401907460825,
+        "p_W": 2.5065887293157014,
+        "limit_C": 130.0
+      }
+    }
+  },
+  "regulation": {
+    "live_V": [
+      23.624608391608398,
+      24.677210210210205
+    ],
+    "selv_V_all": [
+      20.333049983420178,
+      29.829703105506518
+    ],
+    "selv_V_gates_off": [
+      20.333049983420178,
+      28.23971063052287
+    ],
+    "selv_table_V": {
+      "3 phases, live 2.0 W, fans 10 %": [
+        26.342080942380772,
+        27.769038915498882
+      ],
+      "3 phases, live 2.0 W, fans 50 %": [
+        24.19674504559624,
+        26.726029914670686
+      ],
+      "3 phases, live 2.0 W, fans 100 %": [
+        22.14094471014965,
+        25.727688115544854
+      ],
+      "3 phases, live 6.7 W, fans 10 %": [
+        26.91116899691811,
+        28.23971063052287
+      ],
+      "3 phases, live 6.7 W, fans 50 %": [
+        26.070128778490268,
+        27.63274960493074
+      ],
+      "3 phases, live 6.7 W, fans 100 %": [
+        25.14540985959206,
+        27.17126022232148
+      ],
+      "3 phases, live 13.6 W, fans 10 %": [
+        27.29142237706973,
+        28.91858173052495
+      ],
+      "3 phases, live 13.6 W, fans 50 %": [
+        26.64199840421932,
+        27.941366911960092
+      ],
+      "3 phases, live 13.6 W, fans 100 %": [
+        26.098454975246394,
+        27.640557198901643
+      ],
+      "3 phases, live 17.0 W, fans 10 %": [
+        27.459243669112894,
+        29.22917816414518
+      ],
+      "3 phases, live 17.0 W, fans 50 %": [
+        26.77979383797918,
+        28.02985916196397
+      ],
+      "3 phases, live 17.0 W, fans 100 %": [
+        26.31772502158279,
+        27.757633297109884
+      ],
+      "3 phases, live 20.0 W, fans 10 %": [
+        27.598428563043377,
+        29.493218106084882
+      ],
+      "3 phases, live 20.0 W, fans 50 %": [
+        26.875054091475878,
+        28.10827608464156
+      ],
+      "3 phases, live 20.0 W, fans 100 %": [
+        26.459716287981987,
+        27.838101903387646
+      ],
+      "3 phases, live 24.0 W, fans 10 %": [
+        27.775636075365835,
+        29.829703105506518
+      ],
+      "3 phases, live 24.0 W, fans 50 %": [
+        26.970032283769,
+        28.240168509817252
+      ],
+      "3 phases, live 24.0 W, fans 100 %": [
+        26.605337187870063,
+        27.925588500633605
+      ],
+      "4 phases, live 2.0 W, fans 10 %": [
+        26.007729789453595,
+        27.600390862049778
+      ],
+      "4 phases, live 2.0 W, fans 50 %": [
+        23.001310185902184,
+        26.15293994321472
+      ],
+      "4 phases, live 2.0 W, fans 100 %": [
+        20.333049983420178,
+        24.874232147187946
+      ],
+      "4 phases, live 6.7 W, fans 10 %": [
+        26.794439271594374,
+        28.026260227340348
+      ],
+      "4 phases, live 6.7 W, fans 50 %": [
+        25.546667764530252,
+        27.370104735744544
+      ],
+      "4 phases, live 6.7 W, fans 100 %": [
+        24.241209726396708,
+        26.724181256100014
+      ],
+      "4 phases, live 13.6 W, fans 10 %": [
+        27.10966384097014,
+        28.54451282673364
+      ],
+      "4 phases, live 13.6 W, fans 50 %": [
+        26.335994828865463,
+        27.7697061974267
+      ],
+      "4 phases, live 13.6 W, fans 100 %": [
+        25.553746564916665,
+        27.352809738987684
+      ],
+      "4 phases, live 17.0 W, fans 10 %": [
+        27.24846843279923,
+        28.78143582085694
+      ],
+      "4 phases, live 17.0 W, fans 50 %": [
+        26.51939648978964,
+        27.872860507382835
+      ],
+      "4 phases, live 17.0 W, fans 100 %": [
+        25.85357851212916,
+        27.501664992739666
+      ],
+      "4 phases, live 20.0 W, fans 10 %": [
+        27.36539211859405,
+        28.984876266499832
+      ],
+      "4 phases, live 20.0 W, fans 50 %": [
+        26.639520158595737,
+        27.944911179218085
+      ],
+      "4 phases, live 20.0 W, fans 100 %": [
+        26.047248223662727,
+        27.60156823628951
+      ],
+      "4 phases, live 24.0 W, fans 10 %": [
+        27.51272819857468,
+        29.24548010997171
+      ],
+      "4 phases, live 24.0 W, fans 50 %": [
+        26.76424163503657,
+        28.026042817002068
+      ],
+      "4 phases, live 24.0 W, fans 100 %": [
+        26.241377403354225,
+        27.707193563847568
+      ]
+    },
+    "fan_full_speed_needs_V": 24.5,
+    "fan_buck_input_V": [
+      12.0,
+      36.0
+    ],
+    "rule": "full fan speed is guaranteed while the live 24 V carries >= 13.6 W (3 phases) / 17 W (4 phases), i.e. while the gate bias is on and the converter switches: SELV >= 26.1 / 25.9 V at 100 % fans (needs 24.5 V); with the gates off the SELV stays 20.3-28.2 V (fan buck 12-36 V) but full fan speed is not guaranteed"
+  },
+  "standby": {
+    "PV-P75": {
+      "200": {
+        "aux_in_W": 10.046405022763457,
+        "module_W": 15.746405022763458
+      },
+      "400": {
+        "aux_in_W": 10.343428589286155,
+        "module_W": 16.043428589286155
+      },
+      "600": {
+        "aux_in_W": 10.96580611486012,
+        "module_W": 16.66580611486012
+      },
+      "800": {
+        "aux_in_W": 11.823993132566692,
+        "module_W": 17.52399313256669
+      },
+      "1000": {
+        "aux_in_W": 12.62834898510014,
+        "module_W": 18.32834898510014
+      }
+    },
+    "PV-P100/110": {
+      "200": {
+        "aux_in_W": 10.518062183875655,
+        "module_W": 16.218062183875656
+      },
+      "400": {
+        "aux_in_W": 10.803495609315826,
+        "module_W": 16.503495609315827
+      },
+      "600": {
+        "aux_in_W": 11.423463062197467,
+        "module_W": 17.123463062197466
+      },
+      "800": {
+        "aux_in_W": 12.28086853638038,
+        "module_W": 17.98086853638038
+      },
+      "1000": {
+        "aux_in_W": 13.21229651275262,
+        "module_W": 18.91229651275262
+      }
+    },
+    "condition": "gates off, fans off, both contactors held at <= 1.5 W each (economiser); with 2 x 2.5 W the 4-phase module draws 21.4 W at 1000 V"
+  },
+  "startup": {
+    "vdd_charge_s": [
+      6.167428702277368,
+      2.962147734339232
+    ],
+    "after_first_switching_ms": {
+      "slow": 21.57999999999946,
+      "fast": 11.43999999999987
+    },
+    "takeover_ms": {
+      "slow": 14.119999999999761,
+      "fast": 8.859999999999976
+    },
+    "vdd_holdup_ms": 37.79040146625688,
+    "brown_in_V": [
+      206.00668171712272,
+      210.40727272126958,
+      214.85948990294384
+    ],
+    "brown_out_V": [
+      178.71060674876128,
+      185.65128344652828,
+      191.61929638033206
+    ],
+    "ov_lockout_V": [
+      1106.9515796988362,
+      1134.3103135957053,
+      1161.5757342134334
+    ]
+  },
+  "holdup": {
+    "c_uF": 2400.0,
+    "t_ms": 52.36771163147879,
+    "load_W": 11.0,
+    "v_end": 8.0
+  },
+  "protection": {
+    "current_limit_A": [
+      2.903222429416694,
+      3.905788063751778
+    ],
+    "current_limit_W": [
+      103.30213472420037,
+      293.8741693692002
+    ],
+    "timer_ms": [
+      34.835203904177725,
+      50.56997115331006,
+      80.074091748317
+    ],
+    "timer_trip_W": [
+      103.30213472420037,
+      160.23853408197687,
+      256.025018631351
+    ],
+    "vds_V": {
+      "cont": 1315.9235629727114,
+      "trans": 1419.8646192158853,
+      "clamp_min": 220.20000000000002,
+      "t_tvs": 130.39048751358484
+    },
+    "live_ov_stop_V": [
+      26.129229230769237,
+      26.763934394394393
+    ],
+    "status_uv_V": [
+      21.01677622377623,
+      21.809831230407358
+    ]
+  },
+  "nets": {
+    "BUS-": [
+      0,
+      0
+    ],
+    "HV_BULK": [
+      0,
+      1100
+    ],
+    "VREF": [
+      0,
+      5.2
+    ],
+    "VDD": [
+      0,
+      21.479999999999997
+    ],
+    "VDD_E": [
+      0,
+      21.479999999999997
+    ],
+    "ZB": [
+      0,
+      19.2
+    ],
+    "FBK": [
+      0,
+      5.2
+    ],
+    "CTXD": [
+      0,
+      2.6
+    ],
+    "RTCT": [
+      0,
+      2.6
+    ],
+    "FB": [
+      0,
+      2.6
+    ],
+    "EA_M": [
+      0,
+      5.2
+    ],
+    "COMP": [
+      0,
+      5.2
+    ],
+    "SS": [
+      0,
+      5.2
+    ],
+    "LINE_OK": [
+      0,
+      5.2
+    ],
+    "LSO": [
+      0,
+      2.7
+    ],
+    "LS": [
+      0,
+      2.2
+    ],
+    "LSOF": [
+      0,
+      2.7
+    ],
+    "VR25": [
+      0,
+      2.6
+    ],
+    "OVREF": [
+      0,
+      2.6
+    ],
+    "OVL_N": [
+      0,
+      5.2
+    ],
+    "COMPF": [
+      0,
+      5.2
+    ],
+    "OLATCH": [
+      0,
+      5.2
+    ],
+    "SSG": [
+      0,
+      5.2
+    ],
+    "SU_EN": [
+      0,
+      5.2
+    ],
+    "SU_G": [
+      0,
+      21.479999999999997
+    ],
+    "AF1": [
+      0,
+      30.242409802002
+    ],
+    "QIG": [
+      0,
+      30.242409802002
+    ],
+    "LIVE": [
+      0,
+      27.263934394394393
+    ],
+    "PG_UV": [
+      0,
+      2.6
+    ],
+    "PG_OV": [
+      0,
+      2.6
+    ],
+    "PG3V3": [
+      0,
+      3.4
+    ],
+    "PG_OVN": [
+      0,
+      3.4
+    ],
+    "STATUS": [
+      0,
+      5.5
+    ],
+    "SELV_P": [
+      0,
+      30.829703105506518
+    ],
+    "SELV_N": [
+      0,
+      0
+    ]
+  },
+  "design_file": "sim/out/magnetics/design_aux75_transformer.json",
+  "design_file_present": true,
+  "transformer": {
+    "rev": "M1",
+    "construction": "DMEGC EC39A DMR95 (ETD39 class), centre-leg gap 1.05 mm, 48:8 live:9 SELV in the order P1 | SH | SELV (TIW-litz) | LIVE | P2, copper set back 2.0 mm from the gapped leg, vacuum-potted case",
+    "mpn": "AUX-T1 75 W (CUSTOM)",
+    "cost_usd": 8.5,
+    "cost_estimates_row": "AUX-T1 75 W (CUSTOM),8.5,\"ESTIMATE (sim/magnetics.py design_aux75_transformer.json rev M1): DMEGC EC39A DMR95 + TIW-litz SELV + litz P/live + potted case + PD test; no quote\",low"
+  },
+  "margins": {
+    "drain_1000V": 0.03240914487300639,
+    "drain_1100V": 0.07198390900922524,
+    "flux": 0.058158307806796095,
+    "tvs_rise": 0.21788347207127956,
+    "drain_floor": 1287.0368840326976,
+    "drain_1000V_V": 1315.9235629727114,
+    "drain_1100V_V": 1419.8646192158853,
+    "flux_mT": 328.23182972933176,
+    "flux_limit_mT": 348.50000000000017,
+    "tvs_C_at_leakage_limit": 130.39048751358484,
+    "note": "10 % on the drain at 1000 V is not reachable: VR >= 148 V (400 V SELV rectifier at 80 %) and the clamp >= 1.4 x VR put the floor at 1287 V (ideal clamp, VBR spread and 100 C)"
+  },
+  "overload_case": {
+    "p_on_W": 229.61304475296203,
+    "duty": 0.14310524472372557,
+    "cycle_fill": 0.999976999124435,
+    "temperatures": {
+      "IV2Q171R0D7Z": {
+        "t_C": 82.71033012023072,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 live": {
+        "t_C": 145.59999889519068,
+        "limit_C": 175.0
+      },
+      "VS-8ETU04S-M3 SELV": {
+        "t_C": 121.19263210926583,
+        "limit_C": 175.0
+      },
+      "SMCJ33A (each)": {
+        "t_C": 144.498237407793,
+        "limit_C": 150.0
+      },
+      "AUX-T1": {
+        "t_C": 93.7401907460825,
+        "limit_C": 130.0
+      }
+    },
+    "current_limit_A": [
+      2.903222429416694,
+      3.905788063751778
+    ],
+    "without_feedforward_A": 4.272458767462892
+  },
+  "input_resistors": [
+    {
+      "r": 22.0,
+      "i2t_pct": 16.44638989169675,
+      "film_v": 1198.8889282614052,
+      "loss_200": 9.644221168791363,
+      "p_each": 4.5550287484501535,
+      "ok": true,
+      "fails": []
+    },
+    {
+      "r": 20.0,
+      "i2t_pct": 18.091028880866425,
+      "film_v": 1218.0377169311355,
+      "loss_200": 8.816034123618609,
+      "p_each": 4.140935225863776,
+      "ok": true,
+      "fails": []
+    },
+    {
+      "r": 18.0,
+      "i2t_pct": 20.101143200962696,
+      "film_v": 1241.264111507253,
+      "loss_200": 7.987847078445852,
+      "p_each": 3.7268417032773984,
+      "ok": false,
+      "fails": [
+        "i2t"
+      ]
+    },
+    {
+      "r": 15.0,
+      "i2t_pct": 24.121371841155234,
+      "film_v": 1287.136773362792,
+      "loss_200": 6.745566510686721,
+      "p_each": 3.105701419397832,
+      "ok": false,
+      "fails": [
+        "i2t"
+      ]
+    },
+    {
+      "r": 10.0,
+      "i2t_pct": 36.18205776173285,
+      "film_v": 1420.2286185274238,
+      "loss_200": 4.6750988977548324,
+      "p_each": 2.070467612931888,
+      "ok": false,
+      "fails": [
+        "i2t",
+        "film_v"
+      ]
+    }
+  ],
+  "assumptions": {
+    "A-41": "primary leakage = M1 1-D value scaled (turns^2, ETD 39-class turn / breadth, one more layer); nominal 2 x, worst 3 x 1-D (A-1)",
+    "A-42": "live-SELV leakage: 1-D over the reinforced gap and both layers, x 2",
+    "A-43": "switched winding capacitance 40 pF (the requirement is the limit)",
+    "A-44": "switch on >= 8 cm2 2-oz Cu both sides with vias: 25 K/W to the 60 C ambient",
+    "A-45": "ETD 39-class core (Ae 125, A_min 123 mm2, Ve 11.5 cm3) in DMR95 (M1 Steinmetz)",
+    "A-46": "effective winding resistances (AC, fringing, 100 C): primary 0.9, live 0.04, SELV 0.02 R",
+    "A-47": "transformer 9.5 K/W (potted ETD 39-class case, natural convection)",
+    "A-48": "two-output DCM cycle: T-model leakage, rectifier V0 + rd i, clamp V(i); Heun steps",
+    "A-49": "loop: DCM current-mode plant with the live and referred SELV capacitance, R load",
+    "A-50": "start-up: soft start on COMP, rail charge into the hold-up bank, VDD decay, timer node"
+  }
+}

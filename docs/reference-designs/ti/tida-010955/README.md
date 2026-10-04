@@ -1,0 +1,7 @@
+# TIDA-010955 - analog front end for machine-learning DC arc detection in solar (TI)
+Four AC-coupled current channels: feed-through CT (Triad CST206-3A, 300 ohm burden = 1 V/A), optional notch, x10 gain (OPA322), 30-100 kHz band-pass (8th order ch1/2, 4th order ch3/4, OPA4323) into a 12-bit C2000 ADC at 250 kSPS; AMC3330/AMC23C11 arc-labelling circuit for training data; AI model on the F28P55x NPU. TI: lab use only.
+- **Native ratings** (TIDUF85 Rev A, Table 1-1, p.5, p.18): 4 channels; 16 A DC per onboard CT (about -3 dB in band at 20 A DC); labelling inputs to 1500 V; 8-16 V supply.
+- **Informs:** nothing adopted - AFCI is not in REQUIREMENTS (PV-C3 lists OV/UV/OC/open/short/OT; ECO-11 has no arc-fault standard). Would set what an AFCI asks of the PV-port sensing (ECO-09) and the CTRL ADC (ECO-02).
+- **Limitation:** AFE only, does not meet UL 1699B by itself (p.2); no detection time or real-arc results published; CT sized for string currents (<= 16 A), not our 135/180 A port; the default band contains our 32/64/96 kHz switching harmonics.
+- **What we take from it:** sensor, band, filter and sampling numbers for an AFCI requirement if the owner adds one (detail in docs/requirements/REFERENCE-LESSONS.md).
+- **Files:** design guide TIDUF85 Rev A, schematic TIDMD57, BOM TIDMD58. Not fetched: C2000Ware DigitalPower SDK software and model-training tools, assembly drawing, PCB layout, Gerber/CAD (layout out of scope).

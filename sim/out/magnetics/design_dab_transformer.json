@@ -1,0 +1,360 @@
+{
+ "part": "dab_transformer",
+ "revision": "M1",
+ "status": "proposed construction - calculated, not built or measured",
+ "basis": {
+  "spec": "sim/out/dab_design/dab_spec.json",
+  "spec_mtime": "2026-10-04 21:24",
+  "waveforms": [
+   "light_6kW",
+   "matched_60kW",
+   "v2low_94A"
+  ]
+ },
+ "construction": "2 identical transformers in parallel (primaries in parallel, secondaries in parallel), each on 2 x DMEGC EE80 DMR95 stacked, 11:12, P-S-P interleaved litz 0.05 mm, vacuum-potted in an aluminium housing on the cold plate; matched pair",
+ "electrical": {
+  "turns_ratio": "11:12",
+  "n": 0.9166666666666666,
+  "L_m_H": 0.00015,
+  "L_m_each_H": 0.0003,
+  "L_m_tol": "+/-10 % (spacer gap ground to A_L)",
+  "L_leak_H": 9.401687781624187e-07,
+  "L_leak_each_H": 1.8803375563248374e-06,
+  "L_leak_tol": "+/-20 % per unit; the two units matched within +/-5 % (current sharing)",
+  "L_ext_required_H": 5.559831221837581e-06,
+  "L_total_H": 6.5e-06,
+  "B_pk_950V_T": 0.1349431818181818,
+  "Vs_per_half_period": 0.00475,
+  "I1_rms_max_A": 137.2946977176475,
+  "I1_rms_each_A": 68.64734885882375,
+  "I1_pk_max_A": 169.29027098761978
+ },
+ "core": {
+  "maker": "DMEGC",
+  "part_number": "EE80 set (DMR95)",
+  "material": "DMR95",
+  "n_sets_per_unit": 2,
+  "n_units": 2,
+  "Ae_m2": 0.0016,
+  "le_m": 0.1836,
+  "Ve_m3": 0.00029376,
+  "datasheet": "docs/datasheets/magnetics/DMEGC-EE80.pdf p.1",
+  "gap": {
+   "type": "non-magnetic spacer in all three legs (centre and outer legs)",
+   "spacer_thickness_m": 0.00039182867141960274,
+   "note": "ground to A_L for L_m; fringing included"
+  },
+  "asian_alternative": "TDG TP4A or DMEGC DMR96A (lower loss at 100 C, table only) in the same EE80 set - RFQ",
+  "western_reference": "TDK N95 / Ferroxcube 3C95 E 80/38/20 x2 per stack"
+ },
+ "windings": [
+  {
+   "order": 1,
+   "name": "primary part 1",
+   "turns": 6,
+   "conductor": "profiled litz 5858 x 0.05 mm (grade 1), 6.6 x 2.8 mm over the copper bundle, served + 0.25 mm polyimide wrap",
+   "copper_area_m2": 1.1502386463613714e-05,
+   "MLT_m": 0.226001640122699,
+   "R_dc_90C_ohm": 0.0026631369557510768,
+   "R_dc_20C_ohm": 0.00208857105776102
+  },
+  {
+   "order": 2,
+   "name": "secondary",
+   "turns": 12,
+   "conductor": "profiled litz 5369 x 0.05 mm (grade 1), 3.0 x 5.6 mm over the copper bundle, served + 0.25 mm polyimide wrap",
+   "copper_area_m2": 1.054385425831257e-05,
+   "MLT_m": 0.2680573668472798,
+   "R_dc_90C_ohm": 0.006892799036350548,
+   "R_dc_20C_ohm": 0.005405692915340403
+  },
+  {
+   "order": 3,
+   "name": "primary part 2",
+   "turns": 5,
+   "conductor": "profiled litz 5858 x 0.05 mm (grade 1), 8.0 x 2.3 mm over the copper bundle, served + 0.25 mm polyimide wrap",
+   "copper_area_m2": 1.1502386463613713e-05,
+   "MLT_m": 0.30854952771273547,
+   "R_dc_90C_ohm": 0.003029880850588853,
+   "R_dc_20C_ohm": 0.0023761907698132325
+  }
+ ],
+ "fit": {
+  "build_m": 0.016200000000000003,
+  "available_m": 0.0162,
+  "fits": true,
+  "breadth_m": 0.0426
+ },
+ "insulation": {
+  "barrier_m": 0.002,
+  "barrier_overlap_m": 0.004,
+  "margin_m": 0.005,
+  "creepage_ps_potted_m": 0.01,
+  "system": "vacuum-potted (thermally conductive epoxy >= 1.5 W/mK, void-free) - REQUIRED; one-piece former (2 mm GF-PBT/PPS) with flanges; P-S barriers 2.0 mm (Nomex 410 2 x 0.25 mm + polyimide film 4 x 0.05 mm + impregnation), each barrier overlapping the winding edges by >= 4 mm (P-S creepage >= 10 mm inside the potting vs 7.5 mm PD1); 5 mm margins at both winding ends (winding-core creepage >= 5 mm, PD2 value); terminations brought out on opposite sides (port 1 / port 2) with >= 20 mm creepage on the housing (PD2, IIIa) or 10 mm with CTI >= 600",
+  "levels": [
+   {
+    "label": "Basic DAB port 1 - port 2 (transformer, simple separation)",
+    "kind": "B",
+    "u_w": 1850.0,
+    "u_rp": 2099.4844287319775,
+    "imp": 6000.0,
+    "imp_spd": 4781.25,
+    "ac": 3323.401871576773,
+    "pd_test": 3149.226643097966,
+    "pd_ext": 2519.381314478373,
+    "cr_pd1": 7.5,
+    "cr_pd2": 20.0,
+    "cl_2000": 5.5,
+    "cl_3000": 6.3
+   },
+   {
+    "label": "Basic DAB port 1 - PE, AC node (module, T1 core)",
+    "kind": "B",
+    "u_w": 950.0,
+    "u_rp": 1199.4844287319775,
+    "imp": 6000.0,
+    "imp_spd": 4781.25,
+    "ac": 2200.0,
+    "pd_test": 1799.2266430979662,
+    "pd_ext": 1439.3813144783728,
+    "cr_pd1": 3.2,
+    "cr_pd2": 5.0,
+    "cl_2000": 5.5,
+    "cl_3000": 6.3
+   },
+   {
+    "label": "Reinforced DAB port 1 - PELV, AC node (drivers, T1 NTC)",
+    "kind": "R",
+    "u_w": 950.0,
+    "u_rp": 1199.4844287319775,
+    "imp": 8000.0,
+    "imp_spd": 7650.0,
+    "ac": 4400.0,
+    "pd_test": 2249.0333038724575,
+    "pd_ext": 1799.2266430979662,
+    "cr_pd1": 6.4,
+    "cr_pd2": 10.0,
+    "cl_2000": 8.0,
+    "cl_3000": 9.2
+   }
+  ],
+  "routine_tests": "P-S AC 3323 V rms 60 s (or 4700 V DC); windings-core AC 2200 V rms; PD <= 10 pC at 3149 V pk (P-S) and 1799 V pk (windings-core); NTC-winding 4400 V rms",
+  "type_tests": "impulse 6 kV 1.2/50 P-S and windings-core; PD at 1.2 x; thermal run on the cold plate"
+ },
+ "loss_model": {
+  "core": {
+   "k": 0.0033626687766135665,
+   "alpha": 2.0182306625896125,
+   "beta": 3.0309313905981483,
+   "Ve_m3": 0.00058752,
+   "N1": 11,
+   "Ae_m2": 0.0016,
+   "formula": "P_core = Ve*k*f^alpha*B^beta (Steinmetz, DMR95 at 100 C) x iGSE shape; B = V*t/(2*N1*Ae) per unit",
+   "core_set_limit_factor": 1.8350995095988365,
+   "table_W_vs_Bpk_SPS": [
+    [
+     0.02,
+     0.13935976949978837
+    ],
+    [
+     0.04,
+     1.1390392318542553
+    ],
+    [
+     0.06,
+     3.8927741476251114
+    ],
+    [
+     0.08,
+     9.309791314667049
+    ],
+    [
+     0.1,
+     18.30912318179736
+    ],
+    [
+     0.12,
+     31.817091050080588
+    ],
+    [
+     0.14,
+     50.765842372543425
+    ],
+    [
+     0.16,
+     76.09238724952021
+    ],
+    [
+     0.18,
+     108.7379135227504
+    ]
+   ]
+  },
+  "winding": {
+   "R_ac_per_harmonic": [
+    [
+     100000.0,
+     0.006922450513426793
+    ],
+    [
+     300000.0,
+     0.016361287974727332
+    ],
+    [
+     500000.0,
+     0.03523239475034505
+    ],
+    [
+     700000.0,
+     0.06352264645328164
+    ],
+    [
+     900000.0,
+     0.10121238623013702
+    ],
+    [
+     1100000.0,
+     0.14827546032094002
+    ],
+    [
+     1300000.0,
+     0.20467926528510266
+    ],
+    [
+     1500000.0,
+     0.27038480673438514
+    ]
+   ],
+   "referred_to": "port 1, the two units in parallel",
+   "temperature_C": 90.0,
+   "formula": "P_cu = sum_h R(h) * I1_h,rms^2 (I1 = total port-1 current of the pair; I2 = I1*N1/N2)"
+  }
+ },
+ "loss_table": [
+  {
+   "point": "light_6kW",
+   "I_rms_A": 27.6137001187817,
+   "B_pk_T": 0.10410319454977929,
+   "P_core_W": 20.699952178822514,
+   "P_cu_W": 10.254141932921824,
+   "P_total_W": 30.95409411174434
+  },
+  {
+   "point": "matched_60kW",
+   "I_rms_A": 82.5603342019498,
+   "B_pk_T": 0.1135537516851406,
+   "P_core_W": 26.948074691339972,
+   "P_cu_W": 65.28157259992871,
+   "P_total_W": 92.22964729126868
+  },
+  {
+   "point": "v2low_94A",
+   "I_rms_A": 117.89617137931477,
+   "B_pk_T": 0.052036477404850685,
+   "P_core_W": 2.534871032459992,
+   "P_cu_W": 105.56818919071759,
+   "P_total_W": 108.10306022317758
+  },
+  {
+   "point": "spec I1_rms_max 137.3 A (shape of v2low_94A) + 950 V flux",
+   "I_rms_A": 137.2946977176475,
+   "B_pk_T": 0.1349431818181818,
+   "P_core_W": 45.40943881359069,
+   "P_cu_W": 143.1664311432977,
+   "P_total_W": 188.5758699568884
+  }
+ ],
+ "loss_grid": {
+  "I_rms_A": [
+   27.5,
+   54.9,
+   82.4,
+   109.8,
+   123.6,
+   137.3,
+   151.0
+  ],
+  "P_cu_W": [
+   5.743796652496535,
+   22.891716427889033,
+   51.56892662380811,
+   91.56686571155613,
+   116.03008490356818,
+   143.17748945089778,
+   173.1759437667088
+  ],
+  "B_pk_T": [
+   0.02,
+   0.04,
+   0.06,
+   0.08,
+   0.1,
+   0.12,
+   0.14,
+   0.16,
+   0.18
+  ],
+  "P_core_W": [
+   0.13935976949978837,
+   1.1390392318542553,
+   3.8927741476251114,
+   9.309791314667049,
+   18.30912318179736,
+   31.817091050080588,
+   50.765842372543425,
+   76.09238724952021,
+   108.7379135227504
+  ],
+  "note": "P_cu at the worst-point current shape scaled with I^2; P_core vs B_pk for the SPS trapezoid flux (iGSE)"
+ },
+ "thermal": {
+  "Rth_hotspot_to_coolant_K_W": 0.6435356537596343,
+  "T_hotspot_C": 125.677647877999,
+  "T_hotspot_coreset_limit_C": 133.15700886767434,
+  "coolant_C": 65.0,
+  "basis": "own 2-node estimate per unit: winding faces outside the core window -> 3 mm potting (1.5 W/mK) -> Al housing -> 0.5 mm gap pad -> cold plate; window faces -> potting -> core -> plate; to be confirmed by a thermal run",
+  "interface": "each unit potted in an Al housing (base >= 6 mm) bolted to the cold plate with a gap pad >= 3 W/mK; contact area >= 0.013 m2 per unit (housing footprint ~ 115 x 115 mm)",
+  "parts": {
+   "R_wp": 0.4676900071842681,
+   "R_wc": 0.20166819934498167,
+   "R_cp": 3.6059375,
+   "R_int": 0.3060075400257863,
+   "A_exposed": 0.004788240000000001,
+   "A_core_facing": 0.00991728
+  }
+ },
+ "mass_kg": 5.546071874839913,
+ "cost": {
+  "core_usd": 17.759999999999998,
+  "copper_usd": 83.16431249039479,
+  "insulation_usd": 32.0,
+  "labour_usd": 36.0,
+  "total_usd": 186.0,
+  "basis": "ESTIMATES, no quote: Chinese MnZn power ferrite (large E sets) 6 USD/kg at 1k; litz with 0.05 mm strands 60 USD/kg of copper (fine-strand premium over LME copper 14.4 USD/kg on 2026-10-02, westmetall.com); Al housing + thermally conductive epoxy 12, former and barrier films 4, winding labour 12, vacuum potting + hipot/PD test 6 per unit",
+  "cost_estimates_row": "Transformer 11:12 (CUSTOM),186,\"ESTIMATE (sim/magnetics.py design_dab_transformer.json rev M1): pair of potted units, 4 x DMEGC EE80 DMR95 (2.96 kg at 6.0 USD/kg) + litz 0.05 mm 1.39 kg at 60.0 USD/kg + housings/potting/former 32 + labour and test 36, +10 %; no quote\",low"
+ },
+ "verification": {
+  "own_same_point_each_unit": {
+   "point": "v2low_94A",
+   "P_cu_W": 52.784094595358795,
+   "P_core_W": 1.267435516229996
+  },
+  "own": {
+   "P_cu_W": 143.1664311432977,
+   "P_core_W": 45.40943881359069,
+   "L_leak_H": 9.401687781624187e-07,
+   "T_hotspot_C": 125.677647877999
+  },
+  "openmagnetics_each_unit": {
+   "L_m_H": 0.00031914472905294735,
+   "P_core_W": 2.5440809344789446,
+   "P_cu_W": 50.57196953562231,
+   "L_leak_H": 2.1764182297066876e-06
+  },
+  "previous_designer": {
+   "P_total_W": 158.66505221420516,
+   "L_leak_H": 4.381308865137455e-06,
+   "Rth_K_W": 0.4
+  }
+ }
+}

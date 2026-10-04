@@ -1,0 +1,6247 @@
+{
+ "generated_by": "sim/insulation.py",
+ "note": "All standard tables in this script are TRANSCRIBED FROM MEMORY of IEC 60664-1 (ed. 2.0:2007 numbering; ed. 3.0:2020 renumbered some tables), IEC/EN 62477-1:2012+A1 and IEC 62109-1:2010 - verify against the purchased editions before design freeze. No standard text could be bought for this project. Calculated, not measured.",
+ "assumptions": {
+  "earthing": [
+   "PV array (port A) and battery / DC bus (port B): IT (floating) with insulation monitoring (PV-C5), OR one pole earthed by the installation; a FIRST EARTH FAULT may persist (the IMD only alarms). Worst credible case used: either pole at PE potential, so every HV node can sit at the full port voltage to PE.",
+   "PV-P75/100/110: ports A and B share BUS- (non-isolated), so they are ONE circuit; pole-to-PE <= 1000 V continuous, 1100 V at the hardware OV trip.",
+   "DAB-D60: port 1 (PCS DC bus) and port 2 (battery) are separate IT systems. Port 1 is assumed NOT galvanically tied to the AC mains (PCS with its own LF transformer, or otherwise separated); if the PCS is transformerless, port 1 becomes a mains-connected circuit (grid TOV U0 + 1200 V, mains OVC) and this coordination must be re-run.",
+   "DAB inter-port barrier: each port may carry its own first fault at opposite poles (port 1 + pole and port 2 - pole at PE), so the transformer sees V1 + V2 = 1850 V DC plus one switching overshoot.",
+   "PELV 24 V system: earthed at one point (PELV 0 V bonded to PE), window 21.6-26.0 V (D-013). DVC A.",
+   "Field I/O (isolated CAN/RS-485, digital inputs, BMS gateway, Ethernet): DVC A on both sides of their isolators; the BMS communication port is assumed SELV/PELV per the battery system's own standard."
+  ],
+  "ovc": "II",
+  "system_voltage_V": 1000.0,
+  "pd_inside": 2,
+  "pd_outside": 3,
+  "pcb_cti": 175,
+  "altitudes_m": [
+   2000,
+   3000,
+   4000
+  ],
+  "spd_lead_m": 0.5,
+  "string_share": 1.3,
+  "interpolate": false
+ },
+ "systems": {
+  "PV": {
+   "name": "PV-P75/100/110 HV (ports A+B, common BUS-)",
+   "v": 1000.0,
+   "trip": 1100.0,
+   "rp_sw": 1273.2899643636363,
+   "rp_sw_trip": 1400.6189608,
+   "f": 32000.0,
+   "sys": 1000.0,
+   "spd": "952515",
+   "spds": [
+    "59.D040",
+    "952515"
+   ]
+  },
+  "DAB1": {
+   "name": "DAB-D60 port 1 (DC bus)",
+   "v": 950,
+   "trip": 1048.3194195901406,
+   "rp_sw": 1199.4844287319775,
+   "rp_sw_trip": 1297.803848322118,
+   "f": 100000.0,
+   "sys": 1000.0,
+   "spd": "952515",
+   "spds": [
+    "952515"
+   ]
+  },
+  "DAB2": {
+   "name": "DAB-D60 port 2 (battery)",
+   "v": 900,
+   "trip": 982.8388571991317,
+   "rp_sw": 1149.4844287319775,
+   "rp_sw_trip": 1232.3232859311092,
+   "f": 100000.0,
+   "sys": 1000.0,
+   "spd": "952515",
+   "spds": [
+    "952515"
+   ]
+  },
+  "AUX": {
+   "name": "AUX-HV primary (fed from PV ports or DAB port 1 - PV values govern)",
+   "v": 1000.0,
+   "trip": 1100.0,
+   "rp_sw": 1312.2978406564905,
+   "rp_sw_trip": 1419.0351790953152,
+   "f": 64899.607788077825,
+   "sys": 1000.0,
+   "spd": "952515",
+   "spds": [
+    "59.D040",
+    "952515"
+   ]
+  },
+  "PELV": {
+   "name": "PELV 24 V / logic (earthed)",
+   "v": 26.45
+  },
+  "PE": {
+   "name": "PE / chassis / heatsink / cold plate",
+   "v": 0.0
+  },
+  "FIELD": {
+   "name": "Field I/O (isolated CAN, RS-485, DI, BMS, Ethernet cable side)",
+   "v": 60.0
+  }
+ },
+ "spds": {
+  "952515": {
+   "name": "DEHN DEHNguard M YPV SCI 1000 FM (952515, as drawn)",
+   "up_pe": 4000.0,
+   "up_pp": 4000.0,
+   "In": 12500.0,
+   "ucpv": 1000.0,
+   "monitored": false,
+   "src": "DEHN product page (no PDF retrievable), recorded in gen/port.py catalog: Up <= 4 kV, In 12.5 kA, UCPV 1000 V, ISCPV 10 kA; FM contact not wired (gen/port.py block note)",
+   "alt_max": null,
+   "rc": "FM remote-signal contact not wired (gen/port.py block note)",
+   "up_eff_pe": 4781.25,
+   "up_eff_pp": 4781.25
+  },
+  "972147": {
+   "name": "DEHN DG ME DC Y 1000 FM (972147, port-B candidate PA-06)",
+   "up_pe": 2500.0,
+   "up_pp": 3750.0,
+   "In": 12500.0,
+   "ucpv": 1000.0,
+   "monitored": false,
+   "src": "docs/datasheets/protection/972147.pdf p1: UP (DC+/DC-)->PE < 2.5 kV, DC+->DC- < 3.75 kV, In 12.5 kA, no response up to 1250 V DC L+/L- -> PE",
+   "rc": "FM contact (candidate)",
+   "alt_max": null,
+   "up_eff_pe": 3281.25,
+   "up_eff_pp": 4531.25
+  },
+  "59.D040": {
+   "name": "Raycap ProTec T2-1500DCGU-3Y (59.D040, battery ports as drawn)",
+   "up_pe": 2500.0,
+   "up_pp": 4100.0,
+   "In": 20000.0,
+   "ucpv": 1000.0,
+   "monitored": false,
+   "alt_max": 3000,
+   "src": "docs/datasheets/protection/ProTec-T2-1000DCGU-3Y.pdf p1 (1500 column): Uc (+)-(-) 1500 V, (+/-)-PE 1000 V, In 20 kA, Up (+)-(-) 4100 V, (+/-)-PE 2500 V, altitude max 3000 m; 59.D040 has no remote contact (59.D041 has)",
+   "rc": "59.D040 has no remote contact (59.D041 has)",
+   "up_eff_pe": 3750.0,
+   "up_eff_pp": 5350.0
+  }
+ },
+ "spd_max_up_eff_for_8mm": {
+  "2000": 6000.0,
+  "3000": 4000.0,
+  "4000": 4000.0
+ },
+ "requirements": [
+  {
+   "label": "Basic HV-PE, DC pole (Y caps, fuse bases, terminals)",
+   "kind": "B",
+   "sa": "PV",
+   "sb": "PE",
+   "node": "dc",
+   "u_w": 1000.0,
+   "u_rp": 1000.0,
+   "u_tov": 1100.0,
+   "f_khz": 0.0,
+   "imp": 6000.0,
+   "imp_spd": 4781.25,
+   "spd": "952515",
+   "imp_good": 4000.0,
+   "ac": 2200.0,
+   "ac_dc": 3111.269837220809,
+   "ac_lenient": 2121.3203435596424,
+   "pd_test": 0.0,
+   "pd_ext": 0.0,
+   "cr_pd1": 3.2,
+   "cr_pd2": 5.0,
+   "cr_pd2_I": 5.0,
+   "cr_pd3_I": 12.5,
+   "cr_pd3_III": 16.0,
+   "cl_2000": 5.5,
+   "cl_spd_2000": 4.0,
+   "cl_good_2000": 3.0,
+   "imp_test_2000": 7212.244897959184,
+   "cl_3000": 6.3,
+   "cl_spd_3000": 4.6,
+   "cl_good_3000": 3.5,
+   "imp_test_3000": 7997.959183673468,
+   "cl_4000": 7.1,
+   "cl_spd_4000": 5.2,
+   "cl_good_4000": 3.9,
+   "imp_test_4000": 8699.82993197279
+  },
+  {
+   "label": "Basic HV-PE, switch node (TO-247 pad, magnetic cores)",
+   "kind": "B",
+   "sa": "PV",
+   "sb": "PE",
+   "node": "sw",
+   "u_w": 1000.0,
+   "u_rp": 1273.2899643636363,
+   "u_tov": 1400.6189608,
+   "f_khz": 32.0,
+   "imp": 6000.0,
+   "imp_spd": 4781.25,
+   "spd": "952515",
+   "imp_good": 4000.0,
+   "ac": 2200.0,
+   "ac_dc": 3111.269837220809,
+   "ac_lenient": 2121.3203435596424,
+   "pd_test": 1909.9349465454543,
+   "pd_ext": 1527.9479572363634,
+   "cr_pd1": 3.2,
+   "cr_pd2": 5.0,
+   "cr_pd2_I": 5.0,
+   "cr_pd3_I": 12.5,
+   "cr_pd3_III": 16.0,
+   "cl_2000": 5.5,
+   "cl_spd_2000": 4.0,
+   "cl_good_2000": 3.0,
+   "imp_test_2000": 7212.244897959184,
+   "cl_3000": 6.3,
+   "cl_spd_3000": 4.6,
+   "cl_good_3000": 3.5,
+   "imp_test_3000": 7997.959183673468,
+   "cl_4000": 7.1,
+   "cl_spd_4000": 5.2,
+   "cl_good_4000": 3.9,
+   "imp_test_4000": 8699.82993197279
+  },
+  {
+   "label": "Reinforced HV-PELV, DC pole (AMC, TPSI, contactor coil)",
+   "kind": "R",
+   "sa": "PV",
+   "sb": "PELV",
+   "node": "dc",
+   "u_w": 1000.0,
+   "u_rp": 1000.0,
+   "u_tov": 1100.0,
+   "f_khz": 0.0,
+   "imp": 8000.0,
+   "imp_spd": 7650.0,
+   "spd": "952515",
+   "imp_good": 6000,
+   "ac": 4400.0,
+   "ac_dc": 6222.539674441618,
+   "ac_lenient": 4242.640687119285,
+   "pd_test": 0.0,
+   "pd_ext": 0.0,
+   "cr_pd1": 6.4,
+   "cr_pd2": 10.0,
+   "cr_pd2_I": 10.0,
+   "cr_pd3_I": 25.0,
+   "cr_pd3_III": 32.0,
+   "cl_2000": 8.0,
+   "cl_spd_2000": 8.0,
+   "cl_good_2000": 5.5,
+   "imp_test_2000": 9469.387755102041,
+   "cl_3000": 9.2,
+   "cl_spd_3000": 9.2,
+   "cl_good_3000": 6.3,
+   "imp_test_3000": 10421.768707482992,
+   "cl_4000": 10.4,
+   "cl_spd_4000": 10.4,
+   "cl_good_4000": 7.1,
+   "imp_test_4000": 11442.1768707483
+  },
+  {
+   "label": "Reinforced HV-PELV, PV switch node (UCC21710/UCC14241)",
+   "kind": "R",
+   "sa": "PV",
+   "sb": "PELV",
+   "node": "sw",
+   "u_w": 1000.0,
+   "u_rp": 1273.2899643636363,
+   "u_tov": 1400.6189608,
+   "f_khz": 32.0,
+   "imp": 8000.0,
+   "imp_spd": 7650.0,
+   "spd": "952515",
+   "imp_good": 6000,
+   "ac": 4400.0,
+   "ac_dc": 6222.539674441618,
+   "ac_lenient": 4242.640687119285,
+   "pd_test": 2387.418683181818,
+   "pd_ext": 1909.9349465454543,
+   "cr_pd1": 6.4,
+   "cr_pd2": 10.0,
+   "cr_pd2_I": 10.0,
+   "cr_pd3_I": 25.0,
+   "cr_pd3_III": 32.0,
+   "cl_2000": 8.0,
+   "cl_spd_2000": 8.0,
+   "cl_good_2000": 5.5,
+   "imp_test_2000": 9469.387755102041,
+   "cl_3000": 9.2,
+   "cl_spd_3000": 9.2,
+   "cl_good_3000": 6.3,
+   "imp_test_3000": 10421.768707482992,
+   "cl_4000": 10.4,
+   "cl_spd_4000": 10.4,
+   "cl_good_4000": 7.1,
+   "imp_test_4000": 11442.1768707483
+  },
+  {
+   "label": "Reinforced HV-PELV, AUX-HV flyback T1",
+   "kind": "R",
+   "sa": "AUX",
+   "sb": "PELV",
+   "node": "sw",
+   "u_w": 1000.0,
+   "u_rp": 1312.2978406564905,
+   "u_tov": 1419.0351790953152,
+   "f_khz": 64.89960778807783,
+   "imp": 8000.0,
+   "imp_spd": 7650.0,
+   "spd": "952515",
+   "imp_good": 6000,
+   "ac": 4400.0,
+   "ac_dc": 6222.539674441618,
+   "ac_lenient": 4242.640687119285,
+   "pd_test": 2460.5584512309197,
+   "pd_ext": 1968.4467609847356,
+   "cr_pd1": 6.4,
+   "cr_pd2": 10.0,
+   "cr_pd2_I": 10.0,
+   "cr_pd3_I": 25.0,
+   "cr_pd3_III": 32.0,
+   "cl_2000": 8.0,
+   "cl_spd_2000": 8.0,
+   "cl_good_2000": 5.5,
+   "imp_test_2000": 9469.387755102041,
+   "cl_3000": 9.2,
+   "cl_spd_3000": 9.2,
+   "cl_good_3000": 6.3,
+   "imp_test_3000": 10421.768707482992,
+   "cl_4000": 10.4,
+   "cl_spd_4000": 10.4,
+   "cl_good_4000": 7.1,
+   "imp_test_4000": 11442.1768707483
+  },
+  {
+   "label": "Basic DAB port 1 - PE, AC node (module, T1 core)",
+   "kind": "B",
+   "sa": "DAB1",
+   "sb": "PE",
+   "node": "sw",
+   "u_w": 950.0,
+   "u_rp": 1199.4844287319775,
+   "u_tov": 1297.803848322118,
+   "f_khz": 100.0,
+   "imp": 6000.0,
+   "imp_spd": 4781.25,
+   "spd": "952515",
+   "imp_good": 4000.0,
+   "ac": 2200.0,
+   "ac_dc": 3111.269837220809,
+   "ac_lenient": 2121.3203435596424,
+   "pd_test": 1799.2266430979662,
+   "pd_ext": 1439.3813144783728,
+   "cr_pd1": 3.2,
+   "cr_pd2": 5.0,
+   "cr_pd2_I": 5.0,
+   "cr_pd3_I": 12.5,
+   "cr_pd3_III": 16.0,
+   "cl_2000": 5.5,
+   "cl_spd_2000": 4.0,
+   "cl_good_2000": 3.0,
+   "imp_test_2000": 7212.244897959184,
+   "cl_3000": 6.3,
+   "cl_spd_3000": 4.6,
+   "cl_good_3000": 3.5,
+   "imp_test_3000": 7997.959183673468,
+   "cl_4000": 7.1,
+   "cl_spd_4000": 5.2,
+   "cl_good_4000": 3.9,
+   "imp_test_4000": 8699.82993197279
+  },
+  {
+   "label": "Reinforced DAB port 1 - PELV, AC node (drivers, T1 NTC)",
+   "kind": "R",
+   "sa": "DAB1",
+   "sb": "PELV",
+   "node": "sw",
+   "u_w": 950.0,
+   "u_rp": 1199.4844287319775,
+   "u_tov": 1297.803848322118,
+   "f_khz": 100.0,
+   "imp": 8000.0,
+   "imp_spd": 7650.0,
+   "spd": "952515",
+   "imp_good": 6000,
+   "ac": 4400.0,
+   "ac_dc": 6222.539674441618,
+   "ac_lenient": 4242.640687119285,
+   "pd_test": 2249.0333038724575,
+   "pd_ext": 1799.2266430979662,
+   "cr_pd1": 6.4,
+   "cr_pd2": 10.0,
+   "cr_pd2_I": 10.0,
+   "cr_pd3_I": 25.0,
+   "cr_pd3_III": 32.0,
+   "cl_2000": 8.0,
+   "cl_spd_2000": 8.0,
+   "cl_good_2000": 5.5,
+   "imp_test_2000": 9469.387755102041,
+   "cl_3000": 9.2,
+   "cl_spd_3000": 9.2,
+   "cl_good_3000": 6.3,
+   "imp_test_3000": 10421.768707482992,
+   "cl_4000": 10.4,
+   "cl_spd_4000": 10.4,
+   "cl_good_4000": 7.1,
+   "imp_test_4000": 11442.1768707483
+  },
+  {
+   "label": "Basic DAB port 1 - port 2 (transformer, simple separation)",
+   "kind": "B",
+   "sa": "DAB1",
+   "sb": "DAB2",
+   "node": "sw",
+   "u_w": 1850.0,
+   "u_rp": 2099.4844287319775,
+   "u_tov": 2280.64270552125,
+   "f_khz": 100.0,
+   "imp": 6000.0,
+   "imp_spd": 4781.25,
+   "spd": "952515",
+   "imp_good": 4000.0,
+   "ac": 3323.401871576773,
+   "ac_dc": 4700.0,
+   "ac_lenient": 3323.401871576773,
+   "pd_test": 3149.226643097966,
+   "pd_ext": 2519.381314478373,
+   "cr_pd1": 7.5,
+   "cr_pd2": 20.0,
+   "cr_pd2_I": 10.0,
+   "cr_pd3_I": 25.0,
+   "cr_pd3_III": 32.0,
+   "cl_2000": 5.5,
+   "cl_spd_2000": 4.0,
+   "cl_good_2000": 3.0,
+   "imp_test_2000": 7212.244897959184,
+   "cl_3000": 6.3,
+   "cl_spd_3000": 4.6,
+   "cl_good_3000": 3.5,
+   "imp_test_3000": 7997.959183673468,
+   "cl_4000": 7.1,
+   "cl_spd_4000": 5.2,
+   "cl_good_4000": 3.9,
+   "imp_test_4000": 8699.82993197279
+  },
+  {
+   "label": "Functional pole-pole, terminal side (dividers, X caps)",
+   "kind": "F",
+   "sa": "PV",
+   "sb": "PV",
+   "node": "dc",
+   "u_w": 1000.0,
+   "u_rp": 1000.0,
+   "u_tov": 1100.0,
+   "f_khz": 0.0,
+   "imp": 6000.0,
+   "imp_spd": 5350.0,
+   "spd": "59.D040",
+   "imp_good": 5350.0,
+   "ac": 0.0,
+   "ac_dc": 0.0,
+   "ac_lenient": 0.0,
+   "pd_test": 0.0,
+   "pd_ext": 0.0,
+   "cr_pd1": 3.2,
+   "cr_pd2": 5.0,
+   "cr_pd2_I": 5.0,
+   "cr_pd3_I": 12.5,
+   "cr_pd3_III": 16.0,
+   "cl_2000": 5.5,
+   "cl_spd_2000": 5.5,
+   "cl_good_2000": 5.5,
+   "imp_test_2000": 7212.244897959184,
+   "cl_3000": 6.3,
+   "cl_spd_3000": 6.3,
+   "cl_good_3000": 6.3,
+   "imp_test_3000": 7997.959183673468,
+   "cl_4000": 7.1,
+   "cl_spd_4000": 7.1,
+   "cl_good_4000": 7.1,
+   "imp_test_4000": 8699.82993197279
+  },
+  {
+   "label": "Functional inside the power stage (DESAT, device pins)",
+   "kind": "F",
+   "sa": "PV",
+   "sb": "PV",
+   "node": "sw",
+   "u_w": 1000.0,
+   "u_rp": 1273.2899643636363,
+   "u_tov": 1400.6189608,
+   "f_khz": 32.0,
+   "imp": 0.0,
+   "imp_spd": 0.0,
+   "spd": "59.D040",
+   "imp_good": 0.0,
+   "ac": 0.0,
+   "ac_dc": 0.0,
+   "ac_lenient": 0.0,
+   "pd_test": 0.0,
+   "pd_ext": 0.0,
+   "cr_pd1": 3.2,
+   "cr_pd2": 5.0,
+   "cr_pd2_I": 5.0,
+   "cr_pd3_I": 12.5,
+   "cr_pd3_III": 16.0,
+   "cl_2000": 1.3,
+   "cl_spd_2000": 1.3,
+   "cl_good_2000": 1.3,
+   "imp_test_2000": 0.0,
+   "cl_3000": 1.5,
+   "cl_spd_3000": 1.5,
+   "cl_good_3000": 1.5,
+   "imp_test_3000": 0.0,
+   "cl_4000": 1.7,
+   "cl_spd_4000": 1.7,
+   "cl_good_4000": 1.7,
+   "imp_test_4000": 0.0
+  },
+  {
+   "label": "Functional PELV - field I/O (CAN, RS-485, DI, BMS)",
+   "kind": "F",
+   "sa": "PELV",
+   "sb": "FIELD",
+   "node": "dc",
+   "u_w": 60.0,
+   "u_rp": 60.0,
+   "u_tov": 60.0,
+   "f_khz": 0.0,
+   "imp": 1000.0,
+   "imp_spd": 1000.0,
+   "spd": "952515",
+   "imp_good": 1000.0,
+   "ac": 0.0,
+   "ac_dc": 0.0,
+   "ac_lenient": 0.0,
+   "pd_test": 0.0,
+   "pd_ext": 0.0,
+   "cr_pd1": 0.04,
+   "cr_pd2": 0.063,
+   "cr_pd2_I": 0.7,
+   "cr_pd3_I": 1.6,
+   "cr_pd3_III": 2.0,
+   "cl_2000": 0.2,
+   "cl_spd_2000": 0.2,
+   "cl_good_2000": 0.2,
+   "imp_test_2000": 1206.1224489795918,
+   "cl_3000": 0.3,
+   "cl_spd_3000": 0.3,
+   "cl_good_3000": 0.3,
+   "imp_test_3000": 1248.9795918367345,
+   "cl_4000": 0.3,
+   "cl_spd_4000": 0.3,
+   "cl_good_4000": 0.3,
+   "imp_test_4000": 1294.8979591836733
+  }
+ ],
+ "layout_rules": {
+  "AUX-HV": [
+   {
+    "sa": "AUX",
+    "sb": "PELV",
+    "kind": "R",
+    "node": "sw",
+    "u_w": 1000.0,
+    "u_rp": 1312.2978406564905,
+    "f": 64899.607788077825,
+    "where": "switch node",
+    "cl": {
+     "2000": 8.0,
+     "3000": 9.2,
+     "4000": 10.4
+    },
+    "cl_spd": {
+     "2000": 8.0,
+     "3000": 9.2,
+     "4000": 10.4
+    },
+    "cr2": 10.0,
+    "cr1": 6.4,
+    "cr3": 32.0,
+    "ac": 4400.0,
+    "imp": 8000.0,
+    "imp_spd": 7650.0,
+    "pd": 2460.5584512309197
+   },
+   {
+    "sa": "AUX",
+    "sb": "PE",
+    "kind": "B",
+    "node": "dc",
+    "u_w": 1000.0,
+    "u_rp": 1000.0,
+    "f": 0.0,
+    "where": "DC poles",
+    "cl": {
+     "2000": 5.5,
+     "3000": 6.3,
+     "4000": 7.1
+    },
+    "cl_spd": {
+     "2000": 4.0,
+     "3000": 4.6,
+     "4000": 5.2
+    },
+    "cr2": 5.0,
+    "cr1": 3.2,
+    "cr3": 16.0,
+    "ac": 2200.0,
+    "imp": 6000.0,
+    "imp_spd": 4781.25,
+    "pd": 0.0
+   },
+   {
+    "sa": "AUX",
+    "sb": "AUX",
+    "kind": "F",
+    "node": "dc",
+    "u_w": 1000.0,
+    "u_rp": 1000.0,
+    "f": 0.0,
+    "where": "terminal side / port",
+    "cl": {
+     "2000": 5.5,
+     "3000": 6.3,
+     "4000": 7.1
+    },
+    "cl_spd": {
+     "2000": 5.5,
+     "3000": 6.3,
+     "4000": 7.1
+    },
+    "cr2": 5.0,
+    "cr1": 3.2,
+    "cr3": 16.0,
+    "ac": 0.0,
+    "imp": 6000.0,
+    "imp_spd": 5350.0,
+    "pd": 0.0
+   }
+  ],
+  "BMU-GW": [
+   {
+    "sa": "PELV",
+    "sb": "FIELD",
+    "kind": "F",
+    "node": "dc",
+    "u_w": 60.0,
+    "u_rp": 60.0,
+    "f": 0.0,
+    "where": "ELV / field I/O",
+    "cl": {
+     "2000": 0.2,
+     "3000": 0.3,
+     "4000": 0.3
+    },
+    "cl_spd": {
+     "2000": 0.2,
+     "3000": 0.3,
+     "4000": 0.3
+    },
+    "cr2": 0.063,
+    "cr1": 0.04,
+    "cr3": 2.0,
+    "ac": 0.0,
+    "imp": 1000.0,
+    "imp_spd": 1000.0,
+    "pd": 0.0
+   }
+  ],
+  "DAB60": [
+   {
+    "sa": "DAB1",
+    "sb": "PELV",
+    "kind": "R",
+    "node": "sw",
+    "u_w": 950.0,
+    "u_rp": 1199.4844287319775,
+    "f": 100000.0,
+    "where": "switch node",
+    "cl": {
+     "2000": 8.0,
+     "3000": 9.2,
+     "4000": 10.4
+    },
+    "cl_spd": {
+     "2000": 8.0,
+     "3000": 9.2,
+     "4000": 10.4
+    },
+    "cr2": 10.0,
+    "cr1": 6.4,
+    "cr3": 32.0,
+    "ac": 4400.0,
+    "imp": 8000.0,
+    "imp_spd": 7650.0,
+    "pd": 2249.0333038724575
+   },
+   {
+    "sa": "DAB2",
+    "sb": "PELV",
+    "kind": "R",
+    "node": "sw",
+    "u_w": 900.0,
+    "u_rp": 1149.4844287319775,
+    "f": 100000.0,
+    "where": "switch node",
+    "cl": {
+     "2000": 8.0,
+     "3000": 9.2,
+     "4000": 10.4
+    },
+    "cl_spd": {
+     "2000": 8.0,
+     "3000": 9.2,
+     "4000": 10.4
+    },
+    "cr2": 10.0,
+    "cr1": 6.4,
+    "cr3": 32.0,
+    "ac": 4400.0,
+    "imp": 8000.0,
+    "imp_spd": 7650.0,
+    "pd": 2155.2833038724575
+   },
+   {
+    "sa": "DAB1",
+    "sb": "DAB2",
+    "kind": "B",
+    "node": "sw",
+    "u_w": 1850.0,
+    "u_rp": 2099.4844287319775,
+    "f": 100000.0,
+    "where": "switch node",
+    "cl": {
+     "2000": 5.5,
+     "3000": 6.3,
+     "4000": 7.1
+    },
+    "cl_spd": {
+     "2000": 4.0,
+     "3000": 4.6,
+     "4000": 5.2
+    },
+    "cr2": 20.0,
+    "cr1": 7.5,
+    "cr3": 32.0,
+    "ac": 3323.401871576773,
+    "imp": 6000.0,
+    "imp_spd": 4781.25,
+    "pd": 3149.226643097966
+   },
+   {
+    "sa": "DAB1",
+    "sb": "PE",
+    "kind": "B",
+    "node": "sw",
+    "u_w": 950.0,
+    "u_rp": 1199.4844287319775,
+    "f": 100000.0,
+    "where": "switch node",
+    "cl": {
+     "2000": 5.5,
+     "3000": 6.3,
+     "4000": 7.1
+    },
+    "cl_spd": {
+     "2000": 4.0,
+     "3000": 4.6,
+     "4000": 5.2
+    },
+    "cr2": 5.0,
+    "cr1": 3.2,
+    "cr3": 16.0,
+    "ac": 2200.0,
+    "imp": 6000.0,
+    "imp_spd": 4781.25,
+    "pd": 1799.2266430979662
+   },
+   {
+    "sa": "DAB2",
+    "sb": "PE",
+    "kind": "B",
+    "node": "sw",
+    "u_w": 900.0,
+    "u_rp": 1149.4844287319775,
+    "f": 100000.0,
+    "where": "switch node",
+    "cl": {
+     "2000": 5.5,
+     "3000": 6.3,
+     "4000": 7.1
+    },
+    "cl_spd": {
+     "2000": 4.0,
+     "3000": 4.6,
+     "4000": 5.2
+    },
+    "cr2": 5.0,
+    "cr1": 3.2,
+    "cr3": 16.0,
+    "ac": 2200.0,
+    "imp": 6000.0,
+    "imp_spd": 4781.25,
+    "pd": 1724.2266430979662
+   },
+   {
+    "sa": "DAB1",
+    "sb": "DAB1",
+    "kind": "F",
+    "node": "sw",
+    "u_w": 950.0,
+    "u_rp": 1199.4844287319775,
+    "f": 100000.0,
+    "where": "inside the power stage",
+    "cl": {
+     "2000": 0.8,
+     "3000": 1.0,
+     "4000": 1.1
+    },
+    "cl_spd": {
+     "2000": 0.8,
+     "3000": 1.0,
+     "4000": 1.1
+    },
+    "cr2": 5.0,
+    "cr1": 3.2,
+    "cr3": 16.0,
+    "ac": 0.0,
+    "imp": 0.0,
+    "imp_spd": 0.0,
+    "pd": 0.0
+   },
+   {
+    "sa": "DAB1",
+    "sb": "DAB1",
+    "kind": "F",
+    "node": "dc",
+    "u_w": 950.0,
+    "u_rp": 950.0,
+    "f": 0.0,
+    "where": "terminal side / port",
+    "cl": {
+     "2000": 5.5,
+     "3000": 6.3,
+     "4000": 7.1
+    },
+    "cl_spd": {
+     "2000": 4.0,
+     "3000": 4.6,
+     "4000": 5.2
+    },
+    "cr2": 5.0,
+    "cr1": 3.2,
+    "cr3": 16.0,
+    "ac": 0.0,
+    "imp": 6000.0,
+    "imp_spd": 4781.25,
+    "pd": 0.0
+   },
+   {
+    "sa": "DAB2",
+    "sb": "DAB2",
+    "kind": "F",
+    "node": "sw",
+    "u_w": 900.0,
+    "u_rp": 1149.4844287319775,
+    "f": 100000.0,
+    "where": "inside the power stage",
+    "cl": {
+     "2000": 0.8,
+     "3000": 1.0,
+     "4000": 1.1
+    },
+    "cl_spd": {
+     "2000": 0.8,
+     "3000": 1.0,
+     "4000": 1.1
+    },
+    "cr2": 5.0,
+    "cr1": 3.2,
+    "cr3": 16.0,
+    "ac": 0.0,
+    "imp": 0.0,
+    "imp_spd": 0.0,
+    "pd": 0.0
+   },
+   {
+    "sa": "DAB2",
+    "sb": "DAB2",
+    "kind": "F",
+    "node": "dc",
+    "u_w": 900.0,
+    "u_rp": 900.0,
+    "f": 0.0,
+    "where": "terminal side / port",
+    "cl": {
+     "2000": 5.5,
+     "3000": 6.3,
+     "4000": 7.1
+    },
+    "cl_spd": {
+     "2000": 4.0,
+     "3000": 4.6,
+     "4000": 5.2
+    },
+    "cr2": 5.0,
+    "cr1": 3.2,
+    "cr3": 16.0,
+    "ac": 0.0,
+    "imp": 6000.0,
+    "imp_spd": 4781.25,
+    "pd": 0.0
+   },
+   {
+    "sa": "PELV",
+    "sb": "PE",
+    "kind": "F",
+    "node": "dc",
+    "u_w": 26.45,
+    "u_rp": 37.405948724768365,
+    "f": 0.0,
+    "where": "ELV / field I/O",
+    "cl": {
+     "2000": 0.2,
+     "3000": 0.3,
+     "4000": 0.3
+    },
+    "cl_spd": {
+     "2000": 0.2,
+     "3000": 0.3,
+     "4000": 0.3
+    },
+    "cr2": 0.04,
+    "cr1": 0.025,
+    "cr3": 1.3,
+    "ac": 0.0,
+    "imp": 1000.0,
+    "imp_spd": 1000.0,
+    "pd": 0.0
+   }
+  ],
+  "GDRV-HB": [
+   {
+    "sa": "PV",
+    "sb": "PELV",
+    "kind": "R",
+    "node": "sw",
+    "u_w": 1000.0,
+    "u_rp": 1273.2899643636363,
+    "f": 32000.0,
+    "where": "switch node",
+    "cl": {
+     "2000": 8.0,
+     "3000": 9.2,
+     "4000": 10.4
+    },
+    "cl_spd": {
+     "2000": 8.0,
+     "3000": 9.2,
+     "4000": 10.4
+    },
+    "cr2": 10.0,
+    "cr1": 6.4,
+    "cr3": 32.0,
+    "ac": 4400.0,
+    "imp": 8000.0,
+    "imp_spd": 7650.0,
+    "pd": 2387.418683181818
+   },
+   {
+    "sa": "PV",
+    "sb": "PE",
+    "kind": "B",
+    "node": "dc",
+    "u_w": 1000.0,
+    "u_rp": 1000.0,
+    "f": 0.0,
+    "where": "DC poles",
+    "cl": {
+     "2000": 5.5,
+     "3000": 6.3,
+     "4000": 7.1
+    },
+    "cl_spd": {
+     "2000": 4.0,
+     "3000": 4.6,
+     "4000": 5.2
+    },
+    "cr2": 5.0,
+    "cr1": 3.2,
+    "cr3": 16.0,
+    "ac": 2200.0,
+    "imp": 6000.0,
+    "imp_spd": 4781.25,
+    "pd": 0.0
+   },
+   {
+    "sa": "PV",
+    "sb": "PV",
+    "kind": "F",
+    "node": "dc",
+    "u_w": 1000.0,
+    "u_rp": 1000.0,
+    "f": 0.0,
+    "where": "inside the power stage",
+    "cl": {
+     "2000": 0.3,
+     "3000": 0.4,
+     "4000": 0.4
+    },
+    "cl_spd": {
+     "2000": 0.3,
+     "3000": 0.4,
+     "4000": 0.4
+    },
+    "cr2": 5.0,
+    "cr1": 3.2,
+    "cr3": 16.0,
+    "ac": 0.0,
+    "imp": 0.0,
+    "imp_spd": 0.0,
+    "pd": 0.0
+   }
+  ],
+  "PV-PORT": [
+   {
+    "sa": "PV",
+    "sb": "PELV",
+    "kind": "R",
+    "node": "dc",
+    "u_w": 1000.0,
+    "u_rp": 1000.0,
+    "f": 0.0,
+    "where": "DC poles",
+    "cl": {
+     "2000": 8.0,
+     "3000": 9.2,
+     "4000": 10.4
+    },
+    "cl_spd": {
+     "2000": 8.0,
+     "3000": 9.2,
+     "4000": 10.4
+    },
+    "cr2": 10.0,
+    "cr1": 6.4,
+    "cr3": 32.0,
+    "ac": 4400.0,
+    "imp": 8000.0,
+    "imp_spd": 7650.0,
+    "pd": 0.0
+   },
+   {
+    "sa": "PV",
+    "sb": "PE",
+    "kind": "B",
+    "node": "dc",
+    "u_w": 1000.0,
+    "u_rp": 1000.0,
+    "f": 0.0,
+    "where": "DC poles",
+    "cl": {
+     "2000": 5.5,
+     "3000": 6.3,
+     "4000": 7.1
+    },
+    "cl_spd": {
+     "2000": 4.0,
+     "3000": 4.6,
+     "4000": 5.2
+    },
+    "cr2": 5.0,
+    "cr1": 3.2,
+    "cr3": 16.0,
+    "ac": 2200.0,
+    "imp": 6000.0,
+    "imp_spd": 4781.25,
+    "pd": 0.0
+   },
+   {
+    "sa": "PV",
+    "sb": "PV",
+    "kind": "F",
+    "node": "dc",
+    "u_w": 1000.0,
+    "u_rp": 1000.0,
+    "f": 0.0,
+    "where": "terminal side / port",
+    "cl": {
+     "2000": 5.5,
+     "3000": 6.3,
+     "4000": 7.1
+    },
+    "cl_spd": {
+     "2000": 5.5,
+     "3000": 6.3,
+     "4000": 7.1
+    },
+    "cr2": 5.0,
+    "cr1": 3.2,
+    "cr3": 16.0,
+    "ac": 0.0,
+    "imp": 6000.0,
+    "imp_spd": 5350.0,
+    "pd": 0.0
+   }
+  ],
+  "PV-PORT-180": [
+   {
+    "sa": "PV",
+    "sb": "PELV",
+    "kind": "R",
+    "node": "dc",
+    "u_w": 1000.0,
+    "u_rp": 1000.0,
+    "f": 0.0,
+    "where": "DC poles",
+    "cl": {
+     "2000": 8.0,
+     "3000": 9.2,
+     "4000": 10.4
+    },
+    "cl_spd": {
+     "2000": 8.0,
+     "3000": 9.2,
+     "4000": 10.4
+    },
+    "cr2": 10.0,
+    "cr1": 6.4,
+    "cr3": 32.0,
+    "ac": 4400.0,
+    "imp": 8000.0,
+    "imp_spd": 7650.0,
+    "pd": 0.0
+   },
+   {
+    "sa": "PV",
+    "sb": "PE",
+    "kind": "B",
+    "node": "dc",
+    "u_w": 1000.0,
+    "u_rp": 1000.0,
+    "f": 0.0,
+    "where": "DC poles",
+    "cl": {
+     "2000": 5.5,
+     "3000": 6.3,
+     "4000": 7.1
+    },
+    "cl_spd": {
+     "2000": 4.0,
+     "3000": 4.6,
+     "4000": 5.2
+    },
+    "cr2": 5.0,
+    "cr1": 3.2,
+    "cr3": 16.0,
+    "ac": 2200.0,
+    "imp": 6000.0,
+    "imp_spd": 4781.25,
+    "pd": 0.0
+   },
+   {
+    "sa": "PV",
+    "sb": "PV",
+    "kind": "F",
+    "node": "dc",
+    "u_w": 1000.0,
+    "u_rp": 1000.0,
+    "f": 0.0,
+    "where": "terminal side / port",
+    "cl": {
+     "2000": 5.5,
+     "3000": 6.3,
+     "4000": 7.1
+    },
+    "cl_spd": {
+     "2000": 5.5,
+     "3000": 6.3,
+     "4000": 7.1
+    },
+    "cr2": 5.0,
+    "cr1": 3.2,
+    "cr3": 16.0,
+    "ac": 0.0,
+    "imp": 6000.0,
+    "imp_spd": 5350.0,
+    "pd": 0.0
+   }
+  ],
+  "PVCELL-25": [
+   {
+    "sa": "PV",
+    "sb": "PELV",
+    "kind": "R",
+    "node": "sw",
+    "u_w": 1000.0,
+    "u_rp": 1273.2899643636363,
+    "f": 32000.0,
+    "where": "switch node",
+    "cl": {
+     "2000": 8.0,
+     "3000": 9.2,
+     "4000": 10.4
+    },
+    "cl_spd": {
+     "2000": 8.0,
+     "3000": 9.2,
+     "4000": 10.4
+    },
+    "cr2": 10.0,
+    "cr1": 6.4,
+    "cr3": 32.0,
+    "ac": 4400.0,
+    "imp": 8000.0,
+    "imp_spd": 7650.0,
+    "pd": 2387.418683181818
+   },
+   {
+    "sa": "PV",
+    "sb": "PE",
+    "kind": "B",
+    "node": "sw",
+    "u_w": 1000.0,
+    "u_rp": 1273.2899643636363,
+    "f": 32000.0,
+    "where": "switch node",
+    "cl": {
+     "2000": 5.5,
+     "3000": 6.3,
+     "4000": 7.1
+    },
+    "cl_spd": {
+     "2000": 4.0,
+     "3000": 4.6,
+     "4000": 5.2
+    },
+    "cr2": 5.0,
+    "cr1": 3.2,
+    "cr3": 16.0,
+    "ac": 2200.0,
+    "imp": 6000.0,
+    "imp_spd": 4781.25,
+    "pd": 1909.9349465454543
+   },
+   {
+    "sa": "PELV",
+    "sb": "PE",
+    "kind": "F",
+    "node": "sw",
+    "u_w": 26.45,
+    "u_rp": 37.405948724768365,
+    "f": 0.0,
+    "where": "ELV / field I/O",
+    "cl": {
+     "2000": 0.2,
+     "3000": 0.3,
+     "4000": 0.3
+    },
+    "cl_spd": {
+     "2000": 0.2,
+     "3000": 0.3,
+     "4000": 0.3
+    },
+    "cr2": 0.04,
+    "cr1": 0.025,
+    "cr3": 1.3,
+    "ac": 0.0,
+    "imp": 1000.0,
+    "imp_spd": 1000.0,
+    "pd": 0.0
+   },
+   {
+    "sa": "PV",
+    "sb": "PV",
+    "kind": "F",
+    "node": "sw",
+    "u_w": 1000.0,
+    "u_rp": 1273.2899643636363,
+    "f": 32000.0,
+    "where": "inside the power stage",
+    "cl": {
+     "2000": 1.3,
+     "3000": 1.5,
+     "4000": 1.7
+    },
+    "cl_spd": {
+     "2000": 1.3,
+     "3000": 1.5,
+     "4000": 1.7
+    },
+    "cr2": 5.0,
+    "cr1": 3.2,
+    "cr3": 16.0,
+    "ac": 0.0,
+    "imp": 0.0,
+    "imp_spd": 0.0,
+    "pd": 0.0
+   }
+  ],
+  "SYS-IO-AUX": [
+   {
+    "sa": "PE",
+    "sb": "FIELD",
+    "kind": "F",
+    "node": "dc",
+    "u_w": 60.0,
+    "u_rp": 60.0,
+    "f": 0.0,
+    "where": "ELV / field I/O",
+    "cl": {
+     "2000": 0.2,
+     "3000": 0.3,
+     "4000": 0.3
+    },
+    "cl_spd": {
+     "2000": 0.2,
+     "3000": 0.3,
+     "4000": 0.3
+    },
+    "cr2": 0.063,
+    "cr1": 0.04,
+    "cr3": 2.0,
+    "ac": 0.0,
+    "imp": 1000.0,
+    "imp_spd": 1000.0,
+    "pd": 0.0
+   },
+   {
+    "sa": "PELV",
+    "sb": "FIELD",
+    "kind": "F",
+    "node": "dc",
+    "u_w": 60.0,
+    "u_rp": 60.0,
+    "f": 0.0,
+    "where": "ELV / field I/O",
+    "cl": {
+     "2000": 0.2,
+     "3000": 0.3,
+     "4000": 0.3
+    },
+    "cl_spd": {
+     "2000": 0.2,
+     "3000": 0.3,
+     "4000": 0.3
+    },
+    "cr2": 0.063,
+    "cr1": 0.04,
+    "cr3": 2.0,
+    "ac": 0.0,
+    "imp": 1000.0,
+    "imp_spd": 1000.0,
+    "pd": 0.0
+   },
+   {
+    "sa": "PELV",
+    "sb": "PE",
+    "kind": "F",
+    "node": "dc",
+    "u_w": 26.45,
+    "u_rp": 37.405948724768365,
+    "f": 0.0,
+    "where": "ELV / field I/O",
+    "cl": {
+     "2000": 0.2,
+     "3000": 0.3,
+     "4000": 0.3
+    },
+    "cl_spd": {
+     "2000": 0.2,
+     "3000": 0.3,
+     "4000": 0.3
+    },
+    "cr2": 0.04,
+    "cr1": 0.025,
+    "cr3": 1.3,
+    "ac": 0.0,
+    "imp": 1000.0,
+    "imp_spd": 1000.0,
+    "pd": 0.0
+   }
+  ]
+ },
+ "verdict_counts": {
+  "2000": {
+   "PASS": 40,
+   "PASS WITH CONDITION": 70,
+   "FAIL": 22
+  },
+  "3000": {
+   "PASS": 40,
+   "PASS WITH CONDITION": 48,
+   "FAIL": 44
+  },
+  "4000": {
+   "PASS": 40,
+   "PASS WITH CONDITION": 46,
+   "FAIL": 46
+  }
+ },
+ "audit": [
+  {
+   "board": "AUX-HV",
+   "refs": [
+    "T301"
+   ],
+   "part": "AUX-HV-T1 rev A0",
+   "barrier": "netlist isolator",
+   "between": [
+    "AUX",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "PD performance not stated: needs PD <= 10 pC at 2461 Vpk (extinction >= 1968 Vpk)",
+     "AC withstand not stated: type test 4400 V rms required",
+     "IEC 60664-4: 65 kHz recurring stress - PD-free at the operating frequency, check dielectric heating of the solid insulation"
+    ],
+    "3000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "PD performance not stated: needs PD <= 10 pC at 2461 Vpk (extinction >= 1968 Vpk)",
+     "AC withstand not stated: type test 4400 V rms required",
+     "IEC 60664-4: 65 kHz recurring stress - PD-free at the operating frequency, check dielectric heating of the solid insulation"
+    ],
+    "4000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "PD performance not stated: needs PD <= 10 pC at 2461 Vpk (extinction >= 1968 Vpk)",
+     "AC withstand not stated: type test 4400 V rms required",
+     "IEC 60664-4: 65 kHz recurring stress - PD-free at the operating frequency, check dielectric heating of the solid insulation"
+    ]
+   },
+   "evidence": "gen/aux_hv.py T1 description; sim/out/aux_hv_design/report.md sec. 11"
+  },
+  {
+   "board": "AUX-HV",
+   "refs": [
+    "U401"
+   ],
+   "part": "CNY65B",
+   "barrier": "netlist isolator",
+   "between": [
+    "AUX",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "creepage 14.0 mm < 20.0 mm (PD2, group III): coat to PD1 per IEC 60664-3 (then 8.0 mm)"
+    ],
+    "3000": [
+     "creepage 14.0 mm < 20.0 mm (PD2, group III): coat to PD1 per IEC 60664-3 (then 9.2 mm)"
+    ],
+    "4000": [
+     "creepage 14.0 mm < 20.0 mm (PD2, group III): coat to PD1 per IEC 60664-3 (then 10.4 mm)"
+    ]
+   },
+   "evidence": "docs/datasheets/isolation-interface/CNY65.pdf p1, p4 (doc 83540 rev 2.4)"
+  },
+  {
+   "board": "BMU-GW",
+   "refs": [
+    "T101"
+   ],
+   "part": "750315371",
+   "barrier": "netlist isolator",
+   "between": [
+    "PELV",
+    "FIELD"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/magnetics/WE-750315371.pdf p1 (VT 2500 V AC), p2 (functional, 265 V rms / 400 V pk, OVC II, IEC 60950-1)"
+  },
+  {
+   "board": "BMU-GW",
+   "refs": [
+    "U102"
+   ],
+   "part": "ISO1042DWR",
+   "barrier": "netlist isolator",
+   "between": [
+    "PELV",
+    "FIELD"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/isolation-interface/ISO1042.pdf p1, p7 (SLLSF09F)"
+  },
+  {
+   "board": "BMU-GW",
+   "refs": [
+    "U103"
+   ],
+   "part": "ISO1410DWR",
+   "barrier": "netlist isolator",
+   "between": [
+    "PELV",
+    "FIELD"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/isolation-interface/ISO1410.pdf p7 (SLLSF22I)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "FV1201"
+   ],
+   "part": "952515",
+   "barrier": "netlist crossing",
+   "between": [
+    "DAB1",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "UCPV 1000 V < 1048 V (OV trip / load rejection): the SPD conducts and ages in OV events - its maker to confirm",
+     "FM remote-signal contact not wired (gen/port.py block note): an SPD that has disconnected goes unnoticed, so its protection level cannot be credited to the insulation inside the module"
+    ],
+    "3000": [
+     "UCPV 1000 V < 1048 V (OV trip / load rejection): the SPD conducts and ages in OV events - its maker to confirm",
+     "SPD altitude rating not on file (no datasheet) - confirm >= 3000 m",
+     "FM remote-signal contact not wired (gen/port.py block note): an SPD that has disconnected goes unnoticed, so its protection level cannot be credited to the insulation inside the module"
+    ],
+    "4000": [
+     "UCPV 1000 V < 1048 V (OV trip / load rejection): the SPD conducts and ages in OV events - its maker to confirm",
+     "SPD altitude rating not on file (no datasheet) - confirm >= 4000 m",
+     "FM remote-signal contact not wired (gen/port.py block note): an SPD that has disconnected goes unnoticed, so its protection level cannot be credited to the insulation inside the module"
+    ]
+   },
+   "evidence": "DEHN product page (no PDF retrievable), recorded in gen/port.py catalog: Up <= 4 kV, In 12.5 kA, UCPV 1000 V, ISCPV 10 kA; FM contact not wired (gen/port.py block note)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "FV1401"
+   ],
+   "part": "952515",
+   "barrier": "netlist crossing",
+   "between": [
+    "DAB2",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "FM remote-signal contact not wired (gen/port.py block note): an SPD that has disconnected goes unnoticed, so its protection level cannot be credited to the insulation inside the module"
+    ],
+    "3000": [
+     "SPD altitude rating not on file (no datasheet) - confirm >= 3000 m",
+     "FM remote-signal contact not wired (gen/port.py block note): an SPD that has disconnected goes unnoticed, so its protection level cannot be credited to the insulation inside the module"
+    ],
+    "4000": [
+     "SPD altitude rating not on file (no datasheet) - confirm >= 4000 m",
+     "FM remote-signal contact not wired (gen/port.py block note): an SPD that has disconnected goes unnoticed, so its protection level cannot be credited to the insulation inside the module"
+    ]
+   },
+   "evidence": "DEHN product page (no PDF retrievable), recorded in gen/port.py catalog: Up <= 4 kV, In 12.5 kA, UCPV 1000 V, ISCPV 10 kA; FM contact not wired (gen/port.py block note)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U1303"
+   ],
+   "part": "AMC3302DWE",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB1",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "barrier surge VIOSM 6250 V < required 8000 V (7650 V with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ],
+    "3000": [
+     "barrier surge VIOSM 6250 V < required 8000 V (7650 V with SPD credit)",
+     "clearance 8.0 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (9.2 mm)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ],
+    "4000": [
+     "barrier surge VIOSM 6250 V < required 8000 V (7650 V with SPD credit)",
+     "clearance 8.0 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (10.4 mm)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ]
+   },
+   "evidence": "docs/datasheets/sensing/AMC3302.pdf p6-7 (SBASA11B)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U1503"
+   ],
+   "part": "AMC3302DWE",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB2",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "barrier surge VIOSM 6250 V < required 8000 V (7650 V with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ],
+    "3000": [
+     "barrier surge VIOSM 6250 V < required 8000 V (7650 V with SPD credit)",
+     "clearance 8.0 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (9.2 mm)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ],
+    "4000": [
+     "barrier surge VIOSM 6250 V < required 8000 V (7650 V with SPD credit)",
+     "clearance 8.0 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (10.4 mm)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ]
+   },
+   "evidence": "docs/datasheets/sensing/AMC3302.pdf p6-7 (SBASA11B)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U504",
+    "U1301",
+    "U1302"
+   ],
+   "part": "AMC3330DWE",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB1",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "impulse VIMP (air) 7700 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "creepage 8.0 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ],
+    "3000": [
+     "clearance 8.0 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (9.2 mm)",
+     "impulse VIMP (air) 7700 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ],
+    "4000": [
+     "clearance 8.0 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (10.4 mm)",
+     "impulse VIMP (air) 7700 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ]
+   },
+   "evidence": "docs/datasheets/sensing/AMC3330.pdf p6-7 (SBASA34B)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U1004",
+    "U1501",
+    "U1502"
+   ],
+   "part": "AMC3330DWE",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB2",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "impulse VIMP (air) 7700 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "creepage 8.0 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ],
+    "3000": [
+     "clearance 8.0 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (9.2 mm)",
+     "impulse VIMP (air) 7700 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ],
+    "4000": [
+     "clearance 8.0 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (10.4 mm)",
+     "impulse VIMP (air) 7700 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ]
+   },
+   "evidence": "docs/datasheets/sensing/AMC3330.pdf p6-7 (SBASA34B)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "K1201"
+   ],
+   "part": "B88269X7340C011",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB1",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ],
+    "3000": [
+     "impulse withstand at 3000 m 7214 V < required 8000 V (7650 V with SPD credit)",
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ],
+    "4000": [
+     "impulse withstand at 4000 m 6561 V < required 8000 V (7650 V with SPD credit)",
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ]
+   },
+   "evidence": "docs/datasheets/protection/HVC43MC.pdf p2-3, p11 (version 02, 2024-10-22)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "K1401"
+   ],
+   "part": "B88269X7340C011",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB2",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ],
+    "3000": [
+     "impulse withstand at 3000 m 7214 V < required 8000 V (7650 V with SPD credit)",
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ],
+    "4000": [
+     "impulse withstand at 4000 m 6561 V < required 8000 V (7650 V with SPD credit)",
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ]
+   },
+   "evidence": "docs/datasheets/protection/HVC43MC.pdf p2-3, p11 (version 02, 2024-10-22)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U101"
+   ],
+   "part": "CBB011M12GM4T",
+   "barrier": "netlist crossing",
+   "between": [
+    "DAB1",
+    "DAB1"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "creepage 6.3 mm < 10.0 mm (PD2, group III): coat to PD1 per IEC 60664-3 (then 3.2 mm)"
+    ],
+    "3000": [
+     "creepage 6.3 mm < 10.0 mm (PD2, group III): coat to PD1 per IEC 60664-3 (then 3.2 mm)"
+    ],
+    "4000": [
+     "creepage 6.3 mm < 10.0 mm (PD2, group III): coat to PD1 per IEC 60664-3 (then 3.2 mm)"
+    ]
+   },
+   "evidence": "docs/datasheets/power-semiconductors/CBB011M12GM4T.pdf p3 (Rev. 3, June 2026)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U601"
+   ],
+   "part": "CBB011M12GM4T",
+   "barrier": "netlist crossing",
+   "between": [
+    "DAB2",
+    "DAB2"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "creepage 6.3 mm < 10.0 mm (PD2, group III): coat to PD1 per IEC 60664-3 (then 3.2 mm)"
+    ],
+    "3000": [
+     "creepage 6.3 mm < 10.0 mm (PD2, group III): coat to PD1 per IEC 60664-3 (then 3.2 mm)"
+    ],
+    "4000": [
+     "creepage 6.3 mm < 10.0 mm (PD2, group III): coat to PD1 per IEC 60664-3 (then 3.2 mm)"
+    ]
+   },
+   "evidence": "docs/datasheets/power-semiconductors/CBB011M12GM4T.pdf p3 (Rev. 3, June 2026)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "K1202"
+   ],
+   "part": "G7L-2A-X DC24",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB1",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "AC withstand 4000 V rms < 4243 V rms required",
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ],
+    "3000": [
+     "AC withstand 4000 V rms < 4243 V rms required",
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ],
+    "4000": [
+     "AC withstand 4000 V rms < 4243 V rms required",
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ]
+   },
+   "evidence": "docs/datasheets/protection/G7L-X.pdf p2 (Cat. J216-E1-04)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "K1402"
+   ],
+   "part": "G7L-2A-X DC24",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB2",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "AC withstand 4000 V rms < 4243 V rms required",
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ],
+    "3000": [
+     "AC withstand 4000 V rms < 4243 V rms required",
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ],
+    "4000": [
+     "AC withstand 4000 V rms < 4243 V rms required",
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ]
+   },
+   "evidence": "docs/datasheets/protection/G7L-X.pdf p2 (Cat. J216-E1-04)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U507"
+   ],
+   "part": "ISO7720FDWR",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB1",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "creepage 8.0 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)"
+    ],
+    "3000": [
+     "clearance 8.0 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (9.2 mm)"
+    ],
+    "4000": [
+     "clearance 8.0 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (10.4 mm)"
+    ]
+   },
+   "evidence": "docs/datasheets/isolation-interface/ISO7721.pdf p10, p12 (SLLSEP3G, ISO772x DW-16 column)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U1007"
+   ],
+   "part": "ISO7720FDWR",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB2",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "creepage 8.0 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)"
+    ],
+    "3000": [
+     "clearance 8.0 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (9.2 mm)"
+    ],
+    "4000": [
+     "clearance 8.0 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (10.4 mm)"
+    ]
+   },
+   "evidence": "docs/datasheets/isolation-interface/ISO7721.pdf p10, p12 (SLLSEP3G, ISO772x DW-16 column)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U1201"
+   ],
+   "part": "TPSI3050QDWZRQ1",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB1",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "creepage 8.5 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)"
+    ],
+    "3000": [
+     "clearance 8.5 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.5 mm < 10.0 mm even at PD1 (9.2 mm)"
+    ],
+    "4000": [
+     "clearance 8.5 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.5 mm < 10.0 mm even at PD1 (10.4 mm)"
+    ]
+   },
+   "evidence": "docs/datasheets/isolation-interface/TPSI3050-Q1.pdf p6-7 (SLVSFJ7D)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U1401"
+   ],
+   "part": "TPSI3050QDWZRQ1",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB2",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "creepage 8.5 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)"
+    ],
+    "3000": [
+     "clearance 8.5 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.5 mm < 10.0 mm even at PD1 (9.2 mm)"
+    ],
+    "4000": [
+     "clearance 8.5 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.5 mm < 10.0 mm even at PD1 (10.4 mm)"
+    ]
+   },
+   "evidence": "docs/datasheets/isolation-interface/TPSI3050-Q1.pdf p6-7 (SLVSFJ7D)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "T1101"
+   ],
+   "part": "Transformer 11:12 (CUSTOM)",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB1",
+    "DAB2"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "PD performance not stated: needs PD <= 10 pC at 3149 Vpk (extinction >= 2519 Vpk)",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 3323 V rms required",
+     "IEC 60664-4: 100 kHz recurring stress - PD-free at the operating frequency, check dielectric heating of the solid insulation"
+    ],
+    "3000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "PD performance not stated: needs PD <= 10 pC at 3149 Vpk (extinction >= 2519 Vpk)",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 3323 V rms required",
+     "IEC 60664-4: 100 kHz recurring stress - PD-free at the operating frequency, check dielectric heating of the solid insulation"
+    ],
+    "4000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "PD performance not stated: needs PD <= 10 pC at 3149 Vpk (extinction >= 2519 Vpk)",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 3323 V rms required",
+     "IEC 60664-4: 100 kHz recurring stress - PD-free at the operating frequency, check dielectric heating of the solid insulation"
+    ]
+   },
+   "evidence": "sim/out/dab_design/dab_spec.json transformer.isolation; gen/dab60.py XF_DESC (T1101 description)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "T1101"
+   ],
+   "part": "Transformer 11:12 (CUSTOM)",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB1",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "PD performance not stated: needs PD <= 10 pC at 2249 Vpk (extinction >= 1799 Vpk)",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 4400 V rms required",
+     "IEC 60664-4: 100 kHz recurring stress - PD-free at the operating frequency, check dielectric heating of the solid insulation"
+    ],
+    "3000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "PD performance not stated: needs PD <= 10 pC at 2249 Vpk (extinction >= 1799 Vpk)",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 4400 V rms required",
+     "IEC 60664-4: 100 kHz recurring stress - PD-free at the operating frequency, check dielectric heating of the solid insulation"
+    ],
+    "4000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "PD performance not stated: needs PD <= 10 pC at 2249 Vpk (extinction >= 1799 Vpk)",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 4400 V rms required",
+     "IEC 60664-4: 100 kHz recurring stress - PD-free at the operating frequency, check dielectric heating of the solid insulation"
+    ]
+   },
+   "evidence": "sim/out/dab_design/dab_spec.json transformer.isolation; gen/dab60.py XF_DESC (T1101 description)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "T1101"
+   ],
+   "part": "Transformer 11:12 (CUSTOM)",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB2",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "PD performance not stated: needs PD <= 10 pC at 2155 Vpk (extinction >= 1724 Vpk)",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 4400 V rms required",
+     "IEC 60664-4: 100 kHz recurring stress - PD-free at the operating frequency, check dielectric heating of the solid insulation"
+    ],
+    "3000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "PD performance not stated: needs PD <= 10 pC at 2155 Vpk (extinction >= 1724 Vpk)",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 4400 V rms required",
+     "IEC 60664-4: 100 kHz recurring stress - PD-free at the operating frequency, check dielectric heating of the solid insulation"
+    ],
+    "4000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "PD performance not stated: needs PD <= 10 pC at 2155 Vpk (extinction >= 1724 Vpk)",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 4400 V rms required",
+     "IEC 60664-4: 100 kHz recurring stress - PD-free at the operating frequency, check dielectric heating of the solid insulation"
+    ]
+   },
+   "evidence": "sim/out/dab_design/dab_spec.json transformer.isolation; gen/dab60.py XF_DESC (T1101 description)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U501"
+   ],
+   "part": "UCC12050DVE",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB1",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "barrier surge VIOSM 6250 V < required 8000 V (7650 V with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)"
+    ],
+    "3000": [
+     "barrier surge VIOSM 6250 V < required 8000 V (7650 V with SPD credit)",
+     "clearance 8.0 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (9.2 mm)"
+    ],
+    "4000": [
+     "barrier surge VIOSM 6250 V < required 8000 V (7650 V with SPD credit)",
+     "clearance 8.0 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (10.4 mm)"
+    ]
+   },
+   "evidence": "docs/datasheets/power-supply/UCC12050.pdf p5-6 (SNVSB38D)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U1001"
+   ],
+   "part": "UCC12050DVE",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB2",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "barrier surge VIOSM 6250 V < required 8000 V (7650 V with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)"
+    ],
+    "3000": [
+     "barrier surge VIOSM 6250 V < required 8000 V (7650 V with SPD credit)",
+     "clearance 8.0 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (9.2 mm)"
+    ],
+    "4000": [
+     "barrier surge VIOSM 6250 V < required 8000 V (7650 V with SPD credit)",
+     "clearance 8.0 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (10.4 mm)"
+    ]
+   },
+   "evidence": "docs/datasheets/power-supply/UCC12050.pdf p5-6 (SNVSB38D)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U202",
+    "U205",
+    "U302",
+    "U305"
+   ],
+   "part": "UCC14241QDWNRQ1",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB1",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "impulse VIMP (air) 7692 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "creepage 8.0 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)",
+     "safety certification still PLANNED in the datasheet"
+    ],
+    "3000": [
+     "clearance 8.0 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (9.2 mm)",
+     "impulse VIMP (air) 7692 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "safety certification still PLANNED in the datasheet"
+    ],
+    "4000": [
+     "clearance 8.0 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (10.4 mm)",
+     "impulse VIMP (air) 7692 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "safety certification still PLANNED in the datasheet"
+    ]
+   },
+   "evidence": "docs/datasheets/gate-drivers/UCC14241-Q1.pdf p7, p12 (SLUSF09A)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U702",
+    "U705",
+    "U802",
+    "U805"
+   ],
+   "part": "UCC14241QDWNRQ1",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB2",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "impulse VIMP (air) 7692 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "creepage 8.0 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)",
+     "safety certification still PLANNED in the datasheet"
+    ],
+    "3000": [
+     "clearance 8.0 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (9.2 mm)",
+     "impulse VIMP (air) 7692 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "safety certification still PLANNED in the datasheet"
+    ],
+    "4000": [
+     "clearance 8.0 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (10.4 mm)",
+     "impulse VIMP (air) 7692 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "safety certification still PLANNED in the datasheet"
+    ]
+   },
+   "evidence": "docs/datasheets/gate-drivers/UCC14241-Q1.pdf p7, p12 (SLUSF09A)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U203",
+    "U206",
+    "U303",
+    "U306"
+   ],
+   "part": "UCC21710DWR",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB1",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "creepage 8.0 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)"
+    ],
+    "3000": [
+     "clearance 8.0 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (9.2 mm)"
+    ],
+    "4000": [
+     "clearance 8.0 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (10.4 mm)"
+    ]
+   },
+   "evidence": "docs/datasheets/gate-drivers/UCC21710.pdf p6-7 (SLUSD43B)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U703",
+    "U706",
+    "U803",
+    "U806"
+   ],
+   "part": "UCC21710DWR",
+   "barrier": "netlist isolator",
+   "between": [
+    "DAB2",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "creepage 8.0 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)"
+    ],
+    "3000": [
+     "clearance 8.0 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (9.2 mm)"
+    ],
+    "4000": [
+     "clearance 8.0 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (10.4 mm)"
+    ]
+   },
+   "evidence": "docs/datasheets/gate-drivers/UCC21710.pdf p6-7 (SLUSD43B)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "C1203",
+    "C1204"
+   ],
+   "part": "VY1472M63Y5UQ63V0",
+   "barrier": "netlist crossing",
+   "between": [
+    "DAB1",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/VY1.pdf p1-3 (doc 28537 rev 28-Sep-2026)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "C1403",
+    "C1404"
+   ],
+   "part": "VY1472M63Y5UQ63V0",
+   "barrier": "netlist crossing",
+   "between": [
+    "DAB2",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/VY1.pdf p1-3 (doc 28537 rev 28-Sep-2026)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "L1201"
+   ],
+   "part": "CM-CHOKE",
+   "barrier": "port common-mode choke windings to core / mounting (chassis)",
+   "between": [
+    "DAB1",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "impulse withstand 4000 V < required 6000 V (4781 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ],
+    "3000": [
+     "impulse withstand at 3000 m 3632 V < required 6000 V (4781 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ],
+    "4000": [
+     "impulse withstand at 4000 m 3326 V < required 6000 V (4781 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ]
+   },
+   "evidence": "gen/port.py CMC160 / CMC200 description"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "L1401"
+   ],
+   "part": "CM-CHOKE",
+   "barrier": "port common-mode choke windings to core / mounting (chassis)",
+   "between": [
+    "DAB2",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "impulse withstand 4000 V < required 6000 V (4781 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ],
+    "3000": [
+     "impulse withstand at 3000 m 3632 V < required 6000 V (4781 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ],
+    "4000": [
+     "impulse withstand at 4000 m 3326 V < required 6000 V (4781 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ]
+   },
+   "evidence": "gen/port.py CMC160 / CMC200 description"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "J1201",
+    "J1202"
+   ],
+   "part": "DC-TERMINAL",
+   "barrier": "DC terminal stud feed-through to the PE enclosure (external, PD3)",
+   "between": [
+    "DAB1",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ],
+    "3000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ],
+    "4000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ]
+   },
+   "evidence": "gen/port.py TERM200 / TERM250 description"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "J1401",
+    "J1402"
+   ],
+   "part": "DC-TERMINAL",
+   "barrier": "DC terminal stud feed-through to the PE enclosure (external, PD3)",
+   "between": [
+    "DAB2",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ],
+    "3000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ],
+    "4000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ]
+   },
+   "evidence": "gen/port.py TERM200 / TERM250 description"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "D101"
+   ],
+   "part": "DIODE-MODULE-BASE",
+   "barrier": "reverse-clamp diode module base plate to chassis / cold plate (insulated base)",
+   "between": [
+    "DAB1",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated"
+    ],
+    "3000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated"
+    ],
+    "4000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated"
+    ]
+   },
+   "evidence": "docs/datasheets/power-semiconductors/DD600N16K.pdf p2 (rev 3.4)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "D601"
+   ],
+   "part": "DIODE-MODULE-BASE",
+   "barrier": "reverse-clamp diode module base plate to chassis / cold plate (insulated base)",
+   "between": [
+    "DAB2",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated"
+    ],
+    "3000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated"
+    ],
+    "4000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated"
+    ]
+   },
+   "evidence": "docs/datasheets/power-semiconductors/DD600N16K.pdf p2 (rev 3.4)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "F1201",
+    "F1202"
+   ],
+   "part": "FUSE-BASE",
+   "barrier": "NH fuse base (HPBB11PPR / HPBB21PPR) pole to PE mounting plate, in the inlet air path",
+   "between": [
+    "DAB1",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ],
+    "3000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ],
+    "4000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ]
+   },
+   "evidence": "docs/datasheets/protection/NH-gPV-1000VDC.pdf p2"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "F1401",
+    "F1402"
+   ],
+   "part": "FUSE-BASE",
+   "barrier": "NH fuse base (HPBB11PPR / HPBB21PPR) pole to PE mounting plate, in the inlet air path",
+   "between": [
+    "DAB2",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ],
+    "3000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ],
+    "4000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ]
+   },
+   "evidence": "docs/datasheets/protection/NH-gPV-1000VDC.pdf p2"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U502"
+   ],
+   "part": "HOB-PRI-SEC",
+   "barrier": "transformer-current sensor: primary jumper in the AC path, secondary on the bridge's own DC- (functional)",
+   "between": [
+    "DAB1",
+    "DAB1"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/sensing/HOB-P_series.pdf p4"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U1002"
+   ],
+   "part": "HOB-PRI-SEC",
+   "barrier": "transformer-current sensor: primary jumper in the AC path, secondary on the bridge's own DC- (functional)",
+   "between": [
+    "DAB2",
+    "DAB2"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/sensing/HOB-P_series.pdf p4"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "L1101"
+   ],
+   "part": "LSER-CORE",
+   "barrier": "DAB series inductor winding to core / cold plate (cold-plate mounted)",
+   "between": [
+    "DAB1",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "not specified: no part, rating or spec text exists for this insulation (requirement in this row)"
+    ],
+    "3000": [
+     "not specified: no part, rating or spec text exists for this insulation (requirement in this row)"
+    ],
+    "4000": [
+     "not specified: no part, rating or spec text exists for this insulation (requirement in this row)"
+    ]
+   },
+   "evidence": "sim/out/dab_design/dab_spec.json series_inductor; gen/dab60.py LS_DESC - no insulation statement"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U101"
+   ],
+   "part": "MODULE-BASE",
+   "barrier": "SiC module substrate / base plate (pre-applied TIM) to the PE cold plate",
+   "between": [
+    "DAB1",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "PD performance not stated: needs PD <= 10 pC at 1799 Vpk (extinction >= 1439 Vpk)"
+    ],
+    "3000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "PD performance not stated: needs PD <= 10 pC at 1799 Vpk (extinction >= 1439 Vpk)"
+    ],
+    "4000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "PD performance not stated: needs PD <= 10 pC at 1799 Vpk (extinction >= 1439 Vpk)"
+    ]
+   },
+   "evidence": "docs/datasheets/power-semiconductors/CBB011M12GM4T.pdf p3 (Rev. 3, June 2026)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U601"
+   ],
+   "part": "MODULE-BASE",
+   "barrier": "SiC module substrate / base plate (pre-applied TIM) to the PE cold plate",
+   "between": [
+    "DAB2",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "PD performance not stated: needs PD <= 10 pC at 1724 Vpk (extinction >= 1379 Vpk)"
+    ],
+    "3000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "PD performance not stated: needs PD <= 10 pC at 1724 Vpk (extinction >= 1379 Vpk)"
+    ],
+    "4000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "PD performance not stated: needs PD <= 10 pC at 1724 Vpk (extinction >= 1379 Vpk)"
+    ]
+   },
+   "evidence": "docs/datasheets/power-semiconductors/CBB011M12GM4T.pdf p3 (Rev. 3, June 2026)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U101"
+   ],
+   "part": "MODULE-NTC",
+   "barrier": "module NTC read by the low-side UCC21710 AIN on its own gate island (the UCC21710 is the PELV barrier)",
+   "between": [
+    "DAB1",
+    "DAB1"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/power-semiconductors/CBB011M12GM4T.pdf p3; gen/dab60.py (NTC on AIN/APWM)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "U601"
+   ],
+   "part": "MODULE-NTC",
+   "barrier": "module NTC read by the low-side UCC21710 AIN on its own gate island (the UCC21710 is the PELV barrier)",
+   "between": [
+    "DAB2",
+    "DAB2"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/power-semiconductors/CBB011M12GM4T.pdf p3; gen/dab60.py (NTC on AIN/APWM)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "RT1001"
+   ],
+   "part": "NTC-HEATSINK",
+   "barrier": "heatsink / cold-plate NTC probe (PELV) on PE metal: functional",
+   "between": [
+    "PELV",
+    "PE"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/sensing/B57703M.pdf p2 (Vtest 1000 V AC, 1 s)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "RT1201",
+    "RT1401"
+   ],
+   "part": "NTC-SHUNT",
+   "barrier": "port shunt NTC (wired to SYS-IO-AUX PELV) clamped to the shunt copper on BUS- over an insulating pad",
+   "between": [
+    "DAB1",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 4400 V rms required"
+    ],
+    "3000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 4400 V rms required"
+    ],
+    "4000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 4400 V rms required"
+    ]
+   },
+   "evidence": "gen/port.py NTC_SH description; docs/datasheets/sensing/B57703M.pdf p2 (Vtest 1000 V AC, 1 s)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "R1212",
+    "R1213",
+    "R1214"
+   ],
+   "part": "RST200",
+   "barrier": "precharge / discharge resistor element to its PE-bonded aluminium housing",
+   "between": [
+    "DAB1",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated"
+    ],
+    "3000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated"
+    ],
+    "4000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated"
+    ]
+   },
+   "evidence": "docs/datasheets/protection/Miba-RST-200.pdf p1"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "R1412",
+    "R1413",
+    "R1414"
+   ],
+   "part": "RST200",
+   "barrier": "precharge / discharge resistor element to its PE-bonded aluminium housing",
+   "between": [
+    "DAB2",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated"
+    ],
+    "3000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated"
+    ],
+    "4000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated"
+    ]
+   },
+   "evidence": "docs/datasheets/protection/Miba-RST-200.pdf p1"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "S1201"
+   ],
+   "part": "THERMOSTAT",
+   "barrier": "discharge thermal cut-off at HV, mounted on the PE-bonded RST 200 housing over an insulating pad",
+   "between": [
+    "DAB1",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ],
+    "3000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ],
+    "4000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ]
+   },
+   "evidence": "gen/port.py TSTAT_DIS description; docs/datasheets/thermal/Honeywell-3100U.pdf"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "S1401"
+   ],
+   "part": "THERMOSTAT",
+   "barrier": "discharge thermal cut-off at HV, mounted on the PE-bonded RST 200 housing over an insulating pad",
+   "between": [
+    "DAB2",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ],
+    "3000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ],
+    "4000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ]
+   },
+   "evidence": "gen/port.py TSTAT_DIS description; docs/datasheets/thermal/Honeywell-3100U.pdf"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "C1201",
+    "C1202"
+   ],
+   "part": "X-CAP",
+   "barrier": "X capacitor across the SPD / after the CM choke (pole-pole, functional)",
+   "between": [
+    "DAB1",
+    "DAB1"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "impulse withstand 4500 V < required 6000 V (4781 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test"
+    ],
+    "3000": [
+     "impulse withstand at 3000 m 4070 V < required 6000 V (4781 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test"
+    ],
+    "4000": [
+     "impulse withstand at 4000 m 3713 V < required 6000 V (4781 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test"
+    ]
+   },
+   "evidence": "gen/port.py XCAP_2U2 description; sim/out/port_design/report.md sec. 9"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "C1401",
+    "C1402"
+   ],
+   "part": "X-CAP",
+   "barrier": "X capacitor across the SPD / after the CM choke (pole-pole, functional)",
+   "between": [
+    "DAB2",
+    "DAB2"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "impulse withstand 4500 V < required 6000 V (4781 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test"
+    ],
+    "3000": [
+     "impulse withstand at 3000 m 4070 V < required 6000 V (4781 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test"
+    ],
+    "4000": [
+     "impulse withstand at 4000 m 3713 V < required 6000 V (4781 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test"
+    ]
+   },
+   "evidence": "gen/port.py XCAP_2U2 description; sim/out/port_design/report.md sec. 9"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "T1101"
+   ],
+   "part": "XFMR-CORE",
+   "barrier": "DAB transformer windings to core / clamp / cold plate (cold-plate mounted)",
+   "between": [
+    "DAB1",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "not specified: no part, rating or spec text exists for this insulation (requirement in this row)"
+    ],
+    "3000": [
+     "not specified: no part, rating or spec text exists for this insulation (requirement in this row)"
+    ],
+    "4000": [
+     "not specified: no part, rating or spec text exists for this insulation (requirement in this row)"
+    ]
+   },
+   "evidence": "sim/out/dab_design/dab_spec.json transformer (only the winding-to-winding class is given); gen/dab60.py XF_DESC"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "T1101"
+   ],
+   "part": "XFMR-CORE",
+   "barrier": "DAB transformer windings to core / clamp / cold plate (cold-plate mounted)",
+   "between": [
+    "DAB2",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "not specified: no part, rating or spec text exists for this insulation (requirement in this row)"
+    ],
+    "3000": [
+     "not specified: no part, rating or spec text exists for this insulation (requirement in this row)"
+    ],
+    "4000": [
+     "not specified: no part, rating or spec text exists for this insulation (requirement in this row)"
+    ]
+   },
+   "evidence": "sim/out/dab_design/dab_spec.json transformer (only the winding-to-winding class is given); gen/dab60.py XF_DESC"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "R1230",
+    "R1231",
+    "R1232",
+    "R1233",
+    "R1234",
+    "R1235",
+    "R1236",
+    "R1237",
+    "R1238",
+    "R1239"
+   ],
+   "part": "47k",
+   "barrier": "series string of 10 (within DAB1)",
+   "between": [
+    "DAB1",
+    "DAB1"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "GENERIC 47 k 2512 1 W thick film, '>= 500 V working' (gen/port.py); pulse 2 x Umax and 3.5 mm pad gap are package-typical ASSUMPTIONS"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "R1430",
+    "R1431",
+    "R1432",
+    "R1433",
+    "R1434",
+    "R1435",
+    "R1436",
+    "R1437",
+    "R1438",
+    "R1439"
+   ],
+   "part": "47k",
+   "barrier": "series string of 10 (within DAB2)",
+   "between": [
+    "DAB2",
+    "DAB2"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "GENERIC 47 k 2512 1 W thick film, '>= 500 V working' (gen/port.py); pulse 2 x Umax and 3.5 mm pad gap are package-typical ASSUMPTIONS"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "R1308",
+    "R1309",
+    "R1310",
+    "R1311",
+    "R1312",
+    "R1313"
+   ],
+   "part": "TNPV12061M00BEEA",
+   "barrier": "series string of 6 (within DAB1)",
+   "between": [
+    "DAB1",
+    "DAB1"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/TNPV-e3.pdf p1 (Umax 700 V), p9 (single-pulse overload 2 x Umax, 10/700 us), p10 (contact distance To >= 2.0 mm)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "R1301",
+    "R1302",
+    "R1303",
+    "R1304",
+    "R1305",
+    "R1306"
+   ],
+   "part": "TNPV12061M00BEEA",
+   "barrier": "series string of 6 (within DAB1)",
+   "between": [
+    "DAB1",
+    "DAB1"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/TNPV-e3.pdf p1 (Umax 700 V), p9 (single-pulse overload 2 x Umax, 10/700 us), p10 (contact distance To >= 2.0 mm)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "R1508",
+    "R1509",
+    "R1510",
+    "R1511",
+    "R1512",
+    "R1513"
+   ],
+   "part": "TNPV12061M00BEEA",
+   "barrier": "series string of 6 (within DAB2)",
+   "between": [
+    "DAB2",
+    "DAB2"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/TNPV-e3.pdf p1 (Umax 700 V), p9 (single-pulse overload 2 x Umax, 10/700 us), p10 (contact distance To >= 2.0 mm)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "R1501",
+    "R1502",
+    "R1503",
+    "R1504",
+    "R1505",
+    "R1506"
+   ],
+   "part": "TNPV12061M00BEEA",
+   "barrier": "series string of 6 (within DAB2)",
+   "between": [
+    "DAB2",
+    "DAB2"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/TNPV-e3.pdf p1 (Umax 700 V), p9 (single-pulse overload 2 x Umax, 10/700 us), p10 (contact distance To >= 2.0 mm)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "R1215",
+    "R1216",
+    "R1217",
+    "R1218",
+    "R1219"
+   ],
+   "part": "TNPV12062M00BEEA",
+   "barrier": "series string of 5 (within DAB1)",
+   "between": [
+    "DAB1",
+    "DAB1"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/TNPV-e3.pdf p1, p9, p10"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "R1415",
+    "R1416",
+    "R1417",
+    "R1418",
+    "R1419"
+   ],
+   "part": "TNPV12062M00BEEA",
+   "barrier": "series string of 5 (within DAB2)",
+   "between": [
+    "DAB2",
+    "DAB2"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/TNPV-e3.pdf p1, p9, p10"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "D206",
+    "D207",
+    "D208",
+    "D214",
+    "D215",
+    "D216",
+    "D306",
+    "D307",
+    "D308",
+    "D314",
+    "D315",
+    "D316"
+   ],
+   "part": "US1M-13-F",
+   "barrier": "series string of 3 (within DAB1)",
+   "between": [
+    "DAB1",
+    "DAB1"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "gap 1.5 mm < 2.5 mm per body at PD2: coat to PD1 (IEC 60664-3)"
+    ],
+    "3000": [
+     "gap 1.5 mm < 2.5 mm per body at PD2: coat to PD1 (IEC 60664-3)"
+    ],
+    "4000": [
+     "gap 1.5 mm < 2.5 mm per body at PD2: coat to PD1 (IEC 60664-3)"
+    ]
+   },
+   "evidence": "docs/datasheets/power-semiconductors/US1M.pdf p2 (VRRM 1000 V), p4 (SMA land pattern gap G = 1.5 mm; no avalanche rating -> pulse = VRRM)"
+  },
+  {
+   "board": "DAB60",
+   "refs": [
+    "D706",
+    "D707",
+    "D708",
+    "D714",
+    "D715",
+    "D716",
+    "D806",
+    "D807",
+    "D808",
+    "D814",
+    "D815",
+    "D816"
+   ],
+   "part": "US1M-13-F",
+   "barrier": "series string of 3 (within DAB2)",
+   "between": [
+    "DAB2",
+    "DAB2"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "gap 1.5 mm < 2.0 mm per body at PD2: coat to PD1 (IEC 60664-3)"
+    ],
+    "3000": [
+     "gap 1.5 mm < 2.0 mm per body at PD2: coat to PD1 (IEC 60664-3)"
+    ],
+    "4000": [
+     "gap 1.5 mm < 2.0 mm per body at PD2: coat to PD1 (IEC 60664-3)"
+    ]
+   },
+   "evidence": "docs/datasheets/power-semiconductors/US1M.pdf p2 (VRRM 1000 V), p4 (SMA land pattern gap G = 1.5 mm; no avalanche rating -> pulse = VRRM)"
+  },
+  {
+   "board": "GDRV-HB",
+   "refs": [
+    "U202",
+    "U302"
+   ],
+   "part": "UCC14241QDWNRQ1",
+   "barrier": "netlist isolator",
+   "between": [
+    "PV",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "impulse VIMP (air) 7692 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "creepage 8.0 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)",
+     "safety certification still PLANNED in the datasheet"
+    ],
+    "3000": [
+     "clearance 8.0 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (9.2 mm)",
+     "impulse VIMP (air) 7692 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "safety certification still PLANNED in the datasheet"
+    ],
+    "4000": [
+     "clearance 8.0 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (10.4 mm)",
+     "impulse VIMP (air) 7692 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "safety certification still PLANNED in the datasheet"
+    ]
+   },
+   "evidence": "docs/datasheets/gate-drivers/UCC14241-Q1.pdf p7, p12 (SLUSF09A)"
+  },
+  {
+   "board": "GDRV-HB",
+   "refs": [
+    "U203",
+    "U303"
+   ],
+   "part": "UCC21710DWR",
+   "barrier": "netlist isolator",
+   "between": [
+    "PV",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "creepage 8.0 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)"
+    ],
+    "3000": [
+     "clearance 8.0 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (9.2 mm)"
+    ],
+    "4000": [
+     "clearance 8.0 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (10.4 mm)"
+    ]
+   },
+   "evidence": "docs/datasheets/gate-drivers/UCC21710.pdf p6-7 (SLUSD43B)"
+  },
+  {
+   "board": "GDRV-HB",
+   "refs": [
+    "D206",
+    "D207",
+    "D208",
+    "D306",
+    "D307",
+    "D308"
+   ],
+   "part": "US1M-13-F",
+   "barrier": "series string of 3 (within PV)",
+   "between": [
+    "PV",
+    "PV"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "gap 1.5 mm < 2.5 mm per body at PD2: coat to PD1 (IEC 60664-3)"
+    ],
+    "3000": [
+     "gap 1.5 mm < 2.5 mm per body at PD2: coat to PD1 (IEC 60664-3)"
+    ],
+    "4000": [
+     "gap 1.5 mm < 2.5 mm per body at PD2: coat to PD1 (IEC 60664-3)"
+    ]
+   },
+   "evidence": "docs/datasheets/power-semiconductors/US1M.pdf p2 (VRRM 1000 V), p4 (SMA land pattern gap G = 1.5 mm; no avalanche rating -> pulse = VRRM)"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "FV401"
+   ],
+   "part": "59.D040",
+   "barrier": "netlist crossing",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "UCPV 1000 V < 1100 V (OV trip / load rejection): the SPD conducts and ages in OV events - its maker to confirm",
+     "59.D040 has no remote contact (59.D041 has): an SPD that has disconnected goes unnoticed, so its protection level cannot be credited to the insulation inside the module"
+    ],
+    "3000": [
+     "UCPV 1000 V < 1100 V (OV trip / load rejection): the SPD conducts and ages in OV events - its maker to confirm",
+     "59.D040 has no remote contact (59.D041 has): an SPD that has disconnected goes unnoticed, so its protection level cannot be credited to the insulation inside the module"
+    ],
+    "4000": [
+     "SPD rated for <= 3000 m only",
+     "UCPV 1000 V < 1100 V (OV trip / load rejection): the SPD conducts and ages in OV events - its maker to confirm",
+     "59.D040 has no remote contact (59.D041 has): an SPD that has disconnected goes unnoticed, so its protection level cannot be credited to the insulation inside the module"
+    ]
+   },
+   "evidence": "docs/datasheets/protection/ProTec-T2-1000DCGU-3Y.pdf p1 (1500 column): Uc (+)-(-) 1500 V, (+/-)-PE 1000 V, In 20 kA, Up (+)-(-) 4100 V, (+/-)-PE 2500 V, altitude max 3000 m; 59.D040 has no remote contact (59.D041 has)"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "FV201"
+   ],
+   "part": "952515",
+   "barrier": "netlist crossing",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "UCPV 1000 V < 1100 V (OV trip / load rejection): the SPD conducts and ages in OV events - its maker to confirm",
+     "FM remote-signal contact not wired (gen/port.py block note): an SPD that has disconnected goes unnoticed, so its protection level cannot be credited to the insulation inside the module"
+    ],
+    "3000": [
+     "UCPV 1000 V < 1100 V (OV trip / load rejection): the SPD conducts and ages in OV events - its maker to confirm",
+     "SPD altitude rating not on file (no datasheet) - confirm >= 3000 m",
+     "FM remote-signal contact not wired (gen/port.py block note): an SPD that has disconnected goes unnoticed, so its protection level cannot be credited to the insulation inside the module"
+    ],
+    "4000": [
+     "UCPV 1000 V < 1100 V (OV trip / load rejection): the SPD conducts and ages in OV events - its maker to confirm",
+     "SPD altitude rating not on file (no datasheet) - confirm >= 4000 m",
+     "FM remote-signal contact not wired (gen/port.py block note): an SPD that has disconnected goes unnoticed, so its protection level cannot be credited to the insulation inside the module"
+    ]
+   },
+   "evidence": "DEHN product page (no PDF retrievable), recorded in gen/port.py catalog: Up <= 4 kV, In 12.5 kA, UCPV 1000 V, ISCPV 10 kA; FM contact not wired (gen/port.py block note)"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "U303",
+    "U503"
+   ],
+   "part": "AMC3302DWE",
+   "barrier": "netlist isolator",
+   "between": [
+    "PV",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "barrier surge VIOSM 6250 V < required 8000 V (7650 V with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ],
+    "3000": [
+     "barrier surge VIOSM 6250 V < required 8000 V (7650 V with SPD credit)",
+     "clearance 8.0 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (9.2 mm)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ],
+    "4000": [
+     "barrier surge VIOSM 6250 V < required 8000 V (7650 V with SPD credit)",
+     "clearance 8.0 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (10.4 mm)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ]
+   },
+   "evidence": "docs/datasheets/sensing/AMC3302.pdf p6-7 (SBASA11B)"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "U301",
+    "U302",
+    "U501",
+    "U502",
+    "U601",
+    "U602"
+   ],
+   "part": "AMC3330DWE",
+   "barrier": "netlist isolator",
+   "between": [
+    "PV",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "impulse VIMP (air) 7700 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "creepage 8.0 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ],
+    "3000": [
+     "clearance 8.0 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (9.2 mm)",
+     "impulse VIMP (air) 7700 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ],
+    "4000": [
+     "clearance 8.0 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (10.4 mm)",
+     "impulse VIMP (air) 7700 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ]
+   },
+   "evidence": "docs/datasheets/sensing/AMC3330.pdf p6-7 (SBASA34B)"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "K201",
+    "K401",
+    "K402"
+   ],
+   "part": "B88269X7340C011",
+   "barrier": "netlist isolator",
+   "between": [
+    "PV",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ],
+    "3000": [
+     "impulse withstand at 3000 m 7214 V < required 8000 V (7650 V with SPD credit)",
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ],
+    "4000": [
+     "impulse withstand at 4000 m 6561 V < required 8000 V (7650 V with SPD credit)",
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ]
+   },
+   "evidence": "docs/datasheets/protection/HVC43MC.pdf p2-3, p11 (version 02, 2024-10-22)"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "K202",
+    "K403"
+   ],
+   "part": "G7L-2A-X DC24",
+   "barrier": "netlist isolator",
+   "between": [
+    "PV",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "AC withstand 4000 V rms < 4243 V rms required",
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ],
+    "3000": [
+     "AC withstand 4000 V rms < 4243 V rms required",
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ],
+    "4000": [
+     "AC withstand 4000 V rms < 4243 V rms required",
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ]
+   },
+   "evidence": "docs/datasheets/protection/G7L-X.pdf p2 (Cat. J216-E1-04)"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "U201",
+    "U401",
+    "U603",
+    "U604"
+   ],
+   "part": "TPSI3050QDWZRQ1",
+   "barrier": "netlist isolator",
+   "between": [
+    "PV",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "creepage 8.5 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)"
+    ],
+    "3000": [
+     "clearance 8.5 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.5 mm < 10.0 mm even at PD1 (9.2 mm)"
+    ],
+    "4000": [
+     "clearance 8.5 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.5 mm < 10.0 mm even at PD1 (10.4 mm)"
+    ]
+   },
+   "evidence": "docs/datasheets/isolation-interface/TPSI3050-Q1.pdf p6-7 (SLVSFJ7D)"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "C203",
+    "C204",
+    "C403",
+    "C404"
+   ],
+   "part": "VY1472M63Y5UQ63V0",
+   "barrier": "netlist crossing",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/VY1.pdf p1-3 (doc 28537 rev 28-Sep-2026)"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "L201",
+    "L401"
+   ],
+   "part": "CM-CHOKE",
+   "barrier": "port common-mode choke windings to core / mounting (chassis)",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "impulse withstand 4000 V < required 6000 V (4781 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ],
+    "3000": [
+     "impulse withstand at 3000 m 3632 V < required 6000 V (4781 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ],
+    "4000": [
+     "impulse withstand at 4000 m 3326 V < required 6000 V (4781 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ]
+   },
+   "evidence": "gen/port.py CMC160 / CMC200 description"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "J201",
+    "J202",
+    "J401",
+    "J402"
+   ],
+   "part": "DC-TERMINAL",
+   "barrier": "DC terminal stud feed-through to the PE enclosure (external, PD3)",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ],
+    "3000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ],
+    "4000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ]
+   },
+   "evidence": "gen/port.py TERM200 / TERM250 description"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "F201",
+    "F202"
+   ],
+   "part": "FUSE-BASE",
+   "barrier": "NH fuse base (HPBB11PPR / HPBB21PPR) pole to PE mounting plate, in the inlet air path",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ],
+    "3000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ],
+    "4000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ]
+   },
+   "evidence": "docs/datasheets/protection/NH-gPV-1000VDC.pdf p2"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "F401",
+    "F402",
+    "F403",
+    "F404"
+   ],
+   "part": "FUSE-BASE-ETI",
+   "barrier": "ETI NH gBat fuse base (NH1 1000 V DC / PK1XL 1500 V) pole to PE mounting plate",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ],
+    "3000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ],
+    "4000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ]
+   },
+   "evidence": "docs/datasheets/protection/ETI-Green-Protect.pdf p103, p108"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "RT201",
+    "RT401"
+   ],
+   "part": "NTC-SHUNT",
+   "barrier": "port shunt NTC (wired to SYS-IO-AUX PELV) clamped to the shunt copper on BUS- over an insulating pad",
+   "between": [
+    "PV",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 4400 V rms required"
+    ],
+    "3000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 4400 V rms required"
+    ],
+    "4000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 4400 V rms required"
+    ]
+   },
+   "evidence": "gen/port.py NTC_SH description; docs/datasheets/sensing/B57703M.pdf p2 (Vtest 1000 V AC, 1 s)"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "R212",
+    "R213",
+    "R214",
+    "R417",
+    "R418",
+    "R419"
+   ],
+   "part": "RST200",
+   "barrier": "precharge / discharge resistor element to its PE-bonded aluminium housing",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated"
+    ],
+    "3000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated"
+    ],
+    "4000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated"
+    ]
+   },
+   "evidence": "docs/datasheets/protection/Miba-RST-200.pdf p1"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "S201",
+    "S401"
+   ],
+   "part": "THERMOSTAT",
+   "barrier": "discharge thermal cut-off at HV, mounted on the PE-bonded RST 200 housing over an insulating pad",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ],
+    "3000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ],
+    "4000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ]
+   },
+   "evidence": "gen/port.py TSTAT_DIS description; docs/datasheets/thermal/Honeywell-3100U.pdf"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "C201",
+    "C202",
+    "C401",
+    "C402"
+   ],
+   "part": "X-CAP",
+   "barrier": "X capacitor across the SPD / after the CM choke (pole-pole, functional)",
+   "between": [
+    "PV",
+    "PV"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "impulse withstand 4500 V < required 6000 V (5350 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test"
+    ],
+    "3000": [
+     "impulse withstand at 3000 m 4070 V < required 6000 V (5350 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test"
+    ],
+    "4000": [
+     "impulse withstand at 4000 m 3713 V < required 6000 V (6000 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test"
+    ]
+   },
+   "evidence": "gen/port.py XCAP_2U2 description; sim/out/port_design/report.md sec. 9"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "R230",
+    "R231",
+    "R232",
+    "R233",
+    "R234",
+    "R235",
+    "R236",
+    "R237",
+    "R238",
+    "R239",
+    "R435",
+    "R436",
+    "R437",
+    "R438",
+    "R439",
+    "R440",
+    "R441",
+    "R442",
+    "R443",
+    "R444"
+   ],
+   "part": "47k",
+   "barrier": "series string of 10 (within PV)",
+   "between": [
+    "PV",
+    "PV"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "GENERIC 47 k 2512 1 W thick film, '>= 500 V working' (gen/port.py); pulse 2 x Umax and 3.5 mm pad gap are package-typical ASSUMPTIONS"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "R601",
+    "R602",
+    "R603",
+    "R604",
+    "R605",
+    "R606",
+    "R608",
+    "R609",
+    "R610",
+    "R611",
+    "R612",
+    "R613"
+   ],
+   "part": "TNPV12061M00BEEA",
+   "barrier": "series string of 6 (HV-PE)",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/TNPV-e3.pdf p1 (Umax 700 V), p9 (single-pulse overload 2 x Umax, 10/700 us), p10 (contact distance To >= 2.0 mm)"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "R308",
+    "R309",
+    "R310",
+    "R311",
+    "R312",
+    "R313",
+    "R508",
+    "R509",
+    "R510",
+    "R511",
+    "R512",
+    "R513"
+   ],
+   "part": "TNPV12061M00BEEA",
+   "barrier": "series string of 6 (within PV)",
+   "between": [
+    "PV",
+    "PV"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/TNPV-e3.pdf p1 (Umax 700 V), p9 (single-pulse overload 2 x Umax, 10/700 us), p10 (contact distance To >= 2.0 mm)"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "R301",
+    "R302",
+    "R303",
+    "R304",
+    "R305",
+    "R306",
+    "R501",
+    "R502",
+    "R503",
+    "R504",
+    "R505",
+    "R506"
+   ],
+   "part": "TNPV12061M00BEEA",
+   "barrier": "series string of 6 (within PV)",
+   "between": [
+    "PV",
+    "PV"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/TNPV-e3.pdf p1 (Umax 700 V), p9 (single-pulse overload 2 x Umax, 10/700 us), p10 (contact distance To >= 2.0 mm)"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "R215",
+    "R216",
+    "R217",
+    "R218",
+    "R219",
+    "R420",
+    "R421",
+    "R422",
+    "R423",
+    "R424"
+   ],
+   "part": "TNPV12062M00BEEA",
+   "barrier": "series string of 5 (within PV)",
+   "between": [
+    "PV",
+    "PV"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/TNPV-e3.pdf p1, p9, p10"
+  },
+  {
+   "board": "PV-PORT",
+   "refs": [
+    "R615",
+    "R616",
+    "R617",
+    "R618",
+    "R619",
+    "R620",
+    "R621",
+    "R622",
+    "R627",
+    "R628",
+    "R629",
+    "R630",
+    "R631",
+    "R632",
+    "R633",
+    "R634"
+   ],
+   "part": "TNPV1210124KBEEA",
+   "barrier": "series string of 8 (HV-PE)",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/TNPV-e3.pdf p1 (Umax 1000 V), p9, p10 (To >= 2.0 mm)"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "FV401"
+   ],
+   "part": "59.D040",
+   "barrier": "netlist crossing",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "UCPV 1000 V < 1100 V (OV trip / load rejection): the SPD conducts and ages in OV events - its maker to confirm",
+     "59.D040 has no remote contact (59.D041 has): an SPD that has disconnected goes unnoticed, so its protection level cannot be credited to the insulation inside the module"
+    ],
+    "3000": [
+     "UCPV 1000 V < 1100 V (OV trip / load rejection): the SPD conducts and ages in OV events - its maker to confirm",
+     "59.D040 has no remote contact (59.D041 has): an SPD that has disconnected goes unnoticed, so its protection level cannot be credited to the insulation inside the module"
+    ],
+    "4000": [
+     "SPD rated for <= 3000 m only",
+     "UCPV 1000 V < 1100 V (OV trip / load rejection): the SPD conducts and ages in OV events - its maker to confirm",
+     "59.D040 has no remote contact (59.D041 has): an SPD that has disconnected goes unnoticed, so its protection level cannot be credited to the insulation inside the module"
+    ]
+   },
+   "evidence": "docs/datasheets/protection/ProTec-T2-1000DCGU-3Y.pdf p1 (1500 column): Uc (+)-(-) 1500 V, (+/-)-PE 1000 V, In 20 kA, Up (+)-(-) 4100 V, (+/-)-PE 2500 V, altitude max 3000 m; 59.D040 has no remote contact (59.D041 has)"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "FV201"
+   ],
+   "part": "952515",
+   "barrier": "netlist crossing",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "UCPV 1000 V < 1100 V (OV trip / load rejection): the SPD conducts and ages in OV events - its maker to confirm",
+     "FM remote-signal contact not wired (gen/port.py block note): an SPD that has disconnected goes unnoticed, so its protection level cannot be credited to the insulation inside the module"
+    ],
+    "3000": [
+     "UCPV 1000 V < 1100 V (OV trip / load rejection): the SPD conducts and ages in OV events - its maker to confirm",
+     "SPD altitude rating not on file (no datasheet) - confirm >= 3000 m",
+     "FM remote-signal contact not wired (gen/port.py block note): an SPD that has disconnected goes unnoticed, so its protection level cannot be credited to the insulation inside the module"
+    ],
+    "4000": [
+     "UCPV 1000 V < 1100 V (OV trip / load rejection): the SPD conducts and ages in OV events - its maker to confirm",
+     "SPD altitude rating not on file (no datasheet) - confirm >= 4000 m",
+     "FM remote-signal contact not wired (gen/port.py block note): an SPD that has disconnected goes unnoticed, so its protection level cannot be credited to the insulation inside the module"
+    ]
+   },
+   "evidence": "DEHN product page (no PDF retrievable), recorded in gen/port.py catalog: Up <= 4 kV, In 12.5 kA, UCPV 1000 V, ISCPV 10 kA; FM contact not wired (gen/port.py block note)"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "U303",
+    "U503"
+   ],
+   "part": "AMC3302DWE",
+   "barrier": "netlist isolator",
+   "between": [
+    "PV",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "barrier surge VIOSM 6250 V < required 8000 V (7650 V with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ],
+    "3000": [
+     "barrier surge VIOSM 6250 V < required 8000 V (7650 V with SPD credit)",
+     "clearance 8.0 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (9.2 mm)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ],
+    "4000": [
+     "barrier surge VIOSM 6250 V < required 8000 V (7650 V with SPD credit)",
+     "clearance 8.0 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (10.4 mm)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ]
+   },
+   "evidence": "docs/datasheets/sensing/AMC3302.pdf p6-7 (SBASA11B)"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "U301",
+    "U302",
+    "U501",
+    "U502",
+    "U601",
+    "U602"
+   ],
+   "part": "AMC3330DWE",
+   "barrier": "netlist isolator",
+   "between": [
+    "PV",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "impulse VIMP (air) 7700 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "creepage 8.0 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ],
+    "3000": [
+     "clearance 8.0 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (9.2 mm)",
+     "impulse VIMP (air) 7700 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ],
+    "4000": [
+     "clearance 8.0 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (10.4 mm)",
+     "impulse VIMP (air) 7700 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "AC withstand 4250 V rms < 4400 V rms (TOV rule) but >= 4243 V rms (2U+1000 rule): the applicable 62477-1 level decides"
+    ]
+   },
+   "evidence": "docs/datasheets/sensing/AMC3330.pdf p6-7 (SBASA34B)"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "K201",
+    "K401",
+    "K402"
+   ],
+   "part": "B88269X7340C011",
+   "barrier": "netlist isolator",
+   "between": [
+    "PV",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ],
+    "3000": [
+     "impulse withstand at 3000 m 7214 V < required 8000 V (7650 V with SPD credit)",
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ],
+    "4000": [
+     "impulse withstand at 4000 m 6561 V < required 8000 V (7650 V with SPD credit)",
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ]
+   },
+   "evidence": "docs/datasheets/protection/HVC43MC.pdf p2-3, p11 (version 02, 2024-10-22)"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "K202",
+    "K403"
+   ],
+   "part": "G7L-2A-X DC24",
+   "barrier": "netlist isolator",
+   "between": [
+    "PV",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "AC withstand 4000 V rms < 4243 V rms required",
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ],
+    "3000": [
+     "AC withstand 4000 V rms < 4243 V rms required",
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ],
+    "4000": [
+     "AC withstand 4000 V rms < 4243 V rms required",
+     "insulation type not stated by the maker - reinforced to be confirmed in writing",
+     "creepage not stated"
+    ]
+   },
+   "evidence": "docs/datasheets/protection/G7L-X.pdf p2 (Cat. J216-E1-04)"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "U201",
+    "U401",
+    "U603",
+    "U604"
+   ],
+   "part": "TPSI3050QDWZRQ1",
+   "barrier": "netlist isolator",
+   "between": [
+    "PV",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "creepage 8.5 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)"
+    ],
+    "3000": [
+     "clearance 8.5 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.5 mm < 10.0 mm even at PD1 (9.2 mm)"
+    ],
+    "4000": [
+     "clearance 8.5 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.5 mm < 10.0 mm even at PD1 (10.4 mm)"
+    ]
+   },
+   "evidence": "docs/datasheets/isolation-interface/TPSI3050-Q1.pdf p6-7 (SLVSFJ7D)"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "C203",
+    "C204",
+    "C403",
+    "C404"
+   ],
+   "part": "VY1472M63Y5UQ63V0",
+   "barrier": "netlist crossing",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/VY1.pdf p1-3 (doc 28537 rev 28-Sep-2026)"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "L201",
+    "L401"
+   ],
+   "part": "CM-CHOKE",
+   "barrier": "port common-mode choke windings to core / mounting (chassis)",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "impulse withstand 4000 V < required 6000 V (4781 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ],
+    "3000": [
+     "impulse withstand at 3000 m 3632 V < required 6000 V (4781 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ],
+    "4000": [
+     "impulse withstand at 4000 m 3326 V < required 6000 V (4781 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ]
+   },
+   "evidence": "gen/port.py CMC160 / CMC200 description"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "J201",
+    "J202",
+    "J401",
+    "J402"
+   ],
+   "part": "DC-TERMINAL",
+   "barrier": "DC terminal stud feed-through to the PE enclosure (external, PD3)",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ],
+    "3000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ],
+    "4000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ]
+   },
+   "evidence": "gen/port.py TERM200 / TERM250 description"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "F201",
+    "F202"
+   ],
+   "part": "FUSE-BASE",
+   "barrier": "NH fuse base (HPBB11PPR / HPBB21PPR) pole to PE mounting plate, in the inlet air path",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ],
+    "3000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ],
+    "4000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ]
+   },
+   "evidence": "docs/datasheets/protection/NH-gPV-1000VDC.pdf p2"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "F401",
+    "F402",
+    "F403",
+    "F404"
+   ],
+   "part": "FUSE-BASE-ETI",
+   "barrier": "ETI NH gBat fuse base (NH1 1000 V DC / PK1XL 1500 V) pole to PE mounting plate",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ],
+    "3000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ],
+    "4000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "in a PD3 zone: the part's rating is for PD (not stated) - PD3 creepage applies (or a PD2 enclosure)"
+    ]
+   },
+   "evidence": "docs/datasheets/protection/ETI-Green-Protect.pdf p103, p108"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "RT201",
+    "RT401"
+   ],
+   "part": "NTC-SHUNT",
+   "barrier": "port shunt NTC (wired to SYS-IO-AUX PELV) clamped to the shunt copper on BUS- over an insulating pad",
+   "between": [
+    "PV",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 4400 V rms required"
+    ],
+    "3000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 4400 V rms required"
+    ],
+    "4000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 4400 V rms required"
+    ]
+   },
+   "evidence": "gen/port.py NTC_SH description; docs/datasheets/sensing/B57703M.pdf p2 (Vtest 1000 V AC, 1 s)"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "R212",
+    "R213",
+    "R214",
+    "R417",
+    "R418",
+    "R419"
+   ],
+   "part": "RST200",
+   "barrier": "precharge / discharge resistor element to its PE-bonded aluminium housing",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated"
+    ],
+    "3000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated"
+    ],
+    "4000": [
+     "insulation type not stated by the maker - basic to be confirmed in writing",
+     "no impulse or clearance data",
+     "creepage not stated"
+    ]
+   },
+   "evidence": "docs/datasheets/protection/Miba-RST-200.pdf p1"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "S201",
+    "S401"
+   ],
+   "part": "THERMOSTAT",
+   "barrier": "discharge thermal cut-off at HV, mounted on the PE-bonded RST 200 housing over an insulating pad",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ],
+    "3000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ],
+    "4000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ]
+   },
+   "evidence": "gen/port.py TSTAT_DIS description; docs/datasheets/thermal/Honeywell-3100U.pdf"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "C201",
+    "C202",
+    "C401",
+    "C402"
+   ],
+   "part": "X-CAP",
+   "barrier": "X capacitor across the SPD / after the CM choke (pole-pole, functional)",
+   "between": [
+    "PV",
+    "PV"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "impulse withstand 4500 V < required 6000 V (5350 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test"
+    ],
+    "3000": [
+     "impulse withstand at 3000 m 4070 V < required 6000 V (5350 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test"
+    ],
+    "4000": [
+     "impulse withstand at 4000 m 3713 V < required 6000 V (6000 V with SPD credit)",
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test"
+    ]
+   },
+   "evidence": "gen/port.py XCAP_2U2 description; sim/out/port_design/report.md sec. 9"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "R230",
+    "R231",
+    "R232",
+    "R233",
+    "R234",
+    "R235",
+    "R236",
+    "R237",
+    "R238",
+    "R239",
+    "R435",
+    "R436",
+    "R437",
+    "R438",
+    "R439",
+    "R440",
+    "R441",
+    "R442",
+    "R443",
+    "R444"
+   ],
+   "part": "47k",
+   "barrier": "series string of 10 (within PV)",
+   "between": [
+    "PV",
+    "PV"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "GENERIC 47 k 2512 1 W thick film, '>= 500 V working' (gen/port.py); pulse 2 x Umax and 3.5 mm pad gap are package-typical ASSUMPTIONS"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "R601",
+    "R602",
+    "R603",
+    "R604",
+    "R605",
+    "R606",
+    "R608",
+    "R609",
+    "R610",
+    "R611",
+    "R612",
+    "R613"
+   ],
+   "part": "TNPV12061M00BEEA",
+   "barrier": "series string of 6 (HV-PE)",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/TNPV-e3.pdf p1 (Umax 700 V), p9 (single-pulse overload 2 x Umax, 10/700 us), p10 (contact distance To >= 2.0 mm)"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "R308",
+    "R309",
+    "R310",
+    "R311",
+    "R312",
+    "R313",
+    "R508",
+    "R509",
+    "R510",
+    "R511",
+    "R512",
+    "R513"
+   ],
+   "part": "TNPV12061M00BEEA",
+   "barrier": "series string of 6 (within PV)",
+   "between": [
+    "PV",
+    "PV"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/TNPV-e3.pdf p1 (Umax 700 V), p9 (single-pulse overload 2 x Umax, 10/700 us), p10 (contact distance To >= 2.0 mm)"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "R301",
+    "R302",
+    "R303",
+    "R304",
+    "R305",
+    "R306",
+    "R501",
+    "R502",
+    "R503",
+    "R504",
+    "R505",
+    "R506"
+   ],
+   "part": "TNPV12061M00BEEA",
+   "barrier": "series string of 6 (within PV)",
+   "between": [
+    "PV",
+    "PV"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/TNPV-e3.pdf p1 (Umax 700 V), p9 (single-pulse overload 2 x Umax, 10/700 us), p10 (contact distance To >= 2.0 mm)"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "R215",
+    "R216",
+    "R217",
+    "R218",
+    "R219",
+    "R420",
+    "R421",
+    "R422",
+    "R423",
+    "R424"
+   ],
+   "part": "TNPV12062M00BEEA",
+   "barrier": "series string of 5 (within PV)",
+   "between": [
+    "PV",
+    "PV"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/TNPV-e3.pdf p1, p9, p10"
+  },
+  {
+   "board": "PV-PORT-180",
+   "refs": [
+    "R615",
+    "R616",
+    "R617",
+    "R618",
+    "R619",
+    "R620",
+    "R621",
+    "R622",
+    "R627",
+    "R628",
+    "R629",
+    "R630",
+    "R631",
+    "R632",
+    "R633",
+    "R634"
+   ],
+   "part": "TNPV1210124KBEEA",
+   "barrier": "series string of 8 (HV-PE)",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/TNPV-e3.pdf p1 (Umax 1000 V), p9, p10 (To >= 2.0 mm)"
+  },
+  {
+   "board": "PVCELL-25",
+   "refs": [
+    "CS501"
+   ],
+   "part": "LA 150-P",
+   "barrier": "netlist isolator",
+   "between": [
+    "PV",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "double insulation = LA 150-P basic + lead A supplementary insulation (CUSTOM, L_CELL spec: 'SUPPLEMENTARY for 1000 V DC working, PD-free above 2.1 kV peak', screened to PE): the lead must be type-tested to the basic levels of this row"
+    ],
+    "3000": [
+     "double insulation = LA 150-P basic + lead A supplementary insulation (CUSTOM, L_CELL spec: 'SUPPLEMENTARY for 1000 V DC working, PD-free above 2.1 kV peak', screened to PE): the lead must be type-tested to the basic levels of this row"
+    ],
+    "4000": [
+     "double insulation = LA 150-P basic + lead A supplementary insulation (CUSTOM, L_CELL spec: 'SUPPLEMENTARY for 1000 V DC working, PD-free above 2.1 kV peak', screened to PE): the lead must be type-tested to the basic levels of this row"
+    ]
+   },
+   "evidence": "docs/datasheets/sensing/LA_150-P.pdf p3 (24 Jul 2024, v5)"
+  },
+  {
+   "board": "PVCELL-25",
+   "refs": [
+    "L401"
+   ],
+   "part": "L_CELL 224uH (CUSTOM)",
+   "barrier": "netlist isolator",
+   "between": [
+    "PELV",
+    "PE"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test"
+    ],
+    "3000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test"
+    ],
+    "4000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test"
+    ]
+   },
+   "evidence": "gen/pvcell.py L_DESC (L401 description); sim/out/pv_design/cell_spec.json"
+  },
+  {
+   "board": "PVCELL-25",
+   "refs": [
+    "L401"
+   ],
+   "part": "L_CELL 224uH (CUSTOM)",
+   "barrier": "netlist isolator",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "PD performance not stated: needs PD <= 10 pC at 1910 Vpk (extinction >= 1528 Vpk)",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "IEC 60664-4: 32 kHz recurring stress - PD-free at the operating frequency, check dielectric heating of the solid insulation"
+    ],
+    "3000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "PD performance not stated: needs PD <= 10 pC at 1910 Vpk (extinction >= 1528 Vpk)",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "IEC 60664-4: 32 kHz recurring stress - PD-free at the operating frequency, check dielectric heating of the solid insulation"
+    ],
+    "4000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "PD performance not stated: needs PD <= 10 pC at 1910 Vpk (extinction >= 1528 Vpk)",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required",
+     "IEC 60664-4: 32 kHz recurring stress - PD-free at the operating frequency, check dielectric heating of the solid insulation"
+    ]
+   },
+   "evidence": "gen/pvcell.py L_DESC (L401 description); sim/out/pv_design/cell_spec.json"
+  },
+  {
+   "board": "PVCELL-25",
+   "refs": [
+    "L401"
+   ],
+   "part": "L_CELL 224uH (CUSTOM)",
+   "barrier": "netlist isolator",
+   "between": [
+    "PV",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "PD performance not stated: needs PD <= 10 pC at 2387 Vpk (extinction >= 1910 Vpk)",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 4400 V rms required",
+     "IEC 60664-4: 32 kHz recurring stress - PD-free at the operating frequency, check dielectric heating of the solid insulation"
+    ],
+    "3000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "PD performance not stated: needs PD <= 10 pC at 2387 Vpk (extinction >= 1910 Vpk)",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 4400 V rms required",
+     "IEC 60664-4: 32 kHz recurring stress - PD-free at the operating frequency, check dielectric heating of the solid insulation"
+    ],
+    "4000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "PD performance not stated: needs PD <= 10 pC at 2387 Vpk (extinction >= 1910 Vpk)",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 4400 V rms required",
+     "IEC 60664-4: 32 kHz recurring stress - PD-free at the operating frequency, check dielectric heating of the solid insulation"
+    ]
+   },
+   "evidence": "gen/pvcell.py L_DESC (L401 description); sim/out/pv_design/cell_spec.json"
+  },
+  {
+   "board": "PVCELL-25",
+   "refs": [
+    "Q301",
+    "Q302",
+    "Q303",
+    "Q304",
+    "Q305",
+    "Q306",
+    "Q307",
+    "Q308"
+   ],
+   "part": "MSC035SMA170B4",
+   "barrier": "netlist crossing",
+   "between": [
+    "PV",
+    "PV"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "clearance 1.2 mm < 1.3 mm (1.3 mm with SPD credit) - functional: IEC 60664-3 Type 2 coating or the 62477-1 functional short-circuit test",
+     "creepage 0.5 mm < 10.0 mm even at PD1 (3.2 mm) - functional: IEC 60664-3 Type 2 coating or the 62477-1 functional short-circuit test"
+    ],
+    "3000": [
+     "clearance 1.2 mm < 1.5 mm (1.5 mm with SPD credit) - functional: IEC 60664-3 Type 2 coating or the 62477-1 functional short-circuit test",
+     "creepage 0.5 mm < 10.0 mm even at PD1 (3.2 mm) - functional: IEC 60664-3 Type 2 coating or the 62477-1 functional short-circuit test"
+    ],
+    "4000": [
+     "clearance 1.2 mm < 1.7 mm (1.7 mm with SPD credit) - functional: IEC 60664-3 Type 2 coating or the 62477-1 functional short-circuit test",
+     "creepage 0.5 mm < 10.0 mm even at PD1 (3.2 mm) - functional: IEC 60664-3 Type 2 coating or the 62477-1 functional short-circuit test"
+    ]
+   },
+   "evidence": "docs/datasheets/power-semiconductors/MSC035SMA170B4.pdf p9-10 (DS00005160A)"
+  },
+  {
+   "board": "PVCELL-25",
+   "refs": [
+    "U602",
+    "U702",
+    "U802",
+    "U902"
+   ],
+   "part": "UCC14241QDWNRQ1",
+   "barrier": "netlist isolator",
+   "between": [
+    "PV",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "impulse VIMP (air) 7692 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "creepage 8.0 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)",
+     "safety certification still PLANNED in the datasheet"
+    ],
+    "3000": [
+     "clearance 8.0 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (9.2 mm)",
+     "impulse VIMP (air) 7692 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "safety certification still PLANNED in the datasheet"
+    ],
+    "4000": [
+     "clearance 8.0 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (10.4 mm)",
+     "impulse VIMP (air) 7692 V < 8000 V: passes only with the SPD credit (7650 V)",
+     "safety certification still PLANNED in the datasheet"
+    ]
+   },
+   "evidence": "docs/datasheets/gate-drivers/UCC14241-Q1.pdf p7, p12 (SLUSF09A)"
+  },
+  {
+   "board": "PVCELL-25",
+   "refs": [
+    "U603",
+    "U703",
+    "U803",
+    "U903"
+   ],
+   "part": "UCC21710DWR",
+   "barrier": "netlist isolator",
+   "between": [
+    "PV",
+    "PELV"
+   ],
+   "required": "reinforced",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "creepage 8.0 mm < 10.0 mm (PD2, group I): coat to PD1 per IEC 60664-3 (then 8.0 mm)"
+    ],
+    "3000": [
+     "clearance 8.0 mm < 9.2 mm (9.2 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (9.2 mm)"
+    ],
+    "4000": [
+     "clearance 8.0 mm < 10.4 mm (10.4 mm with SPD credit)",
+     "creepage 8.0 mm < 10.0 mm even at PD1 (10.4 mm)"
+    ]
+   },
+   "evidence": "docs/datasheets/gate-drivers/UCC21710.pdf p6-7 (SLUSD43B)"
+  },
+  {
+   "board": "PVCELL-25",
+   "refs": [
+    "RT501",
+    "RT502"
+   ],
+   "part": "NTC-HEATSINK",
+   "barrier": "heatsink / cold-plate NTC probe (PELV) on PE metal: functional",
+   "between": [
+    "PELV",
+    "PE"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/sensing/B57703M.pdf p2 (Vtest 1000 V AC, 1 s)"
+  },
+  {
+   "board": "PVCELL-25",
+   "refs": [
+    "Q301",
+    "Q302",
+    "Q303",
+    "Q304",
+    "Q305",
+    "Q306",
+    "Q307",
+    "Q308"
+   ],
+   "part": "TO247-PAD",
+   "barrier": "heatsink insulation under each TO-247-4 tab (drain = A+/B+ or a switch node) to the PE-bonded heatsink",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "FAIL",
+    "3000": "FAIL",
+    "4000": "FAIL"
+   },
+   "notes": {
+    "2000": [
+     "not specified: no part, rating or spec text exists for this insulation (requirement in this row)"
+    ],
+    "3000": [
+     "not specified: no part, rating or spec text exists for this insulation (requirement in this row)"
+    ],
+    "4000": [
+     "not specified: no part, rating or spec text exists for this insulation (requirement in this row)"
+    ]
+   },
+   "evidence": "gen/pvcell.py ('insulated mount on the PE-bonded heatsink' - no pad part or spec); sim/out/pv_design/report.md (case-sink 0.35 K/W 'insulated, estimate')"
+  },
+  {
+   "board": "PVCELL-25",
+   "refs": [
+    "D401",
+    "D402",
+    "D403",
+    "D404",
+    "D405",
+    "D406",
+    "D407",
+    "D408",
+    "D409",
+    "D410",
+    "D411",
+    "D412",
+    "D413",
+    "D414",
+    "D415",
+    "D416"
+   ],
+   "part": "VS60-TAB",
+   "barrier": "bank reverse clamp, TO-247AC base = cathode (bus +): exposed live tab, mounting not specified",
+   "between": [
+    "PV",
+    "PE"
+   ],
+   "required": "basic",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ],
+    "3000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ],
+    "4000": [
+     "custom / RFQ: the spec must carry the levels of this row; verify by type test",
+     "no impulse or clearance data",
+     "creepage not stated",
+     "AC withstand not stated: type test 2200 V rms required"
+    ]
+   },
+   "evidence": "docs/datasheets/power-semiconductors/VS-60EPS16-M3.pdf p1 (base = cathode); sim/out/pv_design/report.md sec. 7"
+  },
+  {
+   "board": "PVCELL-25",
+   "refs": [
+    "R401",
+    "R402",
+    "R403",
+    "R404",
+    "R405",
+    "R406",
+    "R407",
+    "R408",
+    "R409",
+    "R410",
+    "R411",
+    "R412",
+    "R413",
+    "R414",
+    "R415",
+    "R416"
+   ],
+   "part": "TNPV1210124KBEEA",
+   "barrier": "series string of 8 (within PV)",
+   "between": [
+    "PV",
+    "PV"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/passives-capacitors/TNPV-e3.pdf p1 (Umax 1000 V), p9, p10 (To >= 2.0 mm)"
+  },
+  {
+   "board": "PVCELL-25",
+   "refs": [
+    "D610",
+    "D611",
+    "D612",
+    "D710",
+    "D711",
+    "D712",
+    "D810",
+    "D811",
+    "D812",
+    "D910",
+    "D911",
+    "D912"
+   ],
+   "part": "US1M-13-F",
+   "barrier": "series string of 3 (within PV)",
+   "between": [
+    "PV",
+    "PV"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS WITH CONDITION",
+    "3000": "PASS WITH CONDITION",
+    "4000": "PASS WITH CONDITION"
+   },
+   "notes": {
+    "2000": [
+     "gap 1.5 mm < 2.5 mm per body at PD2: coat to PD1 (IEC 60664-3)"
+    ],
+    "3000": [
+     "gap 1.5 mm < 2.5 mm per body at PD2: coat to PD1 (IEC 60664-3)"
+    ],
+    "4000": [
+     "gap 1.5 mm < 2.5 mm per body at PD2: coat to PD1 (IEC 60664-3)"
+    ]
+   },
+   "evidence": "docs/datasheets/power-semiconductors/US1M.pdf p2 (VRRM 1000 V), p4 (SMA land pattern gap G = 1.5 mm; no avalanche rating -> pulse = VRRM)"
+  },
+  {
+   "board": "SYS-IO-AUX",
+   "refs": [
+    "C701"
+   ],
+   "part": "470p 2kV",
+   "barrier": "netlist crossing",
+   "between": [
+    "PE",
+    "FIELD"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "GENERIC 470 pF 2 kV C0G 1206 (gen/sys_io_aux.py C701, DIF_GND-PE); 1206 gap ~2 mm (assumption)"
+  },
+  {
+   "board": "SYS-IO-AUX",
+   "refs": [
+    "T401",
+    "T402",
+    "T501",
+    "T502"
+   ],
+   "part": "760390014",
+   "barrier": "netlist isolator",
+   "between": [
+    "PELV",
+    "FIELD"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/magnetics/WE-760390014.pdf p1 (VT 2500 V AC), p2 (functional insulation, 400 V rms working, IEC 60950-1)"
+  },
+  {
+   "board": "SYS-IO-AUX",
+   "refs": [
+    "U403",
+    "U406"
+   ],
+   "part": "ISO1042DWR",
+   "barrier": "netlist isolator",
+   "between": [
+    "PELV",
+    "FIELD"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/isolation-interface/ISO1042.pdf p1, p7 (SLLSF09F)"
+  },
+  {
+   "board": "SYS-IO-AUX",
+   "refs": [
+    "U701",
+    "U702",
+    "U704"
+   ],
+   "part": "ISO1212DBQR",
+   "barrier": "netlist isolator",
+   "between": [
+    "PELV",
+    "FIELD"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/isolation-interface/ISO1211.pdf p7 (SLLSEY7G, DBQ-16 column)"
+  },
+  {
+   "board": "SYS-IO-AUX",
+   "refs": [
+    "U503",
+    "U506"
+   ],
+   "part": "ISO1410DWR",
+   "barrier": "netlist isolator",
+   "between": [
+    "PELV",
+    "FIELD"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/isolation-interface/ISO1410.pdf p7 (SLLSF22I)"
+  },
+  {
+   "board": "SYS-IO-AUX",
+   "refs": [
+    "J601"
+   ],
+   "part": "LPJ4012AHNL",
+   "barrier": "netlist isolator",
+   "between": [
+    "PELV",
+    "PE"
+   ],
+   "required": "functional",
+   "verdicts": {
+    "2000": "PASS",
+    "3000": "PASS",
+    "4000": "PASS"
+   },
+   "notes": {
+    "2000": [],
+    "3000": [],
+    "4000": []
+   },
+   "evidence": "docs/datasheets/connectors/LINK-PP-LPJ4012AHNL.pdf p1 (drawing LP08121230 rev A, image: hipot 1500 Vrms; 1000 pF / 2 kV Bob-Smith capacitor to chassis)"
+  }
+ ],
+ "findings": [
+  {
+   "id": "IC-01",
+   "severity": "critical",
+   "where": "all HV boards (PVCELL-25, GDRV-HB, PV-PORT, PV-PORT-180, DAB60, AUX-HV); PV-C6",
+   "finding": "All HV-PELV isolator ICs are 8.0-8.5 mm packages (UCC21710, UCC14241-Q1, AMC3330, AMC3302, ISO7720, UCC12050, TPSI3050; only the CNY65B opto has 14 mm). Reinforced at 1000 V DC OVC II needs 8 kV -> 8.0 / 9.2 / 10.4 mm clearance at 2000 / 3000 / 4000 m. The drawn port SPD (DEHN 952515, Up <= 4 kV at In 12.5 kA) gives Up,eff ~4.8 kV with 0.5 m of leads, so the reinforced requirement only drops to 7.65 kV (160 % rule) - the same 8 mm row: the SPD buys nothing for reinforced insulation. These barriers therefore FAIL at 3000 and 4000 m. Coating does not help clearance, and PV-C6 '> 3000 m derating' cannot be met by power derating (insulation does not derate).",
+   "evidence": "this report sec. 3-4; datasheets: UCC21710.pdf p6, UCC14241-Q1.pdf p7, AMC3330.pdf p6, AMC3302.pdf p6, ISO7721.pdf p10, UCC12050.pdf p5, TPSI3050-Q1.pdf p6 (CLR 8-8.5 mm)",
+   "recommendation": "Owner decision (ECO-10 / PV-C6): (a) claim 2000 m; or (b) fit SPDs whose effective pole-PE level incl. leads is <= 4.0 kV (e.g. Up 2.5 kV pole-PE with <= 0.5 m leads), rated for the target altitude, with a monitored remote contact that stops the converter - then reinforced = 6 kV -> 5.5 / 6.3 / 7.1 mm and the 8 mm packages pass to 4000 m; or (c) isolators with >= 10.4 mm clearance or IEC 60664-3 Type 2 encapsulation qualified at the altitude-corrected impulse."
+  },
+  {
+   "id": "IC-02",
+   "severity": "major",
+   "where": "PV-PORT / PV-PORT-180 U303, U503 (AMC3302); DAB60 U1303, U1503 (AMC3302), U501, U1001 (UCC12050)",
+   "finding": "Barrier surge rating VIOSM 6250 V (no VIMP given; VDE 0884-11 edition) is below the 8 kV reinforced impulse and below the 7.65 kV left after the drawn SPD credit: FAIL at every altitude.",
+   "evidence": "sensing/AMC3302.pdf p6 (VIOSM 6250 VPK, test 10 kV); power-supply/UCC12050.pdf p5 (VIOSM 6250 VPK)",
+   "recommendation": "Either the SPD credit of IC-01 option (b) (reinforced 6 kV <= 6.25 kV), or replace by parts rated VIMP >= 8 kV and VIOSM >= 10 kV (check current TI revisions of AMC3302 / a 5 kVrms DC/DC with a 60747-17 VIMP rating)."
+  },
+  {
+   "id": "IC-03",
+   "severity": "major",
+   "where": "PV-PORT, PV-PORT-180, DAB60 (AMC3330 x6/x6/x6); PVCELL-25, GDRV-HB, DAB60 (UCC14241-Q1)",
+   "finding": "AMC3330 VIMP 7700 V and UCC14241-Q1 VIMP 7692 V are below the 8 kV reinforced impulse: they pass only with an SPD credit (7.65 kV with the drawn 952515: 0.5-0.7 % margin - not a design margin). AMC3330 / AMC3302 VISO 4250 V rms is also below the conservative reinforced AC test (4400 V rms, TOV rule) and passes only the lenient 2U+1000 rule (4243 V rms).",
+   "evidence": "sensing/AMC3330.pdf p6 (VIMP 7700, VISO 4250); gate-drivers/UCC14241-Q1.pdf p7 (VIMP 7692)",
+   "recommendation": "Resolve together with IC-01 (SPD credit) and confirm the reinforced AC test level for DC circuits in the purchased EN 62477-1; otherwise choose parts with VIMP >= 8 kV."
+  },
+  {
+   "id": "IC-04",
+   "severity": "critical",
+   "where": "PV-PORT / PV-PORT-180 K202, K403; DAB60 K1202, K1402 (Omron G7L-2A-X DC24 precharge relay)",
+   "finding": "The relay coil is driven from the PELV DO, its contacts sit on the 1000 V poles: this is protective separation (reinforced). The datasheet gives only 4000 V AC coil-contacts (1 min) and 10 kV impulse - below the 4243 V rms reinforced AC test by either rule - and states no insulation type, creepage or clearance.",
+   "evidence": "protection/G7L-X.pdf p2 (Cat. J216-E1-04)",
+   "recommendation": "Get Omron's VDE 40045061 certificate content (insulation category coil-contact); if it is not reinforced for >= 1000 V, feed the coil from its own isolated supply (the supply barrier then adds the second insulation) or use a relay with a stated reinforced coil-contact rating."
+  },
+  {
+   "id": "IC-05",
+   "severity": "major",
+   "where": "PV-PORT / PV-PORT-180 K201, K401, K402; DAB60 K1201, K1401 (TDK HVC43-MC)",
+   "finding": "Coil and mirror (FB) contact are PELV, main contacts HV: reinforced needed. TDK gives 4400 V AC contact-to-coil and Uimp 8 kV (IEC 60947-4-1) - consistent with reinforced at <= 2000 m - but no insulation type and no creepage, and p11 asks to separate or shield the LV side. At 3000 / 4000 m the 8 kV air rating derates to ~7.2 / 6.6 kV < 8 kV.",
+   "evidence": "protection/HVC43MC.pdf p2-3, p11 (version 02)",
+   "recommendation": "Ask TDK to confirm reinforced (or double) insulation coil + aux vs main circuit for 1000 V DC, OVC II, PD2 and the target altitude; route coil/FB wiring away from the HV studs with reinforced spacing (layout table)."
+  },
+  {
+   "id": "IC-06",
+   "severity": "major",
+   "where": "PVCELL-25, GDRV-HB, DAB60 (UCC14241-Q1); gen/gdrv.py design_check",
+   "finding": "UCC14241-Q1 certification is still 'planned' in the datasheet (D-016 risk) and its VIORM 1414 Vpk leaves 11 % margin over the PV switch-node recurring peak (1273 V at 1000 V; 1401 V at the 1100 V trip corner = 1 %). The gdrv design check compares only VIOWM with the 1000 V DC bus - it misses VIORM vs the switch node and the 8 kV impulse (VIMP 7692 V).",
+   "evidence": "gate-drivers/UCC14241-Q1.pdf p7, p12; hardware/GDRV-HB/outputs/GDRV-HB_design_check.txt ('Barrier vs 1000 V DC bus')",
+   "recommendation": "Add VIORM >= switch-node recurring peak and VIMP >= reinforced impulse to gdrv.design_check(); hold the VDE certificate as a release condition (D-016)."
+  },
+  {
+   "id": "IC-07",
+   "severity": "critical",
+   "where": "PVCELL-25 Q301-Q308 (MSC035SMA170B4 on the PE heatsink)",
+   "finding": "The heatsink insulation of the TO-247-4 tabs (drain = A+/B+ or a switch node: 1273 V recurring at 32 kHz, 85 V/ns) is basic insulation and is not specified at all: no pad, no thickness, no bushing/clip, Rth 0.35 K/W is an estimate. Requirement: basic for 1000 V DC, impulse 6 kV, AC 2200 V rms, PD-free (extinction >= 1528 Vpk, test 1910 Vpk <= 10 pC), pad overhang >= creepage 5.0 mm (PD2) / 16.0 mm (PD3 air path) and >= clearance 5.5 / 6.3 / 7.1 mm (2000/3000/4000 m).",
+   "evidence": "gen/pvcell.py MSC035SMA170B4 desc ('insulated mount'); sim/out/pv_design/report.md (case-sink 'insulated, estimate')",
+   "recommendation": "Specify the pad (ceramic AlN/Al2O3 or a PD-qualified film), mounting (clip or insulated bushing for the PE screw), overhang, and add a PD type test on the assembled heatsink; re-run the thermal model with its real Rth."
+  },
+  {
+   "id": "IC-08",
+   "severity": "major",
+   "where": "DAB60 T1101 (transformer), L1101 (series inductor), both cold-plate mounted",
+   "finding": "Only the winding-to-winding class is given ('basic (pending system decision)', 1850 V DC basis, PD/hipot 'TBD by ECO-10'); winding-to-core / cold-plate (PE) insulation of T1101 and L1101 is not specified at all. Coordinated levels: P1-P2 basic (simple separation) 1850 V DC, 2099 Vpk recurring at 100 kHz -> PD <= 10 pC at 3149 Vpk, AC 3323 V rms, impulse 6 kV, creepage 10.0 mm (group I) / 20.0 mm (IIIa) PD2; windings-core basic: PD at 1799 Vpk, AC 2200 V rms; windings-NTC reinforced: PD at 2249 Vpk, AC 4400 V rms, impulse 8 kV.",
+   "evidence": "sim/out/dab_design/dab_spec.json transformer.isolation, series_inductor; gen/dab60.py XF_DESC / LS_DESC",
+   "recommendation": "Write these levels into dab_spec transformer.isolation and series_inductor (and the RFQ): the 'pending' class is resolved - basic (simple separation) at 1850 V DC is the requirement."
+  },
+  {
+   "id": "IC-09",
+   "severity": "major",
+   "where": "PV-PORT / PV-PORT-180 L201, L401; DAB60 L1201, L1401 (CUSTOM CM choke)",
+   "finding": "The CM-choke spec gives '+4 kV surge' winding-core: below the 6 kV basic impulse and below the 4.78 kV left with the drawn SPD credit; no AC test or creepage is stated.",
+   "evidence": "gen/port.py CMC160 / CMC200 description",
+   "recommendation": "Specify winding-core and winding-winding: basic, 1000 V DC, impulse >= 6 kV, AC 2200 V rms 60 s, creepage >= 5.0 mm (PD2) / 16.0 mm (PD3)."
+  },
+  {
+   "id": "IC-10",
+   "severity": "minor",
+   "where": "PV-PORT / PV-PORT-180 C201, C202, C401, C402; DAB60 C1201, C1202, C1401, C1402 (X capacitor RFQ)",
+   "finding": "RFQ impulse >= 4.5 kV pole-pole is below the effective pole-pole SPD level with leads (5.35 kV for the drawn SPDs) and below 6 kV without credit.",
+   "evidence": "gen/port.py XCAP_2U2; sim/out/port_design/report.md sec. 9 (PA-07)",
+   "recommendation": "Raise the RFQ to >= 6 kV (no SPD dependency) or keep the capacitor leads at the SPD terminals and require >= Up,eff + 10 %."
+  },
+  {
+   "id": "IC-11",
+   "severity": "major",
+   "where": "PV-PORT / PV-PORT-180 U603, U604 (TPSI3050, IMD test switches); gen/port.py imd()",
+   "finding": "The IMD switch secondaries are declared in the PE domain, but with the switch open the PE-side SiC of the common-source pair blocks and the source/gate island follows the pole through the other FET's body diode: BUS- sits ~V/2 below PE in normal operation (up to 1000 V with a fault). U603/U604 are therefore HV-PELV reinforced barriers (TPSI3050 is reinforced, so the part passes) and IMDx_SRC/G/DRV/VDDH/VDDM/SW are HV nets.",
+   "evidence": "hardware/PV-PORT/outputs/PV-PORT_netlist.xml (Q601/Q602, Q603/Q604 sources on IMDx_SRC, one drain on PE)",
+   "recommendation": "Declare those nets HV (or their own floating domain) in port.imd() so the build check and the layout apply reinforced spacing to PELV and basic spacing to PE."
+  },
+  {
+   "id": "IC-12",
+   "severity": "major",
+   "where": "PV-PORT / PV-PORT-180 FV201 (952515), FV401 (59.D040); DAB60 FV1201, FV1401",
+   "finding": "SPD status is not monitored (952515 FM contact not wired; 59.D040 has no remote contact - 59.D041 has), so a disconnected SPD goes unnoticed and no insulation inside the module may rely on its protection level. UCPV 1000 V is below the PV 1100 V OV trip and the DAB port-1 1048 V load-rejection peak. 59.D040 is rated only to 3000 m.",
+   "evidence": "protection/ProTec-T2-1000DCGU-3Y.pdf p1 (altitude 3000 m, RC optional); gen/port.py block note ('remote-signal contact not wired')",
+   "recommendation": "Use the -R / FM variants, wire the contact to a SYS-IO-AUX DI and stop the converter on it; confirm 1100 V tolerance with the SPD makers; pick SPDs rated for the claimed altitude."
+  },
+  {
+   "id": "IC-13",
+   "severity": "major",
+   "where": "sim/out/port_design/report.md sec. 9 and PA-08; gen/port.py root note",
+   "finding": "The surge table rates reinforced barriers against Up = 4 kV ('AMC3330 VIMP 7700 V, margin 1.93', 'AMC3302 VIOSM 6250 V, margin 1.56'): with an SPD credit the reinforced requirement is 160 % of Up,eff (>= 6.4 kV for Up 4 kV alone, 7.65 kV with leads), not Up; without credit it is 8 kV. PA-08's 'clearance at 3000 m to be confirmed' resolves to: 8 mm packages do not meet it (9.2 mm).",
+   "evidence": "sim/out/port_design/report.md sec. 9 table",
+   "recommendation": "Replace the margin column with the coordinated requirement (this report sec. 3)."
+  },
+  {
+   "id": "IC-14",
+   "severity": "major",
+   "where": "hardware/DAB60/outputs/DAB60_design_check.txt (Insulation, item 4)",
+   "finding": "'HV1/HV2 -> PELV only through reinforced parts: UCC12050 VIOWM 1697 VDC, AMC3330 1700 VDC, ISO7720F 2121 VDC vs 1000 V DC working' is incomplete and not sufficient: HV1/HV2 also reach PELV through the gate drivers and their bias modules, TPSI3050, AMC3302, the HVC43 / G7L coils, the shunt-NTC pads and the transformer NTC; and VIOWM alone does not cover the 8 kV impulse that UCC12050 (VIOSM 6250 V) and AMC3330 (VIMP 7700 V) do not meet.",
+   "evidence": "DAB60_design_check.txt; this report sec. 4",
+   "recommendation": "Base the DAB60 insulation check on this audit (or import its verdicts) instead of VIOWM only."
+  },
+  {
+   "id": "IC-15",
+   "severity": "major",
+   "where": "AUX-HV T301 (CUSTOM flyback transformer); sim/out/aux_hv_design/report.md sec. 11",
+   "finding": "The T1 spec says reinforced 'for 1000 V DC working', but the primary drain end carries a 1312 V recurring peak at 65 kHz (1419 V at the 1100 V trip); TIW certified for 1000 V DC working says nothing about PD at that stress. Coordinated levels: PD <= 10 pC at 2461 Vpk (extinction >= 1968 Vpk), AC 4400 V rms 60 s, impulse 8 kV, creepage 20 mm PD2 (bobbin CTI not stated -> IIIa) or 6.4 mm PD1 and >= clearance.",
+   "evidence": "gen/aux_hv.py T1 description; sim/out/aux_hv_design/aux_hv_spec.json summary.vds_cont / vds_trans",
+   "recommendation": "Add these levels to the T1 description and the RFQ; require a PD test on every transformer."
+  },
+  {
+   "id": "IC-16",
+   "severity": "major",
+   "where": "PVCELL-25 L401 (CUSTOM inductor), CS501 (LA 150-P + lead A)",
+   "finding": "The inductor winding is a switch node (1273 V recurring at 32 kHz). Its spec gives the embedded-NTC insulation only as 'reinforced for 1000 V DC working' and winding-core as 'basic' with no levels. Coordinated: NTC-winding reinforced PD <= 10 pC at 2387 Vpk, AC 4400 V rms, impulse 8 kV; winding-core basic PD at 1910 Vpk, AC 2200 V rms, impulse 6 kV. The LA 150-P (basic 1000 V, PD test 1.3 kV rms = 1838 Vpk) plus the screened lead A (supplementary, 'PD-free above 2.1 kV peak') form double insulation - acceptable, but the lead must be type-tested to the basic levels.",
+   "evidence": "gen/pvcell.py L_DESC; sensing/LA_150-P.pdf p3",
+   "recommendation": "Add the levels to L_DESC and the RFQ."
+  },
+  {
+   "id": "IC-17",
+   "severity": "major",
+   "where": "PVCELL-25, GDRV-HB, DAB60, AUX-HV boards (PV-PORT already has it as PA-08)",
+   "finding": "Conformal coating to PD1 (IEC 60664-3, Type 1) is REQUIRED over every HV-PELV isolator footprint and its HV copper on all HV boards: 8-8.5 mm package creepage < 10.0 mm reinforced at PD2 (PCB and group I package). Only PV-PORT states it; the DAB60 check even asks for 'reinforced creepage at those 3 footprints per bridge (8 mm bodies)', which is not achievable uncoated. CNY65B (14 mm, CTI 200 -> 20 mm needed at PD2) needs it too.",
+   "evidence": "this report sec. 4-5",
+   "recommendation": "State the coating requirement on every HV board (root note + layout rule)."
+  },
+  {
+   "id": "IC-18",
+   "severity": "major",
+   "where": "mechanical zoning; ECO-10 'PD3 external'; PV-12 forced air, PV-C6 IP20",
+   "finding": "The PV module is forced-air cooled at IP20: boards and fuses in the cooling-air path see outside dust and humidity (the port design puts the fuses in the inlet air). At PD3 basic creepage at 1000 V is 12.5 mm (group I) / 16.0 mm (IIIa) and reinforced 25.0 / 32.0 mm - not achievable on the boards.",
+   "evidence": "REQUIREMENTS ECO-10, PV-12, PV-C6; sim/out/port_design/report.md (A_T_FUSE 'fuses in the INLET air path')",
+   "recommendation": "Define PD2 compartments for the boards (or coat all HV boards to PD1); keep only parts with PD3 ratings (terminals, fuse bases, SPDs) in the air path and give them PD3 creepage."
+  },
+  {
+   "id": "IC-19",
+   "severity": "major",
+   "where": "DAB60 assembly: port section (both port.port() blocks, io sheet), busbars and harness carrying both ports",
+   "finding": "Port-1 and port-2 circuits are separated by basic insulation at 1850 V DC (both ports with a first fault at opposite poles): above the 1000 V limit of the printed-wiring creepage columns, so the PCB needs 10.0 mm (CTI >= 600, group I) or 20.0 mm (standard FR-4, IIIa) uncoated at PD2, 7.5 mm coated (PD1), clearance 5.5 / 6.3 / 7.1 mm. This applies wherever port-1 and port-2 conductors meet: the two port blocks on the port board, the transformer terminations, busbars and harnesses.",
+   "evidence": "this report sec. 5 (DAB60 table)",
+   "recommendation": "Specify a CTI >= 600 laminate for DAB60 or keep the two port areas on separate boards / coated."
+  },
+  {
+   "id": "IC-20",
+   "severity": "minor",
+   "where": "PV-PORT / PV-PORT-180 RT201, RT401; DAB60 RT1201, RT1401 (shunt NTC on BUS-)",
+   "finding": "The reinforced pad under the shunt NTC is a requirement in the description only: no part, material, thickness or test level; the probe's own test is 1000 V AC / 1 s.",
+   "evidence": "gen/port.py NTC_SH; sensing/B57703M.pdf p2",
+   "recommendation": "Specify the pad: reinforced, AC 4400 V rms, impulse 8 kV, creepage around the tag >= 10.0 mm (PD2) and >= the clearance at the claimed altitude; or use a double-insulated probe."
+  },
+  {
+   "id": "IC-21",
+   "severity": "minor",
+   "where": "PV-PORT / PV-PORT-180 / DAB60 RST 200 resistors, 3100U thermostats, NH fuse bases, DC terminals; DAB60 DD600N16K and CBB011M12GM4T base plates",
+   "finding": "HV-PE basic insulation of chassis parts is only partly documented: no impulse/creepage data (RST 200: 3.5 kV rms only; DD600N16K: 3.0 kV rms 1 min; CBB011M12GM4T: Visol 3 kV, no PD data at the 100 kHz AC-node stress; fuse bases: Uimp 8 kV only); thermostat pad and DC-terminal creepage are text requirements without values.",
+   "evidence": "protection/Miba-RST-200.pdf p1; power-semiconductors/DD600N16K.pdf p2; CBB011M12GM4T.pdf p3; protection/NH-gPV-1000VDC.pdf p2",
+   "recommendation": "Collect creepage/impulse (and for the module PD) data from the makers; give the DC terminals PD3 creepage 12.5 mm (group I) / 16.0 mm (IIIa) to PE."
+  },
+  {
+   "id": "IC-22",
+   "severity": "minor",
+   "where": "PVCELL-25, GDRV-HB, DAB60 DESAT strings (3 x US1M, SMA); MSC035SMA170B4 pins; CBB011M12GM4T terminals",
+   "finding": "Functional insulation inside the power stage is below the PD2 table values: SMA pad gap 1.5 mm vs 2.5 mm per diode; TO-247-4 drain-to-source/gate pads ~0.5 mm (2.54 mm pitch, no package creepage data) vs 5.0 mm; module terminal-to-terminal creepage 6.3 mm (CTI 200) vs 10 mm.",
+   "evidence": "power-semiconductors/US1M.pdf p4; MSC035SMA170B4.pdf p9-10; CBB011M12GM4T.pdf p3",
+   "recommendation": "Coat the power-stage boards to PD1 and add a milled slot between the drain pin and pins 2-4 of each TO-247-4; confirm by the EN 62477-1 functional-insulation short-circuit test."
+  },
+  {
+   "id": "IC-23",
+   "severity": "minor",
+   "where": "production test (all HV boards / module)",
+   "finding": "The module hipot HV-PE (2200 V rms or 3111 V DC) and HV-PELV (4400 V rms) cannot be applied with the SPDs (UCPV 1000 V), the IMD SiC switches (1700 V) and the Y capacitors (1500 V DC) connected; the dividers take 674 V per element (TNPV1206 700 V).",
+   "evidence": "this report sec. 5 (tests)",
+   "recommendation": "Write the hipot procedure: SPDs plugged out, IMD and Y-capacitor paths opened (or a DC test below their ratings), isolator barriers tested at component level (VISO) and the boards' spacing by measurement."
+  }
+ ],
+ "problems": []
+}

@@ -1,0 +1,80 @@
+{
+    "$schema": "https://schemas.kicad.org/erc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-10-05T00:03:22",
+    "ignored_checks": [
+        {
+            "description": "SPICE model issue",
+            "key": "simulation_model_issue"
+        },
+        {
+            "description": "Footprint link issue",
+            "key": "footprint_link_issues"
+        },
+        {
+            "description": "Assigned footprint doesn't match footprint filters",
+            "key": "footprint_filter"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning",
+        "exclusion"
+    ],
+    "kicad_version": "10.0.6",
+    "sheets": [
+        {
+            "path": "/",
+            "uuid_path": "/e4e48892-bf03-581d-8feb-3fe35feb6fe9",
+            "violations": []
+        },
+        {
+            "path": "/01 Logic interface/",
+            "uuid_path": "/e4e48892-bf03-581d-8feb-3fe35feb6fe9/26c7f9fb-24bb-5763-aaaf-f4adbb6208bc",
+            "violations": []
+        },
+        {
+            "path": "/02 High-side channel/",
+            "uuid_path": "/e4e48892-bf03-581d-8feb-3fe35feb6fe9/2c79d4c9-6ce1-535b-9049-b88f4cd0fa06",
+            "violations": [
+                {
+                    "description": "Pin GND2 not connected to ground net",
+                    "items": [
+                        {
+                            "description": "Symbol U203 Pin 3 [GND2, Power input, Line]",
+                            "pos": {
+                                "x": 0.6096,
+                                "y": 1.7272
+                            },
+                            "uuid": "8f235a80-0c15-5051-b525-6701d1fb8291"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "ground_pin_not_ground"
+                }
+            ]
+        },
+        {
+            "path": "/03 Low-side channel/",
+            "uuid_path": "/e4e48892-bf03-581d-8feb-3fe35feb6fe9/094b810c-c249-5e35-90a1-d8bcabb98d11",
+            "violations": [
+                {
+                    "description": "Pin GND2 not connected to ground net",
+                    "items": [
+                        {
+                            "description": "Symbol U303 Pin 3 [GND2, Power input, Line]",
+                            "pos": {
+                                "x": 0.6096,
+                                "y": 1.7272
+                            },
+                            "uuid": "b14f8777-d55b-534f-ab05-9987527add04"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "ground_pin_not_ground"
+                }
+            ]
+        }
+    ],
+    "source": "GDRV-HB.kicad_sch"
+}

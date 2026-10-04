@@ -1,0 +1,67 @@
+{
+ "algorithm": "dP-P&O (Sera 2008) with elasticity-adaptive step + scheduled global scan",
+ "parameters": {
+  "T_p": 0.05,
+  "w": 0.02,
+  "dv_min_rel": 0.006,
+  "dv_max_rel": 0.03,
+  "a_step": 0.03,
+  "v_lo": 255.0,
+  "v_hi": 1000.0,
+  "scan_rate": 1000.0,
+  "scan_period": 300.0,
+  "scan_lo_rel": 0.45,
+  "oversample_sps": 500000.0,
+  "pin_probe": 4
+ },
+ "measurement": {
+  "oversampling_kSPS_V_A_I_A": 500.0,
+  "window_ms": 20.0,
+  "basis": "with the 32 kHz control samples only the static efficiency falls to 99.69 % at 50 W/m2"
+ },
+ "static_eta_min_in_window": 0.9993198598415403,
+ "static_eta_min_in_window_at": [
+  "17s x 8p (1000 V class, 74 kW STC)",
+  50.0,
+  0.0
+ ],
+ "static_eta_min_overall": 0.998537406405657,
+ "static_eta_min_overall_at": [
+  "8s x 8p (low voltage, 35 kW STC)",
+  50.0,
+  70.0
+ ],
+ "static_eta_eu_weighted": 0.99974174198448,
+ "dynamic_eta_overall": 0.9995653643191921,
+ "dynamic": {
+  "100->500 W/m2 @ 0.5 W/m2/s": 0.9994650885354792,
+  "100->500 W/m2 @ 2 W/m2/s": 0.9995135501485538,
+  "100->500 W/m2 @ 10 W/m2/s": 0.9997529817595859,
+  "100->500 W/m2 @ 30 W/m2/s": 0.9997474750084088,
+  "100->500 W/m2 @ 50 W/m2/s": 0.9997235544061858,
+  "300->1000 W/m2 @ 10 W/m2/s": 0.9997737166461825,
+  "300->1000 W/m2 @ 30 W/m2/s": 0.9997788522647569,
+  "300->1000 W/m2 @ 50 W/m2/s": 0.9997755649309921,
+  "300->1000 W/m2 @ 100 W/m2/s": 0.9997540129586354
+ },
+ "static_points_below_99_9": [
+  [
+   "8s x 8p (low voltage, 35 kW STC)",
+   50.0,
+   70.0,
+   99.854
+  ]
+ ],
+ "pv_c1_met_static_in_window": true,
+ "pv_c1_met_dynamic": true,
+ "shading": {
+  "local_only_eta": 0.52476093787142,
+  "with_scan_eta": 0.9926922760155152,
+  "scan_cost_pct": 0.015355302802055881
+ },
+ "curtailment": {
+  "135 A port-current limit": 0.9989714148398476,
+  "82.5 kW power limit": 0.9997249070808205
+ },
+ "va_loop_tau_ms": 0.546875
+}

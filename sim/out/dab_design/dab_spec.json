@@ -1,0 +1,2328 @@
+{
+  "meta": {
+    "design": "DAB-D60 power stage",
+    "generated_by": "sim/dab_design.py",
+    "status": "CALCULATED / SIMULATED - not bench-validated",
+    "requirements": "REQUIREMENTS.md sec. 3",
+    "reference": "Wolfspeed CRD60DD12N-GMB (PRD-10001 Rev.1), TI TIDA-010054 (TIDUES0F)",
+    "round": "2026-10-04 Asian device re-selection (SRC-1..4) and DAB60 review findings DR-01..07, IC-08, cost re-opening"
+  },
+  "power_stage": {
+    "topology": "dual active bridge, two full bridges of 2 paralleled TO-247-4 SiC MOSFETs per switch position (8 per bridge) on ceramic insulators on the earthed cold plate",
+    "f_sw_Hz": 100000.0,
+    "rated_power_W": 60000.0,
+    "port1": {
+      "V_operating": [
+        590,
+        950
+      ],
+      "V_full_load": [
+        600,
+        900
+      ],
+      "I_max_A": 102.0
+    },
+    "port2": {
+      "V_operating": [
+        400,
+        900
+      ],
+      "V_full_power_min": 700,
+      "I_max_A": 100.0
+    },
+    "modulation": "SPS near V1 = n*V2 and at heavy load; EPS/DPS/TPS from an offline LUT (a1, a2, phi vs V1, V2, P) elsewhere - see efficiency_map.csv columns a1/a2",
+    "dead_time": {
+      "mode": "hardware shoot-through guard (fixed window, worst case used in every loss figure) + firmware LUT on top (predicted ZVS transition + 20 ns, 50-300 ns)",
+      "min_ns": 50.0,
+      "max_ns": 300.0,
+      "fallback_fixed_ns": 100.0,
+      "note": "DR-02 decision: the hardware guard owns the minimum, firmware owns the rest; the drawn GDRV stretcher (104-354 ns) must be replaced by a 69-188 ns gate-level window",
+      "lut_rule": "dead time = t_d(off)(RG_off) - t_d(on) + predicted ZVS transition + 20 ns; RG_off 0.27 ohm adds ~3.5 ns of t_d(off) (DS Fig. 28)",
+      "hw_guard_ns": [
+        69.02999999999999,
+        187.5111764705882
+      ],
+      "hw_guard_basis": "min = t_d(off) 62 ns + t_f 15 ns (hot, design R_G,off) - t_d(on) 28 ns + 20 ns; logic-side delay element +/-15 % plus the NSI6651 delay mismatch 40 ns on both ends",
+      "study": {
+        "firmware LUT only (50-300 ns, no guard)": {
+          "J": 373.28692066235186,
+          "eta_mean": 0.9875120273986013,
+          "zvs": 0.5416666666666666,
+          "loss_800_60k_W": 794.4435271637101,
+          "p_diode_800_60k_W": 9.933766755582456,
+          "loss_800_30k_W": 255.04353477267603
+        },
+        "LUT + decided hardware guard": {
+          "J": 390.0641397433976,
+          "eta_mean": 0.9869794536326326,
+          "zvs": 0.4791666666666667,
+          "loss_800_60k_W": 838.5087244492852,
+          "p_diode_800_60k_W": 51.27674216531089,
+          "loss_800_30k_W": 273.33187846768215
+        },
+        "LUT + guard as drawn on DAB60 rev B (104-354 ns)": {
+          "J": 409.59020489905635,
+          "eta_mean": 0.9864342050472242,
+          "zvs": 0.5416666666666666,
+          "loss_800_60k_W": 891.7783590144596,
+          "p_diode_800_60k_W": 101.25054450609318,
+          "loss_800_30k_W": 296.65240213613407
+        },
+        "fixed 200 ns (CRD firmware)": {
+          "J": 397.4287751953337,
+          "eta_mean": 0.9865784014783777,
+          "zvs": 0.3958333333333333,
+          "loss_800_60k_W": 842.5077320432615,
+          "p_diode_800_60k_W": 55.02851762630869,
+          "loss_800_30k_W": 275.0817312068957
+        },
+        "fixed 400 ns (ST STSW-DABBIDIR)": {
+          "J": 414.73261279380995,
+          "eta_mean": 0.986322378562075,
+          "zvs": 0.5833333333333334,
+          "loss_800_60k_W": 906.4807603213711,
+          "p_diode_800_60k_W": 115.04233645397943,
+          "loss_800_30k_W": 303.4847017098591
+        }
+      },
+      "study_W": {
+        "st_400ns_minus_ours_800_60k": 67.97203587208594,
+        "st_400ns_diode_800_60k": 115.04233645397943,
+        "drawn_minus_ours_800_60k": 53.26963456517444
+      }
+    },
+    "hard_switching": {
+      "die_peak_V_ngspice": {
+        "v1max": 1231.62887,
+        "ioffmax": 1085.60768,
+        "hard_b1": 1398.2907,
+        "hard_b2": 1436.53461
+      },
+      "rule": "no hard turn-on at >= 800 V: TPS LUT keeps ZVS; firmware blocks SPS below the LUT's ZVS boundary and checks the LUT integrity at start; the decks overstate the overshoot (~1.5x on the GM4) - DPT on the real layout with R_G,on is a release condition"
+    }
+  },
+  "modules": {
+    "bridge1_port1": {
+      "mpn": "2 x IV3Q12013T4Z per switch, 8 per bridge (alternate SG2M014120LJ)",
+      "rating": "1200 V 13.4 mOhm typ discretes, TO-247-4 Kelvin source"
+    },
+    "bridge2_port2": {
+      "mpn": "2 x IV3Q12013T4Z per switch, 8 per bridge (alternate SG2M014120LJ)",
+      "rating": "1200 V 13.4 mOhm typ discretes, TO-247-4 Kelvin source"
+    },
+    "datasheet": [
+      "docs/datasheets/power-semiconductors/IV3Q12013T4Z.pdf",
+      "docs/datasheets/power-semiconductors/SG2M014120LJ.pdf"
+    ],
+    "insulator": {
+      "mpn": "Innovacera AlN 40 x 28 x 1.0 mm (no hole, clip-mounted)",
+      "maker": "Xiamen Innovacera (CN)",
+      "src": "docs/datasheets/thermal/Innovacera-AlN-thermal-pads.pdf p3, p4, p7",
+      "grease": "Shin-Etsu G-779, docs/datasheets/thermal/Shin-Etsu-G-779.pdf p1",
+      "overhang_mm": [
+        6.05,
+        9.55
+      ],
+      "rth_stack": 0.13,
+      "c_tab": 2.5892000111999998e-11,
+      "requirement": {
+        "class": "basic",
+        "working_voltage_V_dc": 950,
+        "recurring_peak_V": 1199,
+        "PD_test_Vpk": 1799,
+        "PD_max_pC": 10,
+        "AC_test_V_rms": 2200,
+        "DC_test_V": 3111,
+        "impulse_V": 6000,
+        "creepage_mm_PD2_group_I": 5.0,
+        "clearance_mm_2000_3000_4000m": [
+          5.5,
+          6.3,
+          7.1
+        ],
+        "src": "sim/out/insulation/report.md sec. 3 table (D-032, IC-08)"
+      }
+    },
+    "paralleling": {
+      "R_DS_spread_dr": 0.18181818181818188,
+      "current_factor_hottest": 1.1818181818181819,
+      "conduction_loss_factor": 1.1427498121712998,
+      "switching_loss_factor": 1.25,
+      "rule": "hottest device RMS <= 90 % of its lead rating (106 A)",
+      "layout": "each device its own R_G,on / R_G,off and Kelvin source return; Miller clamp per device (PNP follower as D-028); matched V_th bin recommended (sharing factor assumes none)"
+    }
+  },
+  "gate_drive": {
+    "driver": "NOVOSENSE NSI6651ASC-DSWR industrial grade (one per switch position, 8 total; D-035). The -Q1 grade fails the DESAT and dead-time budgets below (I_STO 100 mA min, t_pd 40-130 ns)",
+    "bias": "TI UCC14241-Q1 isolated, 24 V input, regulated +18/-3.5 V (VDD-VEE 21.5 V, COM-VEE 3.5 V, both in its 18-25 V / >= 2.5 V range), reinforced 1414 V DC (D-016)",
+    "P_bias_per_switch_W": 1.2530000000000001,
+    "VGS_on_V": 18.0,
+    "VGS_off_V": -3.5,
+    "RG_on_ext_ohm": 2.0,
+    "RG_off_ext_ohm": 1.5,
+    "RG_note": "per device: R_G,off 1.5 ohm = smallest E24 value keeping the NSI6651 sink <= 10 A at VDD-VEE 21.78 V, ROL 0.3 ohm, R_G,int 2.3 ohm (lowest maker) and -1 % resistor; R_G,on 2 ohm (hard-switched edges only; ZVS edges are not affected)",
+    "I_sink_peak_max_A": 9.93363740022805,
+    "I_source_peak_max_A": 5.01831797235023,
+    "dvdt_off_V_per_ns": 21.54882154882155,
+    "Qg_C": 4.2e-07,
+    "P_gate_per_switch_W": 0.903,
+    "CMTI_min_V_per_ns": 150,
+    "desat": {
+      "V_DS_trip_V": 7.01,
+      "blanking_ns": 591.860465116279,
+      "response_total_ns_max": 1764.8604651162789,
+      "response_basis": "NSI6651 industrial: LEB 200 ns (+25 %) + C_pin 15 pF x 9.8 V / 430 uA + deglitch 265 + DESAT->OUT 300 ns + soft turn-off to the plateau at 0.25 A",
+      "soft_turn_off_A": 0.25,
+      "t_sc_assumed_us": 1.12,
+      "t_sc_basis": "ASSUMPTION per device (no Chinese maker publishes one): {'IV3Q12013T4Z': 2e-06, 'SG2M014120LJ': 2e-06} us at <= 800 V / 25 C start, x 800/1000 x 0.7 for 1000 V / 150 C; ROHM SCT4018KR, the only Asian part with a rating, states 4.0 us typ at 18 V / 800 V (p3)",
+      "note": "UCC21710 OC pin 0.7 V (p9) with external DESAT network (p27); 7 V = ~340 A at Tj 150 C; short-circuit withstand of GM4 not published -> confirm by SC test",
+      "margin_vs_assumed_tsc": 0.6346110767041336,
+      "residual_risk": "withstand unknown for both makers; a short-circuit test on samples at 950 V / 150 C is a release condition, and the makers must supply t_SC"
+    },
+    "RG_per": "per device (npar = 2)"
+  },
+  "transformer": {
+    "turns_ratio_N1_N2": "11:12",
+    "n": 0.9166666666666666,
+    "L_sigma_target_H": 9.401687781624187e-07,
+    "L_sigma_tol": "+/-20 % (design target, referred to N1)",
+    "L_m_H": 0.00015,
+    "L_m_tol": "+/-10 %",
+    "Vs_per_half_period": 0.00475,
+    "I1_rms_max_A": 137.2946977176475,
+    "I2_rms_max_A": 128.62150865044765,
+    "I1_pk_max_A": 169.29027098761978,
+    "I2_pk_max_A": 154.78756797058924,
+    "loss_max_W": 146.1907140136326,
+    "hot_spot_max_C": 130.0,
+    "isolation": {
+      "port1_to_port2": {
+        "class": "basic (simple separation) - D-032 resolves the former \"pending\"",
+        "working_voltage_V_dc": 1850,
+        "recurring_peak_V": 2099,
+        "frequency_kHz": 100,
+        "PD_test_Vpk": 3149,
+        "PD_max_pC": 10,
+        "AC_test_V_rms": 3323,
+        "DC_test_V": 4700,
+        "impulse_V": 6000,
+        "creepage_mm": {
+          "PD2 group I (CTI >= 600)": 10.0,
+          "PD2 group IIIa": 20.0,
+          "PD1 (coated)": 7.5
+        },
+        "clearance_mm_2000_3000_4000m": [
+          5.5,
+          6.3,
+          7.1
+        ],
+        "src": "sim/out/insulation/report.md sec. 3 table (D-032, IC-08)"
+      },
+      "primary_winding_to_core": {
+        "class": "basic",
+        "working_voltage_V_dc": 950,
+        "recurring_peak_V": 1199,
+        "PD_test_Vpk": 1799,
+        "PD_max_pC": 10,
+        "AC_test_V_rms": 2200,
+        "DC_test_V": 3111,
+        "impulse_V": 6000,
+        "creepage_mm_PD2_group_I": 5.0,
+        "clearance_mm_2000_3000_4000m": [
+          5.5,
+          6.3,
+          7.1
+        ],
+        "src": "sim/out/insulation/report.md sec. 3 table (D-032, IC-08)"
+      },
+      "secondary_winding_to_core": {
+        "class": "basic",
+        "working_voltage_V_dc": 900,
+        "recurring_peak_V": 1149,
+        "PD_test_Vpk": 1724,
+        "PD_max_pC": 10,
+        "AC_test_V_rms": 2200,
+        "DC_test_V": 3111,
+        "impulse_V": 6000,
+        "creepage_mm_PD2_group_I": 5.0,
+        "clearance_mm_2000_3000_4000m": [
+          5.5,
+          6.3,
+          7.1
+        ],
+        "src": "sim/out/insulation/report.md sec. 3 table (D-032, IC-08) (PD test 1.5 x recurring peak, same rule as port 1)"
+      },
+      "winding_to_NTC": {
+        "class": "reinforced",
+        "PD_test_Vpk": 2249,
+        "PD_max_pC": 10,
+        "AC_test_V_rms": 4400,
+        "impulse_V": 8000,
+        "src": "sim/out/insulation/report.md sec. 3 table (D-032, IC-08)"
+      },
+      "class": "basic port 1 - port 2 (simple separation) at 1850 V DC; basic each winding to the earthed core / cold plate",
+      "PD_max_pC": 10
+    },
+    "cooling": "cold plate",
+    "L_split_note": "only the total series inductance (leakage + external) 6.50 uH +/-5 % is an electrical requirement; the split 0.94 + 5.56 uH is the magnetics design's (magnetics design files rev M1 / M1 (sim/out/magnetics/design_dab_transformer.json; sim/out/magnetics/design_dab_series_inductor.json))",
+    "construction": "designed by the magnetics engineer: sim/out/magnetics/design_dab_transformer.json (the PM 114/93 reference construction and the 0.40 K/W requirement are withdrawn, MG-01..04, MG-14)",
+    "loss_basis": "magnetics design files rev M1 / M1 (sim/out/magnetics/design_dab_transformer.json; sim/out/magnetics/design_dab_series_inductor.json) - loss model read by sim/dab_design.py (Steinmetz + iGSE, R(h) at 90 C)",
+    "Rth_needed_note": "the construction must keep the hot spot <= 130 C at 50 C coolant inlet with its own loss at the worst map point",
+    "electrical_requirements": [
+      {
+        "point": "max I_L rms",
+        "V1_V": 600.0,
+        "V2_V": 650.0,
+        "P_W": -60000.0,
+        "a1_deg": 20.0,
+        "a2_deg": 20.0,
+        "phi_deg": -61.17450630411187,
+        "I_L_rms_A": 134.56415647211654,
+        "I_L_pk_A": 157.19292025441598,
+        "I_sec_rms_A_secondary_side": 126.06627825703835,
+        "I_m_pk_A": 8.82716049382716,
+        "I_L_harmonics_rms_A": {
+          "1": 132.10538572113626,
+          "3": 25.355333394394545,
+          "5": 3.087287284373078,
+          "7": 1.0285989065169339,
+          "9": 0.0024840165646322684,
+          "11": 0.2940495476662979,
+          "13": 0.6150769045660425,
+          "15": 1.0031437646123154,
+          "17": 0.3076321034066067,
+          "19": 0.4728908533440457,
+          "21": 0.5070741427422304,
+          "23": 0.09493567327256201,
+          "25": 0.09854862772821846,
+          "27": 0.002517711340021869,
+          "29": 0.02035878135354992,
+          "31": 0.13377060620277786
+        },
+        "winding_Vs_half_period_primary_referred": 0.002648148148148148,
+        "f_sw_Hz": 100000.0
+      },
+      {
+        "point": "max I_L peak",
+        "V1_V": 700.0,
+        "V2_V": 450.0,
+        "P_W": 40000.0,
+        "a1_deg": 59.99999999999999,
+        "a2_deg": 10.0,
+        "phi_deg": 78.39132884715465,
+        "I_L_rms_A": 108.53955691678013,
+        "I_L_pk_A": 167.8372784164586,
+        "I_sec_rms_A_secondary_side": 99.9617793788015,
+        "I_m_pk_A": 6.493055555555557,
+        "I_L_harmonics_rms_A": {
+          "1": 107.8301739870581,
+          "3": 9.761469957074961,
+          "5": 6.130544724097855,
+          "7": 4.221560855118244,
+          "9": 0.7896389340394985,
+          "11": 1.4347308691151532,
+          "13": 0.5956580386861392,
+          "15": 0.10986653785627987,
+          "17": 0.4377045951089049,
+          "19": 0.3644786300744124,
+          "21": 0.05718637109423609,
+          "23": 0.19820072702475966,
+          "25": 0.21050817898338384,
+          "27": 0.08804335332546663,
+          "29": 0.2060178652924854,
+          "31": 0.2166206527906801
+        },
+        "winding_Vs_half_period_primary_referred": 0.001947916666666667,
+        "f_sw_Hz": 100000.0
+      },
+      {
+        "point": "max I_s rms",
+        "V1_V": 600.0,
+        "V2_V": 650.0,
+        "P_W": -60000.0,
+        "a1_deg": 20.0,
+        "a2_deg": 20.0,
+        "phi_deg": -61.17450630411187,
+        "I_L_rms_A": 134.56415647211654,
+        "I_L_pk_A": 157.19292025441598,
+        "I_sec_rms_A_secondary_side": 126.06627825703835,
+        "I_m_pk_A": 8.82716049382716,
+        "I_L_harmonics_rms_A": {
+          "1": 132.10538572113626,
+          "3": 25.355333394394545,
+          "5": 3.087287284373078,
+          "7": 1.0285989065169339,
+          "9": 0.0024840165646322684,
+          "11": 0.2940495476662979,
+          "13": 0.6150769045660425,
+          "15": 1.0031437646123154,
+          "17": 0.3076321034066067,
+          "19": 0.4728908533440457,
+          "21": 0.5070741427422304,
+          "23": 0.09493567327256201,
+          "25": 0.09854862772821846,
+          "27": 0.002517711340021869,
+          "29": 0.02035878135354992,
+          "31": 0.13377060620277786
+        },
+        "winding_Vs_half_period_primary_referred": 0.002648148148148148,
+        "f_sw_Hz": 100000.0
+      },
+      {
+        "point": "nominal 800 / 873 V 60 kW",
+        "V1_V": 800.0,
+        "V2_V": 872.7272727272727,
+        "P_W": 60000.0,
+        "a1_deg": 14.999999999999998,
+        "a2_deg": 29.999999999999996,
+        "phi_deg": 20.290675848088366,
+        "I_L_rms_A": 86.09053069235652,
+        "I_L_pk_A": 95.01085760030209,
+        "I_sec_rms_A_secondary_side": 80.50623094312492,
+        "I_m_pk_A": 11.11111111111111,
+        "I_L_harmonics_rms_A": {
+          "1": 83.01494361998762,
+          "3": 21.493542229381035,
+          "5": 7.078854529052358,
+          "7": 1.3125567413129278,
+          "9": 1.4840656409677178,
+          "11": 1.5288688381740065,
+          "13": 0.8685805315081564,
+          "15": 0.4575098894250882,
+          "17": 0.45676243283274715,
+          "19": 0.2687615847581986,
+          "21": 0.2540707207919321,
+          "23": 0.4966936979626005,
+          "25": 0.5395149911513265,
+          "27": 0.38046823307759975,
+          "29": 0.17742725208355345,
+          "31": 0.15362434037649642
+        },
+        "winding_Vs_half_period_primary_referred": 0.0033333333333333335,
+        "f_sw_Hz": 100000.0
+      },
+      {
+        "point": "800 / 800 V 60 kW",
+        "V1_V": 800.0,
+        "V2_V": 800.0,
+        "P_W": 60000.0,
+        "a1_deg": 29.999999999999996,
+        "a2_deg": 14.999999999999998,
+        "phi_deg": 38.246116207001066,
+        "I_L_rms_A": 91.20692488233175,
+        "I_L_pk_A": 117.72287130399198,
+        "I_sec_rms_A_secondary_side": 84.95012442145362,
+        "I_m_pk_A": 11.203703703703704,
+        "I_L_harmonics_rms_A": {
+          "1": 88.18854719826805,
+          "3": 22.036194174909774,
+          "5": 6.81920869865093,
+          "7": 1.3539463619178116,
+          "9": 1.7977926214058204,
+          "11": 1.5739739720500436,
+          "13": 0.9172822876245817,
+          "15": 0.6684816271483258,
+          "17": 0.4970815114470304,
+          "19": 0.2749052636814003,
+          "21": 0.49629371472994244,
+          "23": 0.6252475718767567,
+          "25": 0.4852211839988433,
+          "27": 0.21451030122851739,
+          "29": 0.0972415687715264,
+          "31": 0.13987096766034618
+        },
+        "winding_Vs_half_period_primary_referred": 0.0033611111111111107,
+        "f_sw_Hz": 100000.0
+      },
+      {
+        "point": "800 / 800 V 10 kW",
+        "V1_V": 800.0,
+        "V2_V": 800.0,
+        "P_W": 10000.0,
+        "a1_deg": 50.0,
+        "a2_deg": 50.0,
+        "phi_deg": 5.645301925375105,
+        "I_L_rms_A": 20.514762232698004,
+        "I_L_pk_A": 36.21034791428095,
+        "I_sec_rms_A_secondary_side": 15.937065728840533,
+        "I_m_pk_A": 8.82716049382716,
+        "I_L_harmonics_rms_A": {
+          "1": 20.114334341893098,
+          "3": 1.491762316446193,
+          "5": 1.9193774625573037,
+          "7": 2.341490650368531,
+          "9": 1.2726541436434664,
+          "11": 0.125985482450747,
+          "13": 0.9825819565172291,
+          "15": 0.981180194538151,
+          "17": 0.36897760401392576,
+          "19": 0.3203173241563381,
+          "21": 0.6400888707996011,
+          "23": 0.4771687757562566,
+          "25": 0.04605688641989143,
+          "27": 0.32161339087382984,
+          "29": 0.4004029842026709,
+          "31": 0.20378792253503694
+        },
+        "winding_Vs_half_period_primary_referred": 0.002648148148148148,
+        "f_sw_Hz": 100000.0
+      },
+      {
+        "point": "950 / 900 V derating corner",
+        "V1_V": 950.0,
+        "V2_V": 900.0,
+        "P_W": 60000.0,
+        "a1_deg": 29.999999999999996,
+        "a2_deg": 14.999999999999998,
+        "phi_deg": 29.71879347841791,
+        "I_L_rms_A": 79.56270200849666,
+        "I_L_pk_A": 118.39959239185801,
+        "I_sec_rms_A_secondary_side": 72.79541297194336,
+        "I_m_pk_A": 12.604166666666666,
+        "I_L_harmonics_rms_A": {
+          "1": 76.81237403125229,
+          "3": 19.39258070965125,
+          "5": 6.8637121258792,
+          "7": 1.3390173864763966,
+          "9": 1.0620501329218197,
+          "11": 1.5989615251247282,
+          "13": 1.1611041978410488,
+          "15": 0.40554341245944464,
+          "17": 0.2168931882195454,
+          "19": 0.49499569655791603,
+          "21": 0.43596554469817145,
+          "23": 0.1879117354055081,
+          "25": 0.09278103420954364,
+          "27": 0.22428012081078214,
+          "29": 0.20481016559471224,
+          "31": 0.07901673267846447
+        },
+        "winding_Vs_half_period_primary_referred": 0.00378125,
+        "f_sw_Hz": 100000.0
+      }
+    ]
+  },
+  "series_inductor": {
+    "L_total_H": 6.5e-06,
+    "L_total_tol": "+/-5 % (leakage + external, measured as a matched set)",
+    "L_external_nominal_H": 5.559831221837581e-06,
+    "L_ext_trim_range_H": [
+      5.046797466205097e-06,
+      6.0728649774700646e-06
+    ],
+    "position": "primary (port-1) side, in series with the transformer",
+    "I_rms_max_A": 137.2946977176475,
+    "I_pk_max_A": 169.29027098761978,
+    "I_sat_min_A": 635.0,
+    "loss_max_W": 80.31887410217206,
+    "construction": "designed by the magnetics engineer: sim/out/magnetics/design_dab_series_inductor.json",
+    "loss_basis": "magnetics design files rev M1 / M1 (sim/out/magnetics/design_dab_transformer.json; sim/out/magnetics/design_dab_series_inductor.json)",
+    "isolation": {
+      "class": "basic",
+      "working_voltage_V_dc": 950,
+      "recurring_peak_V": 1199,
+      "PD_test_Vpk": 1799,
+      "PD_max_pC": 10,
+      "AC_test_V_rms": 2200,
+      "DC_test_V": 3111,
+      "impulse_V": 6000,
+      "creepage_mm_PD2_group_I": 5.0,
+      "clearance_mm_2000_3000_4000m": [
+        5.5,
+        6.3,
+        7.1
+      ],
+      "src": "sim/out/insulation/report.md sec. 3 table (D-032, IC-08)",
+      "dvdt_V_per_ns": 57,
+      "note": "winding at the bridge-1 switch node, core and bracket on the earthed cold plate"
+    },
+    "I_sat_basis": "1.1 x the trip fault peak (DR-03, soft turn-off path) at 100 C"
+  },
+  "flux_balance": {
+    "countermeasure": "firmware flux-balance loop on the averaged transformer current (DC-coupled sensor) + gapped transformer (Lm 150 uH) + hardware trip on |I_dc|",
+    "trip_I_dc_A": 5.0,
+    "trip_time_ms": 1.0,
+    "B_dc_with_control_T": 0.011892177589852008,
+    "open_loop_5ns_skew_I_dc_A": 44.05599959979722,
+    "blocking_cap_alternative": {
+      "fitted": false,
+      "bank": "6 x C4AQUEW5450A3BJ (270 uF)",
+      "C_min_TI_rule_F": 3.896968601628376e-05,
+      "loss_W": 9.739080911046436,
+      "volume_L": 1.009125,
+      "provision": "bolted link in the primary AC bus so a blocking-cap module can be added"
+    }
+  },
+  "capacitor_banks": {
+    "port1": {
+      "mpn": "C4AQUEW5450A3BJ",
+      "manufacturer": "KEMET",
+      "qty": 3,
+      "C_total_F": 0.000135,
+      "V_rating_V": 1300.0,
+      "V_max_operating_V": 950.0,
+      "I_ripple_rms_bank_A": 80.98621577583032,
+      "I_ripple_rms_per_cap_A": 26.995405258610106,
+      "I_rms_rating_per_cap_A": 34.0,
+      "ripple_pp_V": 1.314725178302189,
+      "hot_spot_est_C": 75.8139163401621,
+      "V_allowed_at_hot_spot_V": 1222.4811154645054,
+      "datasheet": "docs/datasheets/passives-capacitors/C4AQ.pdf p14"
+    },
+    "port2": {
+      "mpn": "C4AQQEW5650A3BJ",
+      "manufacturer": "KEMET",
+      "qty": 3,
+      "C_total_F": 0.00019499999999999997,
+      "V_rating_V": 1100.0,
+      "V_max_operating_V": 900.0,
+      "I_ripple_rms_bank_A": 76.91139029842148,
+      "I_ripple_rms_per_cap_A": 25.637130099473826,
+      "I_rms_rating_per_cap_A": 37.0,
+      "ripple_pp_V": 0.863595878338097,
+      "hot_spot_est_C": 71.96217640321971,
+      "V_allowed_at_hot_spot_V": 1073.8376479570704,
+      "datasheet": "docs/datasheets/passives-capacitors/C4AQ.pdf p14"
+    }
+  },
+  "dc_link_snubber_hf": {
+    "per_bridge": "6 x (6.8 ohm 1.5 W 2512 + 2.2 nF C0G 2 kV 2220) RC across DC+/DC- at the module terminals (CRD UG Fig. 22 network, resistor rating from snubber_study.csv)",
+    "mpn": "resistor/RC capacitor RFQ; HF caps CKC33C473KEGACAUTO (KEMET/YAGEO)",
+    "note": "port 1 caps must be >= 1.5 kV for 950 V + overshoot; CRD used 2 kV. Resistors: pulse-rated thick film, wide-terminal 2512 with a thermal path to the plane. Values keep the simulated CRD-equivalent network (R/n, n*C); nearest standard parts 13.7 ohm (E96) and 1.1 nF (E24) change it by < 1 %",
+    "hf_caps_per_bridge": "20 x 47 nF C0G >= 1.2 kV (3640) KEMET KC-LINK CKC33C473KEGACAUTO across DC+/DC- at the switch positions, spread over the two legs",
+    "P_per_resistor_worst_W": 0.5501510534904875,
+    "P_per_resistor_without_hf_caps_W": 17.381984124392478,
+    "P_ring_max_W_per_bridge": 28.56247254431605,
+    "ring_down_rule": "each bridge commutation reverses its DC current (dI = 2 I_sw in SPS, I_sw per leg in TPS); 0.5 L_bus dI^2 rings down in the terminal network twice per period (P = f L_bus sum dI^2), shared by RC resistors (5 % worst simulated), HF-cap ESR, film-bank ESR and copper",
+    "L_bus_target_nH": "design <= 7.2 (DS Fig. 19 basis; all numbers here use 7.2); every nH less cuts the ring-down power proportionally - measure by DPT",
+    "study": "sim/out/dab_design/snubber_study.csv (ngspice, conservative switch model)",
+    "hf_caps": {
+      "n": 20,
+      "mpn": "CKC33C473KEGACAUTO",
+      "I_rms_per_cap_max_A": 6.685198924659337,
+      "I_pk_per_cap_max_A": 18.297169739999998,
+      "P_per_cap_max_W": 0.2234594233113318,
+      "I_rms_rule_A": 9.1,
+      "rule": "<= 70 % of the typical 13 A rms (1 MHz, heatsinked) of the KC-LINK curve (docs/datasheets/passives-capacitors/KEMET-KC-LINK.pdf p2, p3, p5, p6); ESR 5 mOhm / ESL 1.0 nH per part ASSUMED",
+      "v_rating": 1200.0,
+      "src": "docs/datasheets/passives-capacitors/KEMET-KC-LINK.pdf p2, p3, p5, p6"
+    }
+  },
+  "sensing": {
+    "V1": {
+      "range_V": [
+        0,
+        1200
+      ],
+      "note": "isolated amplifier (AMC3330 class as CRD)"
+    },
+    "V2": {
+      "range_V": [
+        0,
+        1100
+      ]
+    },
+    "I1_dc": {
+      "range_A": [
+        -150,
+        150
+      ],
+      "sensor": "LEM HO 120-NP class (+/-300 A, as CRD)"
+    },
+    "I2_dc": {
+      "range_A": [
+        -150,
+        150
+      ],
+      "sensor": "LEM HO 120-NP class"
+    },
+    "I_xfmr": {
+      "range_A": [
+        -250,
+        250
+      ],
+      "peak_operating_A": 169.29027098761978,
+      "bandwidth_Hz_min": 1000000.0,
+      "note": "DC-coupled (flux balance); LEM HOB 130-P meets range and bandwidth (+/-250 A, 1 MHz, t_D90 <= 200 ns, HOB-P p9); HO 120-NP (CRD) at 350 kHz/2.5 us would not",
+      "sensor": "LEM HOB 130-P",
+      "range_check": "+/-250 A covers: peak operating 169 A, transients in dab_control up to 174 A with the split phase update (a naive phase step would add ~47 A), the OC trip 210 A with its 200-220 A tolerance (220/250 = 88 % of range) - required range >= 1.1 x 220 = 242 A"
+    },
+    "NTC": {
+      "part": "module NTC 5 kOhm B25/50 3380",
+      "readout": "UCC21710 AIN/APWM (as CRD)"
+    },
+    "coolant": "inlet temperature + flow switch"
+  },
+  "protection": {
+    "I_xfmr_oc_trip_A": 200.0,
+    "I_xfmr_oc_trip_vs_V": "min(200 A, I where V_bus,max + dV(I) = 1150 V, dV from DS Fig. 19) for the higher-voltage bridge",
+    "V1_ov_fw_V": 960,
+    "V1_ov_hw_V": 1000,
+    "V2_ov_fw_V": 920,
+    "V2_ov_hw_V": 950,
+    "V1_uv_V": 580,
+    "V2_uv_V": 380,
+    "I1_oc_A": 115,
+    "I2_oc_A": 115,
+    "module_ntc_trip_C": null,
+    "coolant_inlet_derate_C": 50,
+    "coolant_flow_trip_lpm": 6,
+    "xfmr_dc_trip_A": 5.0,
+    "desat": "see gate_drive.desat",
+    "v1_above_900V": "power limited by derating map (switching SOA)",
+    "I_xfmr_oc_trip_band_A": [
+      190.0,
+      210.0
+    ],
+    "I_xfmr_oc_vdep_implementation": "NOT on the CTRL CMPSS: AN1 passes the AMC3330 (1.6-2.6 us) and acts after the local trip. The local hardware window is the only fast OC protection; with soft turn-off its level need not depend on the bus voltage (overshoot 33 V)",
+    "local_ov_board": {
+      "port1": {
+        "trip_V": [
+          972.0,
+          986.0,
+          1000.0
+        ],
+        "response_us": 63.0,
+        "slew_V_per_us": 0.7555555555555554,
+        "V_peak": 1048.2585945053663,
+        "I_off_SSOA_limit_at_peak_A": 110.2495702175833,
+        "cap_V_rating": 1300.0,
+        "cap_V_allowed_hot_spot": 1222.4811154645054
+      },
+      "port2": {
+        "trip_V": [
+          924.0,
+          937.0,
+          950.0
+        ],
+        "response_us": 63.0,
+        "slew_V_per_us": 0.5128205128205129,
+        "V_peak": 982.7939485672379,
+        "I_off_SSOA_limit_at_peak_A": 129.23288993552148,
+        "cap_V_rating": 1100.0,
+        "cap_V_allowed_hot_spot": 1073.8376479570704
+      },
+      "verdict": "DC: inside the module 1200 V and both capacitor banks (port 1 1300 V class, port 2 1074 V allowed at its hot spot). Switching: while the bus is above ~950 V the turn-off SOA allows only 110 A (port 1 at 1048 V) vs up to 113 A at full load, so the firmware OV (960/920 V) must set the phase to zero within one switching period (cycle-by-cycle via CMPSS/trip zone) - the 63 us hardware path is the backup only"
+    },
+    "trip_turn_off": {
+      "oc_trip_A": 200.0,
+      "oc_band_A": [
+        190.0,
+        210.0
+      ],
+      "slope_A_per_us": 287.8205128205128,
+      "mechanism": "every hardware trip (local OC window, port OV, DC flux, +24V UV, driver RDY/UVLO, cross-trip from the other bridge, over-temperature) injects into the DESAT pin of all 8 NSI6651 drivers (diode-OR, >= 10 V from each driver's own VCC2 through a switch referenced to that driver's GND2: one isolated trip channel per driver, reinforced like the driver itself), so every switch turns off through the driver soft turn-off (I_STO >= 0.25 A, industrial grade). RST/EN low alone is a normal fast turn-off (NSI datasheet p28) and is used only AFTER the soft turn-off, >= 3 us later, to latch the state",
+      "t_inject_us": 0.665,
+      "t_soft_ramp_us": 0.608,
+      "t_response_us": 1.273,
+      "I_peak_fault_A": 576.3955128205127,
+      "I_peak_pwm_bounded_A": 337.60683760683764,
+      "I_per_device_peak_A": 340.59734848484845,
+      "I_DM_device_A": 367.0,
+      "soft_turn_off_fall_ns": 264.00000000000006,
+      "overshoot_soft_V": 32.749745046620035,
+      "V_peak_soft_V": 1032.74974504662,
+      "inductor_I_sat_100C_A": 380.51514795817354,
+      "hard_path_as_drawn": {
+        "t_us": 0.78,
+        "I_peak_A": 434.5,
+        "V_peak_V": 3428.6360380851506
+      },
+      "ov_trip_turn_off": {
+        "I_A": 110.2495702175833
+      },
+      "inductor_note": "series inductor saturates at about 381 A (0.41 T, 100 C) against a fault peak of 576 A: the I_sat_min requirement is raised to 634 A (1.1 x fault peak)"
+    },
+    "trip_temperatures": {
+      "sensor": "metal-tag NTC (B57703M class) on the cold plate between the two hottest positions of each bridge, PELV-insulated probe, hardware comparator into the bridge trip chain (fails \"hot\": an open NTC must read as over-temperature)",
+      "tj_limit_for_trip_C": 165.0,
+      "offset_plate_to_tj_normal_K": 28.664149590971327,
+      "offset_plate_to_tj_pessimistic_K": 31.11046311791509,
+      "plate_trip_C": 77.0,
+      "plate_firmware_derate_from_C": 67.0,
+      "plate_max_normal_C": 56.371940315051376,
+      "nuisance_margin_K": 20.628059684948624,
+      "plate_trip_Tj_based_ceiling_C": 133.0,
+      "plate_sees_fraction_of_device_rise": 0.18533604887983707,
+      "limitation": "a plate NTC sees only 19 % of a device's own temperature rise (R_th plate / (plate + j-c + insulator)): it detects coolant loss and gross local heating, not a single device's loss excursion - those are caught by DESAT / OC / ZVS supervision in firmware",
+      "transformer": {
+        "sensor": "NTC embedded at the winding hot spot by the vendor (reinforced to PELV, IC-08)",
+        "hardware_trip_C": 140.0,
+        "firmware_derate_from_C": 130.0,
+        "basis": "hot-spot design limit 130 C (class F 155 C with margin)"
+      },
+      "coolant": {
+        "inlet_derate_above_C": 50.0,
+        "thermostat_opens_C": 77.0,
+        "flow_trip_lpm": 6.0
+      }
+    },
+    "bridge_cross_trip": {
+      "required_us": 1.0,
+      "rule": "any trip, RDY/UVLO loss, missing +24 V or an unplugged/unpowered bridge board stops BOTH bridges in hardware within 1 us (common TRIP_N/LATCH between the two bridge logic blocks, pull-down to \"fault\" on the receiving side); a stopped bridge must never face a switching one for more than one edge",
+      "basis": "with one bridge stopped the other drives L against the diode bridge: current rises at up to 97 A/us (1000 V - n x 400 V across 6.5 uH)"
+    }
+  },
+  "precharge": {
+    "port1": {
+      "C_F": 0.000135,
+      "V_max": 950,
+      "E_J": 60.91875,
+      "R_pre_ohm": 220.0,
+      "I_inrush_max_A": 4.318181818181818,
+      "time_to_98pct_s": 0.1188,
+      "t_dV_ok_s": 0.13525014368053606,
+      "close_main_when_dV_below_V": 10.0
+    },
+    "port2": {
+      "C_F": 0.00019499999999999997,
+      "V_max": 900,
+      "E_J": 78.975,
+      "R_pre_ohm": 220.0,
+      "I_inrush_max_A": 4.090909090909091,
+      "time_to_98pct_s": 0.17159999999999997,
+      "t_dV_ok_s": 0.19304183485716833,
+      "close_main_when_dV_below_V": 10.0
+    },
+    "authority": "sim/out/port_design/port_spec.json (gen/port.py): precharge R and relay, fuses, contactors, hold-closed interlock and discharge are specified there; the values above are copied from it for the DAB bank sizes, not chosen here",
+    "note": "resistor + contactor per ECO-07 on both ports (port block); the DAB is enabled only after the port block reports precharge complete and the main contactor closed"
+  },
+  "worst_case_stresses": {
+    "module_V_peak_V": 1199.9525331004286,
+    "module_V_peak_rule": "V_bus + L_loop x 0.8 I_off / t_f at the worst feasible point (L_loop 15 nH ASSUMED for the discrete layout, t_f 15 ns at the design R_G,off, hot)",
+    "P_ring_max_W_per_bridge": 28.56247254431605,
+    "I_xfmr_rms_A": 137.2946977176475,
+    "I_xfmr_pk_A": 169.29027098761978,
+    "I_sec_rms_A": 128.62150865044765,
+    "I_sec_pk_A": 154.78756797058924,
+    "I_switch_rms_A": 48.541005888552874,
+    "I_turn_off_max_bridge1_A": 169.29027098761978,
+    "I_turn_off_max_bridge2_A": 154.7875679705893,
+    "Tj_max_C": 89.90578721571754,
+    "Tj_max_at": [
+      600.0,
+      650.0,
+      -60000.0
+    ],
+    "I_cap1_rms_A": 80.98621577583032,
+    "I_cap2_rms_A": 76.91139029842148,
+    "I1_dc_max_A": 101.14443571066104,
+    "I2_dc_max_A": 93.36409450214866,
+    "I_device_rms_hottest_A": 57.366643322835216
+  },
+  "thermal": {
+    "coolant_inlet_C": 50.0,
+    "flow_lpm": 9.0,
+    "Rth_jh_K_W": null,
+    "Rth_hf_K_W": 0.045,
+    "cross_heating": 0.3,
+    "flow_order": "port-2 module first (UG p49), then port-1 module, then transformer/inductor plate",
+    "Rth_jc_K_W": 0.27,
+    "Rth_insulator_stack_K_W": 0.13,
+    "Rth_cp_per_device_K_W": 0.07,
+    "note": "discretes: R_th j-c + AlN/grease stack + cold-plate footprint per device; hottest device carries the sharing factors"
+  },
+  "parallel_branch_interface": {
+    "branches": "1..4 (+1 for N+1), DAB-09",
+    "per_branch_hardware": "own port block on both ports per sim/out/port_design/port_spec.json (DAB ports use its <= 135 A variant: HP10NH1GPV160 160 A gPV fuse, TDK HVC43-250A-24MC contactors with hold-closed interlock, 220 ohm precharge, active discharge), own current sensors",
+    "current_sharing": "common current/power reference over the CAN-B module bus + per-branch inner current loop on its own I2 sensor; sharing error = sensor gain mismatch (1 % with +/-1 % sensors); without per-branch loops a +/-5 % L_k spread gives +/-4.8 % (dab_control)",
+    "sync": "NONE (decision): no hardware carrier-sync line; branch carriers free-running (crystal tolerance only), so ripple at the shared buses beats slowly instead of interleaving",
+    "fault": "faulted branch: gates off (driver soft turn-off), its own contactors open; the others keep their own reference; the system controller learns the trip over CAN-B and applies the limit below",
+    "signals": [
+      "CAN-B module bus (ECO-02): references, status, fault report",
+      "ENABLE from SYS-IO-AUX safety chain (per branch)"
+    ],
+    "one_branch_fault": {
+      "system_limit_rule": "total reference <= N_alive x P_branch,max(V1, V2) from derating_charge_W; every branch also clamps its own reference to P_branch,max/V2 so a late or wrong CAN reference cannot overload the survivor",
+      "can_latency_assumed_ms": 10,
+      "pcs_must_be_told": "new power limit, same CAN frame",
+      "simulation": "sim/out/dab_control/metrics.json (one_branch_fault_*)"
+    }
+  },
+  "derating_charge_W": {
+    "V1=590": {
+      "V2=400": 37500.0,
+      "V2=450": 42500.0,
+      "V2=500": 47500.0,
+      "V2=550": 52500.0,
+      "V2=600": 57500.0,
+      "V2=650": 57500.0,
+      "V2=700": 57500.0,
+      "V2=750": 57500.0,
+      "V2=800": 57500.0,
+      "V2=850": 57500.0,
+      "V2=900": 47500.0
+    },
+    "V1=600": {
+      "V2=400": 37500.0,
+      "V2=450": 42500.0,
+      "V2=500": 47500.0,
+      "V2=550": 52500.0,
+      "V2=600": 57500.0,
+      "V2=650": 60000.0,
+      "V2=700": 60000.0,
+      "V2=750": 60000.0,
+      "V2=800": 60000.0,
+      "V2=850": 57500.0,
+      "V2=900": 50000.0
+    },
+    "V1=650": {
+      "V2=400": 37500.0,
+      "V2=450": 42500.0,
+      "V2=500": 47500.0,
+      "V2=550": 52500.0,
+      "V2=600": 57500.0,
+      "V2=650": 60000.0,
+      "V2=700": 60000.0,
+      "V2=750": 60000.0,
+      "V2=800": 60000.0,
+      "V2=850": 60000.0,
+      "V2=900": 57500.0
+    },
+    "V1=700": {
+      "V2=400": 35000.0,
+      "V2=450": 42500.0,
+      "V2=500": 47500.0,
+      "V2=550": 52500.0,
+      "V2=600": 57500.0,
+      "V2=650": 60000.0,
+      "V2=700": 60000.0,
+      "V2=750": 60000.0,
+      "V2=800": 60000.0,
+      "V2=850": 60000.0,
+      "V2=900": 60000.0
+    },
+    "V1=750": {
+      "V2=400": 32500.0,
+      "V2=450": 37500.0,
+      "V2=500": 42500.0,
+      "V2=550": 50000.0,
+      "V2=600": 55000.0,
+      "V2=650": 60000.0,
+      "V2=700": 60000.0,
+      "V2=750": 60000.0,
+      "V2=800": 60000.0,
+      "V2=850": 60000.0,
+      "V2=900": 60000.0
+    },
+    "V1=800": {
+      "V2=400": 30000.0,
+      "V2=450": 35000.0,
+      "V2=500": 40000.0,
+      "V2=550": 45000.0,
+      "V2=600": 50000.0,
+      "V2=650": 57500.0,
+      "V2=700": 60000.0,
+      "V2=750": 60000.0,
+      "V2=800": 60000.0,
+      "V2=850": 60000.0,
+      "V2=900": 60000.0
+    },
+    "V1=850": {
+      "V2=400": 22500.0,
+      "V2=450": 27500.0,
+      "V2=500": 32500.0,
+      "V2=550": 37500.0,
+      "V2=600": 42500.0,
+      "V2=650": 50000.0,
+      "V2=700": 57500.0,
+      "V2=750": 60000.0,
+      "V2=800": 60000.0,
+      "V2=850": 60000.0,
+      "V2=900": 60000.0
+    },
+    "V1=900": {
+      "V2=400": 12500.0,
+      "V2=450": 17500.0,
+      "V2=500": 25000.0,
+      "V2=550": 30000.0,
+      "V2=600": 35000.0,
+      "V2=650": 40000.0,
+      "V2=700": 47500.0,
+      "V2=750": 55000.0,
+      "V2=800": 60000.0,
+      "V2=850": 60000.0,
+      "V2=900": 60000.0
+    },
+    "V1=950": {
+      "V2=400": null,
+      "V2=450": null,
+      "V2=500": 12500.0,
+      "V2=550": 20000.0,
+      "V2=600": 25000.0,
+      "V2=650": 30000.0,
+      "V2=700": 35000.0,
+      "V2=750": 42500.0,
+      "V2=800": 52500.0,
+      "V2=850": 60000.0,
+      "V2=900": 60000.0
+    }
+  },
+  "verdict_950V": "ACCEPTABLE WITH DERATING, cosmic-ray risk NOT quantified: (1) cosmic ray: neither IV3Q12013T4Z nor SG2M014120LJ has a published FIT-vs-DC-voltage curve; 950 V is 79 % of V_DSS. For scale only, Wolfspeed's curves give 0.9 FIT (Gen 4) to 51 FIT (Gen 3) per bridge at 950 V at sea level for 0.3 cm2 per switch - the makers' curve is a release condition. (2) switching SOA: no switching-SOA curve for the discretes; with the assumed 15 nH loop and t_f 15 ns the turn-off current at 950 V must stay below 137 A per switch position (V_DS,peak <= 1200 V); P_max at 950 V: 60.0 kW at V2=900 V, 52.5 kW at 800 V, 35.0 kW at 700 V. (3) the loop inductance is the critical assumption: verify by DPT.",
+  "pessimistic": {
+    "basis": "loss model + unexplained CRD loss 91 W + 0.0 W/kW (fit of UG Fig. 57 vs our model of the CRD) added at every point; two bounding allocations",
+    "modules": {
+      "Tj_max_C": 86.63451627865228,
+      "Tj_max_at": [
+        600.0,
+        800.0
+      ],
+      "xfmr_hot_spot_max_C": 96.20072192709443,
+      "full_power_points_surviving": [
+        [
+          600.0,
+          700.0
+        ],
+        [
+          600.0,
+          750.0
+        ],
+        [
+          600.0,
+          800.0
+        ],
+        [
+          650.0,
+          700.0
+        ],
+        [
+          650.0,
+          750.0
+        ],
+        [
+          650.0,
+          800.0
+        ],
+        [
+          650.0,
+          850.0
+        ],
+        [
+          700.0,
+          700.0
+        ],
+        [
+          700.0,
+          750.0
+        ],
+        [
+          700.0,
+          800.0
+        ],
+        [
+          700.0,
+          850.0
+        ],
+        [
+          700.0,
+          900.0
+        ],
+        [
+          750.0,
+          700.0
+        ],
+        [
+          750.0,
+          750.0
+        ],
+        [
+          750.0,
+          800.0
+        ],
+        [
+          750.0,
+          850.0
+        ],
+        [
+          750.0,
+          900.0
+        ],
+        [
+          800.0,
+          700.0
+        ],
+        [
+          800.0,
+          750.0
+        ],
+        [
+          800.0,
+          800.0
+        ],
+        [
+          800.0,
+          850.0
+        ],
+        [
+          800.0,
+          900.0
+        ],
+        [
+          850.0,
+          750.0
+        ],
+        [
+          850.0,
+          800.0
+        ],
+        [
+          850.0,
+          850.0
+        ],
+        [
+          850.0,
+          900.0
+        ],
+        [
+          900.0,
+          800.0
+        ],
+        [
+          900.0,
+          850.0
+        ],
+        [
+          900.0,
+          900.0
+        ]
+      ],
+      "full_power_points_lost": [],
+      "eta_800_800": {
+        "30kW": 0.9879519976153762,
+        "60kW": 0.9846613665099192
+      },
+      "coolant_heat_W_max_60kW": 1209.294547497865,
+      "flow_for_5K_lpm": 4.007604134209992,
+      "fix": "coolant inlet would have to be <= 50 C (impractical: below dew point in most sites); practical fixes: 3 x IV3Q12013T4Z / SG2M014120LJ per switch (Tj max 73 C at full power) or derate to the pessimistic map (60 kW kept at 29 of 29 base full-power window points)",
+      "coolant_inlet_for_full_power_C": 50.0,
+      "derating_charge_W": {
+        "V1=590": {
+          "V2=400": 37500.0,
+          "V2=450": 42500.0,
+          "V2=500": 47500.0,
+          "V2=550": 52500.0,
+          "V2=600": 57500.0,
+          "V2=650": 57500.0,
+          "V2=700": 57500.0,
+          "V2=750": 57500.0,
+          "V2=800": 57500.0,
+          "V2=850": 57500.0,
+          "V2=900": 47500.0
+        },
+        "V1=600": {
+          "V2=400": 37500.0,
+          "V2=450": 42500.0,
+          "V2=500": 47500.0,
+          "V2=550": 52500.0,
+          "V2=600": 57500.0,
+          "V2=650": 60000.0,
+          "V2=700": 60000.0,
+          "V2=750": 60000.0,
+          "V2=800": 60000.0,
+          "V2=850": 57500.0,
+          "V2=900": 50000.0
+        },
+        "V1=650": {
+          "V2=400": 37500.0,
+          "V2=450": 42500.0,
+          "V2=500": 47500.0,
+          "V2=550": 52500.0,
+          "V2=600": 57500.0,
+          "V2=650": 60000.0,
+          "V2=700": 60000.0,
+          "V2=750": 60000.0,
+          "V2=800": 60000.0,
+          "V2=850": 60000.0,
+          "V2=900": 57500.0
+        },
+        "V1=700": {
+          "V2=400": 35000.0,
+          "V2=450": 40000.0,
+          "V2=500": 47500.0,
+          "V2=550": 52500.0,
+          "V2=600": 57500.0,
+          "V2=650": 60000.0,
+          "V2=700": 60000.0,
+          "V2=750": 60000.0,
+          "V2=800": 60000.0,
+          "V2=850": 60000.0,
+          "V2=900": 60000.0
+        },
+        "V1=750": {
+          "V2=400": 32500.0,
+          "V2=450": 37500.0,
+          "V2=500": 42500.0,
+          "V2=550": 50000.0,
+          "V2=600": 55000.0,
+          "V2=650": 60000.0,
+          "V2=700": 60000.0,
+          "V2=750": 60000.0,
+          "V2=800": 60000.0,
+          "V2=850": 60000.0,
+          "V2=900": 60000.0
+        },
+        "V1=800": {
+          "V2=400": 30000.0,
+          "V2=450": 35000.0,
+          "V2=500": 40000.0,
+          "V2=550": 45000.0,
+          "V2=600": 50000.0,
+          "V2=650": 57500.0,
+          "V2=700": 60000.0,
+          "V2=750": 60000.0,
+          "V2=800": 60000.0,
+          "V2=850": 60000.0,
+          "V2=900": 60000.0
+        },
+        "V1=850": {
+          "V2=400": 22500.0,
+          "V2=450": 27500.0,
+          "V2=500": 32500.0,
+          "V2=550": 37500.0,
+          "V2=600": 42500.0,
+          "V2=650": 50000.0,
+          "V2=700": 57500.0,
+          "V2=750": 60000.0,
+          "V2=800": 60000.0,
+          "V2=850": 60000.0,
+          "V2=900": 60000.0
+        },
+        "V1=900": {
+          "V2=400": 12500.0,
+          "V2=450": 17500.0,
+          "V2=500": 25000.0,
+          "V2=550": 30000.0,
+          "V2=600": 35000.0,
+          "V2=650": 40000.0,
+          "V2=700": 47500.0,
+          "V2=750": 55000.0,
+          "V2=800": 60000.0,
+          "V2=850": 60000.0,
+          "V2=900": 60000.0
+        },
+        "V1=950": {
+          "V2=400": null,
+          "V2=450": null,
+          "V2=500": 12500.0,
+          "V2=550": 20000.0,
+          "V2=600": 25000.0,
+          "V2=650": 30000.0,
+          "V2=700": 35000.0,
+          "V2=750": 42500.0,
+          "V2=800": 52500.0,
+          "V2=850": 60000.0,
+          "V2=900": 60000.0
+        }
+      }
+    },
+    "magnetics": {
+      "Tj_max_C": 83.63061125998902,
+      "Tj_max_at": [
+        600.0,
+        800.0
+      ],
+      "xfmr_hot_spot_max_C": 124.34710268579192,
+      "full_power_points_surviving": [
+        [
+          600.0,
+          700.0
+        ],
+        [
+          600.0,
+          750.0
+        ],
+        [
+          600.0,
+          800.0
+        ],
+        [
+          650.0,
+          700.0
+        ],
+        [
+          650.0,
+          750.0
+        ],
+        [
+          650.0,
+          800.0
+        ],
+        [
+          650.0,
+          850.0
+        ],
+        [
+          700.0,
+          700.0
+        ],
+        [
+          700.0,
+          750.0
+        ],
+        [
+          700.0,
+          800.0
+        ],
+        [
+          700.0,
+          850.0
+        ],
+        [
+          700.0,
+          900.0
+        ],
+        [
+          750.0,
+          700.0
+        ],
+        [
+          750.0,
+          750.0
+        ],
+        [
+          750.0,
+          800.0
+        ],
+        [
+          750.0,
+          850.0
+        ],
+        [
+          750.0,
+          900.0
+        ],
+        [
+          800.0,
+          700.0
+        ],
+        [
+          800.0,
+          750.0
+        ],
+        [
+          800.0,
+          800.0
+        ],
+        [
+          800.0,
+          850.0
+        ],
+        [
+          800.0,
+          900.0
+        ],
+        [
+          850.0,
+          750.0
+        ],
+        [
+          850.0,
+          800.0
+        ],
+        [
+          850.0,
+          850.0
+        ],
+        [
+          850.0,
+          900.0
+        ],
+        [
+          900.0,
+          800.0
+        ],
+        [
+          900.0,
+          850.0
+        ],
+        [
+          900.0,
+          900.0
+        ]
+      ],
+      "full_power_points_lost": [],
+      "eta_800_800": {
+        "30kW": 0.9879784924475579,
+        "60kW": 0.984721667285513
+      },
+      "coolant_heat_W_max_60kW": 1201.8803598533632,
+      "flow_for_5K_lpm": 3.9830335040707974,
+      "Rth_xfmr_needed_K_W": 0.3553523230332502,
+      "fix": "transformer hot-spot-to-coolant Rth <= 0.355 K/W would be needed (MG-02: 0.71 K/W is the best case of the reference pot core) - not credible: if the gap is in the magnetics the transformer must be redesigned for lower loss; otherwise derate per the pessimistic map",
+      "derating_charge_W": {
+        "V1=590": {
+          "V2=400": 37500.0,
+          "V2=450": 42500.0,
+          "V2=500": 47500.0,
+          "V2=550": 52500.0,
+          "V2=600": 55000.0,
+          "V2=650": 57500.0,
+          "V2=700": 57500.0,
+          "V2=750": 57500.0,
+          "V2=800": 57500.0,
+          "V2=850": 57500.0,
+          "V2=900": 47500.0
+        },
+        "V1=600": {
+          "V2=400": 37500.0,
+          "V2=450": 42500.0,
+          "V2=500": 47500.0,
+          "V2=550": 52500.0,
+          "V2=600": 55000.0,
+          "V2=650": 57500.0,
+          "V2=700": 60000.0,
+          "V2=750": 60000.0,
+          "V2=800": 60000.0,
+          "V2=850": 57500.0,
+          "V2=900": 50000.0
+        },
+        "V1=650": {
+          "V2=400": 37500.0,
+          "V2=450": 42500.0,
+          "V2=500": 47500.0,
+          "V2=550": 52500.0,
+          "V2=600": 57500.0,
+          "V2=650": 60000.0,
+          "V2=700": 60000.0,
+          "V2=750": 60000.0,
+          "V2=800": 60000.0,
+          "V2=850": 60000.0,
+          "V2=900": 57500.0
+        },
+        "V1=700": {
+          "V2=400": 35000.0,
+          "V2=450": 40000.0,
+          "V2=500": 47500.0,
+          "V2=550": 52500.0,
+          "V2=600": 57500.0,
+          "V2=650": 60000.0,
+          "V2=700": 60000.0,
+          "V2=750": 60000.0,
+          "V2=800": 60000.0,
+          "V2=850": 60000.0,
+          "V2=900": 60000.0
+        },
+        "V1=750": {
+          "V2=400": 32500.0,
+          "V2=450": 37500.0,
+          "V2=500": 42500.0,
+          "V2=550": 50000.0,
+          "V2=600": 55000.0,
+          "V2=650": 60000.0,
+          "V2=700": 60000.0,
+          "V2=750": 60000.0,
+          "V2=800": 60000.0,
+          "V2=850": 60000.0,
+          "V2=900": 60000.0
+        },
+        "V1=800": {
+          "V2=400": 30000.0,
+          "V2=450": 35000.0,
+          "V2=500": 40000.0,
+          "V2=550": 45000.0,
+          "V2=600": 50000.0,
+          "V2=650": 57500.0,
+          "V2=700": 60000.0,
+          "V2=750": 60000.0,
+          "V2=800": 60000.0,
+          "V2=850": 60000.0,
+          "V2=900": 60000.0
+        },
+        "V1=850": {
+          "V2=400": 22500.0,
+          "V2=450": 27500.0,
+          "V2=500": 32500.0,
+          "V2=550": 37500.0,
+          "V2=600": 42500.0,
+          "V2=650": 50000.0,
+          "V2=700": 57500.0,
+          "V2=750": 60000.0,
+          "V2=800": 60000.0,
+          "V2=850": 60000.0,
+          "V2=900": 60000.0
+        },
+        "V1=900": {
+          "V2=400": 12500.0,
+          "V2=450": 17500.0,
+          "V2=500": 25000.0,
+          "V2=550": 30000.0,
+          "V2=600": 35000.0,
+          "V2=650": 40000.0,
+          "V2=700": 47500.0,
+          "V2=750": 55000.0,
+          "V2=800": 60000.0,
+          "V2=850": 60000.0,
+          "V2=900": 60000.0
+        },
+        "V1=950": {
+          "V2=400": null,
+          "V2=450": null,
+          "V2=500": 12500.0,
+          "V2=550": 20000.0,
+          "V2=600": 25000.0,
+          "V2=650": 30000.0,
+          "V2=700": 35000.0,
+          "V2=750": 42500.0,
+          "V2=800": 52500.0,
+          "V2=850": 60000.0,
+          "V2=900": 60000.0
+        }
+      }
+    }
+  },
+  "design_levers": {
+    "note": "model; baseline stays 1 x CBB011M12GM4T per bridge (DAB-02); owner decision only",
+    "rows": [
+      {
+        "lever": "baseline: 1 x CBB011M12GM4T per bridge (DAB-02)",
+        "modules_total": 2,
+        "eta_800_800_60kW": 0.9855730128551712,
+        "loss_800_800_60kW_W": 878.2903117264364,
+        "eta_worst_window": 0.971547374159655,
+        "worst_point": "600/700 V 60 kW",
+        "frac_window_ge_98p8": 0.48,
+        "Tj_max_C": 144.94865743446002,
+        "all_ok": false
+      },
+      {
+        "lever": "gate drive +18 V (same modules)",
+        "modules_total": 2,
+        "eta_800_800_60kW": 0.9861206166968436,
+        "loss_800_800_60kW_W": 844.4839141269005,
+        "eta_worst_window": 0.9725947451689959,
+        "worst_point": "600/700 V 60 kW",
+        "frac_window_ge_98p8": 0.52,
+        "Tj_max_C": 140.3837576223274,
+        "all_ok": false
+      },
+      {
+        "lever": "coolant inlet 25 C instead of 50 C",
+        "modules_total": 2,
+        "eta_800_800_60kW": 0.9863581451135361,
+        "loss_800_800_60kW_W": 829.8317373286511,
+        "eta_worst_window": 0.9732261134634965,
+        "worst_point": "600/900 V 20 kW",
+        "frac_window_ge_98p8": 0.53,
+        "Tj_max_C": 110.44898354197153,
+        "all_ok": false
+      },
+      {
+        "lever": "magnetics copper loss -50 % (larger transformer/inductor)",
+        "modules_total": 2,
+        "eta_800_800_60kW": 0.9863117692904779,
+        "loss_800_800_60kW_W": 832.6919217055836,
+        "eta_worst_window": 0.9728564824573618,
+        "worst_point": "600/700 V 60 kW",
+        "frac_window_ge_98p8": 0.53,
+        "Tj_max_C": 144.70568737282656,
+        "all_ok": false
+      },
+      {
+        "lever": "2 x CBB011M12GM4T in parallel per bridge",
+        "modules_total": 4,
+        "eta_800_800_60kW": 0.9902753096451629,
+        "loss_800_800_60kW_W": 589.2113189202936,
+        "eta_worst_window": 0.9673296339496934,
+        "worst_point": "600/900 V 20 kW",
+        "frac_window_ge_98p8": 0.79,
+        "Tj_max_C": 76.25300961890022,
+        "all_ok": false
+      },
+      {
+        "lever": "2 x CAB011M12FM3 half bridges per bridge",
+        "modules_total": 4,
+        "eta_800_800_60kW": 0.9833394542208145,
+        "loss_800_800_60kW_W": 1016.56934689276,
+        "eta_worst_window": 0.9677361990725988,
+        "worst_point": "600/900 V 20 kW",
+        "frac_window_ge_98p8": 0.12,
+        "Tj_max_C": 160.80146960969455,
+        "all_ok": false
+      },
+      {
+        "lever": "2 x GM4 per bridge + 18 V + Cu -50 % + 25 C inlet",
+        "modules_total": 4,
+        "eta_800_800_60kW": 0.9916156736701591,
+        "loss_800_800_60kW_W": 507.31305802028146,
+        "eta_worst_window": 0.9688110706474075,
+        "worst_point": "600/900 V 20 kW",
+        "frac_window_ge_98p8": 0.91,
+        "Tj_max_C": 50.69762049027008,
+        "all_ok": false
+      },
+      {
+        "lever": "CAB016M12FM3 half bridges (16 mOhm)",
+        "modules_total": 4,
+        "eta_800_800_60kW": NaN,
+        "loss_800_800_60kW_W": NaN,
+        "eta_worst_window": NaN,
+        "worst_point": "-",
+        "frac_window_ge_98p8": NaN,
+        "Tj_max_C": NaN,
+        "all_ok": false
+      }
+    ]
+  },
+  "dc_link_reverse_clamp": {
+    "port1": {
+      "mpn": "VS-60EPS16-M3",
+      "manufacturer": "Vishay (US)",
+      "qty": 10,
+      "arrangement": "10 devices in parallel on one busbar pair, cathodes to DC+, anodes to DC-, at the bank terminals (port side of the bridge bussing); sharing factor 1.2 assumed",
+      "V_RRM_V": 1600.0,
+      "V_bus_peak_V": 1048.2585945053663,
+      "V_RRM_margin": 1.5263409318909325,
+      "fault": {
+        "V0": 1000.0,
+        "I_pk_A": 15795.5646,
+        "I_at_reversal_A": 15770.5229,
+        "t_reversal_us": 13.18,
+        "t_clamped_us": 496.58,
+        "I_per_body_diode_pk_A": 8.3828,
+        "I2t_per_body_diode_A2s": 0.0005,
+        "fuse_melt_t_us": null,
+        "I_clamp_pk_A": 15736.9916,
+        "I_clamp_pk_per_device_A": 1888.439,
+        "I2t_clamp_A2s": 15785.0156,
+        "I2t_per_clamp_device_A2s": 227.3042,
+        "I2t_capability_at_event_A2s": 1008.3544,
+        "I2t_margin_at_event": 4.4361,
+        "E_clamp_J": 7.682,
+        "V_clamp_pk_V": 8.2182,
+        "i2t_margin_10ms_hot": 19.9072
+      },
+      "without_clamp": {
+        "V0": 1000.0,
+        "I_pk_A": 15795.5646,
+        "I_at_reversal_A": 15770.5229,
+        "t_reversal_us": 13.18,
+        "t_clamped_us": 134.34,
+        "I_per_body_diode_pk_A": 3942.6307,
+        "I2t_per_body_diode_A2s": 338.2911,
+        "fuse_melt_t_us": null
+      },
+      "module_overstress_without_clamp_x_IDM": 10.742863004476897,
+      "leakage_mA": "see datasheet",
+      "datasheet": "docs/datasheets/power-semiconductors/VS-60EPS16-M3.pdf"
+    },
+    "port2": {
+      "mpn": "VS-60EPS16-M3",
+      "manufacturer": "Vishay (US)",
+      "qty": 10,
+      "arrangement": "10 devices in parallel on one busbar pair, cathodes to DC+, anodes to DC-, at the bank terminals (port side of the bridge bussing); sharing factor 1.2 assumed",
+      "V_RRM_V": 1600.0,
+      "V_bus_peak_V": 982.7939485672379,
+      "V_RRM_margin": 1.6280116522212549,
+      "fault": {
+        "V0": 950.0,
+        "I_pk_A": 17858.1041,
+        "I_at_reversal_A": 17816.4118,
+        "t_reversal_us": 15.89,
+        "t_clamped_us": 504.88,
+        "I_per_body_diode_pk_A": 15.4889,
+        "I2t_per_body_diode_A2s": 0.0027,
+        "fuse_melt_t_us": 119.88,
+        "I_clamp_pk_A": 17754.456,
+        "I_clamp_pk_per_device_A": 2130.5347,
+        "I2t_clamp_A2s": 20177.5232,
+        "I2t_per_clamp_device_A2s": 290.5563,
+        "I2t_capability_at_event_A2s": 1016.7465,
+        "I2t_margin_at_event": 3.4993,
+        "E_clamp_J": 9.6146,
+        "V_clamp_pk_V": 9.1769,
+        "i2t_margin_10ms_hot": 15.5736
+      },
+      "without_clamp": {
+        "V0": 950.0,
+        "I_pk_A": 17858.1041,
+        "I_at_reversal_A": 17816.4118,
+        "t_reversal_us": 15.89,
+        "t_clamped_us": 138.88,
+        "I_per_body_diode_pk_A": 4454.103,
+        "I2t_per_body_diode_A2s": 436.1016,
+        "fuse_melt_t_us": null
+      },
+      "module_overstress_without_clamp_x_IDM": 12.136520311979927,
+      "leakage_mA": "see datasheet",
+      "datasheet": "docs/datasheets/power-semiconductors/VS-60EPS16-M3.pdf"
+    },
+    "basis": "bolted short at the port terminals; loop per sim/port_design.py A_L_LOOP 0.5 uH; sim/out/port_design/report.md sec. 6.6: 135 A port R_loop 3.45 mOhm (contactor, shunt, busbars, two cold fuse links, bank ESR), 160 A link melting I2t 19 kA2s; bank charged to the hardware OV trip maximum; no fuse-arc credit; body diodes per the device 3rd-quadrant curves",
+    "normal_operation": "reverse-biased by the DC bus at all times: no conduction, no recovery events, junction capacitance in parallel with the bank - no effect on switching",
+    "mounting": "insulated mounting to basic insulation HV-PE (D-032) if on the earthed plate; fault energy only - no heatsink needed",
+    "options": [
+      {
+        "part": "DD600N16K",
+        "maker": "Infineon (DE)",
+        "asian": false,
+        "n_per_port": 1,
+        "feasible": true,
+        "I2t_margin_at_event_min": 19.354304096610445,
+        "V_clamp_pk_V": 4.592930185266334,
+        "body_diode_pk_per_device_A": 0.0,
+        "body_diode_pk_vs_IDM": 0.0,
+        "I_pk_per_clamp_device_A": 17874.093884959693,
+        "cost_usd_per_module": 784.72,
+        "price_src": "Cytech Systems broker, 100+ (gen/data/prices.csv, 2026-10-04)",
+        "package": "PowerBLOCK 60 mm, M10 terminals"
+      },
+      {
+        "part": "VS-60EPS16-M3",
+        "maker": "Vishay (US)",
+        "asian": false,
+        "n_per_port": 10,
+        "feasible": true,
+        "I2t_margin_at_event_min": 3.47668235763327,
+        "V_clamp_pk_V": 9.203858325045218,
+        "body_diode_pk_per_device_A": 15.736052760747533,
+        "body_diode_pk_vs_IDM": 0.042877527958440145,
+        "I_pk_per_clamp_device_A": 2137.3379608700043,
+        "cost_usd_per_module": 53.48,
+        "price_src": "LCSC C506457, 1000+ (gen/data/prices.csv, 2026-10-04)",
+        "package": "TO-247AC 2L",
+        "why": "cheapest priced option that keeps >= 2x I2t margin at the event duration and the SiC body diodes below 10 % of their pulse rating (53 USD per module vs 785 USD for 2 x DD600N16K); Asian alternate to quote at <= this price: MDC600-16-416F3 x 1, WND75P16W6 x 12"
+      },
+      {
+        "part": "MDC600-16-416F3",
+        "maker": "Techsem (Hubei TECH, CN)",
+        "asian": true,
+        "n_per_port": 1,
+        "feasible": true,
+        "I2t_margin_at_event_min": 19.59501404657704,
+        "V_clamp_pk_V": 5.754746287788714,
+        "body_diode_pk_per_device_A": 0.0,
+        "body_diode_pk_vs_IDM": 0.0,
+        "I_pk_per_clamp_device_A": 17874.093884959693,
+        "cost_usd_per_module": null,
+        "price_src": "RFQ (no public price)",
+        "package": "416F3 60 mm module, M10, same footprint family and terminal numbering as DD600N (1 = midpoint, 2 = D1 cathode, 3 = D2 anode)"
+      },
+      {
+        "part": "WND75P16W6",
+        "maker": "WeEn Semiconductors (CN)",
+        "asian": true,
+        "n_per_port": 12,
+        "feasible": true,
+        "I2t_margin_at_event_min": 6.148732522149704,
+        "V_clamp_pk_V": 10.224027738275362,
+        "body_diode_pk_per_device_A": 27.572968923346757,
+        "body_diode_pk_vs_IDM": 0.07513070551320643,
+        "I_pk_per_clamp_device_A": 1776.3802009266308,
+        "cost_usd_per_module": null,
+        "price_src": "RFQ (not on LCSC)",
+        "package": "TO-247-2L"
+      }
+    ],
+    "choice": "VS-60EPS16-M3 x 10 per port (Vishay (US)): cheapest priced option that keeps >= 2x I2t margin at the event duration and the SiC body diodes below 10 % of their pulse rating (53 USD per module vs 785 USD for 2 x DD600N16K); Asian alternate to quote at <= this price: MDC600-16-416F3 x 1, WND75P16W6 x 12"
+  },
+  "audit": {
+    "file": "sim/out/audit/dab_devices_audit.csv",
+    "status": "E_TAB, C_oss, SSOA, di/dt, cosmic, ferrite curves replaced by the audit vector-data values; V_SD now a Fig. 7 table"
+  },
+  "device_primary": {
+    "mpn": "IV3Q12013T4Z",
+    "maker": "InventChip Technology (Shanghai Zhanxin, CN)",
+    "package": "TO247-4 (JEDEC TO247 var. AD); no package/source inductance stated",
+    "datasheet": "docs/datasheets/power-semiconductors/IV3Q12013T4Z.pdf",
+    "pages": "p1-p7 (Rev 1.0, Jun 2024)",
+    "rds_on_25C_typ_max_mohm": [
+      13.4,
+      17.0
+    ],
+    "rth_jc_K_W": 0.27,
+    "qualification": "AEC-Q101 qualified",
+    "price": "RFQ - no public price",
+    "gate_rails_V": [
+      18.0,
+      -3.5
+    ],
+    "tsc_assumed_us": 2.0,
+    "open_items": [
+      "qualification report (HTRB/H3TRB/HTGB, threshold drift, body-diode degradation)",
+      "short-circuit withstand at 1000 V / 150 C",
+      "package / source inductance",
+      "FIT vs DC voltage (cosmic ray)",
+      "volume price"
+    ]
+  },
+  "device_alternate": {
+    "mpn": "SG2M014120LJ",
+    "maker": "SICHAIN Semiconductor (Ningbo, CN)",
+    "package": "TO-247-4L (drawing TO-247-4L-C); no package/source inductance stated",
+    "datasheet": "docs/datasheets/power-semiconductors/SG2M014120LJ.pdf",
+    "pages": "p3-p13 (V02_04, 2025-12-25)",
+    "rds_on_25C_typ_max_mohm": [
+      13.2,
+      18.000000000000004
+    ],
+    "rth_jc_K_W": 0.26,
+    "qualification": "none stated in the datasheet",
+    "price": [
+      7.3119,
+      "LCSC C52109935 via jlcsearch mirror, 90+, 43 in stock, 2026-10-04 (prices.csv)"
+    ],
+    "gate_rails_V": [
+      18.0,
+      -3.5
+    ],
+    "tsc_assumed_us": 2.0,
+    "open_items": [
+      "qualification report (HTRB/H3TRB/HTGB, threshold drift, body-diode degradation)",
+      "short-circuit withstand at 1000 V / 150 C",
+      "package / source inductance",
+      "FIT vs DC voltage (cosmic ray)",
+      "volume price"
+    ]
+  },
+  "device_design_basis": "per-parameter worst case of the primary and alternate maker (R_DS(on), E_on/E_off at the design R_G, C_oss, V_SD, R_th, Q_g maximum; V_th, lead rating, pulse rating minimum) - every number in this file is for that composite",
+  "device_options": {
+    "rows": [
+      {
+        "option": "GM4",
+        "description": "1 x CBB011M12GM4T per bridge",
+        "makers": "incumbent (today)",
+        "npar": 1,
+        "devices_per_bridge": 1,
+        "eta_800_800_60kW": 0.9857631179231361,
+        "loss_800_800_60kW_W": 866.5498932558394,
+        "eta_800_800_30kW": 0.9915265707005112,
+        "eta_peak_light": 0.9920771268219609,
+        "eta_mean_window": 0.9869759398785994,
+        "eta_min_window": 0.9719899532053985,
+        "frac_window_ge_98p8": 0.49,
+        "Tj_max_window_C": 143.30646321878447,
+        "Tj_max_full_C": 143.30646321878447,
+        "full_power_points_ok": 4,
+        "full_power_points": 20,
+        "tj_rule_ok": false,
+        "current_rule_ok": false,
+        "soa_ok": false,
+        "I_dev_or_term_max_A": 125.70491608597104,
+        "dead_time_hw_ns": [
+          60,
+          151
+        ],
+        "p_body_diode_800_60kW_W": 38.50306308863037,
+        "zvs_min_power_800_800_W": 2500.0,
+        "cost_usd_per_bridge": 201.46,
+        "cost_basis": "1 x CBB011M12GM4T, findchips aggregator (Richardson RFPD), 1+ shown, 2026-10-04 (prices.csv)",
+        "rules_ok": false,
+        "eta_not_worse": true
+      },
+      {
+        "option": "D2-IC",
+        "description": "2 x IV3Q12013T4Z per switch",
+        "makers": "InventChip (primary)",
+        "npar": 2,
+        "devices_per_bridge": 8,
+        "eta_800_800_60kW": 0.9902589963875517,
+        "loss_800_800_60kW_W": 590.2094491229053,
+        "eta_800_800_30kW": 0.9937676231273375,
+        "eta_peak_light": 0.994424378860699,
+        "eta_mean_window": 0.9909809350853265,
+        "eta_min_window": 0.9828261346047616,
+        "frac_window_ge_98p8": 0.89,
+        "Tj_max_window_C": 78.57534674396985,
+        "Tj_max_full_C": 78.57534674396985,
+        "full_power_points_ok": 16,
+        "full_power_points": 20,
+        "tj_rule_ok": true,
+        "current_rule_ok": true,
+        "soa_ok": false,
+        "I_dev_or_term_max_A": 50.95633700174294,
+        "dead_time_hw_ns": [
+          36,
+          143
+        ],
+        "p_body_diode_800_60kW_W": 28.425366956738134,
+        "zvs_min_power_800_800_W": 2500.0,
+        "cost_usd_per_bridge": null,
+        "cost_basis": "RFQ: IV3Q12013T4Z: no public price (RFQ)",
+        "rules_ok": true,
+        "eta_not_worse": true
+      },
+      {
+        "option": "D2-SC",
+        "description": "2 x SG2M014120LJ per switch",
+        "makers": "Sichain (alternate)",
+        "npar": 2,
+        "devices_per_bridge": 8,
+        "eta_800_800_60kW": 0.9894035939461364,
+        "loss_800_800_60kW_W": 642.593545366107,
+        "eta_800_800_30kW": 0.9935512878865783,
+        "eta_peak_light": 0.9941764645692792,
+        "eta_mean_window": 0.9900929131357628,
+        "eta_min_window": 0.9772115195488795,
+        "frac_window_ge_98p8": 0.79,
+        "Tj_max_window_C": 84.64322950904925,
+        "Tj_max_full_C": 84.64322950904925,
+        "full_power_points_ok": 16,
+        "full_power_points": 20,
+        "tj_rule_ok": true,
+        "current_rule_ok": true,
+        "soa_ok": false,
+        "I_dev_or_term_max_A": 53.17222809731488,
+        "dead_time_hw_ns": [
+          69,
+          188
+        ],
+        "p_body_diode_800_60kW_W": 32.32173453329011,
+        "zvs_min_power_800_800_W": 2500.0,
+        "cost_usd_per_bridge": 72.4952,
+        "cost_basis": "8 x SG2M014120LJ at 7.31 USD + insulator 1.75 USD; SG2M014120LJ: LCSC C52109935 via jlcsearch mirror, 90+, 43 in stock, 2026-10-04 (prices.csv)",
+        "rules_ok": true,
+        "eta_not_worse": true
+      },
+      {
+        "option": "D2-BA",
+        "description": "2 x B3M013C120Z per switch",
+        "makers": "BASiC (third source, not in the decision)",
+        "npar": 2,
+        "devices_per_bridge": 8,
+        "eta_800_800_60kW": 0.9900651830036271,
+        "loss_800_800_60kW_W": 602.0704798182819,
+        "eta_800_800_30kW": 0.9947821839815487,
+        "eta_peak_light": 0.996076035251728,
+        "eta_mean_window": 0.9909919687724816,
+        "eta_min_window": 0.9803849989389113,
+        "frac_window_ge_98p8": 0.84,
+        "Tj_max_window_C": 80.21872547742976,
+        "Tj_max_full_C": 80.21872547742976,
+        "full_power_points_ok": 16,
+        "full_power_points": 20,
+        "tj_rule_ok": true,
+        "current_rule_ok": true,
+        "soa_ok": false,
+        "I_dev_or_term_max_A": 52.56682809184638,
+        "dead_time_hw_ns": [
+          90,
+          216
+        ],
+        "p_body_diode_800_60kW_W": 42.41864247039407,
+        "zvs_min_power_800_800_W": 2500.0,
+        "cost_usd_per_bridge": null,
+        "cost_basis": "RFQ: B3M013C120Z: no public price (RFQ)",
+        "rules_ok": true,
+        "eta_not_worse": true
+      },
+      {
+        "option": "D2W",
+        "description": "2 x IV3Q12013T4Z / SG2M014120LJ per switch",
+        "makers": "design basis: worst of InventChip and Sichain",
+        "npar": 2,
+        "devices_per_bridge": 8,
+        "eta_800_800_60kW": 0.9894035939461364,
+        "loss_800_800_60kW_W": 642.593545366107,
+        "eta_800_800_30kW": 0.9935512878865783,
+        "eta_peak_light": 0.9941764645692792,
+        "eta_mean_window": 0.9900892488047809,
+        "eta_min_window": 0.9772115195488795,
+        "frac_window_ge_98p8": 0.79,
+        "Tj_max_window_C": 84.64322950904925,
+        "Tj_max_full_C": 84.64322950904925,
+        "full_power_points_ok": 16,
+        "full_power_points": 20,
+        "tj_rule_ok": true,
+        "current_rule_ok": true,
+        "soa_ok": false,
+        "I_dev_or_term_max_A": 53.17222809731488,
+        "dead_time_hw_ns": [
+          69,
+          188
+        ],
+        "p_body_diode_800_60kW_W": 32.32173453329011,
+        "zvs_min_power_800_800_W": 2500.0,
+        "cost_usd_per_bridge": 72.4952,
+        "cost_basis": "8 x IV3Q12013T4Z / SG2M014120LJ at 7.31 USD + insulator 1.75 USD; IV3Q12013T4Z: no public price (RFQ); SG2M014120LJ: LCSC C52109935 via jlcsearch mirror, 90+, 43 in stock, 2026-10-04 (prices.csv)",
+        "rules_ok": true,
+        "eta_not_worse": true,
+        "decision_rule_met": true
+      },
+      {
+        "option": "D3-IC",
+        "description": "3 x IV3Q12013T4Z per switch",
+        "makers": "InventChip (primary)",
+        "npar": 3,
+        "devices_per_bridge": 12,
+        "eta_800_800_60kW": 0.9907508893013021,
+        "loss_800_800_60kW_W": 560.1273215240154,
+        "eta_800_800_30kW": 0.9931331932688336,
+        "eta_peak_light": 0.993698870850736,
+        "eta_mean_window": 0.990805037928674,
+        "eta_min_window": 0.9799018373042386,
+        "frac_window_ge_98p8": 0.91,
+        "Tj_max_window_C": 69.99917866847953,
+        "Tj_max_full_C": 69.99917866847953,
+        "full_power_points_ok": 20,
+        "full_power_points": 20,
+        "tj_rule_ok": true,
+        "current_rule_ok": true,
+        "soa_ok": true,
+        "I_dev_or_term_max_A": 35.52592922220772,
+        "dead_time_hw_ns": [
+          38,
+          146
+        ],
+        "p_body_diode_800_60kW_W": 24.748185851314506,
+        "zvs_min_power_800_800_W": 2500.0,
+        "cost_usd_per_bridge": null,
+        "cost_basis": "RFQ: IV3Q12013T4Z: no public price (RFQ)",
+        "rules_ok": true,
+        "eta_not_worse": true
+      },
+      {
+        "option": "D3-SC",
+        "description": "3 x SG2M014120LJ per switch",
+        "makers": "Sichain (alternate)",
+        "npar": 3,
+        "devices_per_bridge": 12,
+        "eta_800_800_60kW": 0.9905420771533231,
+        "loss_800_800_60kW_W": 572.8937557417579,
+        "eta_800_800_30kW": 0.9930841882981373,
+        "eta_peak_light": 0.9937729651006255,
+        "eta_mean_window": 0.9903810804624555,
+        "eta_min_window": 0.9702196798752021,
+        "frac_window_ge_98p8": 0.86,
+        "Tj_max_window_C": 71.5127988190936,
+        "Tj_max_full_C": 71.5127988190936,
+        "full_power_points_ok": 20,
+        "full_power_points": 20,
+        "tj_rule_ok": true,
+        "current_rule_ok": true,
+        "soa_ok": true,
+        "I_dev_or_term_max_A": 37.66247219251403,
+        "dead_time_hw_ns": [
+          73,
+          193
+        ],
+        "p_body_diode_800_60kW_W": 27.488640156645847,
+        "zvs_min_power_800_800_W": 2500.0,
+        "cost_usd_per_bridge": 108.74279999999999,
+        "cost_basis": "12 x SG2M014120LJ at 7.31 USD + insulator 1.75 USD; SG2M014120LJ: LCSC C52109935 via jlcsearch mirror, 90+, 43 in stock, 2026-10-04 (prices.csv)",
+        "rules_ok": true,
+        "eta_not_worse": true
+      },
+      {
+        "option": "D3-BA",
+        "description": "3 x B3M013C120Z per switch",
+        "makers": "BASiC (third source, not in the decision)",
+        "npar": 3,
+        "devices_per_bridge": 12,
+        "eta_800_800_60kW": 0.9924626977620944,
+        "loss_800_800_60kW_W": 455.67267696215424,
+        "eta_800_800_30kW": 0.995785171798229,
+        "eta_peak_light": 0.9963469720452839,
+        "eta_mean_window": 0.9929753688924697,
+        "eta_min_window": 0.9782229167425509,
+        "frac_window_ge_98p8": 0.96,
+        "Tj_max_window_C": 64.08838736040977,
+        "Tj_max_full_C": 64.08838736040977,
+        "full_power_points_ok": 20,
+        "full_power_points": 20,
+        "tj_rule_ok": true,
+        "current_rule_ok": true,
+        "soa_ok": true,
+        "I_dev_or_term_max_A": 36.96891726044025,
+        "dead_time_hw_ns": [
+          87,
+          212
+        ],
+        "p_body_diode_800_60kW_W": 37.02107351920879,
+        "zvs_min_power_800_800_W": 2500.0,
+        "cost_usd_per_bridge": null,
+        "cost_basis": "RFQ: B3M013C120Z: no public price (RFQ)",
+        "rules_ok": true,
+        "eta_not_worse": true
+      },
+      {
+        "option": "D3W",
+        "description": "3 x IV3Q12013T4Z / SG2M014120LJ per switch",
+        "makers": "design basis: worst of InventChip and Sichain",
+        "npar": 3,
+        "devices_per_bridge": 12,
+        "eta_800_800_60kW": 0.9903422446344701,
+        "loss_800_800_60kW_W": 585.1162313546207,
+        "eta_800_800_30kW": 0.9929158771829314,
+        "eta_peak_light": 0.9933499509389052,
+        "eta_mean_window": 0.9901342637186481,
+        "eta_min_window": 0.9695359088897345,
+        "frac_window_ge_98p8": 0.81,
+        "Tj_max_window_C": 72.25267274986658,
+        "Tj_max_full_C": 72.25267274986658,
+        "full_power_points_ok": 20,
+        "full_power_points": 20,
+        "tj_rule_ok": true,
+        "current_rule_ok": true,
+        "soa_ok": true,
+        "I_dev_or_term_max_A": 37.672473539883434,
+        "dead_time_hw_ns": [
+          76,
+          196
+        ],
+        "p_body_diode_800_60kW_W": 28.11704671363003,
+        "zvs_min_power_800_800_W": 2500.0,
+        "cost_usd_per_bridge": 108.74279999999999,
+        "cost_basis": "12 x IV3Q12013T4Z / SG2M014120LJ at 7.31 USD + insulator 1.75 USD; IV3Q12013T4Z: no public price (RFQ); SG2M014120LJ: LCSC C52109935 via jlcsearch mirror, 90+, 43 in stock, 2026-10-04 (prices.csv)",
+        "rules_ok": true,
+        "eta_not_worse": true
+      },
+      {
+        "option": "M-BA",
+        "description": "BMF008MR12E2G3 (2 half bridges per bridge)",
+        "makers": "BASiC module (primary)",
+        "npar": 1,
+        "devices_per_bridge": 2,
+        "eta_800_800_60kW": 0.9870622148480899,
+        "loss_800_800_60kW_W": 786.4419257848623,
+        "eta_800_800_30kW": 0.9906191456447696,
+        "eta_peak_light": 0.9908860701501396,
+        "eta_mean_window": 0.9870512280394469,
+        "eta_min_window": 0.9723810593120056,
+        "frac_window_ge_98p8": 0.46,
+        "Tj_max_window_C": 103.86389148730726,
+        "Tj_max_full_C": 103.86389148730726,
+        "full_power_points_ok": 18,
+        "full_power_points": 20,
+        "tj_rule_ok": true,
+        "current_rule_ok": true,
+        "soa_ok": false,
+        "I_dev_or_term_max_A": 125.26435930998623,
+        "dead_time_hw_ns": [
+          83,
+          207
+        ],
+        "p_body_diode_800_60kW_W": 16.747049649852908,
+        "zvs_min_power_800_800_W": 2500.0,
+        "cost_usd_per_bridge": null,
+        "cost_basis": "RFQ: no public price for either module",
+        "rules_ok": true,
+        "eta_not_worse": true
+      },
+      {
+        "option": "M-LP",
+        "description": "DFS08HF12EZA2 (2 half bridges per bridge)",
+        "makers": "Leapers module (alternate)",
+        "npar": 1,
+        "devices_per_bridge": 2,
+        "eta_800_800_60kW": 0.9874035276942305,
+        "loss_800_800_60kW_W": 765.4300568594008,
+        "eta_800_800_30kW": 0.9862745907539249,
+        "eta_peak_light": 0.9870693348400712,
+        "eta_mean_window": 0.9841132161408263,
+        "eta_min_window": 0.9185548978918021,
+        "frac_window_ge_98p8": 0.05,
+        "Tj_max_window_C": 162.8122689576575,
+        "Tj_max_full_C": 87.57537936106652,
+        "full_power_points_ok": 16,
+        "full_power_points": 20,
+        "tj_rule_ok": true,
+        "current_rule_ok": true,
+        "soa_ok": false,
+        "I_dev_or_term_max_A": 124.94203880725694,
+        "dead_time_hw_ns": [
+          58,
+          173
+        ],
+        "p_body_diode_800_60kW_W": 27.344055581943337,
+        "zvs_min_power_800_800_W": 2500.0,
+        "cost_usd_per_bridge": null,
+        "cost_basis": "RFQ: no public price for either module",
+        "rules_ok": true,
+        "eta_not_worse": false
+      },
+      {
+        "option": "MW",
+        "description": "BMF008MR12E2G3 / DFS08HF12EZA2 (2 half bridges per bridge)",
+        "makers": "design basis: worst of BASiC and Leapers modules",
+        "npar": 1,
+        "devices_per_bridge": 2,
+        "eta_800_800_60kW": 0.9852454321234463,
+        "loss_800_800_60kW_W": 898.5315168477724,
+        "eta_800_800_30kW": 0.9823748366279577,
+        "eta_peak_light": 0.9840101851541271,
+        "eta_mean_window": 0.9808006092138561,
+        "eta_min_window": 0.9134645854474708,
+        "frac_window_ge_98p8": 0.0,
+        "Tj_max_window_C": 165.15263210081196,
+        "Tj_max_full_C": 104.9124877391928,
+        "full_power_points_ok": 18,
+        "full_power_points": 20,
+        "tj_rule_ok": true,
+        "current_rule_ok": true,
+        "soa_ok": false,
+        "I_dev_or_term_max_A": 125.27368571350814,
+        "dead_time_hw_ns": [
+          102,
+          232
+        ],
+        "p_body_diode_800_60kW_W": 38.5408062391363,
+        "zvs_min_power_800_800_W": 2500.0,
+        "cost_usd_per_bridge": null,
+        "cost_basis": "RFQ: no public price for either module",
+        "rules_ok": true,
+        "eta_not_worse": false
+      }
+    ],
+    "choice": "D2W",
+    "rule": "cheapest option meeting Tj and current rules with primary AND alternate Asian maker, efficiency not worse than the incumbent (window mean and 800/800 V 60 kW), designed for the worse maker",
+    "csv": "sim/out/dab_design/device_options.csv"
+  },
+  "cost_usd": {
+    "before_USD": {
+      "series inductor": 86.0,
+      "transformer": 186.0,
+      "cold plate": 120.0,
+      "reverse clamp": 784.72,
+      "switches": 402.92,
+      "snubber": 19.2,
+      "HF capacitors": 100.0,
+      "coolant thermostat": 69.0,
+      "coolant flow switch": 131.0
+    },
+    "after_USD": {
+      "switches": 144.9904,
+      "reverse clamp": 53.48,
+      "HF capacitors": 317.26,
+      "snubber": 19.2,
+      "transformer": 186.0,
+      "series inductor": 86.0,
+      "cold plate": 120.0,
+      "coolant flow switch": 131.0,
+      "coolant thermostat": 69.0
+    },
+    "after_basis": {
+      "switches": "8 x IV3Q12013T4Z / SG2M014120LJ at 7.31 USD + insulator 1.75 USD; IV3Q12013T4Z: no public price (RFQ); SG2M014120LJ: LCSC C52109935 via jlcsearch mirror, 90+, 43 in stock, 2026-10-04 (prices.csv)",
+      "reverse clamp": "VS-60EPS16-M3 x 10 per port, LCSC C506457, 1000+ (gen/data/prices.csv, 2026-10-04)",
+      "HF capacitors": "20 x CKC33C473KEGACAUTO per bridge, LCSC C3854232 100+ (5 in stock); Mouser 7.20 USD at 100 (1,698 stock), agent reading 2026-10-04 - not yet in gen/data/prices.csv",
+      "snubber": "unchanged network (24 R + 24 C per module), costed-BOM estimates",
+      "transformer": "ESTIMATES, no quote: Chinese MnZn power ferrite (large E sets) 6 USD/kg at 1k; litz with 0.05 mm strands 60 USD/kg of copper (fine-strand pr",
+      "series inductor": "ESTIMATES, no quote: Chinese MnZn power ferrite (large E sets) 6 USD/kg at 1k; litz with 0.05 mm strands 60 USD/kg of copper (fine-strand pr",
+      "cold plate": "unchanged estimate",
+      "coolant flow switch": "unchanged estimate",
+      "coolant thermostat": "unchanged estimate"
+    },
+    "before_total": 1898.8400000000001,
+    "after_total": 1126.9304,
+    "note": "this design's parts only (switches, clamp, magnetics, HF caps, snubbers, cold plate, coolant flow switch and thermostat); port parts are reported by the port engineer"
+  },
+  "efficiency_claim": {
+    "model_peak": 0.9942481091710625,
+    "cal_peak": 0.9910054492791222,
+    "model_min_ge20kW_window": 0.979090621063735,
+    "cal_min_ge20kW_window": 0.9747403171705329,
+    "model_800_800_60kW": 0.989457874099988,
+    "cal_800_800_60kW": 0.9879725244538422,
+    "cal_frac_window_ge_98p8": 0.5894736842105263,
+    "k0_W": 91.16702259643552,
+    "k1_W_per_W": 0.0,
+    "dab04_peak_met": false,
+    "dab04_20kW_met": false,
+    "statement": "DAB-04 (99.2 % peak, > 98.8 % above 20 kW) is NOT MET. Claimed (calibrated to Wolfspeed's measured CRD loss, the model + 91 W + 0.0 W/kW): peak 99.10 %, 98.80 % at 800/800 V 60 kW, minimum 97.47 % above 20 kW in the full-power window (59 % of those points >= 98.8 %). Model alone (not claimed): peak 99.42 %, 98.95 % at 800/800 V 60 kW, minimum 97.91 %."
+  },
+  "calibration_gap": {
+    "p_W": [
+      10800.0,
+      13500.0,
+      16300.0,
+      18300.0,
+      20900.0,
+      22700.0
+    ],
+    "measured_loss_W": [
+      332.87289970106093,
+      367.4884437596319,
+      414.52009844134545,
+      451.9213034122367,
+      507.35429683498836,
+      551.0498822083366
+    ],
+    "model_loss_W": [
+      241.70587710462542,
+      296.2606309178718,
+      359.8774482832162,
+      404.4339391568265,
+      461.44659490441245,
+      501.83298254063413
+    ],
+    "gap_before_this_round_W": [
+      182.55742093273716,
+      201.4528232899251,
+      223.73756166909797,
+      241.0108474473097,
+      266.9840783722775,
+      288.0093965632408
+    ],
+    "residual_gap_W": [
+      91.16702259643552,
+      71.22781284176006,
+      54.64265015812924,
+      47.48736425541017,
+      45.90770193057591,
+      49.21689966770248
+    ],
+    "dead_time_body_diode_W": [
+      6.748524386707729,
+      8.562497073481804,
+      11.970313383908687,
+      14.324964419723067,
+      17.4216370455359,
+      19.610086167126294
+    ],
+    "ring_down_hf_caps_snubbers_W": [
+      1.729445813626971,
+      2.5173472413104747,
+      3.51155990171901,
+      4.335995787920921,
+      5.556211824919863,
+      6.503376036419414
+    ],
+    "xfmr_copper_fundamental_W": [
+      15.062109107315873,
+      23.7462468211572,
+      34.969740615076915,
+      44.400463203941335,
+      58.47372708931712,
+      69.45350543223385
+    ],
+    "xfmr_copper_harmonics_W": [
+      91.39039833630163,
+      130.22501044816505,
+      169.09491151096873,
+      193.52348319189952,
+      221.07637644170157,
+      238.7924968955383
+    ],
+    "coss_hysteresis_W": [
+      13.25971831666664,
+      13.25971831666664,
+      13.25971831666664,
+      13.25971831666664,
+      13.25971831666664,
+      13.25971831666664
+    ],
+    "gate_drive_if_counted_W": [
+      10.155999999999999,
+      10.155999999999999,
+      10.155999999999999,
+      10.155999999999999,
+      10.155999999999999,
+      10.155999999999999
+    ],
+    "sensing_if_counted_W": [
+      1.5,
+      1.5,
+      1.5,
+      1.5,
+      1.5,
+      1.5
+    ],
+    "share_explained_by_harmonics": 0.7271574643311176,
+    "share_with_hysteresis_and_aux": 0.8362801448694981
+  },
+  "control_plant": {
+    "R_loop_primary_ohm": 0.04289333995525328,
+    "R_loop_basis": "ohm primary-referred: 2 x R_pos(125 C) bridge 1 + n^2 x 2 x R_pos(125 C) bridge 2 + transformer + inductor R_dc + AC bus (dab_design.py)"
+  },
+  "st_crosscheck_inputs": {
+    "E_turn_on_zero_current_800V_J": 0.0006642664964335239
+  }
+}

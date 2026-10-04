@@ -1,0 +1,7 @@
+# TIDA-010232 - AFE for insulation monitoring in high-voltage EV charging and solar (TI)
+Electric-bridge DC insulation monitor: 0.1 % thin-film test branch per pole switched to PE one at a time by TPSI2140-Q1 isolated switches, branch voltage read by AMC3330 (no hot-side supply) -> TLV6001 + REF2033 -> C2000 ADC (LAUNCHXL-F280049C). TI: lab use only.
+- **Native ratings** (TIDUEZ8 Rev D, Table 1-1, p.25-28): 400 V build (R_st 68.1 k, R_inAMC 120 ohm) and 800 V build (280 k, 250 ohm); 20 k-1 M range, 5 % target; measured uncalibrated 1.5-3.8 % at 40 k / 200 k (400 V), <= 6.0 % over 20-200 k and up to 12.8 % at 1 M (800 V); 1.7 ms per measurement with negligible insulation capacitance.
+- **Informs:** PV-C5 insulation measurement on the PV port, ECO-03 insulation-monitor interface, ECO-10 hipot planning.
+- **Limitation:** 400/800 V boards, not 1000 V + 1100 V OVP; the open switch sees the full pole-PE voltage and the TPSI2140-Q1 stands off 1200 V (p.11; p.29 says 1.4 kV); no large-capacitance handling beyond a 3-tau wait; EV / IEC 61557-8 context, not PV.
+- **What we take from it:** loss-of-PE detection (an open PE reads as perfect insulation), the 3-tau / < 10 s branch rule and the result clamp above 1 M (detail in docs/requirements/REFERENCE-LESSONS.md).
+- **Files:** design guide TIDUEZ8 Rev D, schematic TIDMAG7, BOM TIDMAG8. Not fetched: example code, worst-case error spreadsheet, assembly drawing, PCB layout, Gerber/CAD (layout out of scope).

@@ -1,0 +1,14 @@
+* PVCELL VDMOS C_gd fit for SG2M020170HJ: drain ramp 0..1200 V, gate held at -4.0 V
+.model m VDMOS(Vto=3.1 Kp=17.34 lambda=0.01 Rd=0.01513 Rs=0.5m Rg=2.7 Cgs=5.258e-09 Cgdmax=1.053e-09 Cgdmin=7.5e-12 a=0.04017 Cjo=3.903e-09 Vj=3 M=0.5 Is=7.58e-16 N=3 Rb=0.008505 Tt=0)
+Vg g 0 -4.0
+Vd dd 0 PWL(0 0 10u 1200.0)
+Rd dd dn 1m
+M1 dn g 0 m
+.save i(Vg) v(dn)
+.tran 5n 10u
+.control
+run
+wrdata pv_fit_SG2M020170HJ.dat i(Vg) v(dn)
+quit
+.endc
+.end

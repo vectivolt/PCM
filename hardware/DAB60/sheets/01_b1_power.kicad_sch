@@ -1,0 +1,10248 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "8b1b87b2-4115-5447-b20c-9d42eeb5fbc4")
+	(paper "A2")
+	(title_block
+		(title "DAB60 power assembly - Bridge 1 power stage")
+		(date "2026-10-04")
+		(rev "B0")
+		(comment 1 "Interfaces: CELL x2 (C1, C2), PORT, SYS-IO-AUX harness + coolant loop (gen/interfaces.py)")
+		(comment 2 "Schematics authored by Chinmoy Bhuyan")
+		(comment 3 "Sheet 2")
+		(comment 4 "Not bench-validated. Domains PELV, HV1, HV2, PE, GD_B<b><sw> (8 gate drivers).")
+	)
+	(lib_symbols
+		(symbol "dcdc:C4AQ_45U"
+			(pin_names
+				(offset 0.762)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "C"
+				(at -7.62 6.35 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left bottom)
+				)
+			)
+			(property "Value" "C4AQUEW5450A3BJ"
+				(at -7.62 -6.35 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 -8.89 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" "docs/datasheets/passives-capacitors/C4AQ.pdf"
+				(at 0 -11.43 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "DC-link PP film 45 uF, 1300 VDC at 70 C hot spot (1100 V at 85 C, 850 V at 105 C), ESR 3.1 mOhm, Irms 34.0 A (10 kHz, dT 30 K)"
+				(at 0 -13.97 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "C4AQ_45U_1_1"
+				(rectangle
+					(start -7.62 5.08)
+					(end 7.62 -5.08)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(pin passive line
+					(at -12.7 0 0)
+					(length 5.08)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -12.7 -2.54 0)
+					(length 5.08)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 12.7 0 180)
+					(length 5.08)
+					(name "B"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 12.7 -2.54 180)
+					(length 5.08)
+					(name "B"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "dcdc:CBB011M12GM4T"
+			(pin_names
+				(offset 0.762)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "U"
+				(at -10.16 29.21 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left bottom)
+				)
+			)
+			(property "Value" "CBB011M12GM4T"
+				(at -10.16 -29.21 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 -31.75 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" "docs/datasheets/power-semiconductors/CBB011M12GM4T.pdf"
+				(at 0 -34.29 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "COLD-PLATE MOUNTED SiC full-bridge module 1200 V 11 mOhm Gen 4, pre-applied TIM, NTC 5 k"
+				(at 0 -36.83 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "CBB011M12GM4T_1_1"
+				(rectangle
+					(start -10.16 27.94)
+					(end 10.16 -27.94)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(pin passive line
+					(at 15.24 25.4 180)
+					(length 5.08)
+					(name "AC1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "AC1.1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 22.86 180)
+					(length 5.08)
+					(name "AC1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "AC1.2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 20.32 180)
+					(length 5.08)
+					(name "AC1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "AC1.3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 17.78 180)
+					(length 5.08)
+					(name "AC1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "AC1.4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 12.7 180)
+					(length 5.08)
+					(name "AC2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "AC2.1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 10.16 180)
+					(length 5.08)
+					(name "AC2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "AC2.2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 7.62 180)
+					(length 5.08)
+					(name "AC2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "AC2.3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 5.08 180)
+					(length 5.08)
+					(name "AC2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "AC2.4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -15.24 25.4 0)
+					(length 5.08)
+					(name "DC+"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "DC+.1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -15.24 22.86 0)
+					(length 5.08)
+					(name "DC+"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "DC+.2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -15.24 20.32 0)
+					(length 5.08)
+					(name "DC+"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "DC+.3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -15.24 17.78 0)
+					(length 5.08)
+					(name "DC+"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "DC+.4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -15.24 15.24 0)
+					(length 5.08)
+					(name "DC+"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "DC+.5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -15.24 12.7 0)
+					(length 5.08)
+					(name "DC+"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "DC+.6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -15.24 10.16 0)
+					(length 5.08)
+					(name "DC+"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "DC+.7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -15.24 7.62 0)
+					(length 5.08)
+					(name "DC+"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "DC+.8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -15.24 2.54 0)
+					(length 5.08)
+					(name "DC-1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "DC-1.1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -15.24 0 0)
+					(length 5.08)
+					(name "DC-1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "DC-1.2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -15.24 -2.54 0)
+					(length 5.08)
+					(name "DC-1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "DC-1.3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -15.24 -5.08 0)
+					(length 5.08)
+					(name "DC-1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "DC-1.4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -15.24 -10.16 0)
+					(length 5.08)
+					(name "DC-2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "DC-2.1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -15.24 -12.7 0)
+					(length 5.08)
+					(name "DC-2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "DC-2.2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -15.24 -15.24 0)
+					(length 5.08)
+					(name "DC-2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "DC-2.3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -15.24 -17.78 0)
+					(length 5.08)
+					(name "DC-2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "DC-2.4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 0 180)
+					(length 5.08)
+					(name "G1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "G1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 -5.08 180)
+					(length 5.08)
+					(name "G2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "G2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 -10.16 180)
+					(length 5.08)
+					(name "G3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "G3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 -15.24 180)
+					(length 5.08)
+					(name "G4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "G4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 -2.54 180)
+					(length 5.08)
+					(name "S1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "S1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 -7.62 180)
+					(length 5.08)
+					(name "S2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "S2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 -12.7 180)
+					(length 5.08)
+					(name "S3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "S3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 -17.78 180)
+					(length 5.08)
+					(name "S4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "S4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 -22.86 180)
+					(length 5.08)
+					(name "T1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "T1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 -25.4 180)
+					(length 5.08)
+					(name "T2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "T2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "dcdc:C_HF"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0.254)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "C"
+				(at 0.635 2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "C"
+				(at 0.635 -2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0.9652 -3.81 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Unpolarized capacitor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "cap capacitor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "C_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "C_HF_0_1"
+				(polyline
+					(pts
+						(xy -2.032 0.762) (xy 2.032 0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -2.032 -0.762) (xy 2.032 -0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "C_HF_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 2.794)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 2.794)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "dcdc:C_SNB"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0.254)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "C"
+				(at 0.635 2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "C"
+				(at 0.635 -2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0.9652 -3.81 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Unpolarized capacitor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "cap capacitor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "C_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "C_SNB_0_1"
+				(polyline
+					(pts
+						(xy -2.032 0.762) (xy 2.032 0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -2.032 -0.762) (xy 2.032 -0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "C_SNB_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 2.794)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 2.794)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "dcdc:DD600N16K"
+			(pin_names
+				(offset 0.762)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "D"
+				(at -7.62 6.35 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left bottom)
+				)
+			)
+			(property "Value" "DD600N16K"
+				(at -7.62 -6.35 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 -8.89 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" "docs/datasheets/power-semiconductors/DD600N16K.pdf"
+				(at 0 -11.43 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "CHASSIS-MOUNTED dual rectifier diode module 1600 V 600 A, one arm used as DC-link reverse clamp"
+				(at 0 -13.97 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "DD600N16K_1_1"
+				(rectangle
+					(start -7.62 5.08)
+					(end 7.62 -5.08)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(pin passive line
+					(at -12.7 0 0)
+					(length 5.08)
+					(name "A1K2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 12.7 0 180)
+					(length 5.08)
+					(name "K1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 12.7 -2.54 180)
+					(length 5.08)
+					(name "A2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "dcdc:R_SNB"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "R"
+				(at 2.032 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "R"
+				(at 0 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at -1.778 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Resistor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "R res resistor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "R_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "R_SNB_0_1"
+				(rectangle
+					(start -1.016 -2.54)
+					(end 1.016 2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "R_SNB_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+	)
+	(rectangle
+		(start 156.01 14)
+		(end 317.53 50.76)
+		(stroke
+			(width 0.254)
+			(type dash)
+			(color 72 72 160 1)
+		)
+		(fill
+			(type none)
+		)
+		(uuid "86c25e2a-1a59-5bf6-9f70-b09dc4bdef83")
+	)
+	(rectangle
+		(start 322.53 14)
+		(end 449.34 53.76)
+		(stroke
+			(width 0.254)
+			(type dash)
+			(color 72 72 160 1)
+		)
+		(fill
+			(type none)
+		)
+		(uuid "cd5d179c-2a47-5685-aa96-de375b46c3b3")
+	)
+	(rectangle
+		(start 454.34 14)
+		(end 576.62 183.97)
+		(stroke
+			(width 0.254)
+			(type dash)
+			(color 72 72 160 1)
+		)
+		(fill
+			(type none)
+		)
+		(uuid "eecd4621-7bab-569e-9f1a-8dbf49f1bfea")
+	)
+	(rectangle
+		(start 12 14)
+		(end 151.01 96.88)
+		(stroke
+			(width 0.254)
+			(type dash)
+			(color 72 72 160 1)
+		)
+		(fill
+			(type none)
+		)
+		(uuid "fc11df6d-602c-53ee-b267-40b52ead2633")
+	)
+	(text "DC-LINK REVERSE CLAMP (DD600N16K, ONE ARM)"
+		(exclude_from_sim no)
+		(at 324.528 19 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "263d6fc1-cdc7-507b-b22a-240c6b120ff1")
+	)
+	(text "Across DC+/DC- at the module pins (CRD UG Fig. 22 / 19 networks). Spread over both legs in layout;\nresistors: pulse-rated wide-terminal 2512 with a thermal path to the plane (dab_spec 1.21 W worst)."
+		(exclude_from_sim no)
+		(at 456.344 181.468 0)
+		(effects
+			(font
+				(size 1.1 1.1)
+			)
+			(justify left bottom)
+		)
+		(uuid "46f73878-24fc-5e77-b743-4513d1becc8a")
+	)
+	(text "CBB011M12GM4T FULL-BRIDGE MODULE (PORT 1 SIDE)"
+		(exclude_from_sim no)
+		(at 14 19 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "582bc6ac-200c-5466-8eec-ae29c79e845a")
+	)
+	(text "Bank ripple 73 A rms, 24.4 A per capacitor (rating 34 A); hot spot 73 C -> 1261 V allowed vs 950 V.\nRatings vs stresses: design_check()."
+		(exclude_from_sim no)
+		(at 158.008 48.26 0)
+		(effects
+			(font
+				(size 1.1 1.1)
+			)
+			(justify left bottom)
+		)
+		(uuid "66719fc8-fc2a-573e-9961-46dcce512e02")
+	)
+	(text "DC LINK 3 X C4AQUEW5450A3BJ = 135 UF"
+		(exclude_from_sim no)
+		(at 158.008 19 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "ac3ffed6-aec8-54be-8b25-851873491085")
+	)
+	(text "HF RC SNUBBERS 12 X (13.6 OHM 3 W + 1.1 NF) AND 10 X 47 NF TERMINAL CERAMICS"
+		(exclude_from_sim no)
+		(at 456.344 19 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "c145ba43-ad27-5360-80ff-2e4d85011df4")
+	)
+	(text "Cathode (2) to DC+, anode (1) to DC- at the bank terminals; terminal 3 unused. Reverse-biased in operation.\nPort short: carries 15.7 kA / 16.5 kA2s after the bank reverses (I2t 1.8 MA2s) instead of the module body\ndiodes. CHASSIS-MOUNTED, insulated base plate (basic, to PE frame)."
+		(exclude_from_sim no)
+		(at 324.528 51.26 0)
+		(effects
+			(font
+				(size 1.1 1.1)
+			)
+			(justify left bottom)
+		)
+		(uuid "e6b589bb-338f-5377-bfd0-223369e912f5")
+	)
+	(text "Switch 1/2 = leg A (AC1), 3/4 = leg B (AC2). Kelvin sources S1-S4 go to the drivers only (COM).\nNTC T1/T2 is read by the switch-2 driver (AIN referenced to S2), as on the CRD. Drains of 1/3 = DC+."
+		(exclude_from_sim no)
+		(at 14 94.38 0)
+		(effects
+			(font
+				(size 1.1 1.1)
+			)
+			(justify left bottom)
+		)
+		(uuid "fc6e1b79-1560-5ccf-b976-86d13bc45da0")
+	)
+	(junction
+		(at 60.96 30.48)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "09e033ee-840d-54f9-bb39-9a503d0b6b90")
+	)
+	(junction
+		(at 60.96 33.02)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "30f99a83-6076-5f12-ab65-71216344db40")
+	)
+	(junction
+		(at 25.4 33.02)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "3619b0f7-b4e0-5255-8101-e4f3a4f662c2")
+	)
+	(junction
+		(at 25.4 35.56)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "444dfee0-dc79-5276-9b56-5fe370e0f76d")
+	)
+	(junction
+		(at 25.4 55.88)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "4bc7885b-f170-5f74-83d9-f4cb670a95b4")
+	)
+	(junction
+		(at 25.4 66.04)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "537b47bb-1255-5fa4-a431-a397910d6422")
+	)
+	(junction
+		(at 25.4 53.34)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "6954d272-065e-5e34-95e7-797d45b2f1ec")
+	)
+	(junction
+		(at 25.4 30.48)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "6e79e168-e2d0-5298-900f-5166ae40e56f")
+	)
+	(junction
+		(at 60.96 43.18)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "7c83d7f1-b3f0-5bbb-b0d8-e37b1674abe3")
+	)
+	(junction
+		(at 25.4 68.58)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "94f9fdd6-3910-5214-aa01-8ea0fb71e9fe")
+	)
+	(junction
+		(at 60.96 45.72)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "bcb7a064-8550-5e11-9aab-e4e8e5cbbed9")
+	)
+	(junction
+		(at 25.4 38.1)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "deb6d2ee-4735-5245-ad1f-6d0ed44398b4")
+	)
+	(junction
+		(at 25.4 40.64)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "e26089f0-8377-5b13-82de-431e60833693")
+	)
+	(junction
+		(at 25.4 43.18)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "fd8097c2-ec04-5306-b88e-95941ca5c1be")
+	)
+	(no_connect
+		(at 363.22 33.02)
+		(uuid "95cd4266-6ab1-5197-9c3f-85dde4725c46")
+	)
+	(wire
+		(pts
+			(xy 476.25 78.74) (xy 478.79 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "008288fb-abcc-5379-92e8-2537245e7496")
+	)
+	(wire
+		(pts
+			(xy 58.42 66.04) (xy 60.96 66.04)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "05c9bf0e-f228-523a-9e73-8d14d6e9234b")
+	)
+	(wire
+		(pts
+			(xy 58.42 35.56) (xy 60.96 35.56)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "05e83cb4-608e-5392-a3fc-41141fa3ddf6")
+	)
+	(wire
+		(pts
+			(xy 468.63 38.1) (xy 466.09 38.1)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "06a35dd0-20b3-582a-8d86-3f465c07ec01")
+	)
+	(wire
+		(pts
+			(xy 476.25 53.34) (xy 478.79 53.34)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0749e02a-b714-5a99-9cec-4894c2cf1cbe")
+	)
+	(wire
+		(pts
+			(xy 27.94 63.5) (xy 25.4 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "08e7e50d-deee-5895-8324-6ae86953195c")
+	)
+	(wire
+		(pts
+			(xy 509.27 101.6) (xy 511.81 101.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "092d6c87-fad2-5d74-8448-a03b543d844c")
+	)
+	(wire
+		(pts
+			(xy 476.25 114.3) (xy 478.79 114.3)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0f8c8a66-72d7-5a06-be16-e0b1a6057549")
+	)
+	(wire
+		(pts
+			(xy 60.96 43.18) (xy 60.96 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "10a85472-9445-52dd-9abe-8fecba960f89")
+	)
+	(wire
+		(pts
+			(xy 476.25 154.94) (xy 478.79 154.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1205c9d5-0b01-5486-b2fb-8077cebd1ae3")
+	)
+	(wire
+		(pts
+			(xy 170.18 30.48) (xy 167.64 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "127ab81a-ae10-526f-b357-47a8d563c07b")
+	)
+	(wire
+		(pts
+			(xy 198.12 30.48) (xy 198.12 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "16be31c9-6497-5831-87dd-573decdaf23f")
+	)
+	(wire
+		(pts
+			(xy 532.13 38.1) (xy 529.59 38.1)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "17cc7d96-ad82-51ef-8504-04270091da58")
+	)
+	(wire
+		(pts
+			(xy 58.42 68.58) (xy 60.96 68.58)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "191c8806-702f-5206-9707-b5be1f49558f")
+	)
+	(wire
+		(pts
+			(xy 27.94 68.58) (xy 25.4 68.58)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "196941d1-f6b8-5c5c-9b53-d380d569b4ce")
+	)
+	(wire
+		(pts
+			(xy 499.11 50.8) (xy 496.57 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "19a5b3b7-dff7-5493-9ef3-4dfd0b926dce")
+	)
+	(wire
+		(pts
+			(xy 25.4 35.56) (xy 25.4 38.1)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1b89bfb7-3986-5c73-b27f-75555feaa6a5")
+	)
+	(wire
+		(pts
+			(xy 539.75 38.1) (xy 542.29 38.1)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1d4b1e78-21d1-55cb-beee-9782df9d22d2")
+	)
+	(wire
+		(pts
+			(xy 25.4 40.64) (xy 25.4 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1d87ce3f-3561-5628-bfbf-b18a10984922")
+	)
+	(wire
+		(pts
+			(xy 27.94 66.04) (xy 25.4 66.04)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1db6d8c5-6494-5884-ba42-8afb0958869d")
+	)
+	(wire
+		(pts
+			(xy 511.81 154.94) (xy 514.35 154.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1fe7ea3b-68c5-55d3-bc85-8a8c1d0b5acb")
+	)
+	(wire
+		(pts
+			(xy 476.25 38.1) (xy 478.79 38.1)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "20a01bf5-2a51-5624-b1b0-c5649be6f799")
+	)
+	(wire
+		(pts
+			(xy 501.65 91.44) (xy 499.11 91.44)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "21a5efed-6d1d-50e2-9119-73ff3f97d174")
+	)
+	(wire
+		(pts
+			(xy 60.96 30.48) (xy 60.96 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "223b0a4b-0277-564c-a338-02cc1dc7f570")
+	)
+	(wire
+		(pts
+			(xy 511.81 129.54) (xy 514.35 129.54)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "22a5da10-6b05-5176-93cc-ae25b8091f5b")
+	)
+	(wire
+		(pts
+			(xy 27.94 35.56) (xy 25.4 35.56)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2318d160-97f7-5ab6-87ab-4cfd1ba863e1")
+	)
+	(wire
+		(pts
+			(xy 506.73 50.8) (xy 509.27 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "25a88ef7-ae88-51e7-81a9-a714484aeeb3")
+	)
+	(wire
+		(pts
+			(xy 542.29 114.3) (xy 544.83 114.3)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "28b8fed5-3265-5865-9811-c812ad24d43d")
+	)
+	(wire
+		(pts
+			(xy 476.25 167.64) (xy 478.79 167.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2c21a8f0-aaba-5219-9bea-8447cba21d9d")
+	)
+	(wire
+		(pts
+			(xy 27.94 33.02) (xy 25.4 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2e6cc26d-9c2b-5ea6-90fa-04e28f67e813")
+	)
+	(wire
+		(pts
+			(xy 25.4 33.02) (xy 25.4 35.56)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "31dd6d14-b8e7-5a3c-9fab-b839e35fa30d")
+	)
+	(wire
+		(pts
+			(xy 248.92 30.48) (xy 251.46 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "355c6789-81e3-59c1-acfa-77928a7167d9")
+	)
+	(wire
+		(pts
+			(xy 58.42 63.5) (xy 60.96 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "356989d0-6dff-536e-ad45-25151c3dd1a2")
+	)
+	(wire
+		(pts
+			(xy 276.86 33.02) (xy 274.32 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "39911509-15d9-55ef-a65a-614a9b0c00f4")
+	)
+	(wire
+		(pts
+			(xy 304.8 30.48) (xy 304.8 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3b194de3-b698-57a1-8091-4e44dd3facf8")
+	)
+	(wire
+		(pts
+			(xy 506.73 25.4) (xy 509.27 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3d52de87-522a-58ae-98af-d0bfc741cc14")
+	)
+	(wire
+		(pts
+			(xy 539.75 154.94) (xy 537.21 154.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "425b39ec-a259-5b52-b16a-59be8bb13c80")
+	)
+	(wire
+		(pts
+			(xy 25.4 30.48) (xy 25.4 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "46ae9134-9918-56f4-81d2-8a3574a25158")
+	)
+	(wire
+		(pts
+			(xy 223.52 33.02) (xy 220.98 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4a0ff89c-07c4-5862-88da-c40c15ab1231")
+	)
+	(wire
+		(pts
+			(xy 27.94 27.94) (xy 25.4 27.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4ae8350e-f33c-57fb-a16a-ebe77b83f452")
+	)
+	(wire
+		(pts
+			(xy 547.37 142.24) (xy 549.91 142.24)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4b38c96e-295e-553b-9b0b-77e74bcb3f7a")
+	)
+	(wire
+		(pts
+			(xy 58.42 58.42) (xy 60.96 58.42)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4dd4c515-96f2-5535-ad26-9944611a3a72")
+	)
+	(wire
+		(pts
+			(xy 25.4 66.04) (xy 25.4 68.58)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "518d0336-16aa-5081-98f5-2bf6a7a891b3")
+	)
+	(wire
+		(pts
+			(xy 476.25 27.94) (xy 478.79 27.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "53ff02b4-4194-5cc7-929b-2e93083efcd1")
+	)
+	(wire
+		(pts
+			(xy 195.58 30.48) (xy 198.12 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5563a22c-a4f6-597e-b8bc-7615d2005174")
+	)
+	(wire
+		(pts
+			(xy 547.37 129.54) (xy 549.91 129.54)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "572c6a20-e809-5dc4-9852-5e9e265de3f3")
+	)
+	(wire
+		(pts
+			(xy 27.94 71.12) (xy 25.4 71.12)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "57ffed60-bbaf-5815-8f05-c6fcac7bfa7e")
+	)
+	(wire
+		(pts
+			(xy 468.63 78.74) (xy 466.09 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5cd5d646-6db5-54d5-837d-634ea9cc54e0")
+	)
+	(wire
+		(pts
+			(xy 534.67 27.94) (xy 532.13 27.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5f14aaaa-da57-59b5-82e1-8fe08d8a7e93")
+	)
+	(wire
+		(pts
+			(xy 27.94 53.34) (xy 25.4 53.34)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5f829be9-b740-5a19-aae8-87eec7b194bc")
+	)
+	(wire
+		(pts
+			(xy 223.52 30.48) (xy 220.98 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6146c108-2892-5c50-a284-df3a9210c91c")
+	)
+	(wire
+		(pts
+			(xy 501.65 40.64) (xy 499.11 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6248bde4-6450-5104-bee0-ff413c3f0357")
+	)
+	(wire
+		(pts
+			(xy 532.13 63.5) (xy 529.59 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "62743eca-2b7e-54d3-8357-efbc380dbaf8")
+	)
+	(wire
+		(pts
+			(xy 537.21 104.14) (xy 534.67 104.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "64e8c611-dee7-5777-ab46-98ec5d6bb0fb")
+	)
+	(wire
+		(pts
+			(xy 468.63 167.64) (xy 466.09 167.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "651413f8-c465-5cda-8476-2049f29eca6b")
+	)
+	(wire
+		(pts
+			(xy 468.63 53.34) (xy 466.09 53.34)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "67817fff-6fd5-556d-9389-6acdb408128a")
+	)
+	(wire
+		(pts
+			(xy 544.83 104.14) (xy 547.37 104.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "67ccc5a2-c1e2-5c44-9d34-f802b8f8726e")
+	)
+	(wire
+		(pts
+			(xy 509.27 40.64) (xy 511.81 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6fd93361-9cb2-5a18-8a64-e6b840e80dbc")
+	)
+	(wire
+		(pts
+			(xy 25.4 68.58) (xy 25.4 71.12)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "708f42cc-f22e-5f00-af3b-764f29352781")
+	)
+	(wire
+		(pts
+			(xy 170.18 33.02) (xy 167.64 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "728fea1c-e973-5031-b245-14ff4385400e")
+	)
+	(wire
+		(pts
+			(xy 539.75 63.5) (xy 542.29 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "76d9677a-8118-5840-8136-16b1b80f2e74")
+	)
+	(wire
+		(pts
+			(xy 468.63 142.24) (xy 466.09 142.24)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7769638d-8d96-5a8f-87c1-d8a8047095ab")
+	)
+	(wire
+		(pts
+			(xy 27.94 55.88) (xy 25.4 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "787906a9-1f32-5f93-8045-d14d64f87a19")
+	)
+	(wire
+		(pts
+			(xy 476.25 129.54) (xy 478.79 129.54)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "78df84ec-0522-5029-bd5d-4d9d11e25275")
+	)
+	(wire
+		(pts
+			(xy 499.11 25.4) (xy 496.57 25.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "79c97e81-c176-5fc2-bcd4-c2ad4717eaaa")
+	)
+	(wire
+		(pts
+			(xy 58.42 40.64) (xy 60.96 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7e71899f-8a52-5342-ba8e-4281e179d793")
+	)
+	(wire
+		(pts
+			(xy 25.4 63.5) (xy 25.4 66.04)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "800e2c79-21c4-586c-b2df-d36bcdb9447d")
+	)
+	(wire
+		(pts
+			(xy 468.63 27.94) (xy 466.09 27.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "805007be-c2ec-55f9-ae76-3e7f2015d971")
+	)
+	(wire
+		(pts
+			(xy 506.73 76.2) (xy 509.27 76.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "80b1963b-c494-52ab-97ab-7012db05ca65")
+	)
+	(wire
+		(pts
+			(xy 25.4 38.1) (xy 25.4 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "872cb954-045e-533e-ba09-c9a8f76ec7f1")
+	)
+	(wire
+		(pts
+			(xy 539.75 88.9) (xy 542.29 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "887bb139-2cf4-5fd7-8818-cff2f33853a8")
+	)
+	(wire
+		(pts
+			(xy 504.19 129.54) (xy 501.65 129.54)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "88828477-291c-5401-b995-52282c70f445")
+	)
+	(wire
+		(pts
+			(xy 60.96 45.72) (xy 60.96 48.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "888f8e76-e907-51c3-a65c-59eb5e56676b")
+	)
+	(wire
+		(pts
+			(xy 542.29 53.34) (xy 544.83 53.34)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "88f2bc5b-d37f-5e9d-853d-29728a75d1ce")
+	)
+	(wire
+		(pts
+			(xy 27.94 45.72) (xy 25.4 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8910c9fa-6295-5df1-8c39-67eaf2f6e359")
+	)
+	(wire
+		(pts
+			(xy 274.32 30.48) (xy 274.32 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "896b10a7-b1f8-5318-9f20-e889e3d42899")
+	)
+	(wire
+		(pts
+			(xy 468.63 88.9) (xy 466.09 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8a34b37b-37a1-5d75-ab5d-023bab97dd4a")
+	)
+	(wire
+		(pts
+			(xy 58.42 78.74) (xy 60.96 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8a63263e-e54c-5ef1-9df7-9d2e089d4077")
+	)
+	(wire
+		(pts
+			(xy 539.75 129.54) (xy 537.21 129.54)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8b496254-4ba3-54e5-b557-b66a407f66cc")
+	)
+	(wire
+		(pts
+			(xy 542.29 78.74) (xy 544.83 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8c27d83e-a658-5a0f-9371-c45b823173c1")
+	)
+	(wire
+		(pts
+			(xy 509.27 91.44) (xy 511.81 91.44)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8fd64c5b-2192-5946-8ba8-a2716122a992")
+	)
+	(wire
+		(pts
+			(xy 58.42 60.96) (xy 60.96 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "905a8717-716c-5266-9bfa-a3010c408b09")
+	)
+	(wire
+		(pts
+			(xy 337.82 30.48) (xy 335.28 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "919ae861-b2f5-54d6-b222-4126cd57b1de")
+	)
+	(wire
+		(pts
+			(xy 476.25 142.24) (xy 478.79 142.24)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "91a6c78f-8072-513a-bd31-44186f19fd75")
+	)
+	(wire
+		(pts
+			(xy 58.42 53.34) (xy 60.96 53.34)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "92095d6c-7241-539a-8130-b11984ff04cf")
+	)
+	(wire
+		(pts
+			(xy 58.42 45.72) (xy 60.96 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "96673c6c-3e17-56ff-aab8-e53b0b07f7c5")
+	)
+	(wire
+		(pts
+			(xy 195.58 33.02) (xy 198.12 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "99b30841-dda1-5164-8366-7fec1b0eba8c")
+	)
+	(wire
+		(pts
+			(xy 248.92 33.02) (xy 251.46 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "99c21ea6-204f-5eac-80ca-9031648ca576")
+	)
+	(wire
+		(pts
+			(xy 501.65 101.6) (xy 499.11 101.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9d50bf8e-1cd0-5dbc-adff-3dcbc8f0ba47")
+	)
+	(wire
+		(pts
+			(xy 476.25 63.5) (xy 478.79 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9f0213e2-8de2-5348-9636-f03cfe2dc44f")
+	)
+	(wire
+		(pts
+			(xy 27.94 50.8) (xy 25.4 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a2643b2f-e8d6-5ff2-bc6d-35257ba6cacb")
+	)
+	(wire
+		(pts
+			(xy 476.25 104.14) (xy 478.79 104.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a61409ec-2275-54be-9ecc-d547b32996b7")
+	)
+	(wire
+		(pts
+			(xy 25.4 43.18) (xy 25.4 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a78918fb-f289-5181-9e69-ce52f884bd9c")
+	)
+	(wire
+		(pts
+			(xy 511.81 116.84) (xy 514.35 116.84)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ab9454a5-66f8-5399-98d2-092cc75102c1")
+	)
+	(wire
+		(pts
+			(xy 302.26 30.48) (xy 304.8 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ac2f36bf-0987-51c8-8636-d37cefbf6f00")
+	)
+	(wire
+		(pts
+			(xy 60.96 27.94) (xy 60.96 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ac3a07c4-2e5b-5207-b80e-2d8c8bd6a08e")
+	)
+	(wire
+		(pts
+			(xy 27.94 40.64) (xy 25.4 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ac75bf0c-9ab8-56e8-a573-2aa7a2881bb9")
+	)
+	(wire
+		(pts
+			(xy 542.29 27.94) (xy 544.83 27.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b000b025-767b-5582-a621-d39501bb7102")
+	)
+	(wire
+		(pts
+			(xy 534.67 78.74) (xy 532.13 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b005eb8f-bc78-550b-bcc5-c9febd0d4518")
+	)
+	(wire
+		(pts
+			(xy 302.26 33.02) (xy 304.8 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b035f330-ee5a-50ef-9a0a-7975a29ead36")
+	)
+	(wire
+		(pts
+			(xy 25.4 27.94) (xy 25.4 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b04ff989-36ec-5379-9bf1-1015dbf3bef8")
+	)
+	(wire
+		(pts
+			(xy 476.25 88.9) (xy 478.79 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b05c8a52-6d20-5ad3-8da3-a64cc4aa0224")
+	)
+	(wire
+		(pts
+			(xy 60.96 40.64) (xy 60.96 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b2a46b58-3efa-563b-839b-47ea420bef14")
+	)
+	(wire
+		(pts
+			(xy 501.65 66.04) (xy 499.11 66.04)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b5f7124f-9419-5243-8068-292f3df35549")
+	)
+	(wire
+		(pts
+			(xy 468.63 114.3) (xy 466.09 114.3)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b60aa7d7-1c47-5846-96bd-e931030ef81d")
+	)
+	(wire
+		(pts
+			(xy 25.4 50.8) (xy 25.4 53.34)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b756e1b9-f91e-5f30-901e-b7a50ec2d978")
+	)
+	(wire
+		(pts
+			(xy 27.94 30.48) (xy 25.4 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b7ec2c3d-0ed6-542e-a9f3-dd80ab82a04d")
+	)
+	(wire
+		(pts
+			(xy 58.42 71.12) (xy 60.96 71.12)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b9b4a5cf-67ae-505e-89a0-a3ad4d8d5686")
+	)
+	(wire
+		(pts
+			(xy 499.11 76.2) (xy 496.57 76.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "badcf6e6-6a6e-5978-9d6e-2d2d8cc4726b")
+	)
+	(wire
+		(pts
+			(xy 547.37 154.94) (xy 549.91 154.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bb1288b5-6953-54c6-933e-addc0b76319b")
+	)
+	(wire
+		(pts
+			(xy 58.42 48.26) (xy 60.96 48.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bdd26866-6dd7-5eff-961a-d56d6a7a6739")
+	)
+	(wire
+		(pts
+			(xy 58.42 30.48) (xy 60.96 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c102e9a2-f744-57e7-b000-83f42f630a59")
+	)
+	(wire
+		(pts
+			(xy 25.4 55.88) (xy 25.4 58.42)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c22f1480-d4be-5097-ae31-d7210086a1fa")
+	)
+	(wire
+		(pts
+			(xy 468.63 129.54) (xy 466.09 129.54)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c2dc393a-95a2-5f78-8fb5-5e8a7cb8fb28")
+	)
+	(wire
+		(pts
+			(xy 58.42 76.2) (xy 60.96 76.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c2e30956-5b3e-59a2-acb6-b3d852f4d5d0")
+	)
+	(wire
+		(pts
+			(xy 27.94 38.1) (xy 25.4 38.1)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c5b7e66e-d58d-5e4c-a318-b7338d8c987b")
+	)
+	(wire
+		(pts
+			(xy 504.19 154.94) (xy 501.65 154.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c7449ca6-1c34-535d-9a61-fec501a7236c")
+	)
+	(wire
+		(pts
+			(xy 251.46 30.48) (xy 251.46 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c773f102-065b-510d-95ee-8fa7c07979f5")
+	)
+	(wire
+		(pts
+			(xy 276.86 30.48) (xy 274.32 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c8523016-16d4-591e-8cc2-f0c12580d688")
+	)
+	(wire
+		(pts
+			(xy 534.67 53.34) (xy 532.13 53.34)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ccbf1156-6027-5d0f-b5c9-bbd505493d0e")
+	)
+	(wire
+		(pts
+			(xy 27.94 58.42) (xy 25.4 58.42)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ce863b9c-c6a2-55a3-8e26-9eed40d4ce93")
+	)
+	(wire
+		(pts
+			(xy 509.27 66.04) (xy 511.81 66.04)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d3295a8e-0981-5db8-bf7b-f5016bdd7397")
+	)
+	(wire
+		(pts
+			(xy 58.42 43.18) (xy 60.96 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d53b63ee-3fc2-5eaf-ab43-9635173448bc")
+	)
+	(wire
+		(pts
+			(xy 468.63 63.5) (xy 466.09 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d588f6eb-a17f-5905-aa4c-22212f386571")
+	)
+	(wire
+		(pts
+			(xy 534.67 114.3) (xy 532.13 114.3)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d5f9262d-3224-57d1-a5d6-ebef9da60c59")
+	)
+	(wire
+		(pts
+			(xy 504.19 116.84) (xy 501.65 116.84)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d62e58e5-f7a8-5fed-91d1-a6c95ddb6378")
+	)
+	(wire
+		(pts
+			(xy 539.75 142.24) (xy 537.21 142.24)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "daf1e04d-e7fe-5a94-8f9f-a93e00d23a9e")
+	)
+	(wire
+		(pts
+			(xy 58.42 33.02) (xy 60.96 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "db226a5f-3477-5259-97f7-40917a50a4d1")
+	)
+	(wire
+		(pts
+			(xy 27.94 43.18) (xy 25.4 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "de194beb-8039-53e8-8735-a9b22e50aaf6")
+	)
+	(wire
+		(pts
+			(xy 532.13 88.9) (xy 529.59 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e11b2761-fa72-5556-8b88-b07e4a4b2921")
+	)
+	(wire
+		(pts
+			(xy 504.19 142.24) (xy 501.65 142.24)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e120c068-fbcc-52fc-8ecf-746ade82dfe2")
+	)
+	(wire
+		(pts
+			(xy 58.42 55.88) (xy 60.96 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e1261f48-4777-5e0e-82e2-e02b8f641fbe")
+	)
+	(wire
+		(pts
+			(xy 468.63 104.14) (xy 466.09 104.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e32bb8b4-7bcd-5247-a1e9-aa9231ac2b87")
+	)
+	(wire
+		(pts
+			(xy 511.81 142.24) (xy 514.35 142.24)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "eeb66529-977f-5125-ac9b-3a8d1a001f11")
+	)
+	(wire
+		(pts
+			(xy 167.64 30.48) (xy 167.64 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f55bda43-da4f-588d-acfe-5d367f252703")
+	)
+	(wire
+		(pts
+			(xy 363.22 30.48) (xy 365.76 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f7898dcd-64b1-5c3d-9627-8624b6d010de")
+	)
+	(wire
+		(pts
+			(xy 220.98 30.48) (xy 220.98 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f7c62618-9c06-594b-986e-dc7c78162a75")
+	)
+	(wire
+		(pts
+			(xy 60.96 33.02) (xy 60.96 35.56)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f89ed746-127e-5fab-be63-1a0b5de3bb36")
+	)
+	(wire
+		(pts
+			(xy 58.42 27.94) (xy 60.96 27.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f92d4aee-ef5c-5492-b9bc-2901c149ff7f")
+	)
+	(wire
+		(pts
+			(xy 468.63 154.94) (xy 466.09 154.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "faff210d-7481-5a99-aa23-809cd04aee9c")
+	)
+	(wire
+		(pts
+			(xy 25.4 53.34) (xy 25.4 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fff1e0cf-46bc-5db6-adac-5f4d8c584a00")
+	)
+	(label "B1_SNB5"
+		(at 544.83 53.34 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "018879f5-5d97-51d0-b666-8648cec58c55")
+	)
+	(label "B1_SNB6"
+		(at 511.81 66.04 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "0f82f35e-d0a0-5669-9630-ea82fb8315b4")
+	)
+	(label "B1_SNB1"
+		(at 496.57 25.4 180)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right bottom)
+		)
+		(uuid "0f945f61-f3ce-54f5-932c-93b1f5c66f5b")
+	)
+	(label "B1_SNB4"
+		(at 496.57 50.8 180)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right bottom)
+		)
+		(uuid "1c4bb5d3-cbc7-5d7d-83f0-53806a2a769a")
+	)
+	(label "B1_SNB10"
+		(at 478.79 104.14 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "1db61a4c-6beb-5f73-9c90-1a036fde7d3b")
+	)
+	(label "B1_SNB3"
+		(at 529.59 38.1 180)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right bottom)
+		)
+		(uuid "245441e3-3721-50c0-a174-0082d2793c1f")
+	)
+	(label "B1_SNB8"
+		(at 466.09 88.9 180)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right bottom)
+		)
+		(uuid "28fe837f-d809-541a-ac07-08e3c4ce1645")
+	)
+	(label "B1_SNB11"
+		(at 547.37 104.14 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "3552701b-4a89-5007-b4e6-5baa09ea7f35")
+	)
+	(label "B1_SNB11"
+		(at 466.09 114.3 180)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right bottom)
+		)
+		(uuid "40841f81-2c17-557c-85b0-fe5ccb2192f0")
+	)
+	(label "B1_SNB5"
+		(at 466.09 63.5 180)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right bottom)
+		)
+		(uuid "517fbcb0-a629-5267-a058-1066ce4a6565")
+	)
+	(label "B1_SNB3"
+		(at 511.81 40.64 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "523e01f0-4342-5cfd-b284-04760ccf9b7b")
+	)
+	(label "B1_SNB8"
+		(at 544.83 78.74 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "563abf1a-d6a2-5447-8ac1-8f19e7ebd703")
+	)
+	(label "B1_SNB1"
+		(at 478.79 27.94 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "56b97d4d-d2e1-5028-b9d7-beef08128609")
+	)
+	(label "B1_SNB7"
+		(at 478.79 78.74 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "6f4f25f6-a79f-571e-8877-f8ee7c83607a")
+	)
+	(label "B1_SNB12"
+		(at 532.13 114.3 180)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right bottom)
+		)
+		(uuid "87fedcb7-a66a-5133-b851-23390a3eef17")
+	)
+	(label "B1_SNB7"
+		(at 496.57 76.2 180)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right bottom)
+		)
+		(uuid "9b6259cd-6ad3-581e-9961-f4a40da1cabd")
+	)
+	(label "B1_SNB2"
+		(at 544.83 27.94 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "ae5569cb-9cb4-59bf-8cba-e37add24014c")
+	)
+	(label "B1_SNB9"
+		(at 511.81 91.44 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "b1d097b1-78b2-5efb-8194-3dffe8ac8655")
+	)
+	(label "B1_SNB12"
+		(at 514.35 116.84 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "b23b66ca-9d07-5fba-a519-15e9454eff65")
+	)
+	(label "B1_SNB10"
+		(at 499.11 101.6 180)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right bottom)
+		)
+		(uuid "b241be10-c30a-587d-9143-1ac062a90191")
+	)
+	(label "B1_SNB4"
+		(at 478.79 53.34 0)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left bottom)
+		)
+		(uuid "b77cd7d1-a2b7-596d-9549-914604890372")
+	)
+	(label "B1_SNB2"
+		(at 466.09 38.1 180)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right bottom)
+		)
+		(uuid "ce6b5561-0620-58e7-9850-316c2930dcae")
+	)
+	(label "B1_SNB6"
+		(at 529.59 63.5 180)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right bottom)
+		)
+		(uuid "d1b92af6-3117-53ce-b53e-5b103fbc3a94")
+	)
+	(label "B1_SNB9"
+		(at 529.59 88.9 180)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right bottom)
+		)
+		(uuid "f6cfd7d4-705d-5803-8c8e-408c3e4a0126")
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 549.91 142.24 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "01183e97-05ae-5c5a-bf8e-fce4419beda6")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 549.91 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 466.09 27.94 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "07611384-1650-51fa-8c0f-dc19aa176cc5")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 466.09 27.94 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 478.79 38.1 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "07ed8a3b-7d74-5c40-a5f1-3e4b2380be38")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 478.79 38.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 542.29 63.5 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "0a54508a-d05d-5e28-be3e-901714744a5d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 542.29 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 532.13 27.94 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "0adbc9e5-aacc-5a38-8a83-11bdda28d521")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 532.13 27.94 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "B1_ACA"
+		(shape bidirectional)
+		(at 60.96 27.94 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "15cbf0f0-0aba-579e-8e89-fbbed76b47f6")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 60.96 27.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "G_B1L1"
+		(shape bidirectional)
+		(at 60.96 58.42 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "1ebf9f91-b97c-5f53-8b08-54184276c3be")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 60.96 58.42 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 198.12 30.48 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "1f7ccf8a-5942-5dec-a4c0-87642e4da030")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 198.12 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "B1_NTC"
+		(shape bidirectional)
+		(at 60.96 76.2 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "22a82915-6d46-55e5-9934-3b1baf14f306")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 60.96 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 478.79 167.64 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "2929d800-e3aa-57c7-992b-f911355940f4")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 478.79 167.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "KS_B1L1"
+		(shape bidirectional)
+		(at 60.96 60.96 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "2db5a5d7-b7a4-52c7-9b09-7dcf7dc1d9ed")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 60.96 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 514.35 154.94 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "2eb7ac33-a400-5eeb-90ad-528783a09b6b")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 514.35 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "KS_B1H1"
+		(shape bidirectional)
+		(at 60.96 55.88 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "2f8f6959-35a6-55c4-98a2-dcb3496dd2b0")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 60.96 55.88 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 544.83 114.3 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "30973228-79dc-5fc3-a8d4-89380cc1c49e")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 544.83 114.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 478.79 114.3 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "319e2beb-c524-5127-b064-767a67a2292f")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 478.79 114.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 501.65 129.54 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "39941ddb-e660-55a0-a441-225ee0565cab")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 501.65 129.54 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 532.13 53.34 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "3a8dec68-67bc-53dc-b547-4670ec76e803")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 532.13 53.34 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 499.11 66.04 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "3c68de9f-325e-5f7c-b880-26341df2eca5")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 499.11 66.04 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 549.91 154.94 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "3cd68f2a-1233-53e1-a861-b9e4a3f02ed1")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 549.91 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 365.76 30.48 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "3d899f2a-a6f8-51b8-925c-18f4a0a58581")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 365.76 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 466.09 53.34 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "3e82e6fb-052a-58cf-acce-55a1a08bc7df")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 466.09 53.34 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 304.8 30.48 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "4088678f-0866-5931-b638-6136ddd5b75e")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 304.8 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 25.4 63.5 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "43337c47-4afa-585b-9e9e-daf8b2e88b90")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 25.4 63.5 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 220.98 30.48 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "4660898a-2420-5e22-ac03-eae57908e167")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 220.98 30.48 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 542.29 38.1 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "4adccb67-55b6-5578-a8a5-b79fc90d29d7")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 542.29 38.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 509.27 76.2 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "4c3360b3-21f0-5a9c-92e8-5d43427f78d3")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 509.27 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 549.91 129.54 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "4c83ed8b-b1b2-5670-b1dd-3bf39f617e3d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 549.91 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 501.65 142.24 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "4fa2d5bf-0ea4-5916-953c-ab1cd4cf1da4")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 501.65 142.24 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "G_B1H2"
+		(shape bidirectional)
+		(at 60.96 63.5 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "5163d6c4-220c-54cf-a654-d7ac2edd03fc")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 60.96 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 274.32 30.48 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "576f68f6-bdfd-581a-bdec-58617a125ba1")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 274.32 30.48 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 514.35 142.24 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "64c37bb0-866a-5ea1-b3a6-b93731c68b7f")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 514.35 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 466.09 129.54 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "64d598a0-50c6-574d-8daf-c5a3b5ffb4aa")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 466.09 129.54 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 532.13 78.74 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "6bdeca53-d7c1-5221-960e-7afeb1606c04")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 532.13 78.74 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 478.79 154.94 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "6c2a1cf9-2eb5-5df0-9531-ab89e1e4fe0c")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 478.79 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 466.09 154.94 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "6c791811-6ffa-5619-8a24-9809671a9ec3")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 466.09 154.94 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 509.27 25.4 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "6e71bb0b-e94d-590b-9b8c-e308c76985f4")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 509.27 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 25.4 27.94 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "706829cf-7fcd-50e0-8432-2f6d99213c26")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 25.4 27.94 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 511.81 101.6 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "7218d6fa-93db-5bbd-a45d-7f93c25b9573")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 511.81 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "B1_ACB"
+		(shape bidirectional)
+		(at 60.96 40.64 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "75a74c47-f283-52d2-8f18-137316808887")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 60.96 40.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 501.65 116.84 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "77eb0ab4-d995-5ff1-b8ad-e342e00f1ff1")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 501.65 116.84 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 466.09 142.24 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "7ec750fc-1209-5746-8934-cd53ce1b4785")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 466.09 142.24 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 478.79 88.9 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "7f4920e3-6774-55d5-94b1-0bec0e7190db")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 478.79 88.9 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 466.09 78.74 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "81e9b338-f8cf-5a12-b581-5e32383a1973")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 466.09 78.74 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 478.79 129.54 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "8d596862-55ce-599f-ba42-ddbb817eb466")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 478.79 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 466.09 104.14 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "94cb3b70-74dd-5de6-8019-8ad99fbd3ebf")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 466.09 104.14 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 25.4 50.8 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "99f88496-a710-5f50-8293-2bec9a7cad10")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 25.4 50.8 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "G_B1H1"
+		(shape bidirectional)
+		(at 60.96 53.34 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "a043d498-9652-59dc-a098-dea86e16d726")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 60.96 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "KS_B1L2"
+		(shape bidirectional)
+		(at 60.96 71.12 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "ae82f268-ac51-5009-b8e9-278a1c3a7655")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 60.96 71.12 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "KS_B1L1"
+		(shape bidirectional)
+		(at 60.96 78.74 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "b5a2e6ad-5973-5e7e-9093-a65860d0fe54")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 60.96 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 251.46 30.48 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "b680f9a3-d2b2-5f63-b95e-ae8bebcde7fb")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 251.46 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 537.21 154.94 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "b7193def-b621-50a5-91fa-270e601c6f6c")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 537.21 154.94 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 478.79 142.24 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "b926234c-ae12-53b8-8308-996f6c4c582f")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 478.79 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 335.28 30.48 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "bfa0179e-6b20-5a19-9438-6c1a2418ff16")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 335.28 30.48 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "G_B1L2"
+		(shape bidirectional)
+		(at 60.96 68.58 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "bffadf70-e43b-5e8e-9998-fbf420f6a448")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 60.96 68.58 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 537.21 129.54 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "d33e9fe5-5f84-5de1-be0a-ad3e3edd5754")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 537.21 129.54 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 499.11 40.64 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "d494e045-55c6-5ed0-b386-cd7fef1ce722")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 499.11 40.64 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 466.09 167.64 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "d49bfe30-2624-5e29-b45e-f14737c2eb06")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 466.09 167.64 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 514.35 129.54 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "d9999826-3348-558d-9e37-a216cf1c2cdf")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 514.35 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 542.29 88.9 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "e62bc04c-9176-53ce-bb64-eb7b70737970")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 542.29 88.9 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "KS_B1H2"
+		(shape bidirectional)
+		(at 60.96 66.04 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "e65830b1-1f67-50e4-8a65-3c89c52934da")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 60.96 66.04 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 499.11 91.44 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "ea465424-1e23-51be-9be3-ff63bee09cf5")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 499.11 91.44 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 167.64 30.48 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "eb721dac-cb76-5575-977f-ced0d5425d43")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 167.64 30.48 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 509.27 50.8 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "eef63f85-7805-56d7-869d-6fec621300c3")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 509.27 50.8 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS-"
+		(shape bidirectional)
+		(at 478.79 63.5 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "f48b4098-ff95-59d7-b8a5-7894eda55b3d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 478.79 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 534.67 104.14 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "f5cea5a3-fde7-5678-bb4f-daaf522df233")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 534.67 104.14 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 537.21 142.24 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "f5f711b8-0d1f-5698-bd11-ecbdc8aa1b67")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 537.21 142.24 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "P1_BUS+"
+		(shape bidirectional)
+		(at 501.65 154.94 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "ffc4430e-d228-525a-a3d1-1150c2f0d0ed")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 501.65 154.94 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_HF")
+		(at 508 142.24 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "031ed34a-f6d8-5ef0-ba3c-9ea17171fd77")
+		(property "Reference" "C120"
+			(at 508 138.808 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "47n 1.5kV C0G"
+			(at 508 145.672 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 508 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 508 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ DC-link terminal MLCC 47 nF C0G >= 1.5 kV DC 1812/2220"
+			(at 508 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 508 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 508 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "1812/2220"
+			(at 508 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 508 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 508 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "e539e753-51c1-56da-8d07-6c607e01e8ed")
+		)
+		(pin "2"
+			(uuid "753dbca7-4010-5781-9f12-83a89f9a2a6c")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C120")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:R_SNB")
+		(at 472.44 88.9 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "079b470c-0fc9-5209-9d72-e1224080c13f")
+		(property "Reference" "R108"
+			(at 472.44 86.484 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "13.6R 3W"
+			(at 472.44 91.316 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 472.44 88.9 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 472.44 88.9 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber resistor 13.6 ohm 1 % 3 W 2512 thick film, pulse rated"
+			(at 472.44 88.9 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 472.44 88.9 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 472.44 88.9 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2512"
+			(at 472.44 88.9 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 472.44 88.9 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 472.44 88.9 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "83abc6ff-1958-561a-bb5c-24b99f489f8a")
+		)
+		(pin "2"
+			(uuid "e961fc17-4b1c-520f-a03a-2d3cc5ed5d69")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "R108")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C4AQ_45U")
+		(at 182.88 30.48 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "11d6d3b4-d7a8-5174-b4cb-264c3cecd000")
+		(property "Reference" "C101"
+			(at 182.88 24 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "C4AQUEW5450A3BJ"
+			(at 182.88 36.96 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 182.88 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/passives-capacitors/C4AQ.pdf"
+			(at 182.88 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "DC-link PP film 45 uF, 1300 VDC at 70 C hot spot (1100 V at 85 C, 850 V at 105 C), ESR 3.1 mOhm, Irms 34.0 A (10 kHz, dT 30 K)"
+			(at 182.88 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "KEMET"
+			(at 182.88 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "C4AQUEW5450A3BJ"
+			(at 182.88 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "radial box 57.5 x 45 x 65 mm, 4 leads (S 52.5, S1 20.3)"
+			(at 182.88 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 182.88 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 182.88 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "5f3ae678-9f51-5d63-a928-8f7bb6e27c71")
+		)
+		(pin "2"
+			(uuid "44d29619-d9ee-55dc-8e5c-6ae96af9de0c")
+		)
+		(pin "3"
+			(uuid "d5e2b12f-0d60-5180-b781-0991e2dd9758")
+		)
+		(pin "4"
+			(uuid "c2bed709-b4b7-5c9a-b964-68d312cdb510")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C101")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:R_SNB")
+		(at 502.92 25.4 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "201dab3b-f1d2-50f2-acb8-1af0dfdc0072")
+		(property "Reference" "R101"
+			(at 502.92 22.984 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "13.6R 3W"
+			(at 502.92 27.816 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 502.92 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 502.92 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber resistor 13.6 ohm 1 % 3 W 2512 thick film, pulse rated"
+			(at 502.92 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 502.92 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 502.92 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2512"
+			(at 502.92 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 502.92 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 502.92 25.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "6adb7ebf-53fd-54a9-8590-6f19cd239d86")
+		)
+		(pin "2"
+			(uuid "7aa07fe2-9489-5616-8188-3e2dc251ba37")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "R101")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:R_SNB")
+		(at 538.48 114.3 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "24ed47da-335a-5313-829c-c832e835153a")
+		(property "Reference" "R112"
+			(at 538.48 111.884 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "13.6R 3W"
+			(at 538.48 116.716 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 538.48 114.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 538.48 114.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber resistor 13.6 ohm 1 % 3 W 2512 thick film, pulse rated"
+			(at 538.48 114.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 538.48 114.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 538.48 114.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2512"
+			(at 538.48 114.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 538.48 114.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 538.48 114.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "6fb71c7b-070a-58d6-8585-584add820e02")
+		)
+		(pin "2"
+			(uuid "6d463c3c-5cb8-5300-a369-93a928c25650")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "R112")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_SNB")
+		(at 472.44 78.74 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "323173b2-9e52-5787-af98-39f8b3b31c11")
+		(property "Reference" "C110"
+			(at 472.44 75.308 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "1.1n 2kV C0G"
+			(at 472.44 82.172 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 472.44 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 472.44 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber MLCC 1.1 nF 5 % C0G 2 kV 2220"
+			(at 472.44 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 472.44 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 472.44 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2220"
+			(at 472.44 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 472.44 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 472.44 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "b08b2c64-9487-5fa1-a277-8f5f64374ca1")
+		)
+		(pin "2"
+			(uuid "292c47c1-c4ad-5de8-9b67-ce8d1bbef3e8")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C110")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C4AQ_45U")
+		(at 289.56 30.48 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "39e25334-bc54-55e6-bb5d-d7e8cf81894d")
+		(property "Reference" "C103"
+			(at 289.56 24 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "C4AQUEW5450A3BJ"
+			(at 289.56 36.96 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 289.56 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/passives-capacitors/C4AQ.pdf"
+			(at 289.56 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "DC-link PP film 45 uF, 1300 VDC at 70 C hot spot (1100 V at 85 C, 850 V at 105 C), ESR 3.1 mOhm, Irms 34.0 A (10 kHz, dT 30 K)"
+			(at 289.56 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "KEMET"
+			(at 289.56 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "C4AQUEW5450A3BJ"
+			(at 289.56 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "radial box 57.5 x 45 x 65 mm, 4 leads (S 52.5, S1 20.3)"
+			(at 289.56 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 289.56 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 289.56 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "e98fd893-1b8c-5aaf-a62c-2130ea145a09")
+		)
+		(pin "2"
+			(uuid "1766ad12-2339-5a49-bb7c-221a02e2d063")
+		)
+		(pin "3"
+			(uuid "b2719f50-f8c1-5498-ae44-006af05e971b")
+		)
+		(pin "4"
+			(uuid "a1689854-48ac-5bda-b0f0-d7ea55ab17c5")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C103")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_SNB")
+		(at 538.48 78.74 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "3e88d7e5-07be-5565-b548-93e073ea1d17")
+		(property "Reference" "C111"
+			(at 538.48 75.308 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "1.1n 2kV C0G"
+			(at 538.48 82.172 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 538.48 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 538.48 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber MLCC 1.1 nF 5 % C0G 2 kV 2220"
+			(at 538.48 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 538.48 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 538.48 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2220"
+			(at 538.48 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 538.48 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 538.48 78.74 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "bf6c7374-ae7f-51bb-9fa0-5a5efabd8569")
+		)
+		(pin "2"
+			(uuid "4909f8d7-31fb-5f6a-8f30-786bdd40c0c9")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C111")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_SNB")
+		(at 505.46 91.44 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "45c6d628-d643-5979-9a20-e4bc8063b967")
+		(property "Reference" "C112"
+			(at 505.46 88.008 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "1.1n 2kV C0G"
+			(at 505.46 94.872 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 505.46 91.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 505.46 91.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber MLCC 1.1 nF 5 % C0G 2 kV 2220"
+			(at 505.46 91.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 505.46 91.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 505.46 91.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2220"
+			(at 505.46 91.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 505.46 91.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 505.46 91.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "9cee5daa-1fe7-5ba2-8b14-fa243cf3ded4")
+		)
+		(pin "2"
+			(uuid "cbb189a1-38d9-5110-bdc1-b091b8181012")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C112")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:R_SNB")
+		(at 535.94 88.9 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "4d2b81ac-d208-5a7e-b854-82a7dbc89527")
+		(property "Reference" "R109"
+			(at 535.94 86.484 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "13.6R 3W"
+			(at 535.94 91.316 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 535.94 88.9 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 535.94 88.9 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber resistor 13.6 ohm 1 % 3 W 2512 thick film, pulse rated"
+			(at 535.94 88.9 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 535.94 88.9 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 535.94 88.9 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2512"
+			(at 535.94 88.9 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 535.94 88.9 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 535.94 88.9 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "194971eb-21b5-581a-8ff7-4cda3b2533f7")
+		)
+		(pin "2"
+			(uuid "d50b8c06-5d31-58fa-82c8-8ec85be46a90")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "R109")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_SNB")
+		(at 505.46 40.64 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "4d72de30-de71-55e7-a289-1f5626056769")
+		(property "Reference" "C106"
+			(at 505.46 37.208 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "1.1n 2kV C0G"
+			(at 505.46 44.072 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 505.46 40.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 505.46 40.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber MLCC 1.1 nF 5 % C0G 2 kV 2220"
+			(at 505.46 40.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 505.46 40.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 505.46 40.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2220"
+			(at 505.46 40.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 505.46 40.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 505.46 40.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "f555b56f-ecc2-549f-8548-0971fe5d6cef")
+		)
+		(pin "2"
+			(uuid "67e52f10-d42c-50a1-b1d9-96723440a8ac")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C106")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:R_SNB")
+		(at 472.44 38.1 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "4fb2ce24-6138-5eaa-866b-8c10ffbc676d")
+		(property "Reference" "R102"
+			(at 472.44 35.684 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "13.6R 3W"
+			(at 472.44 40.516 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 472.44 38.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 472.44 38.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber resistor 13.6 ohm 1 % 3 W 2512 thick film, pulse rated"
+			(at 472.44 38.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 472.44 38.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 472.44 38.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2512"
+			(at 472.44 38.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 472.44 38.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 472.44 38.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "081044d7-b604-55e8-a176-4fbfd57080e5")
+		)
+		(pin "2"
+			(uuid "3610dc94-0fd4-50fc-b7f5-5809e8956071")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "R102")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:R_SNB")
+		(at 535.94 38.1 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "5065371e-4949-5296-b5bf-8ca613b1e13e")
+		(property "Reference" "R103"
+			(at 535.94 35.684 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "13.6R 3W"
+			(at 535.94 40.516 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 535.94 38.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 535.94 38.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber resistor 13.6 ohm 1 % 3 W 2512 thick film, pulse rated"
+			(at 535.94 38.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 535.94 38.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 535.94 38.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2512"
+			(at 535.94 38.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 535.94 38.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 535.94 38.1 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "99ebe1d7-c554-5365-a2d5-77585e3eb8d2")
+		)
+		(pin "2"
+			(uuid "8c2134cd-dbaf-5df3-8260-b59de43b7948")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "R103")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_SNB")
+		(at 538.48 27.94 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "508932b1-656d-5138-bb31-00bc4de59c82")
+		(property "Reference" "C105"
+			(at 538.48 24.508 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "1.1n 2kV C0G"
+			(at 538.48 31.372 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 538.48 27.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 538.48 27.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber MLCC 1.1 nF 5 % C0G 2 kV 2220"
+			(at 538.48 27.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 538.48 27.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 538.48 27.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2220"
+			(at 538.48 27.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 538.48 27.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 538.48 27.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "46605391-fea6-5e06-8e7e-1585be0575d2")
+		)
+		(pin "2"
+			(uuid "160a66d0-3a34-5f48-939e-212854a8b112")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C105")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_HF")
+		(at 508 129.54 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "509c8fde-f492-5dd9-bad0-7672d6400d52")
+		(property "Reference" "C117"
+			(at 508 126.108 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "47n 1.5kV C0G"
+			(at 508 132.972 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 508 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 508 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ DC-link terminal MLCC 47 nF C0G >= 1.5 kV DC 1812/2220"
+			(at 508 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 508 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 508 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "1812/2220"
+			(at 508 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 508 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 508 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "0abeee67-d6e2-5a4b-ae13-aa191211d8ac")
+		)
+		(pin "2"
+			(uuid "8ce95074-09c3-5d39-99d7-15bdac411adb")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C117")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_SNB")
+		(at 472.44 104.14 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "5380c083-4009-52ae-bff6-be337d3e6981")
+		(property "Reference" "C113"
+			(at 472.44 100.708 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "1.1n 2kV C0G"
+			(at 472.44 107.572 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 472.44 104.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 472.44 104.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber MLCC 1.1 nF 5 % C0G 2 kV 2220"
+			(at 472.44 104.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 472.44 104.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 472.44 104.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2220"
+			(at 472.44 104.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 472.44 104.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 472.44 104.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "71ee42a0-3344-5a61-a43c-f27d5c566d12")
+		)
+		(pin "2"
+			(uuid "a3edf049-e9d1-5d63-bab9-b87bf1d7d0c4")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C113")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_HF")
+		(at 543.56 129.54 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "5e40464d-c2a2-5807-872c-4022bef16a86")
+		(property "Reference" "C118"
+			(at 543.56 126.108 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "47n 1.5kV C0G"
+			(at 543.56 132.972 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 543.56 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 543.56 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ DC-link terminal MLCC 47 nF C0G >= 1.5 kV DC 1812/2220"
+			(at 543.56 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 543.56 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 543.56 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "1812/2220"
+			(at 543.56 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 543.56 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 543.56 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "d37dfba4-6bcf-5825-9303-633daf1720f4")
+		)
+		(pin "2"
+			(uuid "0fc9c01f-f0e2-5e18-96cd-5aca960d2f6a")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C118")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_SNB")
+		(at 505.46 66.04 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "795a23a2-31de-50a1-8223-e6117dfbde94")
+		(property "Reference" "C109"
+			(at 505.46 62.608 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "1.1n 2kV C0G"
+			(at 505.46 69.472 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 505.46 66.04 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 505.46 66.04 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber MLCC 1.1 nF 5 % C0G 2 kV 2220"
+			(at 505.46 66.04 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 505.46 66.04 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 505.46 66.04 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2220"
+			(at 505.46 66.04 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 505.46 66.04 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 505.46 66.04 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "ec244575-4a4b-55f4-8a3c-0171f34f9e65")
+		)
+		(pin "2"
+			(uuid "2ae10e3c-4fa1-5192-81aa-358a525f15a5")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C109")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_HF")
+		(at 472.44 129.54 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "79e4afe9-2e11-5f5c-9456-aeb910476dc7")
+		(property "Reference" "C116"
+			(at 472.44 126.108 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "47n 1.5kV C0G"
+			(at 472.44 132.972 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 472.44 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 472.44 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ DC-link terminal MLCC 47 nF C0G >= 1.5 kV DC 1812/2220"
+			(at 472.44 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 472.44 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 472.44 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "1812/2220"
+			(at 472.44 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 472.44 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 472.44 129.54 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "db53d7ca-12ba-5aa2-87f8-54948def7bf7")
+		)
+		(pin "2"
+			(uuid "b25f4a1e-ec8b-5359-8836-dee0f02639e1")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C116")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C4AQ_45U")
+		(at 236.22 30.48 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "7d2b9731-4f01-5a6b-921b-d70e53ee78a0")
+		(property "Reference" "C102"
+			(at 236.22 24 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "C4AQUEW5450A3BJ"
+			(at 236.22 36.96 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 236.22 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/passives-capacitors/C4AQ.pdf"
+			(at 236.22 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "DC-link PP film 45 uF, 1300 VDC at 70 C hot spot (1100 V at 85 C, 850 V at 105 C), ESR 3.1 mOhm, Irms 34.0 A (10 kHz, dT 30 K)"
+			(at 236.22 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "KEMET"
+			(at 236.22 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "C4AQUEW5450A3BJ"
+			(at 236.22 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "radial box 57.5 x 45 x 65 mm, 4 leads (S 52.5, S1 20.3)"
+			(at 236.22 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 236.22 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 236.22 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "0e676e72-86ff-5fbd-b5ad-3e7c615970e4")
+		)
+		(pin "2"
+			(uuid "baea1680-2be5-5260-bfb0-1f324ead4218")
+		)
+		(pin "3"
+			(uuid "292e0ca4-23a8-5e38-9b31-5666371c8550")
+		)
+		(pin "4"
+			(uuid "18a8c0d1-ae93-5d99-a4a5-28db4798950d")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C102")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_HF")
+		(at 508 154.94 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "913a2270-14b5-554b-9b29-c29248cb427c")
+		(property "Reference" "C123"
+			(at 508 151.508 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "47n 1.5kV C0G"
+			(at 508 158.372 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 508 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 508 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ DC-link terminal MLCC 47 nF C0G >= 1.5 kV DC 1812/2220"
+			(at 508 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 508 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 508 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "1812/2220"
+			(at 508 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 508 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 508 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "054bef62-af81-5559-a0a8-8ed561c669fb")
+		)
+		(pin "2"
+			(uuid "70b08415-19e5-5137-b52e-2930da9f727c")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C123")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:R_SNB")
+		(at 502.92 50.8 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "950ac011-5ef4-5444-88b5-89b688fe4672")
+		(property "Reference" "R104"
+			(at 502.92 48.384 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "13.6R 3W"
+			(at 502.92 53.216 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 502.92 50.8 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 502.92 50.8 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber resistor 13.6 ohm 1 % 3 W 2512 thick film, pulse rated"
+			(at 502.92 50.8 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 502.92 50.8 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 502.92 50.8 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2512"
+			(at 502.92 50.8 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 502.92 50.8 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 502.92 50.8 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "2ba28c87-0a93-5485-82f2-476a3c0dd6a1")
+		)
+		(pin "2"
+			(uuid "7e591f3b-5cf2-54d9-8be1-dea41caf3e53")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "R104")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_SNB")
+		(at 541.02 104.14 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "951b028e-5945-515a-85cd-13c67d7e25ad")
+		(property "Reference" "C114"
+			(at 541.02 100.708 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "1.1n 2kV C0G"
+			(at 541.02 107.572 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 541.02 104.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 541.02 104.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber MLCC 1.1 nF 5 % C0G 2 kV 2220"
+			(at 541.02 104.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 541.02 104.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 541.02 104.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2220"
+			(at 541.02 104.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 541.02 104.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 541.02 104.14 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "adf5d09b-0c46-5a8c-bead-c0afaeef3191")
+		)
+		(pin "2"
+			(uuid "db5caa76-ac57-524e-a1d0-b3bbe99704ad")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C114")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_HF")
+		(at 472.44 142.24 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "a319922a-ee66-5ddd-a2b0-9bd0815d2fce")
+		(property "Reference" "C119"
+			(at 472.44 138.808 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "47n 1.5kV C0G"
+			(at 472.44 145.672 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 472.44 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 472.44 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ DC-link terminal MLCC 47 nF C0G >= 1.5 kV DC 1812/2220"
+			(at 472.44 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 472.44 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 472.44 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "1812/2220"
+			(at 472.44 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 472.44 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 472.44 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "14489c92-6637-5562-aa7f-9ba41fca36ec")
+		)
+		(pin "2"
+			(uuid "fcbeee5d-5258-5659-a22f-ef6ff2fe6e15")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C119")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_HF")
+		(at 543.56 142.24 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "a47a11f9-5f39-5302-956c-3bd172bf2f97")
+		(property "Reference" "C121"
+			(at 543.56 138.808 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "47n 1.5kV C0G"
+			(at 543.56 145.672 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 543.56 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 543.56 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ DC-link terminal MLCC 47 nF C0G >= 1.5 kV DC 1812/2220"
+			(at 543.56 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 543.56 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 543.56 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "1812/2220"
+			(at 543.56 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 543.56 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 543.56 142.24 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "f26e40f9-e5c7-5da1-ae14-ee1646f0ebc0")
+		)
+		(pin "2"
+			(uuid "2429717f-58cc-544c-991b-a59dc22dccf9")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C121")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:DD600N16K")
+		(at 350.52 30.48 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "a864a72f-6608-5223-92f9-7723658f470b")
+		(property "Reference" "D101"
+			(at 350.52 24 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "DD600N16K"
+			(at 350.52 36.96 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 350.52 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/power-semiconductors/DD600N16K.pdf"
+			(at 350.52 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "CHASSIS-MOUNTED dual rectifier diode module 1600 V 600 A, one arm used as DC-link reverse clamp"
+			(at 350.52 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Infineon Technologies Bipolar"
+			(at 350.52 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "DD600N16K"
+			(at 350.52 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "60 mm industrial module, insulated base plate, screw terminals (12 Nm)"
+			(at 350.52 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 350.52 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 350.52 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "5f082ae8-931f-53fc-89ea-ff77d39ea40f")
+		)
+		(pin "2"
+			(uuid "b0dc2e57-58b7-5554-ae2b-846e572d4fe7")
+		)
+		(pin "3"
+			(uuid "c0021580-feac-50fe-84be-327b0c69ed9c")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "D101")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:R_SNB")
+		(at 502.92 76.2 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "b7cb7d9f-1ce4-5919-8a4e-0e5a8db78220")
+		(property "Reference" "R107"
+			(at 502.92 73.784 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "13.6R 3W"
+			(at 502.92 78.616 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 502.92 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 502.92 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber resistor 13.6 ohm 1 % 3 W 2512 thick film, pulse rated"
+			(at 502.92 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 502.92 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 502.92 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2512"
+			(at 502.92 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 502.92 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 502.92 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "c2385585-dbab-591f-9eee-9a56a028d78b")
+		)
+		(pin "2"
+			(uuid "f73ff52d-4330-55de-9ee2-34d766ec6305")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "R107")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:CBB011M12GM4T")
+		(at 43.18 53.34 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "bf014728-94e6-563e-aaf6-f6d6fc4091e4")
+		(property "Reference" "U101"
+			(at 43.18 23.8 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "CBB011M12GM4T"
+			(at 43.18 82.88 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 43.18 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/power-semiconductors/CBB011M12GM4T.pdf"
+			(at 43.18 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "COLD-PLATE MOUNTED SiC full-bridge module 1200 V 11 mOhm Gen 4, pre-applied TIM, NTC 5 k"
+			(at 43.18 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Wolfspeed"
+			(at 43.18 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CBB011M12GM4T"
+			(at 43.18 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "WolfPACK GM4 press-fit 62.8 x 56.7 mm"
+			(at 43.18 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 43.18 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "CROSSING"
+			(at 43.18 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "DC+.1"
+			(uuid "b5d71f3d-9c81-5e19-bbbe-0d3c2061511f")
+		)
+		(pin "DC+.2"
+			(uuid "1e1df3d7-af63-5b28-aa22-48f9f67d0243")
+		)
+		(pin "DC+.3"
+			(uuid "f15afbd8-34c9-57a0-8ac0-3f784bca3772")
+		)
+		(pin "DC+.4"
+			(uuid "a0193475-4768-5915-954e-1baa5959dee9")
+		)
+		(pin "DC+.5"
+			(uuid "cebc1860-669c-570d-ae1e-100cfc983e96")
+		)
+		(pin "DC+.6"
+			(uuid "359f72c8-c701-548e-9d86-781da91ca838")
+		)
+		(pin "DC+.7"
+			(uuid "817ef3e2-c95d-5e40-8f90-4241eda6c2c3")
+		)
+		(pin "DC+.8"
+			(uuid "a8506edf-a800-53f1-a385-d6206b29d632")
+		)
+		(pin "DC-1.1"
+			(uuid "5c7709ff-e2d7-56ee-86c8-88fceb01bd88")
+		)
+		(pin "DC-1.2"
+			(uuid "1030bf63-163f-56e5-9e17-834bf1f6f7ba")
+		)
+		(pin "DC-1.3"
+			(uuid "e247cc53-1ceb-5399-bd1f-167fbf905479")
+		)
+		(pin "DC-1.4"
+			(uuid "cc66be3f-083b-5f23-8865-f0b9594c0c26")
+		)
+		(pin "DC-2.1"
+			(uuid "9313e95b-79a4-5e90-93a6-ec301a8b4284")
+		)
+		(pin "DC-2.2"
+			(uuid "ffe39398-10e8-5be2-8ce5-92be7cfbc6f0")
+		)
+		(pin "DC-2.3"
+			(uuid "13ceef06-8916-5f62-942b-9ab316212857")
+		)
+		(pin "DC-2.4"
+			(uuid "5435b52c-85ff-5bfc-8cac-c1ad1652cf19")
+		)
+		(pin "AC1.1"
+			(uuid "f98fbb50-bc36-5fae-a606-702c69dde0ba")
+		)
+		(pin "AC1.2"
+			(uuid "db971a3c-eae7-525f-9eb0-f20bc8fca2fc")
+		)
+		(pin "AC1.3"
+			(uuid "aabd8b34-97c3-5ca9-9e66-a6fe07e6a2e1")
+		)
+		(pin "AC1.4"
+			(uuid "256e484d-b9b5-5f3b-8fb9-343a08436020")
+		)
+		(pin "AC2.1"
+			(uuid "ea7cc884-0538-5607-851b-9e865660e469")
+		)
+		(pin "AC2.2"
+			(uuid "163ea980-ba30-5d27-9395-a6fe83cb4495")
+		)
+		(pin "AC2.3"
+			(uuid "b07699e7-f8f6-5047-9772-ec1e10e42670")
+		)
+		(pin "AC2.4"
+			(uuid "318df31a-7bff-55be-9562-8abfda8ed582")
+		)
+		(pin "G1"
+			(uuid "c4567dc3-68b3-573e-989a-a384b21fdb7a")
+		)
+		(pin "S1"
+			(uuid "2daa82f3-d9ba-5f67-b046-0ea663f9b087")
+		)
+		(pin "G2"
+			(uuid "ac969bca-7c59-5a2d-b6f5-5e617d1f8b1f")
+		)
+		(pin "S2"
+			(uuid "2b28a7a9-34b2-5590-9cc5-fc3e036d87d0")
+		)
+		(pin "G3"
+			(uuid "51800679-e66f-5dd0-9206-8053e3c81065")
+		)
+		(pin "S3"
+			(uuid "8693dbda-5f60-5fd3-ba5f-7ba2bf27dc55")
+		)
+		(pin "G4"
+			(uuid "10db724a-9d4c-558a-8a69-a6fded9ed6a0")
+		)
+		(pin "S4"
+			(uuid "e832ccad-f3c6-5fcf-9a99-9ce97cda7314")
+		)
+		(pin "T1"
+			(uuid "a00351e9-7cbd-5c34-953f-d7c849c75026")
+		)
+		(pin "T2"
+			(uuid "cdb389ab-5856-5209-bb12-38fcda428efb")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "U101")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_HF")
+		(at 472.44 154.94 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "c6e76662-50a8-5344-b9bd-4c1541df6d0e")
+		(property "Reference" "C122"
+			(at 472.44 151.508 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "47n 1.5kV C0G"
+			(at 472.44 158.372 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 472.44 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 472.44 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ DC-link terminal MLCC 47 nF C0G >= 1.5 kV DC 1812/2220"
+			(at 472.44 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 472.44 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 472.44 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "1812/2220"
+			(at 472.44 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 472.44 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 472.44 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "91daecbd-10eb-502f-9a98-d416bb7a4c63")
+		)
+		(pin "2"
+			(uuid "66b568f3-8dc8-5e20-94be-546bf7c1bd89")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C122")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:R_SNB")
+		(at 472.44 63.5 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "caaebe3b-b09c-58ee-904c-f5baafc1308a")
+		(property "Reference" "R105"
+			(at 472.44 61.084 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "13.6R 3W"
+			(at 472.44 65.916 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 472.44 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 472.44 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber resistor 13.6 ohm 1 % 3 W 2512 thick film, pulse rated"
+			(at 472.44 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 472.44 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 472.44 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2512"
+			(at 472.44 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 472.44 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 472.44 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "20097ef0-4360-5f67-abe4-619f27c4b1cb")
+		)
+		(pin "2"
+			(uuid "5d81eecd-c387-574e-8c41-d0366af5ae61")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "R105")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:R_SNB")
+		(at 535.94 63.5 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "ccb659c7-433e-55da-a3f8-6f763ded7dc2")
+		(property "Reference" "R106"
+			(at 535.94 61.084 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "13.6R 3W"
+			(at 535.94 65.916 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 535.94 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 535.94 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber resistor 13.6 ohm 1 % 3 W 2512 thick film, pulse rated"
+			(at 535.94 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 535.94 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 535.94 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2512"
+			(at 535.94 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 535.94 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 535.94 63.5 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "61b6f627-2841-5b60-8397-a125dbc5a630")
+		)
+		(pin "2"
+			(uuid "f7e2788f-0541-5730-8bec-b40eb6b6ec67")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "R106")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_SNB")
+		(at 538.48 53.34 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "cd47bfdf-faf9-50d2-b046-610a17433cc1")
+		(property "Reference" "C108"
+			(at 538.48 49.908 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "1.1n 2kV C0G"
+			(at 538.48 56.772 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 538.48 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 538.48 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber MLCC 1.1 nF 5 % C0G 2 kV 2220"
+			(at 538.48 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 538.48 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 538.48 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2220"
+			(at 538.48 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 538.48 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 538.48 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "1e79f6f2-03cc-5d7d-b3d2-07d13cfda764")
+		)
+		(pin "2"
+			(uuid "7cb3b735-5f9d-5014-9399-356d8826209f")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C108")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:R_SNB")
+		(at 505.46 101.6 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "cefa54d9-6223-5f77-9311-3c5db4471e52")
+		(property "Reference" "R110"
+			(at 505.46 99.184 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "13.6R 3W"
+			(at 505.46 104.016 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 505.46 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 505.46 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber resistor 13.6 ohm 1 % 3 W 2512 thick film, pulse rated"
+			(at 505.46 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 505.46 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 505.46 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2512"
+			(at 505.46 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 505.46 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 505.46 101.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "edc2be66-4cdb-59a0-b518-3de2e4cab46d")
+		)
+		(pin "2"
+			(uuid "93b28c31-0cff-599b-9cd5-77810be0d39d")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "R110")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_SNB")
+		(at 472.44 27.94 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "d42e15f0-ccdb-5714-8a3d-bc426a9ebcbc")
+		(property "Reference" "C104"
+			(at 472.44 24.508 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "1.1n 2kV C0G"
+			(at 472.44 31.372 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 472.44 27.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 472.44 27.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber MLCC 1.1 nF 5 % C0G 2 kV 2220"
+			(at 472.44 27.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 472.44 27.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 472.44 27.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2220"
+			(at 472.44 27.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 472.44 27.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 472.44 27.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "57aba881-e9bb-5dfb-bd31-b920c99d1677")
+		)
+		(pin "2"
+			(uuid "2df93bab-8228-54c4-95cb-200d17c14942")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C104")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_SNB")
+		(at 472.44 53.34 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "e0485c45-2990-5a38-b190-29380a745ade")
+		(property "Reference" "C107"
+			(at 472.44 49.908 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "1.1n 2kV C0G"
+			(at 472.44 56.772 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 472.44 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 472.44 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber MLCC 1.1 nF 5 % C0G 2 kV 2220"
+			(at 472.44 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 472.44 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 472.44 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2220"
+			(at 472.44 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 472.44 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 472.44 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "32faeb95-1fc2-5d11-8619-f17d79b5abc3")
+		)
+		(pin "2"
+			(uuid "e0c043ab-491e-5188-b7a1-1bd64b751095")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C107")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_SNB")
+		(at 508 116.84 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "f0b2115c-c106-5bae-8021-714135536b22")
+		(property "Reference" "C115"
+			(at 508 113.408 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "1.1n 2kV C0G"
+			(at 508 120.272 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 508 116.84 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 508 116.84 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber MLCC 1.1 nF 5 % C0G 2 kV 2220"
+			(at 508 116.84 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 508 116.84 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 508 116.84 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2220"
+			(at 508 116.84 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 508 116.84 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 508 116.84 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "fa16462d-ee43-528c-ad93-7f3268fd9389")
+		)
+		(pin "2"
+			(uuid "ec4af4ce-2a4b-5e7d-b350-78922a0d87ff")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C115")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:R_SNB")
+		(at 472.44 114.3 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "f2a94840-45ac-5c57-9f77-5c3bb638fe18")
+		(property "Reference" "R111"
+			(at 472.44 111.884 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "13.6R 3W"
+			(at 472.44 116.716 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 472.44 114.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 472.44 114.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ snubber resistor 13.6 ohm 1 % 3 W 2512 thick film, pulse rated"
+			(at 472.44 114.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 472.44 114.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 472.44 114.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "2512"
+			(at 472.44 114.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 472.44 114.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 472.44 114.3 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "3f0398d2-d4a4-5da0-9bd0-7acd70baf95a")
+		)
+		(pin "2"
+			(uuid "fc32c548-8da3-57e6-84c1-b4003b7c54af")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "R111")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_HF")
+		(at 543.56 154.94 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "f5501452-b93f-572a-a63c-0fecd57d9d6f")
+		(property "Reference" "C124"
+			(at 543.56 151.508 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "47n 1.5kV C0G"
+			(at 543.56 158.372 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 543.56 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 543.56 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ DC-link terminal MLCC 47 nF C0G >= 1.5 kV DC 1812/2220"
+			(at 543.56 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 543.56 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 543.56 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "1812/2220"
+			(at 543.56 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 543.56 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 543.56 154.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "f1fd12b2-9305-5dd9-8022-87ff8819f841")
+		)
+		(pin "2"
+			(uuid "cf0c1d00-9311-583b-9899-18b45991d5be")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C124")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:C_HF")
+		(at 472.44 167.64 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "fb9bafc6-e836-520c-8a67-da09b9c98209")
+		(property "Reference" "C125"
+			(at 472.44 164.208 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "47n 1.5kV C0G"
+			(at 472.44 171.072 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 472.44 167.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 472.44 167.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "RFQ DC-link terminal MLCC 47 nF C0G >= 1.5 kV DC 1812/2220"
+			(at 472.44 167.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 472.44 167.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 472.44 167.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "1812/2220"
+			(at 472.44 167.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "RFQ"
+			(at 472.44 167.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "HV1"
+			(at 472.44 167.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "685b9df7-e2b9-57b7-8e85-3a82e6295514")
+		)
+		(pin "2"
+			(uuid "e6f574a2-2c51-500b-b619-f21e8b1c7878")
+		)
+		(instances
+			(project "DAB60"
+				(path "/7b61fb7f-727d-50aa-a6a1-41edb0cb1f57/8b1b87b2-4115-5447-b20c-9d42eeb5fbc4"
+					(reference "C125")
+					(unit 1)
+				)
+			)
+		)
+	)
+)

@@ -1,0 +1,37 @@
+{
+  "project": "SYS-IO-AUX",
+  "rev": "E0",
+  "date": "2026-10-04",
+  "sheets": 12,
+  "parts": 566,
+  "nets": 351,
+  "erc_waivers": {},
+  "passed": true,
+  "checks": [
+    {
+      "check": "Isolation domains (only declared isolators/crossings bridge two domains)",
+      "result": "pass",
+      "detail": "12 isolators, 1 crossings, 571 other parts each in one domain"
+    },
+    {
+      "check": "ERC (kicad-cli, all severities)",
+      "result": "pass",
+      "detail": "0 errors, 0 warnings (0 waived) - clean"
+    },
+    {
+      "check": "Netlist identity (kicad-cli XML export == design table)",
+      "result": "pass",
+      "detail": "351 nets, 566 components identical"
+    },
+    {
+      "check": "Schematic PDF rendered",
+      "result": "pass",
+      "detail": "hardware/SYS-IO-AUX/outputs/SYS-IO-AUX_schematic.pdf"
+    },
+    {
+      "check": "BOM: every line has manufacturer + MPN + datasheet on file, or is GENERIC/RFQ/CUSTOM",
+      "result": "pass",
+      "detail": "130 lines, 566 parts -> bom/SYS-IO-AUX_BOM.csv"
+    }
+  ]
+}

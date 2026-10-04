@@ -1,0 +1,520 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "36296eaf-34c2-5a55-b773-3551100fd013")
+	(paper "A3")
+	(title_block
+		(title "Lean port sheets - Cover / Hierarchy")
+		(date "2026-10-04")
+		(rev "F0")
+		(comment 1 "Live side referenced to BUS-; basic HV-PE; functional inside the live side")
+		(comment 2 "Schematics authored by Chinmoy Bhuyan")
+		(comment 3 "Sheet 1")
+		(comment 4 "Not bench-validated. Values: sim/port_design.py -> port_spec.json 'lean'")
+	)
+	(lib_symbols)
+	(text "Rev F0  |  2026-10-04  |  Schematics authored by Chinmoy Bhuyan  |  D-044 lean ports A (PV) and B (battery) + insulation monitor, BUS- referenced"
+		(exclude_from_sim no)
+		(at 20 36 0)
+		(effects
+			(font
+				(size 2 2)
+			)
+			(justify left bottom)
+		)
+		(uuid "21f0db96-6f7f-5c87-9232-de8c3b7bdb42")
+	)
+	(text "PE divider, two switched 992 k strings through CA-IS3417WT"
+		(exclude_from_sim no)
+		(at 310.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "3e89b5c4-9a06-5abc-a0e5-e2c538e4854e")
+	)
+	(text "Contactor + precharge relay: interlock logic, fail-safe high side, economiser;\npassive bank bleeder"
+		(exclude_from_sim no)
+		(at 214.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "4a70c549-a129-591f-89c3-a6439aab74b6")
+	)
+	(text "Contactor: interlock logic, fail-safe high side, economiser;\npassive bank bleeder"
+		(exclude_from_sim no)
+		(at 310.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "acb6830c-b98a-57a0-b1a8-a62ecfbbd370")
+	)
+	(text "Varistor Y + monitor"
+		(exclude_from_sim no)
+		(at 118.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "b2bd10c3-ddb3-5d36-848b-d0986bf7da70")
+	)
+	(text "References, BUS- shunt amplifier + hold-off / OC windows, dividers, dV amplifier,\npolarity and dV interlocks"
+		(exclude_from_sim no)
+		(at 214.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "c39213e8-169b-5ab9-91b4-6b7187669944")
+	)
+	(text "Live 24 V / 5 V / 3.3 V, BUS- tie, commands"
+		(exclude_from_sim no)
+		(at 22.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "c6f43db9-6ae7-53ab-9ee6-4d4901de343b")
+	)
+	(text "Lean port sheets"
+		(exclude_from_sim no)
+		(at 20 28 0)
+		(effects
+			(font
+				(size 5 5)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "c86bffdf-7d3f-58b9-ab1a-439cfe39ca75")
+	)
+	(text "Varistor Y + monitor, aR fuses"
+		(exclude_from_sim no)
+		(at 22.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "e07ef69e-85ee-5a67-bb7d-681d3b645fda")
+	)
+	(text "Verification build of the reusable lean-port functions of gen/port.py (lean_port, varistor_y, lean_contactor, lean_precharge, lean_bleeder, lean_dividers, lean_shunt, lean_interlock, lean_imd). The product sheets live on the power board."
+		(exclude_from_sim no)
+		(at 20 232 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "eca81423-89e8-56ec-85b8-53b9408561c5")
+	)
+	(text "References, BUS- shunt amplifier + hold-off / OC windows, dividers, dV amplifier,\npolarity and dV interlocks"
+		(exclude_from_sim no)
+		(at 118.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "f3652f36-a539-531c-bd79-a99451bede5a")
+	)
+	(sheet
+		(at 20 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "46dc4ce4-bcd0-5b0f-8bd0-036ac6207e8b")
+		(property "Sheetname" "05 Port B power path (battery)"
+			(at 20 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/05_leanB_power.kicad_sch"
+			(at 20 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PORT-LEAN"
+				(path "/36296eaf-34c2-5a55-b773-3551100fd013"
+					(page "6")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "7213567d-41fa-59b9-9ade-554a3cf72b53")
+		(property "Sheetname" "02 Port A power path (pv)"
+			(at 116 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/02_leanA_power.kicad_sch"
+			(at 116 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PORT-LEAN"
+				(path "/36296eaf-34c2-5a55-b773-3551100fd013"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "80fea2bc-4698-534f-8fcb-54b8c25f3166")
+		(property "Sheetname" "08 Insulation monitor"
+			(at 308 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/08_lean_imd.kicad_sch"
+			(at 308 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PORT-LEAN"
+				(path "/36296eaf-34c2-5a55-b773-3551100fd013"
+					(page "9")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "80ffee0e-d6b6-5311-85ee-97e580b74e1a")
+		(property "Sheetname" "07 Port B coil drives"
+			(at 212 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/07_leanB_drive.kicad_sch"
+			(at 212 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PORT-LEAN"
+				(path "/36296eaf-34c2-5a55-b773-3551100fd013"
+					(page "8")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "8852ed08-872e-57af-93bd-e9144058bd62")
+		(property "Sheetname" "06 Port B sensing and interlocks"
+			(at 116 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/06_leanB_ctrl.kicad_sch"
+			(at 116 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PORT-LEAN"
+				(path "/36296eaf-34c2-5a55-b773-3551100fd013"
+					(page "7")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "8a36fe1e-42b7-58b8-8fa6-43497a6a6e9e")
+		(property "Sheetname" "01 Supplies and commands"
+			(at 20 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/01_lean_io.kicad_sch"
+			(at 20 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PORT-LEAN"
+				(path "/36296eaf-34c2-5a55-b773-3551100fd013"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "a6185668-8519-5595-ae82-eb23068bf95c")
+		(property "Sheetname" "03 Port A sensing and interlocks"
+			(at 212 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/03_leanA_ctrl.kicad_sch"
+			(at 212 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PORT-LEAN"
+				(path "/36296eaf-34c2-5a55-b773-3551100fd013"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "ef7f7680-e5e8-585f-b733-bae7eb94177b")
+		(property "Sheetname" "04 Port A coil drives"
+			(at 308 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/04_leanA_drive.kicad_sch"
+			(at 308 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PORT-LEAN"
+				(path "/36296eaf-34c2-5a55-b773-3551100fd013"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+)

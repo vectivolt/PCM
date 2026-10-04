@@ -1,0 +1,44 @@
+{
+  "project": "PORT-LEAN",
+  "rev": "F0",
+  "date": "2026-10-04",
+  "sheets": 8,
+  "parts": 272,
+  "nets": 200,
+  "erc_waivers": {
+    "ground_pin_not_ground": "AMC3330/AMC3302 HGND and DCDC_HGND are the isolated high-side references and sit on HV nets (BUS-, <tag>_X-, A_X+) by design; a GND pin wrongly placed on a PELV or HV net is still caught by the isolation-domain check"
+  },
+  "passed": true,
+  "checks": [
+    {
+      "check": "Isolation domains (only declared isolators/crossings bridge two domains)",
+      "result": "pass",
+      "detail": "0 isolators, 5 crossings, 273 other parts each in one domain"
+    },
+    {
+      "check": "Stress: jellybean capacitor voltage <= 80 %, resistor power <= 60 % and working voltage",
+      "result": "pass",
+      "detail": "77 parts inside the rules, 61 on nets without a DC range (left to the design check)"
+    },
+    {
+      "check": "ERC (kicad-cli, all severities)",
+      "result": "pass",
+      "detail": "0 errors, 0 warnings (0 waived) - clean"
+    },
+    {
+      "check": "Netlist identity (kicad-cli XML export == design table)",
+      "result": "pass",
+      "detail": "200 nets, 272 components identical"
+    },
+    {
+      "check": "Schematic PDF rendered",
+      "result": "pass",
+      "detail": "hardware/PORT-LEAN/outputs/PORT-LEAN_schematic.pdf"
+    },
+    {
+      "check": "BOM: every line has manufacturer + MPN + datasheet on file, or is GENERIC/RFQ/CUSTOM",
+      "result": "pass",
+      "detail": "59 lines, 272 parts -> bom/PORT-LEAN_BOM.csv"
+    }
+  ]
+}

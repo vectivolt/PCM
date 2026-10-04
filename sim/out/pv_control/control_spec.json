@@ -1,0 +1,954 @@
+{
+ "title": "PV-P75 / PV-P100-110 control specification (calculated / simulated, NOT bench-validated)",
+ "generated_by": "sim/pv_control.py",
+ "inputs": [
+  "sim/out/magnetics/design_pv_inductor.json (L0, L(45 A), L(trip) anchors)",
+  "sim/out/pv_design/cell_spec.json + inductor_L_vs_I.csv",
+  "sim/out/port_design/port_spec.json"
+ ],
+ "loop_structure": {
+  "inner": "per cell: average inductor-current PI (64 kHz, double update), port-voltage feed-forward inside the modulator, dead-time feed-forward from the current REFERENCE with the midpoint dead-time estimate (dead_time section), clamping anti-windup",
+  "modulator": "buck / band / boost exactly as cell_spec switching.modes; controller output = average inductor voltage, so the loop gain does not change between modes",
+  "outer": "32 kHz, one per module: V_A loop (MPPT reference or DC bus on A) or V_B loop (DC bus forming on B), port-B over-voltage limit loop, per-cell current limit 45 A and power limit 27.5 kW; candidates min-selected with tracking anti-windup; port-current reference -> per-cell inductor-current reference through the cells' ACTUAL duty (carries the mode hysteresis); each cell's 27.5 kW limit uses its own duty and is slew-limited (ilim_slew_A_per_s)",
+  "mppt": "dP-P&O at 20 Hz on oversampled V_A, I_A (sim/pv_mppt.py) -> V_A reference, ramp-limited",
+  "sharing": "equal per-cell references (I_port* / (N_active D)), each cell closes its own current loop",
+  "feed_forward": {
+   "bus port (inverter = constant-power load)": 1.0,
+   "PV array port": 0.0,
+   "battery port": 0.0,
+   "basis": "with a stiff source (battery) the port-current feed-forward closes a unity loop (battery CV case PM -2.5 deg); on a PV port it cancels the array's own damping"
+  }
+ },
+ "sampling": {
+  "pwm_kHz": 32.0,
+  "carrier": "centre-aligned up-down, double update (zero and period)",
+  "current_loop_kHz": 64.0,
+  "outer_loop_kHz": 32.0,
+  "mppt_Hz": 20.0,
+  "i_L_sample": "each cell at its own carrier zero and peak + 0.87 us (sensor-lag compensation)",
+  "port_V_I_sample": "at cell 1's carrier zero (outer loop)",
+  "computation_delay": "one sample (duty computed from the sample at t_k is loaded at t_k + Ts)",
+  "isr_budget_us": 14.155978378597785,
+  "mode_change": "only at a carrier zero (result of a peak-boundary sample), keeps the minimum pulse",
+  "port_V_conversion_for_OV_PPB_us_max": 42.2,
+  "port_V_conversion_note": "the OV PPB evaluates every V_A / V_B conversion: with only the 32 kHz outer-loop samples the 136 us requirement is missed at the PPB's upper band edge; convert V_A, V_B every <= 10 us (rev E card assumption; V_A is oversampled at 500 kS/s for MPPT anyway)",
+  "interleave_deg": {
+   "3 cells": 120,
+   "4 cells": 90
+  }
+ },
+ "current_loop": {
+  "kp_V_per_A": 3.5482864620463577,
+  "ki_V_per_As": 11147.270681996955,
+  "form": "q += ki Ts e; u = kp e + q (volts across L)",
+  "design_crossover_Hz": 2500.0,
+  "PI_zero_Hz": 500.0,
+  "crossover_range_Hz_N3": [
+   2268.757237862878,
+   2797.4409331740962
+  ],
+  "min_PM_deg": 57.516438890816644,
+  "min_GM_dB": 11.573562271050122,
+  "anti_windup": "integrator clamped to the realisable inductor voltage",
+  "limit_A": 45.0,
+  "L_used_for_gain_uH": 225.89093197629228
+ },
+ "outer_loops": {
+  "kpv_A_per_V": 0.5172318144870234,
+  "kiv_A_per_Vs": 162.49316685953514,
+  "design_crossover_Hz": 300.0,
+  "PI_zero_Hz": 50.0,
+  "kpv_kiv_scale": "with the port capacitance N x 90 uF + 4.4 uF",
+  "kpv_kiv_N4": [
+   0.6868778177808723,
+   215.78903062541772
+  ],
+  "antiwindup_margin_A_per_cell": 0.9,
+  "vb_limit_integrator_max_A": 3.0,
+  "min_PM_deg_N3": 43.71175366443225,
+  "min_modulus_margin_N3": 0.6828225259713413,
+  "min_PM_deg_N4": 43.58876435259873,
+  "min_modulus_margin_N4": 0.6746016651012411
+ },
+ "limits": {
+  "i_cell_A": 45.0,
+  "p_cell_kW": 27.5,
+  "i_port_A": {
+   "3 cells": 135.0,
+   "4 cells": 180.0
+  },
+  "p_module_kW": {
+   "3 cells": 82.5,
+   "4 cells": 110.0
+  },
+  "v_port_limit_loop_V": 1010.0,
+  "v_ov_firmware_V": 1050.0,
+  "v_uv_stop_V": 240.0,
+  "i_port_vs_inlet_C": "supervisor/port_current_limit_vs_inlet_C",
+  "v_a_min_mppt_V": 255.0,
+  "reverse_into_pv": "blocked (reference >= 0 in MPPT mode)"
+ },
+ "modulator": {
+  "D_max": 0.94333,
+  "D_min": 0.05667199999999999,
+  "dead_time_ns": [
+   150.0,
+   600.0
+  ],
+  "min_pulse_us": 1.771,
+  "enter_band": "single-leg duty (with that mode's dead-time term) > D_max",
+  "leave_band": "single-leg duty < D_max - 0.02",
+  "hysteresis_duty": 0.02,
+  "band_rule": "lower-voltage-side leg at D_max, the other leg carries the control; when the demand exceeds that leg, the roles swap continuously (v_B* = min(D_max V_B, D_max V_A - u))"
+ },
+ "dead_time": {
+  "firmware_dead_band_ns": 200.00000000000003,
+  "at_gates_ns_cell_spec": [
+   181,
+   586
+  ],
+  "design_range_ns": [
+   150.0,
+   600.0
+  ],
+  "known_to_firmware": false,
+  "estimate_ns_per_edge": 375.0,
+  "residual_ns_per_edge_max": 225.00000000000003,
+  "residual_V_per_switching_leg": {
+   "550 V": 3.96,
+   "800 V": 5.76,
+   "1000 V": 7.2
+  },
+  "compensation": "per switching leg, the voltage lost in the edge whose current flows against the commanded transition (A->B: leg A rising, leg B falling; B->A: leg A falling, leg B rising) = t_hat x f_sw x V_leg, applied as feed-forward in the modulator; the edge-current sign comes from a model of the closed current loop (the current REFERENCE slew-limited to 0.8 A/us) plus the predicted ripple, with a 2 A ramp (feed-forward adds no loop gain, so it can be sharp, and it flips with the current on a reversing step); the PI integrator takes the residual",
+  "mode_logic": "each candidate mode judged with its own dead-time terms; enter band at once when the single-leg duty exceeds D_max; leave band only below D_max - 0.02 (> 2.5 x the per-leg residual 0.0072 in duty) for both the demand u and the PI integrator filtered with 3 ms, so neither an unknown dead time nor a large step makes a cell leave and re-enter the band",
+  "firmware_must": [
+   "use the midpoint of the hardware dead-time range as the estimate for every edge (no per-unit value is needed)",
+   "drive the dead-time compensation from the slew-limited current reference (closed-loop model), not from the measured current",
+   "keep the band-exit hysteresis >= 0.02 in duty and test the exit also on the PI integrator filtered with 3 ms",
+   "derive each cell's power limit from its own duty and slew it (no ratio map)",
+   "convert port current references with the cells' actual duty",
+   "optional: identify each edge's dead time (integrator jump at the first band entry / exit) - it cuts the worst transition error from 2.23 A to 1.18 A; not needed for stability or limits"
+  ],
+  "transition_worst_error_A_over_range": 2.2302698653404747,
+  "zero_crossing_worst_error_A_over_range": 3.0585305892412933
+ },
+ "measurement_requirements": {
+  "cell_inductor_current": {
+   "range_A": [
+    -100.0,
+    100.0
+   ],
+   "bandwidth_kHz_min": 200.0,
+   "group_delay_us_max": 4.14,
+   "resolution_A_per_LSB": 0.07591437344527363,
+   "accuracy_after_cal": {
+    "gain_pct": 0.83,
+    "offset_A": 0.3
+   },
+   "comparator_threshold_band_A": [
+    84.4,
+    98.6
+   ],
+   "basis": "CTRL backup CMPSS window (upper band 98.6 A) must have the gates off within 4.87 us (fastest bank-short rise to L = 50 % L0) = sensor delay <= 4.14 us + AFE 0.33 us + chain 0.40 us; as built (LEM LA 150-P, 0.52 us) the backup peaks at 107 A (the replaced AMC3302, 2.1 us, would give 118 A). Current-loop phase (sensor lag compensated by a 0.87 us SOC offset); sharing within 1.7 % of 45 A"
+  },
+  "port_voltage_VA_VB": {
+   "range_V": [
+    0,
+    1203.4648096192384
+   ],
+   "adc_full_scale_V": 1305.842892381986,
+   "resolution_V_per_LSB": 0.6376185997958916,
+   "filter_pole_kHz_as_designed": 5.8501691212956715,
+   "noise_V_rms_per_sample": 0.4558546828313954,
+   "bandwidth_kHz_min": 3.0,
+   "ov_detection_lag_us_max": 58.5,
+   "ov_detection_lag_us_max_full_current_case": 32.8,
+   "conversion_period_us_max_for_ppb": 42.2,
+   "accuracy": "port_design: 0.42 % RSS / 0.73 % worst after calibration (sets the OV threshold band and the CV limit)",
+   "basis": "outer-loop PM changes by < 3.5 deg between a 3.2 kHz and a 20 kHz pole; the PPB at its upper band edge 1115.9 V with V_A/V_B converted every <= 10 us needs a lag <= 58 us at 82.5 kW (have 32 us); the frozen-current case would need <= 33 us"
+  },
+  "port_current_IA_IB": {
+   "range_A": [
+    -500,
+    500
+   ],
+   "resolution_A_per_LSB": 0.258448324229336,
+   "noise_A_rms_per_sample": 0.20878760700741197,
+   "delay_us": 2.022829499172201,
+   "bandwidth_kHz_min": 10.0,
+   "basis": "load-current feed-forward on a bus port (CPL stability at 250 V needs it: without it the 250/250 V corner is unstable); MPPT power measurement (oversampling requirement in sim/pv_mppt.py); port SC trip (rev E CMPSS) reaches gates-off 2.0 us after a terminal short"
+  }
+ },
+ "hardware_trips": {
+  "architecture": "as built: CTRL-C2000 rev E (gen/data/ctrl_c2000_pin_plan.csv trip_band) and the PVCELL-25 local OC window (hardware/PVCELL-25/outputs/PVCELL-25_design_check.txt); CMPSS references from the 2.5 V reference, offsets nulled by firmware at start-up; parsed: ov_ppb, ov_cmpss, oc_backup, port_sc, port_oc, oc_local, AN1 sensor delay",
+  "inductor_overcurrent": {
+   "threshold_A": [
+    -72.2,
+    72.2
+   ],
+   "type": "two layers: PVCELL-25 local window +/-72.2 A (68.5-76.0 A) -> PWM gated + EN, 0.94-1.73 us to gates off; CTRL-C2000 CMPSS window on AN1 +/-92 A (84.4-98.6 A) as backup",
+   "max_response_us_trip_level_to_gates_off": 8.921581864306065,
+   "basis": "time for the fastest bank-short current to rise from the layer's upper band edge to L = 50 % L0 (129 A); device pulse rating 376 A per position",
+   "as_designed_us": 1.2690216214022148,
+   "as_designed_peak_A": 107.09438247204847,
+   "meets": true,
+   "local": {
+    "band_A": [
+     68.5,
+     76.0
+    ],
+    "response_us": [
+     0.94,
+     1.73
+    ],
+    "max_response_us": 8.921581864306065,
+    "peak_A": 85.47401179285625,
+    "meets": true
+   },
+   "ctrl_backup": {
+    "band_A": [
+     84.4,
+     98.6
+    ],
+    "max_response_us": 4.871782188509751,
+    "response_us_with_required_sensor": 1.2690216214022148,
+    "peak_A": 107.09438247204847,
+    "meets": true,
+    "response_us_amc3302_as_drawn": 2.8295133397347727,
+    "peak_A_amc3302_as_drawn": 117.92590985775486,
+    "meets_amc3302_as_drawn": true,
+    "note": "as_designed_us (read by gen/ctrl_c2000.py for this layer) assumes the cell sensor meets measurement_requirements/cell_inductor_current/group_delay_us_max"
+   },
+   "didt_max_A_per_us": 5.9406505265669525,
+   "sensor_as_built": "LEM LA 150-P (PVCELL-25 rev B): 20.0 mV/A, 0.0759 A/count, delay 0.52 us, -3 dB 295 kHz (inferred)",
+   "an1_open_conductor": "plausibility/cell_AN1_open_conductor"
+  },
+  "port_overvoltage": {
+   "threshold_V": 1100.0,
+   "type": "primary: ADC PPB limit on every V_A / V_B conversion, band 1084.1-1115.9 V; backup: CMPSS high 1110 V (1055.6-1164.4 V); both after the port-board divider RC and the AMC3330",
+   "max_response_us_true_crossing_to_gates_off": 133.66831453851808,
+   "basis": "port voltage at the last switching event <= 1135 V (0.85 V_DSS incl. 301 V ringing scaled with V); C4AQ 1.15 x 1100 V = 1265 V not binding; slope 0.27 V/us at 82.5 kW",
+   "as_designed_us": 101.51620756332098,
+   "as_designed_detection_lag_us": 32.35551927526188,
+   "as_designed_us_nominal_threshold": 43.35551927526224,
+   "as_designed_V_at_gates_off": 1126.8990870196628,
+   "meets": true,
+   "ppb_conversion_period_us": 10.0,
+   "ppb_conversion_period_us_max": 42.1521069751971,
+   "ppb_at_outer_loop_rate_only": {
+    "period_us": 31.25,
+    "response_us": 122.76620756332098,
+    "V_at_gates_off": 1132.4885771293707,
+    "meets": true
+   },
+   "cmpss_backup_alone": {
+    "V_at_gates_off_upper_band": 1172.403175158966,
+    "V_at_gates_off_nominal": 1118.3560703602966,
+    "meets_0p85_rule_upper_band": false
+   },
+   "full_current_frozen_case": {
+    "case": "outer control frozen, cells held at 45 A, stiff port A at 1000 V, port B (611 V) opens",
+    "slope_V_per_us": 0.43244478131934455,
+    "max_response_us": 81.22433036390163,
+    "ppb_upper_band_response_us": 78.40911218755372,
+    "ppb_upper_band_V_at_gates_off": 1133.639068271466,
+    "meets": true,
+    "fix_options": {
+     "ppb_nominal_threshold_V_max": 1101.2,
+     "or_detection_lag_us_max": 32.8
+    }
+   }
+  },
+  "firmware_overvoltage_V": 1050.0,
+  "firmware_undervoltage_V": 240.0,
+  "desat": {
+   "blank_us": 0.465,
+   "blank_range_us": [
+    0.35000000000000003,
+    0.465
+   ],
+   "off_after_detect_us": 0.62,
+   "typ_us": 1.0274999999999999,
+   "max_us": 1.085,
+   "scwt_1200_us": 3.1,
+   "scwt_1100_us": 2.0,
+   "withstand_basis": "no Chinese datasheet states one; MSC035SMA170B4 3.1 us typ (1200 V, 20 V), ROHM SCT4036KRHR 4 us - ASSUMPTION to be confirmed by the makers or a SC test",
+   "soft_off_only_us": 1.96,
+   "required_detect_to_off_us": 1.0,
+   "vth": [
+    8.5,
+    9.8
+   ],
+   "gdrv_check_us": 0.62,
+   "desat_A_25C": [
+    425.0,
+    560.0
+   ],
+   "desat_A_175C": [
+    193.1818181818182,
+    301.53846153846155
+   ],
+   "meets_typ": true,
+   "meets_max": true
+  },
+  "port_overcurrent_A": {
+   "OC": 202.5,
+   "SC": 405.0,
+   "OC_band_A": [
+    198.6,
+    206.4
+   ],
+   "SC_band_A": [
+    383.6,
+    426.4
+   ],
+   "source": "CTRL-C2000 rev E: OC on the ADC PPB path, SC on CMPSS, IA / IB (all cells)",
+   "terminal_short": {
+    "first_layer": [
+     "port SC"
+    ],
+    "gates_off_us_after_short": 2.032728661163183,
+    "i_L_peak_A": 64.17688238205848
+   }
+  },
+  "bus_reverse_clamp": {
+   "part": "WND75P16W6",
+   "devices_per_bank": 8,
+   "terminal_short_module_A": 15540.282195659935,
+   "per_device_A": 647.5117581524972,
+   "per_device_I2t_A2s": 38.97758516327552,
+   "bank_reverse_V": 3.340047032609989,
+   "body_diode_per_device_A_static": 0.0,
+   "body_diode_per_device_A_dynamic_cell_spec": 88.0,
+   "without_clamp_body_diode_per_device_A": 1558.188109180115,
+   "ratings": {
+    "V_RRM_V": 1600.0,
+    "V_RSM_V": 1600.0,
+    "I_FSM_10ms_A": 1050.0,
+    "I2t_10ms_A2s": 5513.0,
+    "I2sqrt_t_A2sqrt_s": null,
+    "I_FSM_vs_tp": [
+     [
+      1e-05,
+      1865.0
+     ],
+     [
+      0.0001,
+      1830.0
+     ],
+     [
+      0.0005,
+      1774.0
+     ],
+     [
+      0.001,
+      1683.0
+     ],
+     [
+      0.002,
+      1533.0
+     ],
+     [
+      0.01,
+      1050.0
+     ]
+    ]
+   }
+  },
+  "open_input_detection": {
+   "VA_VB_reads_V_max": -181.0,
+   "IA_IB_one_conductor_reads_A_max": -312.0,
+   "AN1_reads_A_max": -141.0,
+   "firmware": "an open or unpowered sensor reads out of range and trips (CMPSS low / PPB low); treat as a sensor fault, never as a measurement"
+  },
+  "pwm_enable": "CTRL-C2000 rev E: the PWM line drivers are tri-stated unless CHB_OK, the MCU enable and that cell's RDY are all high (an un-ready cell never sees a gate command)"
+ },
+ "stability": {
+  "N3": {
+   "cases": 320,
+   "unstable": 0,
+   "min_PM_current_loop": [
+    57.516438890816644,
+    "cur (current loop, B->A), V_A 250 V / V_B 550 V, full load, boost"
+   ],
+   "min_GM_current_loop_dB": [
+    11.573562271050122,
+    "mppt (PV left), V_A 250 V / V_B 250 V, full load, band"
+   ],
+   "min_PM_outer": [
+    43.71175366443225,
+    "cvb_cpl (CPL on B, A->B), V_A 250 V / V_B 250 V, full load, band"
+   ],
+   "min_modulus_margin_outer": [
+    0.6828225259713413,
+    "cvb_cpl (CPL on B, A->B), V_A 250 V / V_B 550 V, full load, boost"
+   ],
+   "min_gain_margin_outer_dB": [
+    5.708323063728439,
+    "cvb_cpl (CPL on B, A->B), V_A 250 V / V_B 250 V, full load, band"
+   ],
+   "cpl_without_feedforward_unstable_corners": 4
+  },
+  "N4": {
+   "cases": 320,
+   "unstable": 0,
+   "min_PM_current_loop": [
+    57.436653539058184,
+    "cvb_bat (battery on B (CV), A->B), V_A 550 V / V_B 250 V, full load, buck"
+   ],
+   "min_GM_current_loop_dB": [
+    11.598032441658528,
+    "mppt (PV left), V_A 250 V / V_B 250 V, full load, band"
+   ],
+   "min_PM_outer": [
+    43.58876435259873,
+    "cvb_cpl (CPL on B, A->B), V_A 250 V / V_B 250 V, full load, band"
+   ],
+   "min_modulus_margin_outer": [
+    0.6746016651012411,
+    "cvb_cpl (CPL on B, A->B), V_A 250 V / V_B 550 V, full load, boost"
+   ],
+   "min_gain_margin_outer_dB": [
+    5.691312206685245,
+    "cvb_cpl (CPL on B, A->B), V_A 250 V / V_B 250 V, full load, band"
+   ],
+   "cpl_without_feedforward_unstable_corners": 4
+  }
+ },
+ "transitions": {
+  "max_sampled_current_error_A_full_current": 1.611425295398007,
+  "max_sampled_current_error_A_power_limited": 2.2302698653404747,
+  "mode_changes_per_cell_per_sweep": [
+   2
+  ],
+  "i_peak_A": 50.59220701793657,
+  "dead_time_sets_ns": {
+   "min/max per leg": [
+    [
+     150,
+     150,
+     150,
+     150
+    ],
+    [
+     600,
+     600,
+     600,
+     600
+    ],
+    [
+     150,
+     150,
+     600,
+     600
+    ]
+   ],
+   "asymmetric 1": [
+    [
+     600,
+     600,
+     150,
+     150
+    ],
+    [
+     375,
+     375,
+     375,
+     375
+    ],
+    [
+     600,
+     150,
+     150,
+     600
+    ]
+   ],
+   "asymmetric 2": [
+    [
+     150,
+     600,
+     600,
+     150
+    ],
+    [
+     600,
+     150,
+     600,
+     150
+    ],
+    [
+     150,
+     600,
+     150,
+     600
+    ]
+   ]
+  },
+  "sweeps": 36,
+  "band_entry_exit_ratio_VB_over_VA": {
+   "boost->band": [
+    1.032316268737725,
+    1.0923635003617094
+   ],
+   "band->buck": [
+    0.894856925676565,
+    0.9567425218958742
+   ],
+   "buck->band": [
+    0.9162349817400021,
+    0.9668687541025585
+   ],
+   "band->boost": [
+    1.0458946633702144,
+    1.1203621702930668
+   ]
+  }
+ },
+ "sharing": {
+  "max_dev_pct_calibrated": 1.7322977273273448,
+  "max_dev_pct_uncalibrated": 4.425044833829822
+ },
+ "mppt": {
+  "algorithm": "dP-P&O (Sera 2008) with elasticity-adaptive step + scheduled global scan",
+  "parameters": {
+   "T_p": 0.05,
+   "w": 0.02,
+   "dv_min_rel": 0.006,
+   "dv_max_rel": 0.03,
+   "a_step": 0.03,
+   "v_lo": 255.0,
+   "v_hi": 1000.0,
+   "scan_rate": 1000.0,
+   "scan_period": 300.0,
+   "scan_lo_rel": 0.45,
+   "oversample_sps": 500000.0,
+   "pin_probe": 4
+  },
+  "measurement": {
+   "oversampling_kSPS_V_A_I_A": 500.0,
+   "window_ms": 20.0,
+   "basis": "with the 32 kHz control samples only the static efficiency falls to 99.69 % at 50 W/m2"
+  },
+  "static_eta_min_in_window": 0.9993198598415403,
+  "static_eta_min_in_window_at": [
+   "17s x 8p (1000 V class, 74 kW STC)",
+   50.0,
+   0.0
+  ],
+  "static_eta_min_overall": 0.998537406405657,
+  "static_eta_min_overall_at": [
+   "8s x 8p (low voltage, 35 kW STC)",
+   50.0,
+   70.0
+  ],
+  "static_eta_eu_weighted": 0.99974174198448,
+  "dynamic_eta_overall": 0.9995653643191921,
+  "dynamic": {
+   "100->500 W/m2 @ 0.5 W/m2/s": 0.9994650885354792,
+   "100->500 W/m2 @ 2 W/m2/s": 0.9995135501485538,
+   "100->500 W/m2 @ 10 W/m2/s": 0.9997529817595859,
+   "100->500 W/m2 @ 30 W/m2/s": 0.9997474750084088,
+   "100->500 W/m2 @ 50 W/m2/s": 0.9997235544061858,
+   "300->1000 W/m2 @ 10 W/m2/s": 0.9997737166461825,
+   "300->1000 W/m2 @ 30 W/m2/s": 0.9997788522647569,
+   "300->1000 W/m2 @ 50 W/m2/s": 0.9997755649309921,
+   "300->1000 W/m2 @ 100 W/m2/s": 0.9997540129586354
+  },
+  "static_points_below_99_9": [
+   [
+    "8s x 8p (low voltage, 35 kW STC)",
+    50.0,
+    70.0,
+    99.854
+   ]
+  ],
+  "pv_c1_met_static_in_window": true,
+  "pv_c1_met_dynamic": true,
+  "shading": {
+   "local_only_eta": 0.52476093787142,
+   "with_scan_eta": 0.9926922760155152,
+   "scan_cost_pct": 0.015355302802055881
+  },
+  "curtailment": {
+   "135 A port-current limit": 0.9989714148398476,
+   "82.5 kW power limit": 0.9997249070808205
+  },
+  "va_loop_tau_ms": 0.546875
+ },
+ "plausibility": {
+  "cell_AN1_offset": "the LEM LA 150-P offset is re-zeroed by firmware at every idle (gates off, i_L = 0); a null above 5 A is rejected and the cell is not enabled",
+  "cell_AN1_open_conductor": {
+   "both_lines_open_reads_A_max": -141.0,
+   "one_line_open_reads_A_max": -56.0,
+   "one_line_open_other_line_reads_A": -86.0,
+   "caught_by": "both lines open: the CTRL CMPSS window (trip). One line open (-56 / -86 A): inside the window - caught by the idle null check (> 5 A rejected) and by the cell's own hardware OC trip, NOT by the comparator window",
+   "source": "CTRL-C2000 rev E pin plan / check_trips (the -86 A figure: coordinator, rev E check)"
+  },
+  "port_V_I_open_input": {
+   "VA_VB_reads_V_max": -181.0,
+   "IA_IB_one_conductor_reads_A_max": -312.0
+  },
+  "port_ID_readback": {
+   "states_adc_counts": {
+    "A0 B0": [
+     2033,
+     2073
+    ],
+    "A1 B0": [
+     2252,
+     2308
+    ],
+    "A2 B0": [
+     2469,
+     2544
+    ],
+    "A0 B1": [
+     2645,
+     2729
+    ],
+    "A1 B1": [
+     2863,
+     2964
+    ],
+    "unpowered": [
+     3004,
+     3038
+    ],
+    "A2 B1": [
+     3081,
+     3199
+    ],
+    "A0 B2": [
+     3254,
+     3388
+    ],
+    "A1 B2": [
+     3472,
+     3622
+    ],
+    "A2 B2": [
+     3691,
+     3857
+    ]
+   },
+   "meaning": "nA / nB = RB1 + RB2 of port A / B summed on the port ID line: RB1 = hold channel-1 output OR the surge-varistor monitor loop open, RB2 = hold channel 2 (port_spec readback / proof_test); decode table = CTRL-C2000 pin plan P_ID",
+   "varistor_monitor_judged_above_port_V": 200.0,
+   "varistor_monitor_note": "the monitor loop needs port voltage (0.25 mA at 250 V); the PV port is dark at night, so RB1 from the monitor is only judged above 200 V",
+   "proof_test": "at every start: pass 1 contactors open (readback only), pass 2 after precharge with the contactor closed at zero current (port_spec proof_test windows W1..W4)"
+  },
+  "insulation_monitor": {
+   "open_earth_lead": "reads as no swing between the two test states -> report IMD PE open as a FAULT (port_spec imd pe_open_rule)",
+   "settle_s_per_state_3tau": [
+    21.2,
+    28.2
+   ],
+   "prediction_s_per_state": 1.49,
+   "prediction_note": "3-sample exponential prediction: about 3 s for both states instead of 42-56 s",
+   "array_capacitance_basis": "200 nF/kWp (port_spec imd C_pv_F)",
+   "one_monitor_per_DC_system": "only one insulation monitor may be active per connected DC system: when another one is present the module disables its own by leaving both test strings open"
+  }
+ },
+ "supervisor": {
+  "port_current_limit_vs_inlet_C": {
+   "table": {
+    "inlet_C": [
+     25.0,
+     30.0,
+     35.0,
+     40.0,
+     45.0,
+     50.0,
+     55.0,
+     60.0
+    ],
+    "fuse_air_C": [
+     30.0,
+     35.0,
+     40.0,
+     45.0,
+     50.0,
+     55.0,
+     60.0,
+     65.0
+    ],
+    "note": "firmware port-current limit = min(rating, fuse In x derating at inlet + 5 K): pv/135 above 45 C, battery/180 above 35 C inlet; CTRL must enforce it, sim/pv_module.py and the Megarevo comparison read it",
+    "pv/135": [
+     135,
+     135,
+     135,
+     135,
+     135,
+     133.9,
+     129.0,
+     123.9
+    ],
+    "battery/135": [
+     135,
+     135,
+     135,
+     135,
+     135,
+     135,
+     135,
+     135
+    ],
+    "pv/180": [
+     180,
+     180,
+     180,
+     180,
+     180,
+     180,
+     180,
+     180
+    ],
+    "battery/180": [
+     180,
+     180,
+     180,
+     172.0,
+     164.0,
+     155.0,
+     146.0,
+     136.0
+    ]
+   },
+   "applies": "rating 135 A ports of this module; PV-type port A, battery-type port B (port_spec rev 6)",
+   "implementation": "per-cell current limit = min(45 A, 27.5 kW / v_A, k_A I_portA,max(T) / (N D_A), k_B I_portB,max(T) / (N D_B)), slewed; k_A, k_B = slow integral trims (5 ms) on the measured port currents, <= 1",
+   "full_power_window": {
+    "3 cells, port A (pv)": [
+     {
+      "inlet_C": 25.0,
+      "i_port_max_A": 135.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 30.0,
+      "i_port_max_A": 135.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 35.0,
+      "i_port_max_A": 135.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 40.0,
+      "i_port_max_A": 135.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 45.0,
+      "i_port_max_A": 135.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 50.0,
+      "i_port_max_A": 133.9,
+      "v_min_for_rated_V": 560,
+      "v_min_for_max_power_V": 616
+     },
+     {
+      "inlet_C": 55.0,
+      "i_port_max_A": 129.0,
+      "v_min_for_rated_V": 581,
+      "v_min_for_max_power_V": 640
+     },
+     {
+      "inlet_C": 60.0,
+      "i_port_max_A": 123.9,
+      "v_min_for_rated_V": 605,
+      "v_min_for_max_power_V": 666
+     }
+    ],
+    "3 cells, port B (battery)": [
+     {
+      "inlet_C": 25.0,
+      "i_port_max_A": 135.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 30.0,
+      "i_port_max_A": 135.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 35.0,
+      "i_port_max_A": 135.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 40.0,
+      "i_port_max_A": 135.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 45.0,
+      "i_port_max_A": 135.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 50.0,
+      "i_port_max_A": 135.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 55.0,
+      "i_port_max_A": 135.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 60.0,
+      "i_port_max_A": 135.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     }
+    ],
+    "4 cells, port A (pv)": [
+     {
+      "inlet_C": 25.0,
+      "i_port_max_A": 180.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 30.0,
+      "i_port_max_A": 180.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 35.0,
+      "i_port_max_A": 180.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 40.0,
+      "i_port_max_A": 180.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 45.0,
+      "i_port_max_A": 180.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 50.0,
+      "i_port_max_A": 180.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 55.0,
+      "i_port_max_A": 180.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 60.0,
+      "i_port_max_A": 180.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     }
+    ],
+    "4 cells, port B (battery)": [
+     {
+      "inlet_C": 25.0,
+      "i_port_max_A": 180.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 30.0,
+      "i_port_max_A": 180.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 35.0,
+      "i_port_max_A": 180.0,
+      "v_min_for_rated_V": 556,
+      "v_min_for_max_power_V": 611
+     },
+     {
+      "inlet_C": 40.0,
+      "i_port_max_A": 172.0,
+      "v_min_for_rated_V": 581,
+      "v_min_for_max_power_V": 640
+     },
+     {
+      "inlet_C": 45.0,
+      "i_port_max_A": 164.0,
+      "v_min_for_rated_V": 610,
+      "v_min_for_max_power_V": 671
+     },
+     {
+      "inlet_C": 50.0,
+      "i_port_max_A": 155.0,
+      "v_min_for_rated_V": 645,
+      "v_min_for_max_power_V": 710
+     },
+     {
+      "inlet_C": 55.0,
+      "i_port_max_A": 146.0,
+      "v_min_for_rated_V": 685,
+      "v_min_for_max_power_V": 753
+     },
+     {
+      "inlet_C": 60.0,
+      "i_port_max_A": 136.0,
+      "v_min_for_rated_V": 735,
+      "v_min_for_max_power_V": 809
+     }
+    ]
+   },
+   "check_averaged_model": [
+    {
+     "N": 3,
+     "va": 550.0,
+     "vb": 800.0,
+     "inlet_C": 60.0,
+     "port": "A",
+     "i_port": 123.9,
+     "i_lim": 123.9,
+     "i_port_peak": 124.42
+    },
+    {
+     "N": 4,
+     "va": 550.0,
+     "vb": 600.0,
+     "inlet_C": 60.0,
+     "port": "B",
+     "i_port": 136.05,
+     "i_lim": 136.0,
+     "i_port_peak": 138.25
+    }
+   ]
+  },
+  "aux_hv_restart_D034": {
+   "situation": "while the 24 V bus is fed from AUX-HV the hardware forces fans, gate-drive supply and coil supply off and trips both safety latches; losing the cabinet feeds at full power can dip the bus to 13.7 V, the control card reboots and the hardware latch state survives",
+   "firmware_start_up": [
+    "read the hardware latch state (FLT_LATCH_N, GATE_EN, CHB_OK) and the 24 V source status bit (SYS-IO-AUX expander 2 GPB5, 0 = AUX-HV is the source) before anything else",
+    "log the event with both values (reset cause, latch state, source)",
+    "keep the PWM drivers tri-stated and the contactors open: do NOT pulse FLT_CLR and do NOT re-arm by itself",
+    "re-arm only on an explicit operator / supervisor command after the cabinet feed is back (GPB5 = 1) and the latch inputs are healthy, then run the normal start sequence (proof test, precharge, contactors, soft start)"
+   ]
+  }
+ },
+ "honesty": "Simulation only. Power stage ideal-switch, sensors first-order, PV/battery/CPL models are assumptions listed in report.md; nothing is bench-validated."
+}

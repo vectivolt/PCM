@@ -1,0 +1,633 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "469129c8-8d7b-5cd8-8517-eb27484648d3")
+	(paper "A3")
+	(title_block
+		(title "PVCELL-25 power cell - Cover / Hierarchy")
+		(date "2026-10-04")
+		(rev "C0")
+		(comment 1 "HV-PELV reinforced 1000 V DC (ECO-10); barriers listed on the cover")
+		(comment 2 "Schematics authored by Chinmoy Bhuyan")
+		(comment 3 "Sheet 1")
+		(comment 4 "Not bench-validated. Values: sim/out/pv_design/cell_spec.json; checks: design_check()")
+	)
+	(lib_symbols)
+	(text "gdrv.channel() rev 5: NSI6651ASC-Q1 + UCC14241-Q1 +18/-3.5 V,\n3.75/2.5 ohm + Kelvin R per device, AO3400A clamps,\nSC booster 22R, interlock with PWM3, DESAT to the drain"
+		(exclude_from_sim no)
+		(at 22.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "161c64f9-030c-5cc0-945f-bdce84e37313")
+	)
+	(text "AN1 = LEM LA 150-P on inductor lead A: 20.0 mV/A differential, CM 1.25 V, < 1 ohm, linear +/-114 A, 0.52 us, 0.0759 A/LSB at the CTRL. Bus OV: no local comparator (CTRL path 26 us -> 1115 V, 0.835 x V_DSS)."
+		(exclude_from_sim no)
+		(at 20 240 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "1cd3d3e5-a373-5378-956e-016fe8d76e00")
+	)
+	(text "Rev C0  |  2026-10-04  |  Schematics authored by Chinmoy Bhuyan  |  25 kW (27.5 kW max) bidirectional 4-switch buck-boost cell, 2 x 4 x SG2M040170HJ"
+		(exclude_from_sim no)
+		(at 20 36 0)
+		(effects
+			(font
+				(size 2 2)
+			)
+			(justify left bottom)
+		)
+		(uuid "21f0db96-6f7f-5c87-9232-de8c3b7bdb42")
+	)
+	(text "Fail-safe off: open, unplugged, unpowered or tri-stated pairs read <= -0.29 V = LOW; RDY push-pull; +24V removal drops RDY at >= 19.7 V; +3V3 or +5V loss -> drivers off (VCC1 UVLO / EN low). No bootstrap: 100 % duty OK."
+		(exclude_from_sim no)
+		(at 20 244 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "5b21e6de-4b07-5605-a7fe-853cf3e02314")
+	)
+	(text "40-way CELL contract to CTRL-C2000, +24V = safety-switched +24V_GD;\nLMR36015 3.3 V + 5 V (driver logic side), TPS3710 on RDY, ID 4.99k, AGND tie"
+		(exclude_from_sim no)
+		(at 22.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "78149b60-75e8-51f1-a802-64e786a98f56")
+	)
+	(text "Local trips: inductor OC +/-72.2 A (68.5-76.0 A), gates off 0.94 us (PWM) / 1.73 us (EN) vs 3.66 us allowed; heatsink OT 95.0 C (92.3-97.9 C), open probe trips; DESAT per driver; CTRL backup peak 106.0 A."
+		(exclude_from_sim no)
+		(at 20 236 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "7d9eb531-e6d8-531e-8dff-4259518ac0f3")
+	)
+	(text "AN1 = LEM LA 150-P + driver, AN2/AN3 = heatsink/winding temperature,\nOC window + heatsink OT comparators, 2.5 V reference, NTC pass-through"
+		(exclude_from_sim no)
+		(at 22.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "8b2963fc-0d3c-5f9f-82e6-e431ccb4a72a")
+	)
+	(text "Domains: PELV, HV, GD_S1..S4, PE. Isolators: NSI6651ASC-Q1 + UCC14241-Q1 x 4, LA 150-P, L_CELL. CONFORMAL COATING to PD1 (IEC 60664-3) over every HV-PELV barrier part and the power stage (IC-17, IC-22). 1000 V DC (ECO-10)."
+		(exclude_from_sim no)
+		(at 20 248 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "8c37ac55-9e92-5066-928b-a51d38b25ad7")
+	)
+	(text "gdrv.channel() rev 5: NSI6651ASC-Q1 + UCC14241-Q1 +18/-3.5 V,\n3.75/2.5 ohm + Kelvin R per device, AO3400A clamps,\nSC booster 22R, interlock with PWM2, DESAT to the drain"
+		(exclude_from_sim no)
+		(at 118.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "8e6c0332-ac13-5b90-a438-0d36e659aa2c")
+	)
+	(text "Port A/B C4AQ banks + TNPV bleeders, bus studs to PV-PORT,\noff-board CUSTOM inductor on studs SW_A / SW_B, winding NTC header"
+		(exclude_from_sim no)
+		(at 310.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "a01c1693-165f-505e-99ca-d1ae5e8ad259")
+	)
+	(text "LAYOUT: loop <= 20 nH, bank <= 15 nH from each leg, damper loop <= 3 nH, clamp branch <= 1.5 nH, Miller clamp loop <= 1 nH, drain-pin slot. BENCH: Miller margin 0.53 V, LA 150-P dv/dt, damper power, pad PD test."
+		(exclude_from_sim no)
+		(at 20 252 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "b271d892-2591-5429-86b9-dd718390a84f")
+	)
+	(text "Leg A: S1/S2 on port A, leg B: S3/S4 on port B, 2 x SG2M040170HJ each;\nfilm decoupling and RC damper per leg at the device pins"
+		(exclude_from_sim no)
+		(at 214.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "c78d5b2e-0aa7-5db6-9590-284cd7a1d13f")
+	)
+	(text "PVCELL-25 power cell"
+		(exclude_from_sim no)
+		(at 20 28 0)
+		(effects
+			(font
+				(size 5 5)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "c86bffdf-7d3f-58b9-ab1a-439cfe39ca75")
+	)
+	(text "gdrv.channel() rev 5: NSI6651ASC-Q1 + UCC14241-Q1 +18/-3.5 V,\n3.75/2.5 ohm + Kelvin R per device, AO3400A clamps,\nSC booster 22R, interlock with PWM1, DESAT to the drain"
+		(exclude_from_sim no)
+		(at 214.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "d65538c1-1892-51fb-ace5-152f704f0323")
+	)
+	(text "gdrv.channel() rev 5: NSI6651ASC-Q1 + UCC14241-Q1 +18/-3.5 V,\n3.75/2.5 ohm + Kelvin R per device, AO3400A clamps,\nSC booster 22R, interlock with PWM4, DESAT to the drain"
+		(exclude_from_sim no)
+		(at 310.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "e1d472bf-ba35-5976-8f78-730fcff27536")
+	)
+	(text "CALCULATED, not measured: design_check() asserts every number on each build (outputs/PVCELL-25_design_check.txt); component values are read from sim/out/pv_design/cell_spec.json."
+		(exclude_from_sim no)
+		(at 20 232 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "eca81423-89e8-56ec-85b8-53b9408561c5")
+	)
+	(text "AM26LV32E receivers with external fail-safe bias (open = gate off),\nFLT driver, OC/OT fault latch, EN_DRV, PWM gating"
+		(exclude_from_sim no)
+		(at 118.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "ed93ea34-db96-5352-adce-4a6869d5a678")
+	)
+	(sheet
+		(at 212 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "0c39a9a6-c54e-5391-897a-47f3d0c94a9c")
+		(property "Sheetname" "07 Gate drive S2 (leg A)"
+			(at 212 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/07_gd_s2.kicad_sch"
+			(at 212 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PVCELL-25"
+				(path "/469129c8-8d7b-5cd8-8517-eb27484648d3"
+					(page "8")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "34e572ce-b7fd-5d1d-8d85-da4236e341c1")
+		(property "Sheetname" "05 Inductor current, temperatures, trips"
+			(at 20 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/05_sense.kicad_sch"
+			(at 20 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PVCELL-25"
+				(path "/469129c8-8d7b-5cd8-8517-eb27484648d3"
+					(page "6")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "477b244b-a302-52ca-9330-ac2b53f4436b")
+		(property "Sheetname" "02 Fail-safe RS-422, fault latch"
+			(at 116 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/02_logic.kicad_sch"
+			(at 116 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PVCELL-25"
+				(path "/469129c8-8d7b-5cd8-8517-eb27484648d3"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "6f354fb1-dd69-58ed-a6ab-2dd714fd986a")
+		(property "Sheetname" "01 CELL connector, logic supply, ID"
+			(at 20 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/01_cell.kicad_sch"
+			(at 20 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PVCELL-25"
+				(path "/469129c8-8d7b-5cd8-8517-eb27484648d3"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "80d60c04-27b0-5d63-9418-6e57475db03f")
+		(property "Sheetname" "03 Power stage, decoupling, dampers"
+			(at 212 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/03_power.kicad_sch"
+			(at 212 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PVCELL-25"
+				(path "/469129c8-8d7b-5cd8-8517-eb27484648d3"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "9aca5f2b-b500-5fd8-9bd3-579779ea13ee")
+		(property "Sheetname" "04 Film banks, bleeders, inductor"
+			(at 308 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/04_bus.kicad_sch"
+			(at 308 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PVCELL-25"
+				(path "/469129c8-8d7b-5cd8-8517-eb27484648d3"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "bab125d9-2a79-5c18-a2fb-07cd21bcd0d6")
+		(property "Sheetname" "06 Gate drive S1 (leg A)"
+			(at 116 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/06_gd_s1.kicad_sch"
+			(at 116 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PVCELL-25"
+				(path "/469129c8-8d7b-5cd8-8517-eb27484648d3"
+					(page "7")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "c8e881ae-c6bb-529d-bcea-91b02dcc3a82")
+		(property "Sheetname" "08 Gate drive S3 (leg B)"
+			(at 308 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/08_gd_s3.kicad_sch"
+			(at 308 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PVCELL-25"
+				(path "/469129c8-8d7b-5cd8-8517-eb27484648d3"
+					(page "9")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "f064b3a7-7040-5905-922c-315b3aff7289")
+		(property "Sheetname" "09 Gate drive S4 (leg B)"
+			(at 20 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/09_gd_s4.kicad_sch"
+			(at 20 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PVCELL-25"
+				(path "/469129c8-8d7b-5cd8-8517-eb27484648d3"
+					(page "10")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+)

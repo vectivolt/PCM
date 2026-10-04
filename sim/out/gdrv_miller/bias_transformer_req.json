@@ -1,0 +1,31 @@
+{
+ "part": "T_BIAS4, one per phase (4 channels), driven by TI SN6505B (centre-tapped primary, 420 kHz typ)",
+ "input_V": [
+  4.75,
+  5.25
+ ],
+ "f_min_Hz": 350000.0,
+ "volt_seconds_per_half_primary_Vs": 7.5e-06,
+ "turns_ratio_each_secondary_to_half_primary": 6.0,
+ "secondaries": 4,
+ "secondary_load_per_winding_A_dc": 0.0242,
+ "secondary_rms_A_est": 0.0314,
+ "primary_current_A_avg_per_phase": 0.679,
+ "magnetizing_current_max_A_pk": 0.15,
+ "winding_resistance_max_ohm": {
+  "half_primary": 0.1,
+  "secondary": 2.0
+ },
+ "rectifier": "full bridge per secondary (PMEG4010CEJ), raw DC 25.8-30.5 V",
+ "insulation": "FUNCTIONAL (B3, ARCHITECTURE-COSTFIRST.md section 2): primary <-> each secondary AND secondary <-> secondary",
+ "working_V_dc": 1000.0,
+ "recurring_peak_V": 1401.0,
+ "pd_free_V_pk_min": 1750.0,
+ "surge_V_1.2_50us": 3790.0,
+ "capacitance_max_F": {
+  "primary_to_each_secondary": 5e-12,
+  "secondary_to_secondary": 5e-12
+ },
+ "construction_hint": "EP10-class, sectioned bobbin, triple-insulated wire on the secondaries",
+ "basis": "gen/gdrv.py ext_bias_numbers() / design_check(); 5 V +/-5 % and f_min ASSUMED"
+}

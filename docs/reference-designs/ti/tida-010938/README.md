@@ -1,0 +1,7 @@
+# TIDA-010938 - 10 kW GaN single-phase string inverter with battery storage port (TI)
+Two 5 kW PV boost stages + 10 kW 2-phase interleaved bidirectional battery DC/DC + 4.6 kW HERIC/H-bridge inverter, LMG3522R030 650 V GaN, one F280039C/F28P55x referenced to DC-. TI: lab use only.
+- **Native ratings** (TIDUF64 Rev C, Tables 1-1..1-3 p.5): strings 50-500 V, 14 A each; link 400 V nominal / 520 V max; battery 50-500 V, +/-30 A, 10 kW; boost 130 kHz, battery legs 65 kHz at 180 deg; measured 99.3 % boost (350->400 V), 99.4 % battery DC/DC peak (p.37-41).
+- **Informs:** REF-2 review of the PV cell (PV-16/17/21), port sensing and IMD inputs (PV-C5), SYS-IO-AUX interfaces (ECO-03).
+- **Limitation:** 520 V / 10 kW class with 650 V GaN; boost-only MPPT; non-isolated controller on DC-. Nothing transfers to our 1000 V ratings unchanged.
+- **What we take from it:** the 200 nF/kWp PV-array capacitance worst case; confirmation of D-030 (switch-node shunt sensing only works at GaN-board dv/dt); integrated-power isolated CAN/RS-485 as a cost option. Detail: `docs/requirements/REFERENCE-LESSONS.md`.
+- **Files:** design guide TIDUF64 Rev C; schematic archive TIDMCG3 and BOM archive TIDMCG4 (PDFs unpacked in `design-files/`); app note SLLA498 Rev A (topology considerations, linked from the TI page). Not fetched: assembly drawing, PCB layout, Gerber/CAD, PLECS model (layout out of scope); software guide (only inside the C2000Ware DigitalPower SDK, public URL 404).

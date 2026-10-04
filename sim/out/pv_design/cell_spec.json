@@ -125,10 +125,10 @@
     "V": 1100.0,
     "I_A": 72.4
    },
-   "V_GS_pin_peak_V": -2.49,
-   "V_GS_die_peak_V": 1.38,
+   "V_GS_pin_peak_V": -2.47,
+   "V_GS_die_peak_V": 1.41,
    "V_GS_die_ideal_clamp_loop_V": 0.95,
-   "miller_current_per_device_A_peak": 3.24,
+   "miller_current_per_device_A_peak": 3.22,
    "victim_dvdt_V_per_ns_peak": 115.0,
    "edge_dvdt_V_per_ns": 115.0,
    "clamp_loop_nH_max": 1.0,
@@ -137,7 +137,7 @@
     "V_th_min_175C": 1.94,
     "V_th_min_25C": 2.5
    },
-   "result": "die +1.38 V vs V_th(min, 175 C) 1.94 V: within the 0.5 V design margin",
+   "result": "die +1.41 V vs V_th(min, 175 C) 1.94 V: within the 0.5 V design margin",
    "fallback_variant": {
     "source": "NOT simulated with the rev-5 network: gen/gdrv.py rev 5 does not carry this device's rail (its AO3400A clamp FET would see 24.6 V > 80 % of 30 V at +20/-4 V); previous round (rev-4 PNP network) die +1.42 V",
     "result": "not simulated for this variant"
@@ -240,14 +240,14 @@
   "core": "NPC290026 x 2 (stacked, 0.5 mm spacer)",
   "material": "POCO NPC 26",
   "turns": 37,
-  "conductor": "profiled litz 1923 x 0.10 mm, 3.07 x 8.06 mm, 1 layer",
-  "DCR_20C_mOhm": 8.738059068981046,
-  "DCR_110C_mOhm": 11.82871056167964,
+  "conductor": "solid round enamelled Cu 3.15 mm grade 2, 1 layer",
+  "DCR_20C_mOhm": 16.434480631608285,
+  "DCR_110C_mOhm": 22.247356431008132,
   "B_dc_at_45A_T": 0.2876844532391501,
   "B_at_trip_T": 0.44477868284667194,
   "B_sat_T": 1.25,
-  "mass_kg": 2.359047587929492,
-  "loss_worst_W": 51.2234267797798,
+  "mass_kg": 1.7447046857839288,
+  "loss_worst_W": 83.7573959058682,
   "loss_worst_at": [
    500.0,
    1000.0,
@@ -256,11 +256,11 @@
   "core_area_mm2": 1008.0,
   "path_mm": 183.79999999999998,
   "review_corrections": {
-   "source": "design_pv_inductor.json rev M1",
+   "source": "design_pv_inductor.json rev M2",
    "loss_factor_applied": 1.0,
    "hot_spot_rise_K_at_W": [
-    50.493201093632116,
-    51.22342677977982
+    89.84208985295061,
+    83.75739590586821
    ],
    "MG-06_conductor": "profiled (rectangular) litz or foil (round 10.3 mm2 litz with 1.1 kV insulation does not fit the 8044E window)",
    "MG-07_insulation_class": "H (180 C); hot-spot NTC at the winding centre drives the fan law / derating",
@@ -280,7 +280,7 @@
    "volt_seconds_max_Vus": 7812.0,
    "ripple_frequency_kHz": 32.0,
    "voltage_across_max_V": 1000.0,
-   "loss_allowed_W": 51.2,
+   "loss_allowed_W": 83.8,
    "hot_spot_max_C": 155.0,
    "hot_spot_basis": "class H (180 C) less 25 K; module derating keeps it (sim/pv_module.py T_IND_MAX)",
    "air_flow_m3h_at_full_load": 150.0,
@@ -299,11 +299,11 @@
    "open": "an 80/44 E-core shape in NPC 26 is not on file - confirm the shape or use a POCO toroid (NPC290026 class) with a new winding design"
   },
   "cost_usd": {
-   "total": 80.0,
-   "basis": "ESTIMATES, no quote: Kool Mu MAX E80 set ~11 USD (sim/pv_tradeoff.py basis), POCO NPC toroid ~8 USD; profiled litz 0.1 mm 32.4 USD/kg (LME Cu 14.4 + 18 drawing/profiling premium, as cost_estimates.csv); PPS former 3, VPI class H 4, winding 8, PD/hipot/L test 2; +10 %; toroid winding labour x1.3"
+   "total": 40.5,
+   "basis": "ESTIMATES, no quote: core 2 x 8.0 USD (13.3 USD/kg Asian powder, as M1); solid round enamelled Cu 3.15 mm grade 2 18.0 USD/kg (LME 14.4 + drawing/enamel premium); insulation 4.0 (Nomex wrap, VPI batch, base); winding 5.0 + test 2.0; +10 %"
   },
-  "construction_source": "design_pv_inductor.json rev M1",
-  "construction": "2 x POCO NPC290026 (NPC 26, 74/45/35 mm) stacked toroid, 37 turns single-layer profiled litz 1923 x 0.10 mm (15.1 mm2), core wrapped 2 x 0.13 mm Nomex 410 + polyimide, VPI class H, NTC at the inner-side winding centre in a reinforced pocket; mounted on an insulating base with a centre clamp in the cell air stream"
+  "construction_source": "design_pv_inductor.json rev M2",
+  "construction": "2 x POCO NPC290026 (NPC 26, 74/45/35 mm) stacked toroid (as M1), 37 turns of solid round enamelled Cu 3.15 mm grade 2, 1 layer, core wrapped 2 x 0.13 mm Nomex 410 + polyimide, VPI class H, NTC at the bore-side winding centre in a reinforced pocket; insulating base with a centre clamp in the cell air stream"
  },
  "capacitors": {
   "port_A": {
@@ -469,22 +469,22 @@
   "vs_bias_VIORM_1414Vpk": "UCC14241-Q1 VIORM 1414 Vpk (IC-06): the bias barrier must cover the recurring peak; margin at 1000 V = 1.11"
  },
  "efficiency": {
-  "peak": 0.9957137726801223,
+  "peak": 0.9950458475923235,
   "peak_at": {
    "va": 900.0,
    "vb": 1000.0,
-   "p_W": 16500.0
+   "p_W": 13750.0
   },
   "corners": {
-   "550->950": 0.9917980476613569,
-   "950->550": 0.9916080346992897,
-   "550->550": 0.9914090064112686,
-   "950->950": 0.9931301038730413,
-   "611->950": 0.9926937876994497,
-   "950->611": 0.9925087928500362,
-   "611->611": 0.9918118211599724,
-   "1000->500": 0.9903893940482347,
-   "500->1000": 0.9906135773404904
+   "550->950": 0.9905113704980066,
+   "950->550": 0.990321850183395,
+   "550->550": 0.9900271311944421,
+   "950->950": 0.9923814581077843,
+   "611->950": 0.9915362377936702,
+   "950->611": 0.9913516740862967,
+   "611->611": 0.9905667236465818,
+   "1000->500": 0.9889731274782976,
+   "500->1000": 0.9891966699880086
   },
   "note": "power stage incl. gate drive, driver bias, sensing and the leg RC dampers; dead time at its 586 ns maximum; excludes fans/controller"
  },
@@ -492,7 +492,7 @@
   "L_uH_vs_I": "out/pv_design/inductor_L_vs_I.csv",
   "C_A_uF": 90.0,
   "C_B_uF": 90.0,
-  "R_series_mOhm": 71.22871056167965,
+  "R_series_mOhm": 81.64735643100813,
   "sampling": "sample i_L at the carrier peak/valley (centre-aligned PWM) for the average",
   "pwm_frequency_kHz": 32.0
  },
@@ -838,23 +838,23 @@
   "price_source": "ESTIMATE: Sichain: RFQ; SG2M020170HJ 9.74 USD scaled by (R ratio)^1.26, the exponent of the Sichain 1200 V LCSC prices (13 mOhm 7.31, 27 mOhm 3.46, 33 mOhm 2.26 USD)",
   "rg_on_ohm": 3.75,
   "rg_off_ohm": 2.5,
-  "eta_corner_min": 0.9914446088310962,
+  "eta_corner_min": 0.9900626344328121,
   "eta_corners": {
-   "550->950": 0.99188,
-   "950->550": 0.99185,
-   "550->550": 0.99144,
-   "950->950": 0.99481,
-   "611->950": 0.99278,
-   "950->611": 0.99275,
-   "611->611": 0.99203,
-   "1000->500": 0.99075,
-   "500->1000": 0.99076
+   "550->950": 0.99059,
+   "950->550": 0.99057,
+   "550->550": 0.99006,
+   "950->950": 0.99406,
+   "611->950": 0.99162,
+   "950->611": 0.99159,
+   "611->611": 0.99079,
+   "1000->500": 0.98933,
+   "500->1000": 0.98935
   },
-  "eta_peak": 0.99659,
+  "eta_peak": 0.99611,
   "Tj_max_45C_C": 78.0,
   "VDS_peak_V": 1396.0,
   "turn_on_dvdt_V_per_ns": 124.0,
-  "miller_die_peak_V": 1.38,
+  "miller_die_peak_V": 1.41,
   "miller_limit_V": 1.94,
   "rails_V": [
    18.0,
@@ -878,6 +878,39 @@
     "Q1": 1.5691399999999998,
     "industrial": 1.086656
    }
+  },
+  "trip_band_costfirst": {
+   "hardware": {
+    "band_A": [
+     66.2,
+     79.9
+    ],
+    "response_us": 1.95,
+    "i_peak_A": 92.1,
+    "L_over_L0": 0.702,
+    "B_T": 0.542,
+    "B_over_Bsat": 0.433,
+    "I_DM_A": 376.0,
+    "v_pk_V": 1396,
+    "v_pk_limit_V": 1445,
+    "ok": true
+   },
+   "backup": {
+    "band_A": [
+     81.1,
+     101.9
+    ],
+    "response_us": 1.21,
+    "i_peak_A": 110.9,
+    "L_over_L0": 0.597,
+    "B_T": 0.621,
+    "B_over_Bsat": 0.497,
+    "I_DM_A": 376.0,
+    "v_pk_V": 1407,
+    "v_pk_limit_V": 1445,
+    "ok": true
+   },
+   "basis": "band top + 1110 V across L(I) of NPC290026 x 2 (stacked, 0.5 mm spacer) for the response time; leg deck at 1110 V; limits L >= 0.35 L0, B <= 0.85 B_sat, I_DM, V_pk <= 0.85 V_DSS (calculated)"
   }
  },
  "device_alternate": {
@@ -892,19 +925,19 @@
   "price_source": "RS Components HK (web-search snippet) 2026-10-04, 309.46 HKD @600",
   "rg_on_ohm": 6.0,
   "rg_off_ohm": 4.0,
-  "eta_corner_min": 0.9914090064112686,
+  "eta_corner_min": 0.9900271311944421,
   "eta_corners": {
-   "550->950": 0.9918,
-   "950->550": 0.99161,
-   "550->550": 0.99141,
-   "950->950": 0.99313,
-   "611->950": 0.99269,
-   "950->611": 0.99251,
-   "611->611": 0.99181,
-   "1000->500": 0.99039,
-   "500->1000": 0.99061
+   "550->950": 0.99051,
+   "950->550": 0.99032,
+   "550->550": 0.99003,
+   "950->950": 0.99238,
+   "611->950": 0.99154,
+   "950->611": 0.99135,
+   "611->611": 0.99057,
+   "1000->500": 0.98897,
+   "500->1000": 0.9892
   },
-  "eta_peak": 0.99571,
+  "eta_peak": 0.99505,
   "Tj_max_45C_C": 80.3,
   "VDS_peak_V": 1401.0,
   "turn_on_dvdt_V_per_ns": 92.0,
@@ -932,6 +965,39 @@
     "Q1": 1.9595999999999998,
     "industrial": 1.24284
    }
+  },
+  "trip_band_costfirst": {
+   "hardware": {
+    "band_A": [
+     66.2,
+     79.9
+    ],
+    "response_us": 1.95,
+    "i_peak_A": 92.1,
+    "L_over_L0": 0.702,
+    "B_T": 0.542,
+    "B_over_Bsat": 0.433,
+    "I_DM_A": 400.0,
+    "v_pk_V": 1386,
+    "v_pk_limit_V": 1445,
+    "ok": true
+   },
+   "backup": {
+    "band_A": [
+     81.1,
+     101.9
+    ],
+    "response_us": 1.21,
+    "i_peak_A": 110.9,
+    "L_over_L0": 0.597,
+    "B_T": 0.621,
+    "B_over_Bsat": 0.497,
+    "I_DM_A": 400.0,
+    "v_pk_V": 1402,
+    "v_pk_limit_V": 1445,
+    "ok": true
+   },
+   "basis": "band top + 1110 V across L(I) of NPC290026 x 2 (stacked, 0.5 mm spacer) for the response time; leg deck at 1110 V; limits L >= 0.35 L0, B <= 0.85 B_sat, I_DM, V_pk <= 0.85 V_DSS (calculated)"
   }
  },
  "module_basis_role": "alternate",
@@ -940,20 +1006,20 @@
    "devices": 32.54,
    "gate_drive": 43.4,
    "insulators": 8.0,
-   "inductor": 80.0,
+   "inductor": 40.5,
    "port_caps": 43.48,
    "decoupling": 16.77,
    "heatsink": 27.0,
    "clamp_diodes": 42.78,
    "damper": 4.0,
-   "board_rest": 69.77,
-   "total": 367.73
+   "board_rest": 0.0,
+   "total": 258.47
   },
   "per_module_cells_only": {
-   "3_cells": 1103.0,
-   "4_cells": 1471.0
+   "3_cells": 775.0,
+   "4_cells": 1034.0
   },
   "basis": "sim/pv_tradeoff.py cost_usd(): gen/data/prices.csv (largest break <= 1000 pcs) and labelled ESTIMATES (sim/out/pv_tradeoff/gate0b.md); port board, control, fans and enclosure not included",
-  "inductor_row_written_usd": 80.0
+  "inductor_row_written_usd": 40.0
  }
 }

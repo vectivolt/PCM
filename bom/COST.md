@@ -663,22 +663,22 @@ The rows ending in -FULL are the roadmap's earlier platform. Current ratings are
 | PV-P100-110-FULL (old platform, for contrast) at 110 kW | 30.4 | 24.2 | 20.2 |
 | DAB-D60-FULL (old platform, for contrast) at 60 kW | 60.2 | 48.8 | 20.2 |
 
-## DC-to-AC PCS next to the PV module (architecture estimate)
+## DC-to-AC PCS next to the PV module (design study)
 
-The PCS (AC-01...AC-03, PCS-P125, 125 kW) is at the architecture stage: its figures are the architect's costed list `gen/data/costfirst_pcs_bom.csv` (catalogue and 5000-unit columns), **not a BOM of drawn boards** and not priced line by line by this script. The PV modules are the BOMs of the drawn power and control boards priced by this script.
+The PCS (AC-01...AC-03, PCS-P125, 125 kW) has a power-stage design study and no boards: its figures are the study's costed list `sim/out/pcs_design/pcs_costed_bom.csv` (two-level stage on 1700 V SiC, decision D-053; catalogue and 5000-unit columns), **not a BOM of drawn boards** and not priced line by line by this script. The PV modules are the BOMs of the drawn power and control boards priced by this script. The earlier three-level estimate (`gen/data/costfirst_pcs_bom.csv`) is withdrawn by D-053.
 
 | | PV-P75 | PV-P100-110 | PCS-P125 3-wire | PCS-P125 4-wire |
 |---|---|---|---|---|
-| status | BOM of drawn boards | BOM of drawn boards | architecture estimate | architecture estimate |
+| status | BOM of drawn boards | BOM of drawn boards | design study | design study |
 | rated power, kW | 75 | 100 | 125 | 125 |
-| catalogue, USD | 947.34 | 1135.87 | 1037.04 | 1193.82 |
-| catalogue, USD/kW | 12.6 | 11.4 | 8.3 | 9.6 |
-| at 5000 units, USD | 792.27 | 949.74 | 800.87 | 919.18 |
-| at 5000 units, USD/kW | 10.6 | 9.5 | 6.4 | 7.4 |
-| share of the 5000-unit figure on real prices, % | 16 | 15 | 17 | 16 |
+| catalogue, USD | 947.34 | 1135.87 | 1085.78 | 1288.94 |
+| catalogue, USD/kW | 12.6 | 11.4 | 8.7 | 10.3 |
+| at 5000 units, USD | 792.27 | 949.74 | 869.32 | 1032.21 |
+| at 5000 units, USD/kW | 10.6 | 9.5 | 7.0 | 8.3 |
+| share of the 5000-unit figure on real prices, % | 16 | 15 | 7 | not stated |
 
-PCS-P125 3-wire by block (catalogue / 5000 units, USD): power 194.22 / 144.56; gate drive 66.73 / 44.96; lcl filter 222.60 / 179.61; sensing 60.50 / 49.68; dc port 183.51 / 136.00; ac port 152.30 / 122.40; aux supply 37.30 / 31.00; control 10.20 / 9.00; interface 8.09 / 7.50; thermal 88.20 / 65.46; mech-elec 13.40 / 10.70.
-The 4-wire option adds a fourth leg, the neutral inductor and a 4-pole disconnect. The PCS's real-price share counts the rows of the list whose basis_5k is neither ASSUMED nor MIXED; the PV share counts the lines of this BOM with a published break of 1000 pieces or more.
+PCS-P125 3-wire by block (catalogue / 5000 units, USD): power 239.26 / 201.98; gate drive 50.54 / 37.25; lcl filter 207.09 / 167.02; sensing 59.50 / 48.83; dc port 189.73 / 142.21; ac port 158.60 / 127.40; aux supply 37.30 / 31.00; control 11.42 / 10.58; interface 8.09 / 7.50; thermal 110.85 / 84.84; mech-elec 13.40 / 10.70.
+The 4-wire option adds a fourth leg, the neutral inductor and a 4-pole disconnect (203.15 / 162.89 USD). The PCS's real-price share is the study's own figure; the PV share counts the lines of this BOM with a published break of 1000 pieces or more.
 
 ## Reconciliation of PV-P75 with the architect's list
 

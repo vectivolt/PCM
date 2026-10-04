@@ -212,7 +212,7 @@ def update_inductor_cost_row(ind):
             if r and r[0] == new[0]:
                 r[:] = new
         with open(COST_EST, "w", newline="") as f:
-            csv.writer(f).writerows(rows)
+            csv.writer(f, lineterminator="\n").writerows(rows)      # the file is LF in git: keep the diff to the row
         return float(new[1])
     usd = tr.inductor_cost(ind, "Asian")
     basis = (f"ESTIMATE from sim/out/pv_design/cell_spec.json inductor (sim/pv_tradeoff.py inductor_cost, Asian core): Litz {ind['m_cu']:.2f} kg x "
@@ -226,7 +226,7 @@ def update_inductor_cost_row(ind):
         if r and r[0] in ("L_CELL 224uH (CUSTOM)", "L_CELL*"):
             r[1], r[2], r[3] = f"{usd:.0f}", basis if r[0] != "L_CELL*" else "ESTIMATE: pattern fallback for a future L_CELL variant, taken as the 224 uH estimate", "low"
     with open(COST_EST, "w", newline="") as f:
-        csv.writer(f).writerows(rows)
+        csv.writer(f, lineterminator="\n").writerows(rows)
     return usd
 
 
@@ -453,6 +453,33 @@ def leg_net(des, dec=None, c_rr=0.0):
     return {"c_bulk": cb["C"], "esl_bulk": cbp["esl"] / cb["n"], "esr_bulk": cbp["esr"] / cb["n"], "l_bus": L_BUS_BULK,
             "c_dec": nd * p["C"], "esl_dec": p["esl"] / nd, "esr_dec": p["esr"] / nd, "l_rest": L_REST,
             "r_damp": DAMPER["n_r"] * DAMPER["r_el"], "c_damp": DAMPER["c_el"] / DAMPER["n_c"], "c_rr": c_rr}
+
+
+# cost-first boards (hardware/PV-PWR + PV-CTL design checks, D-044..D-052): per-phase OC comparator band (A) and response,
+# controller (CMPSS) backup band and response, hardware OV trip band (V) and response
+TRIP_HW, TRIP_BACKUP, OV_HW = (66.2, 79.9, 1.95e-6), (81.1, 101.9, 1.21e-6), (1058.0, 1110.0, 47e-6)
+
+
+def trip_band(des):
+    """inductor current at the end of each trip response (band top; the OV-trip top across the inductor, di/dt = V/L(i)),
+    L/L0 and B there, device I_DM, and the turn-off peak at that current and the OV-trip top from the physical-leg deck"""
+    ind, d, l0 = des["ind"], des["d"], tr.inductor_L(des["ind"], 0.0)
+    out = {}
+    for name, (lo, hi, t) in (("hardware", TRIP_HW), ("backup", TRIP_BACKUP)):
+        i = hi
+        for _ in range(100):
+            i += OV_HW[1] * t / 100 / tr.inductor_L(ind, i)
+        f = tr.ind_ocp_fields(dict(ind), i)
+        r = leg_run(des, OV_HW[1], i, f"trip_{name}")
+        x = {"band_A": [lo, hi], "response_us": round(t * 1e6, 2), "i_peak_A": round(i, 1), "L_over_L0": round(f["L_ocp"] / l0, 3),
+             "B_T": round(float(f["B_ocp"]), 3), "B_over_Bsat": round(float(f["B_ocp"]) / ind["_mat"]["bsat"], 3),
+             "I_DM_A": des["npar"] * d["idm"], "v_pk_V": round(r["v_pk"]), "v_pk_limit_V": round(dv.V_PK_FRAC * d["vdss"])}
+        x["ok"] = (x["L_over_L0"] >= tr.MU_FRAC_MIN and x["B_over_Bsat"] <= tr.B_FRAC_MAX and i <= x["I_DM_A"]
+                   and x["v_pk_V"] <= x["v_pk_limit_V"])
+        out[name] = x
+    out["basis"] = (f"band top + {OV_HW[1]:.0f} V across L(I) of {ind['part']} for the response time; leg deck at {OV_HW[1]:.0f} V; "
+                    f"limits L >= {tr.MU_FRAC_MIN} L0, B <= {tr.B_FRAC_MAX} B_sat, I_DM, V_pk <= {dv.V_PK_FRAC} V_DSS (calculated)")
+    return out
 
 
 def c_rr(des, v):
@@ -836,6 +863,8 @@ def run(role="primary", write=True, alt=None):
     protection_update(spec, drq, gd)
     own = device_block(role, des, spec, corners, peak, worst, dpt_w, mil, brc)
     own["drive"] = drq["per_device"][role]
+    own["trip_band_costfirst"] = trip_band(des)
+    assert own["trip_band_costfirst"]["backup"]["i_peak_A"] > own["trip_band_costfirst"]["hardware"]["i_peak_A"] > TRIP_HW[1]
     if not write:
         return {"spec": spec, "block": own, "dpt_w": dpt_w, "comp": comp}
     # ---------------------------------------------------------------- outputs
@@ -1565,6 +1594,8 @@ if __name__ == "__main__":
         b = spec["device_" + role]
         print(f"{role}: {b['parallel']} x {b['mpn']} ({b['manufacturer']}): corners min {b['eta_corner_min']*100:.2f} %, peak "
               f"{b['eta_peak']*100:.2f} %, Tj {b['Tj_max_45C_C']:.0f} C, V_DS peak {b['VDS_peak_V']:.0f} V, Miller die {b['miller_die_peak_V']} V")
+        print("  trip band: " + "; ".join(f"{k} {x['i_peak_A']} A L/L0 {x['L_over_L0']} B/Bsat {x['B_over_Bsat']} V_pk {x['v_pk_V']} V "
+                                          f"ok {x['ok']}" for k, x in b["trip_band_costfirst"].items() if k != "basis"))
     print(f"worse of both: corners " + ", ".join(f"{k} {v*100:.2f}" for k, v in spec['efficiency']['corners'].items()
                                                 if k in ('550->950', '950->550', '550->550', '950->950')) + f", peak {spec['efficiency']['peak']*100:.2f} %")
     print(f"Tj max {spec['worst_case_stresses']['Tj_max_45C_C']:.0f} C, V_DS peak {spec['worst_case_stresses']['device_VDS_peak_V']:.0f} V, "

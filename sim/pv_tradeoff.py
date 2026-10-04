@@ -89,12 +89,12 @@ HS_GEOM = {"n_fin": 30, "h_fin": 0.060, "t_fin": 1.5e-3, "length": 0.30, "width"
 MU_AIR = 1.925e-5   # Pa s, air at ~45 C (nu = mu/rho = 1.75e-5 m2/s at 1.10 kg/m3)
 
 
-def heatsink_dp(flow_m3h, rho=1.10, n_fin=30, h_fin=0.060, t_fin=1.5e-3, length=0.30):
+def heatsink_dp(flow_m3h, rho=1.10, n_fin=30, h_fin=0.060, t_fin=1.5e-3, length=0.30, width=0.150):
     """pressure drop of the plate-fin heatsink: Shah & London apparent Fanning friction for hydrodynamically developing
     laminar flow between parallel plates, f_app Re = 3.44/sqrt(L+) + (24 + K/(4 L+) - 3.44/sqrt(L+)) / (1 + C L+^-2),
     K(inf) = 0.674, C = 2.9e-5, L+ = L/(D_h Re); plus Kays & London entrance/exit losses K_c = 0.42 (1 - s^2),
     K_e = (1 - s)^2 with s = channel open-area ratio.  Returns Pa."""
-    pitch = 0.150 / n_fin
+    pitch = width / n_fin
     s_gap = pitch - t_fin
     vel = flow_m3h / 3600.0 / (n_fin * s_gap * h_fin)
     if vel <= 0:
@@ -108,14 +108,14 @@ def heatsink_dp(flow_m3h, rho=1.10, n_fin=30, h_fin=0.060, t_fin=1.5e-3, length=
     return (4 * fre / re * length / dh + 0.42 * (1 - sig ** 2) + (1 - sig) ** 2) * q
 
 
-def heatsink_rth(n_fin=30, h_fin=0.060, t_fin=1.5e-3, length=0.30, flow_m3h=150.0, rho=1.10):
+def heatsink_rth(n_fin=30, h_fin=0.060, t_fin=1.5e-3, length=0.30, flow_m3h=150.0, rho=1.10, width=0.150):
     """plate-fin extrusion in a ducted air stream (one heatsink per cell).
     Shah & London developing-laminar parallel-plate Nusselt number, straight-fin efficiency, effectiveness-NTU air heat-up.
     Returns (R_conv K/W, R_air K/W (mean air rise per W), air velocity m/s).  Geometry and flow are ASSUMPTIONS:
     150 m3/h per cell ~ 450-600 m3/h installed for PV-P75 (roadmap 'First-order airflow calculation' P60/P80 rows)."""
     k_air, pr, cp, k_al = 0.0275, 0.71, 1005.0, 200.0
     nu = MU_AIR / rho
-    pitch = 0.150 / n_fin
+    pitch = width / n_fin
     s = pitch - t_fin
     q = flow_m3h / 3600.0
     vel = q / (n_fin * s * h_fin)
@@ -125,7 +125,7 @@ def heatsink_rth(n_fin=30, h_fin=0.060, t_fin=1.5e-3, length=0.30, flow_m3h=150.
     h = nu_m * k_air / dh
     m = math.sqrt(2 * h / (k_al * t_fin))
     eta = math.tanh(m * h_fin) / (m * h_fin)
-    area = n_fin * 2 * h_fin * length + 0.150 * length
+    area = n_fin * 2 * h_fin * length + width * length
     # effectiveness-NTU: sink-to-inlet resistance 1/(m cp (1 - exp(-NTU))), NTU = h eta A / (m cp); returned split as
     # r_air (mean air rise 0.5/(m cp), for reporting) + r_conv (the rest) so that r_conv + r_air is the full resistance
     mcp = rho * q * cp
@@ -371,6 +371,8 @@ if os.path.exists(IND_JSON):
     IND_CORR = {"loss": 1.0, "hot_rise_K": _th["dT_hotspot_K"], "at_W": _th["dT_hotspot_K"] / _th["Rth_hotspot_to_air_K_W"],
                 "internal_frac": _th["dT_internal_K"] / _th["dT_hotspot_K"], "rth_K_W": _th["Rth_hotspot_to_air_K_W"],
                 "source": f"{os.path.relpath(IND_JSON, ROOT if 'ROOT' in globals() else os.path.dirname(IND_JSON))} rev {_j['revision']}"}
+    print(f"inductor design file rev {_j['revision']}: {_j['windings'][0]['conductor']}; {_j['cost']['total_usd']} USD, "
+          f"hot spot {_th['T_hotspot_C']:.0f} C at {_th['dT_hotspot_K'] / _th['Rth_hotspot_to_air_K_W']:.1f} W")
 else:
     print("note: sim/out/magnetics/design_pv_inductor.json not found - inductor uses the interim review figures (54 W, 75 K)")
 
@@ -496,7 +498,7 @@ def cell_losses(design, va, vb, p, tj=None, t_air=T_AIR, waveform_only=False):
     st = wf_stats(w)
     ev = events(w)
     pos = positions(design)
-    r_conv, r_air, _ = heatsink_rth(flow_m3h=design["flow"], rho=design.get("rho", 1.10))
+    r_conv, r_air, _ = heatsink_rth(flow_m3h=design["flow"], rho=design.get("rho", 1.10), **design.get("hs_geom", {}))   # section of a shared extrusion if given
     if tj is None:
         tj = {q: 100.0 for q in pos}
         iterate = 8
@@ -548,11 +550,12 @@ def cell_losses(design, va, vb, p, tj=None, t_air=T_AIR, waveform_only=False):
             fc = design["caps"]["FC"]
             pcap += st[f"ifc_rms_{leg}"] ** 2 * fc["esr"] / fc["n"]
     pgate = len(w["pairs"]) * 2 * n * d["qg"] * (d["vgs_on"] - d["vgs_off"]) * fsw   # switching devices only
+    ext = design.get("aux_external", False)   # gate bias and sensing fed by the module aux supply: counted at module level
     pmisc = st["irms"] ** 2 * R_MISC
     paux = len(pos) * P_AUX_DRV + P_AUX_SENSE / half + (2 * 0.5 if nl == 3 else 0.0) + (0.5 if topo == "SPLIT" else 0.0)
     loss = {"cond": sum(pc.values()) * half, "sw": sum(psw.values()) * half, "dead": sum(pdt.values()) * half,
-            "core": pcore * half, "cu": pcu * half, "cap": pcap * half, "gate": pgate * half, "misc": pmisc * half,
-            "aux": paux * half, "damp": pdamp * half}
+            "core": pcore * half, "cu": pcu * half, "cap": pcap * half, "gate": 0.0 if ext else pgate * half, "misc": pmisc * half,
+            "aux": 0.0 if ext else paux * half, "damp": pdamp * half}
     ptot = sum(loss.values())
     pout = abs(p)
     res = {"va": va, "vb": vb, "p": p, "mode": w["mode"], "da": w["da"], "db": w["db"], "L": L, "loss": loss,

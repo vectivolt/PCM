@@ -6,7 +6,7 @@ Topology: **A  2-level FSBB, 1700 V SiC** - kept by Gate-0b with Asian devices a
 
 ## 1. Design point
 
-**A17:SG2M040170HJx2@32k/r0.80** (this report: the primary device) - the D-007 point (2-level, 32 kHz, ripple 0.8, today's inductor). Devices: **primary 2 x SG2M040170HJ**, **alternate 2 x MSC035SMA170B4**; cell_spec.json carries the worse of the two in every check (key 'worst_of') and both in device_primary / device_alternate. Worst corner of this device 99.14 % (target 99.2 %, floor 99.0 %). D-041: no Chinese alternate passes the false-turn-on check (InventChip IV2Q17020T4Z +4.0 V, IV2Q17040T4Z +4.41 V at the die, rev-5 gdrv_miller; single SG2M020170HJ +3.96 V) - the qualified fallback is the Microchip part as an assembly variant; Sichain states no qualification (release condition).
+**A17:SG2M040170HJx2@32k/r0.80** (this report: the primary device) - the D-007 point (2-level, 32 kHz, ripple 0.8, today's inductor). Devices: **primary 2 x SG2M040170HJ**, **alternate 2 x MSC035SMA170B4**; cell_spec.json carries the worse of the two in every check (key 'worst_of') and both in device_primary / device_alternate. Worst corner of this device 99.01 % (target 99.2 %, floor 99.0 %). D-041: no Chinese alternate passes the false-turn-on check (InventChip IV2Q17020T4Z +4.0 V, IV2Q17040T4Z +4.41 V at the die, rev-5 gdrv_miller; single SG2M020170HJ +3.96 V) - the qualified fallback is the Microchip part as an assembly variant; Sichain states no qualification (release condition).
 
 | item | value |
 |---|---|
@@ -14,7 +14,7 @@ Topology: **A  2-level FSBB, 1700 V SiC** - kept by Gate-0b with Asian devices a
 | switching frequency | 32.0 kHz, centre-aligned, dead time 200 ns firmware = 181-586 ns at the gates (UCC21710 interlock stretch), minimum pulse 1.77 us, D_max 0.943 |
 | gate drive | +18 / -4 V, R_G,on 3.8 ohm / R_G,off 2.5 ohm per device + 0.5 ohm Kelvin-source resistor in both paths (E_on x1.18, E_off x1.09 from the datasheet E-vs-R_G curves), UCC21710 split outputs, 4 channels |
 | leg decoupling / damper | 3 x C4AQUBU4220A1YJ per leg (PVR-03) / 2 x 4.99 ohm + 2 x 4.7 nF per leg as drawn, its loss in the model (PVR-02) |
-| inductor | 226 uH at 45 A (L0 244 uH, 196 uH at the 72.4 A trip), NPC290026 x 2 (stacked, 0.5 mm spacer) x2 (POCO NPC 26), 37 turns Litz 15.1 mm2, DCR 8.7 mOhm @20 C, 2.36 kg |
+| inductor | 226 uH at 45 A (L0 244 uH, 196 uH at the 72.4 A trip), NPC290026 x 2 (stacked, 0.5 mm spacer) x2 (POCO NPC 26), 37 turns Litz 7.8 mm2, DCR 16.4 mOhm @20 C, 1.74 kg |
 | inductor flux | B_dc 0.29 T at 45 A, 0.44 T at trip (B_sat 1.25 T); L at trip 80 % of L0; 50 % of L0 at 129 A |
 | port A / B capacitors | 2 x C4AQUEW5450A3BJ = 90 uF / 2 x C4AQUEW5450A3BJ = 90 uF (1300 V at 70 C, 1100 V at 85 C hot spot); trade-study rule gave the minimum, the hand-off uses >= 2 per port with ripple <= 50 % of the summed rating |
 | hardware current trip | 72.4 A = 1.15 x (45 A + half the worst ripple) |
@@ -28,34 +28,34 @@ Topology: **A  2-level FSBB, 1700 V SiC** - kept by Gate-0b with Asian devices a
 | per position | 2 | 2 |
 | price USD (source) | 4.07 | 39.44 |
 | R_G on / off [ohm] | 3.75 / 2.5 | 6.0 / 4.0 |
-| lowest corner eta [%] | 99.14% | 99.14% |
-| peak eta | 99.66% | 99.57% |
+| lowest corner eta [%] | 99.01% | 99.00% |
+| peak eta | 99.61% | 99.50% |
 | Tj max at 45 C [C] | 78 | 80 |
 | V_DS peak at OVP/trip [V] | 1396 | 1401 |
 | turn-on dv/dt [V/ns] | 124 | 92 |
-| Miller: die peak [V] | +1.38 | - |
+| Miller: die peak [V] | +1.41 | - |
 | body diode peak in a port short [A] | 51 | 88 |
 | qualification | none stated: p1 lists only halogen-free / RoHS; p13 RoHS + REACH statements; p14 item 8 says to consult Sichain for high-reliability applications | - |
 
 ## 2. Efficiency
 
-- Peak: **99.66 %** at 900->1000 V, 16.5 kW.
+- Peak: **99.61 %** at 900->1000 V, 13.8 kW.
 - Full-load points (P = P_lim, 45 C inlet):
 
 | V_A->V_B | P [kW] | mode | eta [%] | loss [W] | cond | sw | dead | core | cu | cap | gate | misc | aux | damp | hottest Tj [C] |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 550->950 | 24.75 | boost | 99.19 | 203 | 104.4 | 33.8 | 5.7 | 21.3 | 25.6 | 1.0 | 0.2 | 1.3 | 6.0 | 3.5 | 69 |
-| 950->550 | 24.75 | buck | 99.19 | 203 | 104.7 | 34.1 | 5.7 | 21.3 | 25.6 | 1.0 | 0.2 | 1.3 | 6.0 | 3.5 | 71 |
-| 550->550 | 24.75 | band | 99.14 | 214 | 116.8 | 43.2 | 11.9 | 0.6 | 27.6 | 0.4 | 0.4 | 1.4 | 6.0 | 5.3 | 77 |
-| 950->950 | 27.50 | band | 99.48 | 143 | 45.4 | 64.6 | 7.1 | 0.6 | 11.8 | 0.2 | 0.4 | 0.6 | 6.0 | 6.7 | 67 |
-| 611->950 | 27.50 | boost | 99.28 | 200 | 103.9 | 34.3 | 5.7 | 18.7 | 25.5 | 0.9 | 0.2 | 1.3 | 6.0 | 3.5 | 69 |
-| 950->611 | 27.50 | buck | 99.28 | 201 | 104.4 | 34.6 | 5.7 | 18.7 | 25.5 | 0.9 | 0.2 | 1.3 | 6.0 | 3.5 | 73 |
-| 611->611 | 27.50 | band | 99.20 | 221 | 117.4 | 49.4 | 11.9 | 0.6 | 27.6 | 0.4 | 0.4 | 1.4 | 6.0 | 5.7 | 78 |
-| 1000->500 | 22.50 | buck | 99.07 | 210 | 105.4 | 35.7 | 5.7 | 25.4 | 25.8 | 1.0 | 0.2 | 1.3 | 6.0 | 3.6 | 71 |
-| 500->1000 | 22.50 | boost | 99.08 | 210 | 105.4 | 35.4 | 5.7 | 25.4 | 25.8 | 1.0 | 0.2 | 1.3 | 6.0 | 3.6 | 71 |
+| 550->950 | 24.75 | boost | 99.06 | 235 | 104.4 | 33.8 | 5.7 | 21.3 | 58.0 | 1.0 | 0.2 | 1.3 | 6.0 | 3.5 | 69 |
+| 950->550 | 24.75 | buck | 99.06 | 236 | 104.7 | 34.1 | 5.7 | 21.3 | 58.0 | 1.0 | 0.2 | 1.3 | 6.0 | 3.5 | 71 |
+| 550->550 | 24.75 | band | 99.01 | 248 | 116.8 | 43.2 | 11.9 | 0.6 | 62.5 | 0.4 | 0.4 | 1.4 | 6.0 | 5.3 | 77 |
+| 950->950 | 27.50 | band | 99.41 | 164 | 45.4 | 64.6 | 7.1 | 0.6 | 32.7 | 0.2 | 0.4 | 0.6 | 6.0 | 6.7 | 67 |
+| 611->950 | 27.50 | boost | 99.16 | 232 | 103.9 | 34.3 | 5.7 | 18.7 | 57.8 | 0.9 | 0.2 | 1.3 | 6.0 | 3.5 | 69 |
+| 950->611 | 27.50 | buck | 99.16 | 233 | 104.4 | 34.6 | 5.7 | 18.7 | 57.8 | 0.9 | 0.2 | 1.3 | 6.0 | 3.5 | 73 |
+| 611->611 | 27.50 | band | 99.08 | 256 | 117.4 | 49.4 | 11.9 | 0.6 | 62.5 | 0.4 | 0.4 | 1.4 | 6.0 | 5.7 | 78 |
+| 1000->500 | 22.50 | buck | 98.93 | 243 | 105.4 | 35.7 | 5.7 | 25.4 | 58.3 | 1.0 | 0.2 | 1.3 | 6.0 | 3.6 | 71 |
+| 500->1000 | 22.50 | boost | 98.93 | 242 | 105.4 | 35.4 | 5.7 | 25.4 | 58.3 | 1.0 | 0.2 | 1.3 | 6.0 | 3.6 | 71 |
 
-- Over the whole 250-1000 V square at P_lim: min 98.28 % at 250->1000 V; 98/256 grid points below 99 %, of which 0 inside the 550-950 V window. Below 99 % happens only where the 45 A limit cuts the power (low port voltage) and the other port is high.
-- V_A = V_B transition (V_A = 800 V, P_lim): efficiency falls from 99.59 % to 99.33 % in the band where both legs hard-switch; inductor ripple there 0.0-5.4 A.
+- Over the whole 250-1000 V square at P_lim: min 98.00 % at 250->1000 V; 134/256 grid points below 99 %, of which 0 inside the 550-950 V window. Below 99 % happens only where the 45 A limit cuts the power (low port voltage) and the other port is high.
+- V_A = V_B transition (V_A = 800 V, P_lim): efficiency falls from 99.50 % to 99.21 % in the band where both legs hard-switch; inductor ripple there 0.0-5.4 A.
 - Bidirectional: losses(V_A,V_B,+P) = losses(V_B,V_A,-P) (asserted); maps are A->B.
 
 ![maps](efficiency_tj_maps.png)
@@ -67,7 +67,7 @@ Topology: **A  2-level FSBB, 1700 V SiC** - kept by Gate-0b with Asian devices a
 - Heatsink model (estimate): sink-to-inlet 0.045 K/W (effectiveness-NTU, of which mean air rise 0.011 K/W) at 150 m3/h (6.6 m/s; the real fan operating point is in module_report.md); R_th,jc 0.39 K/W (datasheet max), case-sink 0.198 K/W (insulated, estimate), spreading 0.08 K/W.
 - Hottest junction at full power: **78 C** at 45 C inlet (600->600 V, 27.0 kW); 95 C at 60 C inlet without derating; 70 C with the roadmap EVT derating (40 % at 60 C).
 - Heatsink over-temperature trip: 95 C (sink temperature at which the hottest device reaches the 125 C design limit at full power is 100 C).
-- Inductor: worst loss 51.2 W (core 25.4 W, copper 27.6 W); estimated hot-spot rise 50 K at the design point (forced air, h = 25 W/m2K, estimate).
+- Inductor: worst loss 83.8 W (core 25.4 W, copper 62.5 W); estimated hot-spot rise 90 K at the design point (forced air, h = 25 W/m2K, estimate).
 
 ## 4. Device voltage and transient (ngspice)
 
@@ -77,7 +77,7 @@ Topology: **A  2-level FSBB, 1700 V SiC** - kept by Gate-0b with Asian devices a
 - **Gate rail +18/-4 V** (gate-driver design, `gen/gdrv.py rev 5 (design_check record + constants via Python), sim/gdrv_miller.py`: on 17.83-18.56 V, off -3.55..-3.46 V; +20/-5 V is outside the UCC14241-Q1 range). Peak gate current 5.4 A source / 8.81 A sink per channel (6/4 ohm per device, driver ROH_EFF/ROL included) vs the UCC21710's 10 A: the 10.3 A in the previous cell_spec used 25 V and left out the 0.3 ohm pull-down. DESAT 6.85 V nominal (5.43-8.27 V), blanking 263-810 ns, detect + soft turn-off 0.62 us vs None us typical withstand.
 - What -4 V instead of the datasheet's -4 V changes in the model: (1) turn-off energy x1.098 (calibrated VDMOS at the datasheet point; the stored factor 1.0985 is asserted against it and applied to the datasheet E_off); (2) gate-charge power uses the 22 V swing; (3) dead-time diode drop kept at the datasheet's -5 V value (slightly conservative); (4) dv/dt immunity: see the Miller check below.
 - **Physical leg deck** (`sim/spice/pv_dpt_leg*.cir`, PVR-01/02/03): port bank 2 x C4AQUEW5450A3BJ -> 15 nH bus (layout requirement of gen/pvcell.py) -> leg decoupling -> 11.5 nH (board + devices) -> device pins with the drawn RC damper (2 x 4.99 ohm in series + 2 x 4.7 nF 2000 V C0G in series); Kelvin-source 0.5 ohm in every gate loop; clamp engaged. At 1100 V / 72.4 A: device peak 1374 V (lumped deck 1401 V), turn-on dv/dt 115 V/ns.
-- **Miller check (rev-5 gate network, sim/gdrv_miller.py rev 5 (AO3400A clamp loop <= 1 nH), gen/gdrv.py MILLER_SIM)**: pin -2.49 V, die 1.38 V (ideal clamp loop 0.95 V) at 3.24 A per device; limits {'design_target': 1.44, 'V_th_min_175C': 1.94, 'V_th_min_25C': 2.5}; die +1.38 V vs V_th(min, 175 C) 1.94 V: within the 0.5 V design margin. Without any clamp the lumped deck's pin reaches +2.32 V - the clamp stays mandatory.
+- **Miller check (rev-5 gate network, sim/gdrv_miller.py rev 5 (AO3400A clamp loop <= 1 nH), gen/gdrv.py MILLER_SIM)**: pin -2.47 V, die 1.41 V (ideal clamp loop 0.95 V) at 3.22 A per device; limits {'design_target': 1.44, 'V_th_min_175C': 1.94, 'V_th_min_25C': 2.5}; die +1.41 V vs V_th(min, 175 C) 1.94 V: within the 0.5 V design margin. Without any clamp the lumped deck's pin reaches +2.32 V - the clamp stays mandatory.
 - **RC damper loss (PVR-02)**: energy per edge from the leg deck, in the loss model as group 'damp'. Per cycle at the trip corner 178 uJ (1100 V, 72.4 A: hard turn-on 168 uJ + turn-off 8 uJ (the loop's Q_oss/commutation energy, nearly independent of the damper C)) = 5.68 W per leg; worst in normal operation 3.75 W per leg at 250->1000 V. Peak damper current 47.1 A = 235 V per 4.99 ohm element. Required: >= 5.5 W per leg continuous at the mounting temperature, >= 290 V per element (the drawn 2 x 1 W 2512, 200 V, is not enough).
 
 | E_damp per edge [uJ]: hard turn-on / turn-off | 2 A | 20 A | 45 A | 72 A |
@@ -102,9 +102,9 @@ Topology: **A  2-level FSBB, 1700 V SiC** - kept by Gate-0b with Asian devices a
 
 | point | V_A->V_B (sim) | i_L avg [A] | ripple sim / analytic [A] | max V_DS sim / analytic: S1, S2, S3, S4 [V] | P_in-P_out-dE/dt sim [W] | deck |
 |---|---|---|---|---|---|---|
-| buck | 900->598 | 45.0 | 27.65 / 27.75 | 983/1005, 1139/1142, -1/0, 600/598 | 135 | `sim/spice/pv_fsbb_buck.cir` |
-| boost | 600->897 | 46.3 | 27.67 / 27.52 | 1/0, 599/600, 1135/1139, 985/1003 | 143 | `sim/spice/pv_fsbb_boost.cir` |
-| band | 800->809 | 36.2 | 1.41 / 1.17 | 837/866, 1050/1015, 1060/1027, 848/876 | 110 | `sim/spice/pv_fsbb_band.cir` |
+| buck | 900->598 | 44.9 | 27.65 / 27.77 | 983/1005, 1140/1142, -1/0, 599/598 | 156 | `sim/spice/pv_fsbb_buck.cir` |
+| boost | 600->897 | 46.3 | 27.65 / 27.48 | 1/0, 599/600, 1135/1138, 984/1002 | 166 | `sim/spice/pv_fsbb_boost.cir` |
+| band | 800->809 | 36.2 | 1.41 / 1.12 | 837/866, 1050/1015, 1059/1027, 847/875 | 124 | `sim/spice/pv_fsbb_band.cir` |
 
 Analytic device voltage = blocking port voltage + turn-off overshoot scaled with the peak current (S1/S4) or turn-on ringing scaled with the blocking voltage (S2/S3), both from the worst-case commutation run. Asserted: ripple within 15 %, every device peak within 12 %. The simulated P_in-P_out uses VDMOS switching (not datasheet energies) and is shown for information only.
 

@@ -915,6 +915,29 @@ FANS["9GT1224P1S001"] = {   # Sanyo Denki San Ace 120T, thermal/9GT1224P1S001.pd
     "s_min": 2900.0 / 5600.0, "p_min_w": 5.76, "lp_min": 41.0,     # p.484: lowest specified duty 35 % -> 2900 rpm, 5.76 W, 41 dB(A)
     "life_h": "40000 h L10 at 85 C (162000 h at 40 C)", "pwm": "25 kHz PWM + pulse sensor; open control input = 100 %"}
 # ebm-papst P_w is quoted at the nominal point; i = P/V.  The SYS-IO-AUX fan channel limit is 2.4 A (gen/sys_io_aux.py sheet 10).
+# Delta AFB/FFB1224SHE-F00 (cost-first build, ARCHITECTURE-COSTFIRST sec. 9): p.2 ratings, p.3 environment, p.5 P-Q at 24 V
+# (read off the curve, m3/min -> m3/h x 60, mmH2O -> Pa x 9.807).  No PWM input: speed by supply voltage (7-24 V fan buck).
+_MMH2O = 9.807
+FANS["AFB1224SHE-F00"] = {
+    "mfr": "Delta", "src": "docs/datasheets/thermal/AFB1224SHE-F00.pdf", "size_mm": (120, 120, 38), "mass_kg": 0.256,
+    "v": 24.0, "i_typ": 0.50, "i_max": 0.75, "p_w": 12.0, "p_max_w": 18.0, "rpm": 3700,          # p.2
+    "q_free": 258.0, "dp_max": 14.5 * _MMH2O,                                                 # 4.300 m3/min, 14.50 mmH2O (p.2)
+    "pq": [(q * 60, p * _MMH2O) for q, p in ((0, 14.4), (0.6, 12.0), (1.2, 9.3), (1.8, 7.0), (2.4, 5.4), (3.0, 4.5),
+                                             (3.3, 4.0), (3.6, 3.0), (3.9, 1.6), (4.25, 0.0))],
+    "lp_1m": 53.0, "lp_note": "53.0 dB(A) typ (56.0 max) at 1 m, free air (p.2)",
+    "t_amb": (-10.0, 60.0),                                                                   # p.3 4-1 (storage -40..+75)
+    "s_min": 7.0 / 24.0,     # ASSUMPTION: speed ~ supply voltage; p.2 operating voltage 7.0-27.6 V
+    "speed_control": "supply voltage 7-24 V (no PWM input), tach"}
+FANS["FFB1224SHE-F00"] = {
+    "mfr": "Delta", "src": "docs/datasheets/thermal/FFB1224SHE-F00.pdf", "size_mm": (120, 120, 38), "mass_kg": 0.370,
+    "v": 24.0, "i_typ": 0.80, "i_max": 1.20, "p_w": 19.2, "p_max_w": 28.8, "rpm": 3600,          # p.2
+    "q_free": 290.4, "dp_max": 14.3 * _MMH2O,                                                 # 4.840 m3/min, 14.30 mmH2O (p.2)
+    "pq": [(q * 60, p * _MMH2O) for q, p in ((0, 14.2), (0.8, 13.3), (1.6, 11.7), (2.4, 8.8), (2.8, 8.1), (3.2, 8.0),
+                                             (3.6, 7.0), (4.0, 5.0), (4.4, 2.4), (4.8, 0.0))],
+    "lp_1m": 56.5, "lp_note": "56.5 dB(A) typ (60.5 max) at 1 m, free air (p.2)",
+    "t_amb": (-10.0, 60.0),                                                                   # p.3 4-1 (storage -40..+75)
+    "s_min": 14.0 / 24.0,    # ASSUMPTION: speed ~ supply voltage; p.2 operating voltage 14.0-26.4 V
+    "speed_control": "supply voltage 14-24 V (no PWM input), tach"}
 
 
 # ----------------------------------------------------------------------------------------------- functions

@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="280" viewBox="0 0 1200 280" role="img" aria-labelledby="title desc">
+  <title id="title">PCM – power conversion modules</title>
+  <desc id="desc">PCM: power conversion modules – DC/DC and DC/AC, designed in Python. Products PV-P75, PCS-P125 and DAB-D60. Illustration: three interleaved inductor currents, 120 degrees apart, and their sum, which carries a third of the ripple at three times the frequency.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0B1F33"/>
+      <stop offset="1" stop-color="#123352"/>
+    </linearGradient>
+    <clipPath id="plot"><rect x="760" y="56" width="328" height="168"/></clipPath>
+  </defs>
+  <style>
+    text { font-family: Inter, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .flow { stroke-dasharray: 10 14; animation: flow 8s linear infinite; }
+    @keyframes flow { to { stroke-dashoffset: -192; } }
+    @media (prefers-reduced-motion: reduce) { .flow { animation: none; stroke-dasharray: none; opacity: 0.35; } }
+  </style>
+
+  <!-- self-contained background: legible on GitHub light and dark themes -->
+  <rect width="1200" height="280" rx="18" fill="url(#bg)"/>
+  <rect x="0.5" y="0.5" width="1199" height="279" rx="18" fill="none" stroke="#FFFFFF" stroke-opacity="0.08"/>
+
+  <!-- title block -->
+  <text x="64" y="74" fill="#00A99D" font-size="13" font-weight="600" letter-spacing="3">SCHEMATIC · BOM · SIMULATION</text>
+  <text x="60" y="160" fill="#FFFFFF" font-size="96" font-weight="700" letter-spacing="2">PCM</text>
+  <text x="64" y="196" fill="#C9D6E2" font-size="19">Power conversion modules – DC/DC and DC/AC, designed in Python</text>
+
+  <!-- product chips -->
+  <g font-size="12.5" fill="#EEF3F7" text-anchor="middle">
+    <rect x="64" y="216" width="172" height="28" rx="14" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.18"/>
+    <text x="150" y="234.5">PV-P75 · 75 kW DC/DC</text>
+    <rect x="246" y="216" width="196" height="28" rx="14" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.18"/>
+    <text x="344" y="234.5">PCS-P125 · 125 kW DC/AC</text>
+    <rect x="452" y="216" width="236" height="28" rx="14" fill="#FFFFFF" fill-opacity="0.06" stroke="#FFFFFF" stroke-opacity="0.18"/>
+    <text x="570" y="234.5">DAB-D60 · 60 kW isolated DC/DC</text>
+  </g>
+
+  <!-- waveform panel -->
+  <rect x="790" y="36" width="360" height="208" rx="12" fill="#FFFFFF" fill-opacity="0.03" stroke="#FFFFFF" stroke-opacity="0.08"/>
+  <g transform="translate(46 0)">
+  <g stroke="#FFFFFF" stroke-opacity="0.07" stroke-width="1">
+    <line x1="760" y1="92" x2="1088" y2="92"/>
+    <line x1="760" y1="178" x2="1088" y2="178"/>
+  </g>
+  <g font-size="11" fill="#8FA3B5">
+    <text x="760" y="60">Σ i<tspan font-size="8" dy="2">L</tspan></text>
+    <text x="760" y="234">i<tspan font-size="8" dy="2">L1</tspan><tspan dy="-2"> · i</tspan><tspan font-size="8" dy="2">L2</tspan><tspan dy="-2"> · i</tspan><tspan font-size="8" dy="2">L3</tspan><tspan dy="-2">   3 interleaved phases, 120° apart</tspan></text>
+  </g>
+
+  <g clip-path="url(#plot)" fill="none" stroke-linejoin="round">
+    <!-- phase currents (static) -->
+    <polyline stroke="#7FD4CE" stroke-opacity="0.35" stroke-width="1.6"
+      points="760,200 808,156 856,200 904,156 952,200 1000,156 1048,200 1096,156 1144,200"/>
+    <polyline stroke="#7FD4CE" stroke-opacity="0.6" stroke-width="1.6"
+      points="760,170.7 792,200 840,156 888,200 936,156 984,200 1032,156 1080,200 1128,156 1176,200"/>
+    <polyline stroke="#7FD4CE" stroke-opacity="0.9" stroke-width="1.6"
+      points="760,170.7 776,156 824,200 872,156 920,200 968,156 1016,200 1064,156 1112,200 1160,156"/>
+    <!-- sum of the three: a third of the ripple at three times the frequency -->
+    <polyline id="sum" stroke="#00A99D" stroke-width="2.4"
+      points="760,99.3 776,84.7 792,99.3 808,84.7 824,99.3 840,84.7 856,99.3 872,84.7 888,99.3 904,84.7 920,99.3 936,84.7 952,99.3 968,84.7 984,99.3 1000,84.7 1016,99.3 1032,84.7 1048,99.3 1064,84.7 1080,99.3 1096,84.7 1112,99.3 1128,84.7 1144,99.3"/>
+    <!-- the one animated element: energy flow along the sum, 8 s loop -->
+    <polyline class="flow" stroke="#FFFFFF" stroke-opacity="0.9" stroke-width="2.4"
+      points="760,99.3 776,84.7 792,99.3 808,84.7 824,99.3 840,84.7 856,99.3 872,84.7 888,99.3 904,84.7 920,99.3 936,84.7 952,99.3 968,84.7 984,99.3 1000,84.7 1016,99.3 1032,84.7 1048,99.3 1064,84.7 1080,99.3 1096,84.7 1112,99.3 1128,84.7 1144,99.3"/>
+  </g>
+  </g>
+</svg>

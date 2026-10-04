@@ -546,46 +546,36 @@ def benchmark_section(results, market):
 
 
 def pcs_section(results):
-    path = os.path.join(DATA, "costfirst_pcs_bom.csv")
+    """PCS-P125 next to the PV modules: the design study of D-053 (sim/pcs_design.py -> pcs_spec.json 'cost_usd')."""
+    path = os.path.join(REPO, "sim", "out", "pcs_design", "pcs_spec.json")
     if not os.path.exists(path):
         return []
-    rows = rd(path)
-    tot = {r["function"]: r for r in rows if r["block"] == "TOTAL"}
-    three = next((r for k, r in tot.items() if "3-wire" in k), None)
-    four = next((r for k, r in tot.items() if "4-wire" in k), None)
-    if not (three and four):
-        return []
-    body = [r for r in rows if r["block"] not in ("SUBTOTAL", "TOTAL")]
-    sets = {"3": [r for r in body if not r["block"].upper().startswith("4-WIRE")], "4": body}
-
-    def sums(sel):      # catalogue, 5,000-unit, and 5,000-unit USD on rows whose basis is not an assumed factor (MIXED rows count as assumed)
-        c = sum(float(r["ext_price_usd"]) for r in sel)
-        c5 = sum(float(r["qty"]) * float(r["unit_price_5k_usd"]) for r in sel)
-        real = sum(float(r["qty"]) * float(r["unit_price_5k_usd"]) for r in sel if "ASSUMED" not in r["basis_5k"] and "MIXED" not in r["basis_5k"])
-        return c, c5, 100 * real / c5 if c5 else 0
+    import json
+    c = json.load(open(path, encoding="utf-8"))["cost_usd"]
     kw = 125.0          # PCS-P125 rated power (AC-01)
     mods = [m for m in ("PV-P75", "PV-P100-110") if m in results]
     kws = {"PV-P75": 75.0, "PV-P100-110": 100.0}
-    cat = [total(results[m]["lines"]) for m in mods] + [float(three["ext_price_usd"]), float(four["ext_price_usd"])]
-    c5 = [total(results[m]["lines"], "ext5") for m in mods] + [float(three["unit_price_5k_usd"]), float(four["unit_price_5k_usd"])]
+    cat = [total(results[m]["lines"]) for m in mods] + [c["three_wire"]["catalogue"], c["four_wire"]["catalogue"]]
+    c5 = [total(results[m]["lines"], "ext5") for m in mods] + [c["three_wire"]["5k"], c["four_wire"]["5k"]]
     kk = [kws[m] for m in mods] + [kw, kw]
-    real = [100 * sum(l["ext5"] for l in results[m]["lines"] if l["ext5"] and l["real5"]) / total(results[m]["lines"], "ext5") for m in mods] + [sums(sets["3"])[2], sums(sets["4"])[2]]
-    md = ["## DC-to-AC PCS next to the PV module (architecture estimate)", "",
-          "The PCS (AC-01...AC-03, PCS-P125, %g kW) is at the architecture stage: its figures are the architect's costed list `gen/data/costfirst_pcs_bom.csv` (catalogue and %d-unit columns), "
-          "**not a BOM of drawn boards** and not priced line by line by this script. The PV modules are the BOMs of the drawn power and control boards priced by this script." % (kw, BUILD_UNITS), "",
-          "| | PV-P75 | PV-P100-110 | PCS-P125 3-wire | PCS-P125 4-wire |", "|---|---|---|---|---|", "| status | BOM of drawn boards | BOM of drawn boards | architecture estimate | architecture estimate |",
+    real = ["%.0f" % (100 * sum(l["ext5"] for l in results[m]["lines"] if l["ext5"] and l["real5"]) / total(results[m]["lines"], "ext5")) for m in mods] \
+        + ["%.0f" % (100 * c["evidence_share_5k"]), "not stated"]
+    md = ["## DC-to-AC PCS next to the PV module (design study)", "",
+          "The PCS (AC-01...AC-03, PCS-P125, %g kW) has a power-stage design study and no boards: its figures are the study's costed list "
+          "`sim/out/pcs_design/pcs_costed_bom.csv` (two-level stage on 1700 V SiC, decision D-053; catalogue and %d-unit columns), **not a BOM of drawn "
+          "boards** and not priced line by line by this script. The PV modules are the BOMs of the drawn power and control boards priced by this "
+          "script. The earlier three-level estimate (`gen/data/costfirst_pcs_bom.csv`) is withdrawn by D-053." % (kw, BUILD_UNITS), "",
+          "| | %s | PCS-P125 3-wire | PCS-P125 4-wire |" % " | ".join(mods), "|---|" + "---|" * len(kk),
+          "| status | %s | design study | design study |" % " | ".join("BOM of drawn boards" for _ in mods),
           "| rated power, kW | %s |" % " | ".join("%g" % x for x in kk),
           "| catalogue, USD | %s |" % " | ".join(money(x) for x in cat), "| catalogue, USD/kW | %s |" % " | ".join("%.1f" % (x / k) for x, k in zip(cat, kk)),
           "| at %d units, USD | %s |" % (BUILD_UNITS, " | ".join(money(x) for x in c5)), "| at %d units, USD/kW | %s |" % (BUILD_UNITS, " | ".join("%.1f" % (x / k) for x, k in zip(c5, kk))),
-          "| share of the %d-unit figure on real prices, %% | %s |" % (BUILD_UNITS, " | ".join("%.0f" % x for x in real)), ""]
-    blocks = collections.OrderedDict((r["function"], r) for r in rows if r["block"] == "SUBTOTAL" and r["function"] != "4-WIRE OPTION")
-    md += ["PCS-P125 3-wire by block (catalogue / %d units, USD): %s." % (BUILD_UNITS, "; ".join("%s %s / %s" % (k.lower(), money(float(r["ext_price_usd"])), money(float(r["unit_price_5k_usd"]))) for k, r in blocks.items())),
-           "The 4-wire option adds a fourth leg, the neutral inductor and a 4-pole disconnect. The PCS's real-price share counts the rows of the list whose basis_5k is neither ASSUMED nor MIXED; "
-           "the PV share counts the lines of this BOM with a published break of %d pieces or more." % EVIDENCE_MIN_BREAK]
-    for key, r in (("3", three), ("4", four)):
-        c, cc5, _ = sums(sets[key])
-        if abs(c - float(r["ext_price_usd"])) > 0.05 or abs(cc5 - float(r["unit_price_5k_usd"])) > 0.05:
-            md.append("WARNING: the rows of the %s-wire list add up to %s / %s USD, not to its TOTAL row (%s / %s)." % (key, money(c), money(cc5), r["ext_price_usd"], r["unit_price_5k_usd"]))
+          "| share of the %d-unit figure on real prices, %% | %s |" % (BUILD_UNITS, " | ".join(real)), "",
+          "PCS-P125 3-wire by block (catalogue / %d units, USD): %s." % (BUILD_UNITS, "; ".join("%s %s / %s" % (k.lower(), money(v["catalogue"]), money(v["5k"])) for k, v in c["blocks"].items())),
+          "The 4-wire option adds a fourth leg, the neutral inductor and a 4-pole disconnect (%s / %s USD). The PCS's real-price share is the study's own "
+          "figure; the PV share counts the lines of this BOM with a published break of %d pieces or more." % (
+              money(c["four_wire_increment"]["cat"]), money(c["four_wire_increment"]["5k"]), EVIDENCE_MIN_BREAK)]
+    assert abs(sum(v["catalogue"] for v in c["blocks"].values()) - c["three_wire"]["catalogue"]) < 1.0, "PCS blocks do not add up to the 3-wire total"
     return md + [""]
 
 

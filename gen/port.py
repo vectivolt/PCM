@@ -1069,8 +1069,8 @@ def lean_precharge(B, t, term_pos, bank_pos, cmd_pre, pol_ok, v24, gnd, vdd, agn
 
 
 def lean_bleeder(B, t, bank_pos, bus_neg):
-    """Passive bleeder on a port bank: 8 x 82.5 k 1210 (660 k; port_spec lean/bleeder: 60 V within the label time,
-    worst case). 'Wait 10 min' (3 phases) / 15 min (4 phases) label on the enclosure."""
+    """Passive bleeder on a port bank: 8 x 73.2 k 1210 (585.6 k since D-056's seventh battery-side capacitor; port_spec
+    lean/bleeder: 60 V within the label time, worst case). 'Wait 10 min' (3 phases) / 15 min (4 phases) label on the enclosure."""
     b = S["lean"]["bleeder"]
     nodes = [bank_pos] + ["%s_BL%d" % (t, k) for k in range(1, b["n"])] + [bus_neg]
     for a_, b_ in zip(nodes, nodes[1:]):

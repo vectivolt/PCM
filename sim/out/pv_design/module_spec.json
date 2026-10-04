@@ -164,7 +164,7 @@
   "trip_band_costfirst": {
    "hardware": {
     "band_A": [
-     66.2,
+     68.9,
      79.9
     ],
     "response_us": 1.95,
@@ -251,7 +251,7 @@
   "trip_band_costfirst": {
    "hardware": {
     "band_A": [
-     66.2,
+     68.9,
      79.9
     ],
     "response_us": 1.95,
@@ -302,7 +302,7 @@
     550.0,
     950.0
    ],
-   "efficiency_peak_megarevo_comparable": 0.99471,
+   "efficiency_peak_megarevo_comparable": 0.9947,
    "efficiency_peak_at": {
     "va": 900.0,
     "vb": 1000.0,
@@ -311,30 +311,30 @@
    },
    "efficiency_basis": "everything inside the enclosure: phases (gate bias excluded there), port conduction (contactors, shunts, busbars, battery-port aR links), aux flyback input (gate bias, logic incl. the control board, contactor coils held, fans through the fan buck), varistor monitors, bleeders, dividers",
    "efficiency_corners_25C": {
-    "550->950": 0.98944,
+    "550->950": 0.98943,
     "950->550": 0.98886,
     "550->550": 0.98859,
-    "950->950": 0.99154,
+    "950->950": 0.99153,
     "611->950": 0.99056,
     "950->611": 0.99006,
     "611->611": 0.98915
    },
    "efficiency_corners_45C": {
-    "550->950": 0.98889,
-    "950->550": 0.98828,
+    "550->950": 0.98888,
+    "950->550": 0.98827,
     "550->550": 0.98773,
-    "950->950": 0.99072,
-    "611->950": 0.99002,
+    "950->950": 0.99071,
+    "611->950": 0.99001,
     "950->611": 0.98948,
     "611->611": 0.98835
    },
    "losses_by_group_W_611V_611V_full_45C": {
     "cells": 836.6,
     "port": 64.9,
-    "ctrl_aux": 24.1,
+    "ctrl_aux": 24.2,
     "fans": 46.8
    },
-   "heat_rejected_W_max_45C": 972.3,
+   "heat_rejected_W_max_45C": 972.5,
    "airflow_m3h_full_45C": 402.4,
    "airflow_per_cell_m3h": 134.1,
    "fan_speed_full_45C": 1.0,
@@ -462,11 +462,11 @@
    },
    "bus_capacitance_uF": {
     "port_A": 270.0,
-    "port_B": 270.0,
+    "port_B": 315.0,
     "port_X_caps_uF": null,
-    "note": "PV-PWR: 2 x FCSA3DS456 45 uF per port per phase on the common bus (no separate port-board X caps)"
+    "note": "PV-PWR: FCSA3DS456 45 uF on the common bus as drawn (design check 'Port banks'; PV-P75 rev A2: 6 + 7, the 7th on phase 2, D-056); no separate port-board X caps"
    },
-   "standby_W_estimate": 20.6,
+   "standby_W_estimate": 21.0,
    "port_current_limit_fraction_vs_inlet": [
     1.0,
     1.0,
@@ -519,25 +519,25 @@
     "550->550": 0.9896,
     "950->950": 0.99133,
     "611->950": 0.99036,
-    "950->611": 0.99061,
+    "950->611": 0.9906,
     "611->611": 0.99008
    },
    "efficiency_corners_45C": {
     "550->950": 0.98872,
-    "950->550": 0.98875,
+    "950->550": 0.98874,
     "550->550": 0.9886,
     "950->950": 0.99056,
     "611->950": 0.98985,
-    "950->611": 0.98994,
-    "611->611": 0.98917
+    "950->611": 0.98993,
+    "611->611": 0.98916
    },
    "losses_by_group_W_611V_611V_full_45C": {
     "cells": 800.9,
     "port": 74.9,
-    "ctrl_aux": 28.2,
+    "ctrl_aux": 28.4,
     "fans": 66.3
    },
-   "heat_rejected_W_max_45C": 1129.2,
+   "heat_rejected_W_max_45C": 1129.4,
    "airflow_m3h_full_45C": 455.9,
    "airflow_per_cell_m3h": 114.0,
    "fan_speed_full_45C": 0.96,
@@ -667,9 +667,9 @@
     "port_A": 360.0,
     "port_B": 360.0,
     "port_X_caps_uF": null,
-    "note": "PV-PWR: 2 x FCSA3DS456 45 uF per port per phase on the common bus (no separate port-board X caps)"
+    "note": "PV-PWR: FCSA3DS456 45 uF on the common bus as drawn (design check 'Port banks'; PV-P75 rev A2: 6 + 7, the 7th on phase 2, D-056); no separate port-board X caps"
    },
-   "standby_W_estimate": 21.2,
+   "standby_W_estimate": 21.6,
    "port_current_limit_fraction_vs_inlet": [
     0.806,
     0.806,
@@ -697,7 +697,7 @@
   }
  },
  "costfirst": {
-  "basis": "ARCHITECTURE-COSTFIRST sec. 9; hardware/PV-PWR rev A1 / PV-PWR-4 and PV-CTL rev A0 design checks; port_spec lean; aux75_spec; calculated, not measured",
+  "basis": "ARCHITECTURE-COSTFIRST sec. 9; hardware/PV-PWR rev A2 / PV-PWR-4 and PV-CTL rev A1 design checks; port_spec lean; aux75_spec; calculated, not measured",
   "superseded_keys": "modules.* efficiency, losses, airflow, fan, noise, derating, standby_W_estimate (now: contactors held, 1000 V), port_current_limit_fraction_vs_inlet (lean, flat), bus_capacitance_uF, port_variant, fan.*, rs3_2415d_cell_board_supply (marked superseded)",
   "inductor_used": {
    "revision": "M2",
@@ -802,9 +802,9 @@
      "note": "below these the battery port carries LEAN_I_B x V_B"
     },
     "efficiency_eu_weighted": {
-     "750->750": 0.98806,
-     "min": 0.98527,
-     "max": 0.99302,
+     "750->750": 0.98805,
+     "min": 0.98525,
+     "max": 0.99301,
      "grid_V": [
       550,
       750,
@@ -829,10 +829,10 @@
      ],
      "contactors_held_W": [
       12.4,
-      13.4,
-      15.2,
-      17.7,
-      20.6
+      13.5,
+      15.3,
+      18.0,
+      21.0
      ]
     },
     "standby_note": "gates off, fans off; open = contactors open (banks discharged, true standby); held = both contactors on the economiser (2.35 W typ each), banks charged (bleeders + bank dividers on)",
@@ -858,19 +858,19 @@
        "load_rejection_at_1100V_nominal": 198.9
       },
       "parts_min": 7,
-      "parts_today": 6,
+      "parts_today": 7,
       "C_min_uF": 315.0,
       "binding": "load_rejection",
       "i_rms_ac_max_A": 23.1,
       "ov_response_for_that_us": 20.4,
       "parts_with_that_response": 3,
       "cpl_pole_Hz_at_550V": {
-       "today": 145.0,
+       "today": 124.0,
        "minimum": 124.0,
        "f_cv_Hz": 300.0
       }
      },
-     "saving_usd": 10.8,
+     "saving_usd": 16.2,
      "basis": "FCSA3DS456 45 uF 22.1 A rms (85 C), 5.42 USD each (65 USD / 12, coordinator); OV trip 1058-1110 V, 47 us response, limit 1135 V; load-rejection current 135 A; ripple from pv_design.module_ripple (interleaved 360/n deg)"
     }
    },
@@ -917,9 +917,9 @@
      "note": "below these the battery port carries LEAN_I_B x V_B"
     },
     "efficiency_eu_weighted": {
-     "750->750": 0.9878,
-     "min": 0.98514,
-     "max": 0.99272,
+     "750->750": 0.98779,
+     "min": 0.98513,
+     "max": 0.99271,
      "grid_V": [
       550,
       750,
@@ -945,9 +945,9 @@
      "contactors_held_W": [
       12.9,
       13.9,
-      15.7,
-      18.2,
-      21.2
+      15.8,
+      18.4,
+      21.6
      ]
     },
     "standby_note": "gates off, fans off; open = contactors open (banks discharged, true standby); held = both contactors on the economiser (2.35 W typ each), banks charged (bleeders + bank dividers on)",
@@ -995,7 +995,7 @@
     "primary": {
      "hardware": {
       "band_A": [
-       66.2,
+       68.9,
        79.9
       ],
       "response_us": 1.95,
@@ -1028,7 +1028,7 @@
     "alternate": {
      "hardware": {
       "band_A": [
-       66.2,
+       68.9,
        79.9
       ],
       "response_us": 1.95,
@@ -1073,7 +1073,7 @@
      "L_45A_uH": 301.2,
      "inductor_usd_per_phase": 47.3,
      "peak_eff": 0.99546,
-     "loss_at_peak_point_W": 225.6,
+     "loss_at_peak_point_W": 226.0,
      "tj_max_45C_C": 98.2,
      "t_sink_45C_C": 75.4,
      "heatsink_extra_usd": 0.0,
@@ -1086,8 +1086,8 @@
      "fsw_kHz": 32.0,
      "L_45A_uH": 225.9,
      "inductor_usd_per_phase": 40.5,
-     "peak_eff": 0.99471,
-     "loss_at_peak_point_W": 263.3,
+     "peak_eff": 0.9947,
+     "loss_at_peak_point_W": 263.6,
      "tj_max_45C_C": 109.5,
      "t_sink_45C_C": 82.2,
      "heatsink_extra_usd": 0.0,
@@ -1100,8 +1100,8 @@
      "fsw_kHz": 40.0,
      "L_45A_uH": 180.7,
      "inductor_usd_per_phase": 36.1,
-     "peak_eff": 0.99394,
-     "loss_at_peak_point_W": 302.0,
+     "peak_eff": 0.99393,
+     "loss_at_peak_point_W": 302.4,
      "tj_max_45C_C": 122.1,
      "t_sink_45C_C": 89.9,
      "heatsink_extra_usd": 2.1,
@@ -1114,8 +1114,8 @@
      "fsw_kHz": 48.0,
      "L_45A_uH": 150.6,
      "inductor_usd_per_phase": 33.1,
-     "peak_eff": 0.99314,
-     "loss_at_peak_point_W": 342.0,
+     "peak_eff": 0.99313,
+     "loss_at_peak_point_W": 342.3,
      "tj_max_45C_C": 136.2,
      "t_sink_45C_C": 98.5,
      "heatsink_extra_usd": 7.2,
@@ -1129,7 +1129,7 @@
      "L_45A_uH": 112.9,
      "inductor_usd_per_phase": 29.0,
      "peak_eff": 0.98222,
-     "loss_at_peak_point_W": 895.8,
+     "loss_at_peak_point_W": 896.2,
      "tj_max_45C_C": 171.1,
      "t_sink_45C_C": 119.8,
      "heatsink_extra_usd": 39.1,

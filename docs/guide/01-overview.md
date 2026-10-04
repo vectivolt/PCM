@@ -37,7 +37,7 @@ flowchart LR
 
 | Product | What it is for | Rating | Topology as designed | Status as of 2026-10-05 |
 |---|---|---|---|---|
-| **PV-P75** | DC-coupled solar: tracks the array's maximum power point and moves power in either direction between the PV port and a battery or DC bus | 75 kW, 82.5 kW max · both ports 250–1000 V, 135 A | three interleaved two-level four-switch buck-boost phases, 2 × 1700 V SiC per switch, 32 kHz | power board PV-PWR rev A1 and control board PV-CTL rev A0 drawn; all build checks pass |
+| **PV-P75** | DC-coupled solar: tracks the array's maximum power point and moves power in either direction between the PV port and a battery or DC bus | 75 kW, 82.5 kW max · both ports 250–1000 V, 135 A | three interleaved two-level four-switch buck-boost phases, 2 × 1700 V SiC per switch, 32 kHz | power board PV-PWR rev A2 and control board PV-CTL rev A1 drawn; all build checks pass |
 | **PV-P100/110** | the same for larger hybrid and microgrid systems | 100 / 110 kW · 180 A | the same with four phases | PV-PWR-4 and PV-CTL drawn; checks pass; own thermal run open |
 | **PCS-P125** | battery inverter: a battery or DC bus to three-phase AC, grid-following and off-grid | 125 kW, 150 kVA max · DC 590–950 V · 400/230 V AC, 180 A | two-level, 6 × 1700 V SiC per switch (36 devices), 32 kHz, LCL filter ([D-053](../requirements/DECISIONS.md)) | power-stage design study done; control not simulated; no boards; topology confirmed by a cross-check against Wolfspeed's reference designs, cost and efficiency being re-run ([D-057](../requirements/DECISIONS.md)) |
 | **DAB-D60** | isolation and voltage adaptation between a DC bus and a battery; one to four branches in parallel | 60 kW · port 1 590–950 V, port 2 400–900 V | dual active bridge, 2 × 1200 V SiC per switch, 100 kHz, custom transformer, liquid cold plate | design and control re-run with Chinese devices; board DAB60 rev B frozen, to be redrawn cost-first |
@@ -77,7 +77,7 @@ hardware and a bench. PCB layout, mechanics, firmware and certification are out 
 
 ## 🗺️ How the design got here
 
-Fifty-five decisions in three days, each a row of the [decision register](../requirements/DECISIONS.md)
+Fifty-eight decisions in three days, each a row of the [decision register](../requirements/DECISIONS.md)
 (digest: [Decisions](decisions.md)):
 
 ```mermaid
@@ -95,7 +95,7 @@ timeline
     section 5 October
         Protection : D-050 discrete protections stay
         Status : D-052 cost of the drawn boards
-        Revisions : D-053 PCS goes two-level SiC : D-054 inductor back to round wire : D-055 modules stay RFQ alternates : D-056 PV module re-run, board revisions : D-057 inverter cross-check, two-level confirmed
+        Revisions : D-053 PCS goes two-level SiC : D-054 inductor back to round wire : D-055 modules stay RFQ alternates : D-056 PV module re-run, board revisions : D-057 inverter cross-check, two-level confirmed : D-058 board revisions drawn
 ```
 
 ---
@@ -111,9 +111,9 @@ timeline
 
 | Board | Role | Rev | Sheets | Drawn symbols | Nets | Build checks | Schematic |
 |---|---|---|---:|---:|---:|---|---|
-| `PV-CTL` | cost-first module | A0 | 7 | 266 | 182 | pass (6/6) | [PDF](../../hardware/PV-CTL/outputs/PV-CTL_schematic.pdf) |
-| `PV-PWR` | cost-first module | A1 | 22 | 1,870 | 932 | pass (6/6) | [PDF](../../hardware/PV-PWR/outputs/PV-PWR_schematic.pdf) |
-| `PV-PWR-4` | cost-first module | A1 | 25 | 2,318 | 1,142 | pass (6/6) | [PDF](../../hardware/PV-PWR-4/outputs/PV-PWR-4_schematic.pdf) |
+| `PV-CTL` | cost-first module | A1 | 7 | 285 | 192 | pass (6/6) | [PDF](../../hardware/PV-CTL/outputs/PV-CTL_schematic.pdf) |
+| `PV-PWR` | cost-first module | A2 | 22 | 1,874 | 939 | pass (6/6) | [PDF](../../hardware/PV-PWR/outputs/PV-PWR_schematic.pdf) |
+| `PV-PWR-4` | cost-first module | A2 | 25 | 2,322 | 1,150 | pass (6/6) | [PDF](../../hardware/PV-PWR-4/outputs/PV-PWR-4_schematic.pdf) |
 | `AUX-HV` | earlier platform | C1 | 4 | 150 | 70 | pass (6/6) | [PDF](../../hardware/AUX-HV/outputs/AUX-HV_schematic.pdf) |
 | `BMU-GW` | earlier platform | B0 | 1 | 32 | 23 | pass (6/6) | [PDF](../../hardware/BMU-GW/outputs/BMU-GW_schematic.pdf) |
 | `CTRL-C2000` | earlier platform | E0 | 14 | 599 | 468 | pass (4/4) | [PDF](../../hardware/CTRL-C2000/outputs/CTRL-C2000_schematic.pdf) |

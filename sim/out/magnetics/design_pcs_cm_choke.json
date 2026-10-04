@@ -1,0 +1,147 @@
+{
+ "part": "pcs_cm_choke",
+ "revision": "M1",
+ "status": "proposed construction - calculated, not built or measured",
+ "basis": {
+  "spec": "sim/out/pcs_design/pcs_spec.json",
+  "spec_mtime": "2026-10-05 01:03",
+  "decision": "D-057",
+  "requirement": {
+   "L_cm_min_H": 0.00015,
+   "at_Hz": 32000.0,
+   "v150_max_V_rms": 54.926907013473134,
+   "C_be_max_F": 2.4146475098390895e-05,
+   "I_earth_HF_A": 0.08954131637023117
+  }
+ },
+ "construction": "3 x Yunlu N-R-564440 rectangular nanocrystalline cores (56 x 44.6 x 40 mm, window 33 x 21.6 mm) in a flat-mu grade (mu 30000 +/-25 %, RFQ), stacked over the phase bars (N = 1): three-wire 3 bars 25 x 3 mm flat-stacked; four-wire 4 bars 16 x 4.5 mm on edge; bars sleeved 1 mm",
+ "electrical": {
+  "L_nom_H": 0.0002903168211129853,
+  "L_min_H": 0.000217737615834739,
+  "L_required_H": 0.00015,
+  "L_om_H": 0.00026202182705351354,
+  "turns": 1,
+  "cores": 3,
+  "I_LF_cm_A_rms": 1.25,
+  "B_LF_T": 0.6198218384707542,
+  "B_LF_om_T": 0.6264290423386927,
+  "B_DM_198A_T": 0.23563147011304195,
+  "B_DM_405A_T": 0.34080670304567845,
+  "B_HF_T": 0.03551978453228039,
+  "V_HF_V_rms": 5.226675303322353,
+  "B_allow_T": 0.96,
+  "note": "B_LF independent of the number of cores at N = 1 (mu I / le); DM leakage taken as 0.3 % of L_cm (ASSUMED)"
+ },
+ "core": {
+  "maker": "Qingdao Yunlu",
+  "part_number": "N-R-564440 (flat-mu grade, RFQ)",
+  "material": "Fe-based nanocrystalline, field-annealed flat loop",
+  "Ae_m2": 0.000345,
+  "le_m": 0.1344,
+  "n_cores": 3,
+  "datasheet": "docs/datasheets/magnetics/Yunlu-Nanocrystalline-Cores.pdf p.13 (rectangular CM cores, table 2: N-R-564440 56 x 44.6 x 40 mm, window 33 x 21.6 mm, Ae 345 mm2, le 134.4 mm) and p.6 (adjustable mu); flat grade mu 30 000 +/-25 % = RFQ (MAS reference material SC-1K107-LP)",
+  "gap": {
+   "type": "none"
+  },
+  "asian_alternative": "this is the Asian part; Shincore SC-1K107-LP is the MAS reference material"
+ },
+ "windings": [
+  {
+   "name": "phase bars",
+   "turns": 1,
+   "conductor": "three-wire 25 x 3 mm Cu; four-wire 16 x 4.5 mm",
+   "arrangement": "bars centred in the window (DM leakage)"
+  }
+ ],
+ "fit": {
+  "fits": true,
+  "stack_m": {
+   "three-wire": 0.019,
+   "four-wire": 0.026000000000000002
+  },
+  "four_wire_on_edge": {
+   "width_m": 0.0305,
+   "height_m": 0.018000000000000002
+  },
+  "window_m": [
+   0.033,
+   0.0216
+  ]
+ },
+ "insulation": {
+  "system": "sleeved bars (>= 1 mm, rated 1.5 kV rms) inside cased cores; mains side basic (OVC III) as L2",
+  "levels": [
+   {
+    "label": "winding - core/PE, basic (mains, OVC III)",
+    "u_w": 375.588427226754,
+    "imp": 6000.0,
+    "ac": 1500.0,
+    "note": "pcs_spec inductors.L2.insulation"
+   }
+  ],
+  "routine_tests": "L_cm at 32 kHz, 1 V; bar-core 1.5 kV rms 1 s",
+  "type_tests": "impulse 6 kV; L_cm with 1.25 A rms 150 Hz CM bias"
+ },
+ "loss_model": {
+  "core": {
+   "formula": "negligible (B_HF ~ 0.04 T at 32 kHz on a flat nanocrystalline grade)"
+  },
+  "winding": {
+   "R_ac_per_harmonic": null,
+   "referred_to": "the bars (busbar loss counted with the AC port)",
+   "temperature_C": 90.0,
+   "formula": "-"
+  }
+ },
+ "loss_table": [
+  {
+   "point": "any",
+   "P_core_W": 0.5,
+   "P_cu_W": 0.0,
+   "P_total_W": 0.5
+  }
+ ],
+ "loss_grid": {
+  "I_rms_A": [],
+  "P_cu_W": [],
+  "B_pk_T": [],
+  "P_core_W": [],
+  "note": "-"
+ },
+ "thermal": {
+  "dT_K": 0.0,
+  "basis": "no winding; core loss < 1 W",
+  "airflow": "3 x AFB1224SHE-F00: 149 m3/h per heatsink section; the inductors sit downstream of the heatsink in the same duct (pcs_spec), so the air reaching them is pre-heated by the section's semiconductor loss (426 W -> +9.2 K); h = 25 W/m2K on the exposed coil and core surfaces (about 4 m/s past a 0.1 m body, ASSUMED - the duct section around the inductors is not drawn)"
+ },
+ "mass_kg": 1.1654592,
+ "cost": {
+  "core_usd": 24.809183999999995,
+  "copper_usd": 0.0,
+  "insulation_usd": 3.0,
+  "labour_usd": 3.5,
+  "total_usd": 34.4,
+  "catalogue_1k_usd": 34.4,
+  "build_5k_usd": 28.7,
+  "basis": "ESTIMATES: flat nanocrystalline 20 USD/kg + 1.5 USD case per core; insulation 3; labour 2 + 0.5/core; +10 %; Y1 capacitors not included (the study's row includes 3 x Y1)",
+  "previous_designer": {
+   "study_usd_cat": 18.9,
+   "study_usd_5k": 15.1
+  }
+ },
+ "verification": {
+  "own": {
+   "L_min_H": 0.000217737615834739,
+   "B_LF_T": 0.6198218384707542
+  },
+  "openmagnetics": {
+   "material": "SC-1K107-LP (MAS)",
+   "mu_32kHz": 27076.125942238115,
+   "mu_150Hz": 30319.795308482833,
+   "L_H": 0.00026202182705351354,
+   "B_LF_T": 0.6264290423386927
+  },
+  "previous_designer": {
+   "study": "AC common-mode choke >= 150 uH at 32 kHz: 3 nanocrystalline cores over the phase busbars + 3 x Y1"
+  }
+ }
+}

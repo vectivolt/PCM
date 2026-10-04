@@ -125,7 +125,7 @@ CELL_24V_MAX_A, CELL_24V_MAX_UF = 1.0, 600
 # Cost-first PV module (decision D-044, docs/requirements/ARCHITECTURE-COSTFIRST.md): POWER board <-> CONTROL board,
 # 2x32 2.54 mm board-to-board. BOTH SIDES ARE LIVE: GND = AGND = BUS- (the controller's reference). Nothing on this
 # connector may leave the enclosure; the only reinforced barrier is on the control board (communication, stop input,
-# status, fans). Levels and scaling are those of the architecture document (sections 5 and 6).
+# status, fans). Levels and scaling are those of the architecture document (sections 5 and 6), as built on PV-PWR.
 #   PWMn       control -> power, 3.3 V logic AFTER the trip latch's gating; high = switch on. Phase p = 1..4:
 #              PWM(4p-3) leg A high side, PWM(4p-2) leg A low side, PWM(4p-1) leg B high side, PWM(4p) leg B low side.
 #              The power board buffers them to the 5 V level the NSI6651 inputs need and pulls each one low.
@@ -138,10 +138,13 @@ CELL_24V_MAX_A, CELL_24V_MAX_UF = 1.0, 600
 #   HOLD       power -> control, high = a port current is above the contactor's breaking limit: contactor is held closed.
 #   IMD_SWn    control -> power, high = insulation-test string n connected.
 #   MOV_OK     power -> control, high = surge-varistor monitor loop intact.
-#   ILn        per-phase inductor current sensor output (ratiometric to +5V);  IA / IB port currents (measurement
+#   ILn        per-phase inductor current sensor output, NOT ratiometric: 2.50 V (2.48-2.52) + 10.667 mV/A from the
+#              STK-HO/A 75's own fixed reference (PV-PWR design check);  ILnR that reference (Uref, pin 4): the control
+#              board's fixed trip window is set from it (rev A2 / PV-CTL rev A1; these four pins were +24V / +5V, which the
+#              control board never used: it takes +3V3 only);  IA / IB port currents (measurement
 #              gain), IA_H / IB_H the low-gain path used by the hold-off comparators;  VA / VB bank-side port voltages,
 #              VAX / VBX terminal-side (bipolar, mid-scale offset), VPE = PE against BUS-;  NTCn = NTC to AGND.
-PC = ["+24V", "+24V", "GND", "GND", "+5V", "+5V", "+3V3", "GND",
+PC = ["IL1R", "IL2R", "GND", "GND", "IL3R", "IL4R", "+3V3", "GND",
       "PWM1", "PWM2", "PWM3", "PWM4", "GND", "PWM5", "PWM6", "PWM7", "PWM8", "GND",
       "PWM9", "PWM10", "PWM11", "PWM12", "GND", "PWM13", "PWM14", "PWM15", "PWM16", "GND",
       "EN", "FLT_N", "RDY", "BIAS_EN", "K_A", "K_B", "K_PRE", "HOLD", "IMD_SW1", "IMD_SW2", "MOV_OK", "GND",

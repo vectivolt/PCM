@@ -12,10 +12,10 @@
 ---
 
 > [!NOTE]
-> **The table describes the cost-first boards** — power board PV-PWR rev A1 and control board PV-CTL rev A0. It is
+> **The table describes the cost-first boards** — power board PV-PWR rev A2 and control board PV-CTL rev A1. It is
 > written by [`sim/compare_megarevo.py`](../../sim/compare_megarevo.py) from the design files named in its evidence
-> column and was regenerated on 2026-10-05. Four rows are below Megarevo's published figure:
-> [what they are and what closes them](#the-four-rows-below-megarevo).
+> column and was regenerated on 2026-10-05. Three rows are below Megarevo's published figure:
+> [what they are and what closes them](#the-three-rows-below-megarevo).
 
 ## 🧭 The competitor products
 
@@ -33,7 +33,7 @@ Megarevo publishes no price for the PMD-75-G3 itself ([COST-REVIEW.md §1](../re
 
 <!-- BEGIN:megarevo-score -->
 
-![better 2](https://img.shields.io/badge/better-2-00A99D?style=flat-square) ![meets 23](https://img.shields.io/badge/meets-23-0B1F33?style=flat-square) ![below 4](https://img.shields.io/badge/below-4-E4572E?style=flat-square) ![not assessed 5](https://img.shields.io/badge/not%20assessed-5-5B6B7A?style=flat-square) &nbsp;of 34 published rows
+![better 2](https://img.shields.io/badge/better-2-00A99D?style=flat-square) ![meets 24](https://img.shields.io/badge/meets-24-0B1F33?style=flat-square) ![below 3](https://img.shields.io/badge/below-3-E4572E?style=flat-square) ![not assessed 5](https://img.shields.io/badge/not%20assessed-5-5B6B7A?style=flat-square) &nbsp;of 34 published rows
 
 <!-- END:megarevo-score -->
 
@@ -65,8 +65,8 @@ outside this project's scope ([REQUIREMENTS.md §1](../requirements/REQUIREMENTS
 | Max. Operating Current (A) | 135 | 135 (3 x 45 A) | ● meets | [module_spec.json](../../sim/out/pv_design/module_spec.json) |
 | **Protection Data** | | | | |
 | Over/Under Voltage Protection (Both Ports) | Supported | hardware trip 1058-1110 V (discrete comparators, latched) and firmware limit 1050 V on each port, stop below 240 V | ● meets | [cell_spec.json](../../sim/out/pv_design/cell_spec.json)<br/>[module_spec.json](../../sim/out/pv_design/module_spec.json) |
-| Overcurrent Protection (Both Ports) | Supported | per phase: discrete hardware trip 66.2-79.9 A on the inductor current, controller comparator backup 81.1-101.9 A; battery port: hardware over-current trip 387-413 A | ● meets | [module_spec.json](../../sim/out/pv_design/module_spec.json)<br/>[port_spec.json](../../sim/out/port_design/port_spec.json) |
-| Open-Circuit Protection (Both Ports) | Supported | full-power load rejection (calculated): the 1058-1110 V hardware over-voltage trip has the gates off 47 us after the crossing; the battery-side film bank needs 7 capacitors to stay under the device voltage limit and the drawn board has 6 | ▼ **below** | [module_spec.json](../../sim/out/pv_design/module_spec.json) |
+| Overcurrent Protection (Both Ports) | Supported | per phase: discrete hardware trip 68.9-79.9 A on the inductor current, controller comparator backup 81.1-101.9 A; battery port: hardware over-current trip 387-413 A | ● meets | [module_spec.json](../../sim/out/pv_design/module_spec.json)<br/>[port_spec.json](../../sim/out/port_design/port_spec.json) |
+| Open-Circuit Protection (Both Ports) | Supported | full-power load rejection (calculated): the 1058-1110 V hardware over-voltage trip has the gates off 47 us after the crossing; the battery-side film bank needs 7 capacitors to stay under the device voltage limit and the drawn board has 7 | ● meets | [module_spec.json](../../sim/out/pv_design/module_spec.json) |
 | Overtemperature Protection | Supported | hardware trips: heatsink 86.3-89.5 C, inductor 146.2-153.7 C; firmware derating below them | ● meets | [module_spec.json](../../sim/out/pv_design/module_spec.json) |
 | Lightning Protection | Supported | monitored varistor network on the board, three Thinking Electronic TVT25751KFKG per port (pole to midpoint twice, midpoint to PE): effective level 3793 V pole-to-PE at 3 kA (calculated), 25 kA maximum | ● meets | [port_spec.json](../../sim/out/port_design/port_spec.json) |
 | Insulation Impedance Detection | Supported | switched 992 kOhm test strings pole-to-PE through isolated solid-state relays on the power board; 33.3 kOhm threshold (1000 V / 30 mA) | ● meets | [port_spec.json](../../sim/out/port_design/port_spec.json) |
@@ -89,20 +89,23 @@ outside this project's scope ([REQUIREMENTS.md §1](../requirements/REQUIREMENTS
 | **Other Data** | | | | |
 | Voltage Accuracy | ＜1%@100%Pn | <= 0.5 % (0.1 % dividers, ADC and reference) after the two-point calibration; a design budget, not an end-to-end calculation on the drawn boards (the control board's ADC share checks at 0.42 % worst) | ● meets | [ARCHITECTURE-COSTFIRST.md](../requirements/ARCHITECTURE-COSTFIRST.md)<br/>[PV-CTL_design_check.txt](../../hardware/PV-CTL/outputs/PV-CTL_design_check.txt) |
 | Current Accuracy | ＜1%@100%Pn | <= 0.8 % at 135 A (shunt in the negative rail, temperature compensated) after the two-point calibration; a design budget, not an end-to-end calculation on the drawn boards (the control board's ADC share checks at 0.42 % worst) | ● meets | [ARCHITECTURE-COSTFIRST.md](../requirements/ARCHITECTURE-COSTFIRST.md)<br/>[PV-CTL_design_check.txt](../../hardware/PV-CTL/outputs/PV-CTL_design_check.txt) |
-| Standby Power Consumption (W) | ＜20 | 11.4 with both contactors open, 20.6 with both held closed and the gates off, at 1000 V (8.1 / 15.2 at 600 V; estimate) | ▼ **below** | [module_spec.json](../../sim/out/pv_design/module_spec.json) |
+| Standby Power Consumption (W) | ＜20 | 11.4 with both contactors open, 21.0 with both held closed and the gates off, at 1000 V (8.1 / 15.3 at 600 V; estimate) | ▼ **below** | [module_spec.json](../../sim/out/pv_design/module_spec.json) |
 
 <sub>Generated by <a href="../assets/figures_overview.py">figures_overview.py</a> from <a href="../../sim/out/compare_megarevo/comparison.csv">comparison.csv</a> (written by <a href="../../sim/compare_megarevo.py">sim/compare_megarevo.py</a>). Do not edit between the markers.</sub>
 
 <!-- END:megarevo-table -->
 
-## The four rows below Megarevo
+## The three rows below Megarevo
 
 | Row | Where the design stands (calculated) | Why | What closes it |
 |---|---|---|---|
-| Open-circuit protection | a full-power load rejection overshoots the 1,135 V device limit by about 1 V with the six battery-side film capacitors drawn | the over-voltage trip needs 47 µs to switch the gates off | a seventh capacitor (+5.4 USD) in the next power-board revision ([D-056](../requirements/DECISIONS.md)) |
 | Operating temperature | the fan is rated −10…+60 °C against a −30 °C requirement | the only fan found with a published −30 °C rating costs 88–113 USD | a qualified cold-start rule or the dearer fan — **open** ([R-05](../requirements/ARCHITECTURE-COSTFIRST.md#13-open-risks)) |
 | Operating altitude | 79 % of full power at 3000 m and 45 °C inlet | the round-wire inductor runs at 144.7 °C against a 146.2 °C trip, so thinner air costs power directly | a litz-wound inductor (about +17 USD per phase) or more airflow ([D-054](../requirements/DECISIONS.md), [D-056](../requirements/DECISIONS.md)) |
-| Standby power | 20.6 W with both contactors held at 1000 V; 11.4 W with them open | two contactor coils on the economiser at 2.35 W each | opening the PV contactor in standby, or a lower hold power |
+| Standby power | 21.0 W with both contactors held at 1000 V; 11.4 W with them open | two contactor coils on the economiser at 2.35 W each | opening the PV contactor in standby, or a lower hold power |
+
+The fourth row of the earlier table, open-circuit protection (full-power load rejection), was closed by the seventh
+battery-side film capacitor drawn in PV-PWR rev A2 ([D-058](../requirements/DECISIONS.md)): the bank is now 315 µF
+against 278.5 µF needed (calculated).
 
 ## What moved against the earlier platform
 
@@ -115,10 +118,10 @@ The table above describes the cost-first design. This is what changed when the e
 | Operating temperature | fan rated to −40 °C | fan Delta AFB1224SHE-F00 rated **−10…+60 °C** | *below* — open | [R-05](../requirements/ARCHITECTURE-COSTFIRST.md#13-open-risks) |
 | Operating altitude | full power at 3000 m up to a moderate inlet temperature | 79 % at 3000 m and 45 °C inlet | *below*: the cheaper inductor leaves no thermal reserve | [D-054](../requirements/DECISIONS.md), [D-056](../requirements/DECISIONS.md) |
 | Max. efficiency | 99.48 % peak, 98.90 % worst full-power corner | 99.47 % peak, 98.77 % worst full-power corner at 45 °C inlet; junction about 110 °C instead of 78 °C | still *better* than the published 99 % | [module_spec.json](../../sim/out/pv_design/module_spec.json) |
-| Standby power | 18.7 W (estimate) | 11.4 W with both contactors open, 20.6 W with both held, at 1000 V | *below* by 0.6 W in the held state | [module_spec.json](../../sim/out/pv_design/module_spec.json) |
+| Standby power | 18.7 W (estimate) | 11.4 W with both contactors open, 21.0 W with both held, at 1000 V | *below* by 1.0 W in the held state | [module_spec.json](../../sim/out/pv_design/module_spec.json) |
 | Lightning protection | DIN-rail arrester, 4,000 V protection level | monitored varistor network on the board, 3.79 kV effective level at 3 kA | *meets*; the varistors' thermal links have no DC rating | [D-042](../requirements/DECISIONS.md) |
 | Short-circuit protection | 160 A gPV fuse on every pole, contactor hold-closed interlock | DESAT with turn-off booster; battery port: aR fuse per pole and a contactor held closed above 967 A; PV port: no fuse. Faults of 967–1250 A are left to the upstream battery protection | *meets*, with an **installation requirement** | [ARCHITECTURE-COSTFIRST §15](../requirements/ARCHITECTURE-COSTFIRST.md#15-changes-against-the-d-044-direction-where-i-refined-or-disagree) |
-| Over-current / over-temperature trips | cell 72.4 A, port 202.5 A / 405 A; heatsink 86 °C | inductor window 66–80 A (to be narrowed, D-056), port 387–413 A, heatsink 86–90 °C, inductor 146–154 °C | *meets*, new thresholds | [PV-CTL design check](../../hardware/PV-CTL/outputs/PV-CTL_design_check.txt) |
+| Over-current / over-temperature trips | cell 72.4 A, port 202.5 A / 405 A; heatsink 86 °C | inductor window 68.9–79.9 A (narrowed by D-058), port 387–413 A, heatsink 86–90 °C, inductor 146–154 °C | *meets*, new thresholds | [PV-CTL design check](../../hardware/PV-CTL/outputs/PV-CTL_design_check.txt) |
 | Voltage and current accuracy | 0.83 % after calibration (isolated sensing), calculated end to end | ≤ 0.5 % and ≤ 0.8 % as a design budget: dividers and shunts on the negative rail | *meets* on the budget; not yet an end-to-end calculation on the drawn boards | [ARCHITECTURE-COSTFIRST §6](../requirements/ARCHITECTURE-COSTFIRST.md) |
 
 ---

@@ -2,9 +2,9 @@
 
 # 📐 Decisions
 
-> A readable digest of the decision register, D-001 to D-057, grouped by theme — what was decided, why, and whether it still holds.
+> A readable digest of the decision register, D-001 to D-058, grouped by theme — what was decided, why, and whether it still holds.
 
-![range](https://img.shields.io/badge/register-D--001%E2%80%A6D--055-0B1F33?style=flat-square)
+![range](https://img.shields.io/badge/register-D--001%E2%80%A6D--058-0B1F33?style=flat-square)
 ![as of](https://img.shields.io/badge/as%20of-2026--10--05-5B6B7A?style=flat-square)
 ![authority](https://img.shields.io/badge/authority-DECISIONS.md-00A99D?style=flat-square)
 
@@ -107,7 +107,8 @@
 | D-040 | **Second sources for everything that is not a power device:** 107 lines studied, 21 adopted; some parts kept on purpose.<br/><sub>On the control boards this buys supply security and documentation rather than money.</sub> | ![frozen](https://img.shields.io/badge/-frozen-00A99D?style=flat-square) |
 | D-052 | **Cost of the drawn cost-first boards** recorded against the benchmark, with the next cost levers.<br/><sub>Its figures predate D-054; current figures are generated in <a href="../../bom/COST.md">bom/COST.md</a>. Budget not met; most of the total is estimate.</sub> | ![recorded](https://img.shields.io/badge/-recorded-5B6B7A?style=flat-square) |
 | D-055 | **Chinese power modules stay request-for-quotation alternates;** the designs stay on paralleled discretes.<br/><sub>No candidate has a public price; break-even prices are set; the BASiC BMF008MR12E2G3 is the module to quote for the DAB.</sub> | ![recorded](https://img.shields.io/badge/-recorded-5B6B7A?style=flat-square) |
-| D-056 | **PV module re-run on the drawn boards:** peak 99.47 %, full power to 45 °C inlet; a seventh battery-side film capacitor and a narrower over-current window go into the next board revisions; 32 kHz stays; the PV-side bank is not reduced.<br/><sub>Four comparison rows fall below Megarevo's published table (cold limit, altitude, standby, load rejection until the seventh capacitor); PV-P100/110 is a derated build on these boards.</sub> | ![open](https://img.shields.io/badge/-board%20revisions%20open-F2A007?style=flat-square) |
+| D-056 | **PV module re-run on the drawn boards:** peak 99.47 %, full power to 45 °C inlet; a seventh battery-side film capacitor and a narrower over-current window go into the next board revisions; 32 kHz stays; the PV-side bank is not reduced.<br/><sub>Four comparison rows fall below Megarevo's published table (cold limit, altitude, standby, load rejection until the seventh capacitor); PV-P100/110 is a derated build on these boards.</sub> | ![closed](https://img.shields.io/badge/-board%20items%20closed%20by%20D--058-0B1F33?style=flat-square) |
+| D-058 | **Board revisions of D-056 drawn:** PV-PWR and PV-PWR-4 rev A2, PV-CTL rev A1; battery-side film bank of the three-phase board 7 × 45 µF (315 µF), bleeder 8 × 73.2 kΩ per port, over-current window 68.9–79.9 A with the thresholds derived from each sensor's own reference output.<br/><sub>Closes the load-rejection overshoot and moves the window's lower edge from 6 % to 10.6 % above the normal peak; the 70 A target is missed by 1.1 A and accepted. Four former 24 V / 5 V pins of the board-to-board connector now carry the sensor references, and standby with both contactors held rises to 21.0 W. Open: the comparator's offset at the trip node, the reference output's drive rating and drift, and the trip chain of sim/pv_control.py.</sub> | ![frozen](https://img.shields.io/badge/-frozen%2C%20with%20conditions-00A99D?style=flat-square) |
 
 ## ⚡ DAB-D60
 

@@ -31,7 +31,7 @@ bench-validated: every figure is calculated, simulated or estimated, and is labe
 
 | Product | What it is | Rating | Ports | Status as of 2026-10-05 |
 |---|---|---|---|---|
-| **PV-P75** | non-isolated bidirectional buck-boost DC/DC with MPPT | 75 kW · 82.5 kW max | both 250–1000 V · 135 A | power board **PV-PWR rev A1** + control board **PV-CTL rev A0** drawn; every build check passes |
+| **PV-P75** | non-isolated bidirectional buck-boost DC/DC with MPPT | 75 kW · 82.5 kW max | both 250–1000 V · 135 A | power board **PV-PWR rev A2** + control board **PV-CTL rev A1** drawn; every build check passes |
 | **PV-P100/110** | four-phase build of the same design | 100 / 110 kW | both 250–1000 V · 145 A on the battery port | PV-PWR-4 + PV-CTL drawn; checks pass; a derated build today (100 kW from 690 V, full power to 35 °C inlet) |
 | **PCS-P125** | three-phase bidirectional DC-to-AC battery inverter | 125 kW · 150 kVA max | DC 590–950 V · 400/230 V AC, 180 A | power-stage design study done (two-level 1700 V SiC); control not simulated; no boards |
 | **DAB-D60** | isolated dual-active-bridge DC/DC | 60 kW | 590–950 V · 400–900 V | design and control re-run with Chinese devices; board DAB60 rev B frozen, to be redrawn cost-first |
@@ -75,7 +75,7 @@ flowchart LR
     PV --> PA --> PH --> PB --> BAT
     PA --> AUX
     PB --> AUX
-    AUX -- "24 / 5 / 3.3 V" --> CTL
+    AUX -- "3.3 V" --> CTL
     CTL <-- "PWM · measurements" --> PH
     CTL == "reinforced barrier B1" ==> COM
     AUX == "SELV winding" ==> FAN
@@ -101,8 +101,8 @@ flowchart LR
 
 | Product | What the figure is | kW | Catalogue USD | USD/kW | 5,000 units USD | USD/kW | Evidence | 5k ÷ benchmark-equivalent BOM |
 |---|---|---:|---:|---:|---:|---:|---|---:|
-| **PV-P75** | BOM of drawn boards (PV-PWR + PV-CTL) | 75 | **947** | 12.6 | **792** | 10.6 | 78 % of catalogue on estimates · 16 % of 5k on published breaks | 1.9× (≈ 410 USD) |
-| **PV-P100/110** | BOM of drawn boards (PV-PWR-4 + PV-CTL) | 100 / 110 | 1,136 | 11.4 / 10.3 | 950 | 9.5 / 8.6 | 77 % of catalogue on estimates · 15 % of 5k on published breaks | 1.7× / 1.7× |
+| **PV-P75** | BOM of drawn boards (PV-PWR + PV-CTL) | 75 | **952** | 12.7 | **796** | 10.6 | 78 % of catalogue on estimates · 16 % of 5k on published breaks | 1.9× (≈ 410 USD) |
+| **PV-P100/110** | BOM of drawn boards (PV-PWR-4 + PV-CTL) | 100 / 110 | 1,135 | 11.4 / 10.3 | 949 | 9.5 / 8.6 | 77 % of catalogue on estimates · 15 % of 5k on published breaks | 1.7× / 1.7× |
 | **PCS-P125** | design study, 3-wire (two-level), no boards · provisional, see D-057 | 125 | 1,086 | 8.7 | 869 | 7.0 | 7 % of 5k on published prices | see note |
 | **PCS-P125** | design study, 4-wire (two-level), no boards · provisional, see D-057 | 125 | 1,289 | 10.3 | 1,032 | 8.3 | not stated for 4-wire | see note |
 | PV-P75 earlier platform | BOM of drawn boards (8 boards) | 75 | 2,812 | 37.5 | 2,254 | 30.1 | 55 % of catalogue on estimates · 17 % of 5k on published breaks | 5.5× |
@@ -227,10 +227,10 @@ Tools: KiCad 10 (`kicad-cli`; on macOS `/Applications/KiCad/KiCad.app/Contents/M
 
 ## 🗺️ What comes next
 
-- **PV-P75 board revisions** ([D-056](docs/requirements/DECISIONS.md)): a seventh battery-side film capacitor and a narrower over-current window; then the independent review, pin audit and insulation re-audit of the two boards — and supplier quotations for the largest estimates.
-- **PCS-P125:** an independent cross-check against Wolfspeed's T-type and two-level reference designs confirmed the two-level stage and corrected its cost and efficiency ([D-057](docs/requirements/DECISIONS.md)); next: the filter inductors, the study re-run, the control simulation and then the boards.
+- **PV-P75 boards:** the revisions of [D-056](docs/requirements/DECISIONS.md) are drawn (PV-PWR rev A2, PV-CTL rev A1, [D-058](docs/requirements/DECISIONS.md)); next, the comparator offset and the sensor's reference output (both open), then the independent review, pin audit and insulation re-audit of the two boards — and supplier quotations for the largest estimates.
+- **PCS-P125:** an independent cross-check against Wolfspeed's T-type and two-level reference designs confirmed the two-level stage on robustness ([D-057](docs/requirements/DECISIONS.md)); the filter inductors, now designed, cost far more than the study assumed, so a trade study is re-testing stage and filter on cost before the control simulation and the boards.
 - **DAB-D60:** redraw the board cost-first ([ARCHITECTURE-COSTFIRST §16](docs/requirements/ARCHITECTURE-COSTFIRST.md#16-dab-d60-on-the-same-principles)).
-- **Comparison with Megarevo:** close the four rows that are below the published table — cold limit, altitude, standby and load rejection ([Comparison](docs/guide/11-megarevo-comparison.md#the-four-rows-below-megarevo)).
+- **Comparison with Megarevo:** close the three rows that are below the published table — cold limit, altitude and standby ([Comparison](docs/guide/11-megarevo-comparison.md#the-three-rows-below-megarevo)).
 - **Before any hardware release** (outside this repository): double-pulse test of the gate drive, a wound inductor sample, the purchased standards checked against the values used.
 
 <sub>Scope and rules: <a href="CLAUDE.md">CLAUDE.md</a> · requirements: <a href="docs/requirements/REQUIREMENTS.md">REQUIREMENTS.md</a> · decisions: <a href="docs/requirements/DECISIONS.md">DECISIONS.md</a></sub>

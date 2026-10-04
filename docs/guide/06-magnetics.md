@@ -168,7 +168,7 @@ cost-first version would give").</sub>
 
 | Part | Type tests named in its specification | What else is still assumed |
 |---|---|---|
-| PV inductor | AC 2,200 V rms 1 min winding–core, 4,400 V rms NTC–winding, impulse 6 kV / 8 kV; L(I) to 72.4 A; thermal run | the thermal model (h = 25 W/m²K surface model); the copper loss (two models 15 % apart); the spec's thermal run is written at 54 W, below the 83.8 W worst point of rev M2 — to be reconciled |
+| PV inductor | AC 2,200 V rms 1 min winding–core, 4,400 V rms NTC–winding, impulse 6 kV / 8 kV; L(I) to 72.4 A; thermal run at 83.8 W, the worst point of rev M2 | the thermal model (h = 25 W/m²K surface model); the copper loss (two models 15 % apart) |
 | AUX-T1 | AC 4,400 V rms 60 s; impulse 8 kV; thermal at 82.5 W; routine PD ≤ 10 pC at 2,467 V<sub>pk</sub> on every unit | leakage and switched capacitance hold the drain-voltage budget (1,336 V against 1,360 V) only within the routine-test limits |
 | T_BIAS4 | impulse 3,790 V between windings; thermal at 85 °C; PD ≤ 10 pC at 1,750 V<sub>pk</sub> (sample); C ≤ 5 pF (sample) | the capacitances are calculated only |
 | Port CM ring | low-frequency CM bias, saturation, attenuation with the capacitance to PE | µ at 150 Hz and the flat-µ grade are assumptions; the 11 mA touch current needs the PE measures |

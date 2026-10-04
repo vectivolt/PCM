@@ -208,6 +208,8 @@ measurement_requirements` sets the rest.
 | inlet air | NTC on the control board | same | ±1 K | thermal | none |
 | insulation resistance (PV-C5) | divider PE → BUS- (bipolar) + VAX (array side, K_A open); two switched 992 kΩ strings, A+ → PE and PE → BUS-, each through an isolated 1700 V SiC SSR; two-state method of `sim/port_design.py` §8 with the 3-sample exponential prediction | 2 × CA-IS3417WT, 16 × ARHV13 124 k | 33 kΩ: ~10 %, 1 MΩ: ~2-5 % (old design's figures, same method) | 3 s per result | none |
 
+> *Correction 2026-10-05:* PV-PWR draws the Sinomags **STK-HO/A 75** for the inductor current, not the STK-HO/A 130 named in the table. Reason (PV-PWR design check): after the 2-point calibration and the idle re-zero, the 75 A part gives 1.8 % sharing error at 45 A against the ±2 % needed; the 130 A part gives 2.8 %. Its linear range of ±187.5 A covers the 100 A measuring range and the backup-trip peak. Since PV-PWR rev A2, each sensor's reference output also goes to PV-CTL, which sets its hardware trip window from it.
+
 What makes this cheap: every sensor output is referenced to BUS- = the ADC ground. The only signals that cross a
 switch-node potential are the 3 (4) TMR sensors, and they carry their own magnetic separation.
 
@@ -448,6 +450,9 @@ item (≈ 0.02 USD per placement), not a BOM item.
 - **J1 power ↔ control, live ↔ live:** 2 × 30 board-to-board (XKB X9555-class): 12-16 PWM, EN, FLT_N, RDY,
   3-4 i_L, IA, IB (two gains), VA, VAX, VB, VBX, PE divider, 6-8 NTC, K_A/K_B/K_PRE commands + hold status, 2 IMD
   switches, bias enable, 24 V / 5 V / 3.3 V and 8 BUS- returns.
+  *Correction 2026-10-05:* as drawn, the connector is 2 × 32 (contract `PC` in `gen/interfaces.py`, PV-PWR and PV-CTL),
+  not 2 × 30. Since PV-PWR rev A2 it carries no 24 V or 5 V: those four pins carry the sensor references IL1R–IL4R
+  (PV-CTL never used them; it takes 3.3 V only).
 - **J2 SELV supply:** 2-pin from the AUX-T1 SELV rectifier (power board) to the control board's SELV zone, both ends
   ≥ 10 mm from live copper, double-insulated wires.
 - Control board SELV zone: CAN in/out, RS-485 in/out, enable/status (pluggable Kefa terminal blocks), 3 fan headers,

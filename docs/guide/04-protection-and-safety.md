@@ -6,7 +6,7 @@
 > Every trip of the cost-first PV module — where it is detected, its threshold band and response time against the requirement — the latch, the split between hardware and firmware and the numbers behind it, the contactor rules and the installation requirement, the start-up, shutdown and fault sequences, the insulation coordination, and what the design does not protect against.
 
 ![trips](https://img.shields.io/badge/hardware%20trips-all%20inside%20requirement-00A99D?style=flat-square)
-![latch](https://img.shields.io/badge/latch-79%20fault%20cases%20evaluated-00A99D?style=flat-square)
+![latch](https://img.shields.io/badge/latch-86%20fault%20cases%20evaluated-00A99D?style=flat-square)
 ![allocation](https://img.shields.io/badge/HW%2FFW%20split-D--050-0B1F33?style=flat-square)
 ![sil](https://img.shields.io/badge/rated%20safety%20function-none-E4572E?style=flat-square)
 ![bench](https://img.shields.io/badge/bench--validated-no-E4572E?style=flat-square)
@@ -28,7 +28,7 @@ ADC limits are a second, independent layer; firmware is a third layer and owns s
 ```mermaid
 %%{init: {"theme": "base", "themeVariables": {"primaryColor": "#EEF3F7", "primaryBorderColor": "#0B1F33", "primaryTextColor": "#0B1F33", "lineColor": "#5B6B7A", "secondaryColor": "#D9F2EF", "tertiaryColor": "#FFF4D6", "fontFamily": "Inter, Helvetica, Arial, sans-serif"}}}%%
 flowchart LR
-    OC["Inductor over-current<br/>window ±73 A"]:::live
+    OC["Inductor over-current<br/>window ±74 A"]:::live
     OV["Port over-voltage<br/>1084 V"]:::live
     OT["Heatsink and inductor<br/>over-temperature, open probe"]:::live
     FLT["FLT_N: DESAT, driver UVLO,<br/>port over-current 387–413 A"]:::live
@@ -60,11 +60,11 @@ gate-drive sheets.</sub>
 
 | Trip | Source and sensor | Detected in | Threshold (worst-case band) | Response | Requirement |
 |---|---|---|---|---|---|
-| Inductor over-current, primary | TMR sensor → TLV9024 window | discrete, PV-CTL | +73.0 / −73.5 A (66.2–79.9 A) | 1.95 µs to gates off | ≥ 65.4 A (1.05 × normal peak) and below the backup band; ≤ 8.92 µs after 76 A, before 50 % inductance at 129 A |
+| Inductor over-current, primary | TMR sensor → TLV9024 window, thresholds derived from each sensor's own reference output | discrete, PV-CTL | +74.2 / −74.4 A (68.9–79.9 A) | 1.95 µs to gates off | ≥ 68.5 A (1.10 × normal peak) and below the backup band; ≤ 8.92 µs after 76 A, before 50 % inductance at 129 A |
 | Inductor over-current, backup | same sensor → CMPSS1–4 | controller hardware | ±91.5 A (81.1–101.9 A) | 1.21 µs | ≤ 4.87 µs |
 | Short circuit, shoot-through | DESAT on each driver + booster | driver | V<sub>DS</sub> 5.43–8.27 V; blanking 263–810 ns | gates off 0.62 µs after detection, 1.03–1.08 µs from the fault | within the **assumed** 2.0 µs withstand |
 | Port over-current | shunt (low-gain path) → window comparator → FLT_N | discrete, PV-PWR | 387–413 A | 0.19 µs (logic) | coordination band 387–413 A |
-| Port over-current, backup | IA / IB → ADC post-processing limit or CMPSS4 | controller hardware | 373–427 A | 46 µs (ADC) / 30 µs (CMPSS4) | firmware latency ≤ 0.50 s (aR melting curve) |
+| Port over-current, backup | IA / IB → ADC post-processing limit or CMPSS4 | controller hardware | 373–427 A | 30 µs (ADC) / 15 µs (CMPSS4) | firmware latency ≤ 0.50 s (aR melting curve) |
 | Port over-voltage | bank divider → TLV9024 | discrete, PV-CTL | 1,084 V (1,058–1,110 V) | 47 µs | ≤ 58.5 µs; last switching event ≤ 1,135 V |
 | Port over-voltage, backup | ADC post-processing limit, conversion every ≤ 10 µs | controller hardware | 1,100 V (1,084–1,116 V) | 33.9 µs | ≤ 58.5 µs |
 | Port over-voltage, soft limit | ADC, controlled stop | firmware | 1,050 V | outer loop | above the 1,010 V limit loop |
@@ -84,6 +84,11 @@ gate drive and port lines of the [PV-PWR design check](../../hardware/PV-PWR/out
 [port_spec.json](../../sim/out/port_design/port_spec.json) `lean`; requirements from
 [pv_control report §9–§10](../../sim/out/pv_control/report.md).</sub>
 
+Two terms are not yet in the 68.9–79.9 A band of the primary over-current trip: the comparator's input offset, which is
+specified at 0 V common mode and can add 0.3–1.0 A at the 2.45 V trip node (calculated from its common-mode rejection;
+the same holds for every comparator band on the board), and any drift of the sensor's reference output, which has no
+published drive rating or drift ([risk C9](12-risks-and-open-items.md)).
+
 <img src="../assets/img/design_trip_timing.png" width="820" alt="Response time of the hardware trips against their requirement, log scale">
 
 <sub>Chart: [figures_design.py](../assets/figures_design.py) from the PV-CTL trip table (rows that state both a response
@@ -93,7 +98,7 @@ time and a time requirement).</sub>
 > **Where the records disagree.** [ARCHITECTURE-COSTFIRST.md §6](../requirements/ARCHITECTURE-COSTFIRST.md) lists a local
 > over-current band of 68.5–76 A (the closed-loop LEM sensor of the earlier platform), a heatsink trip of 95 °C, an
 > inductor trip of 145 °C (which would trip at full load), a hold-off of 1.0 kA (0.95–1.05 kA) and an upstream
-> requirement of 0.95–1.3 kA within 0.25 s at L/R ≤ 3 ms. The drawn boards and the port design use 66.2–79.9 A,
+> requirement of 0.95–1.3 kA within 0.25 s at L/R ≤ 3 ms. The drawn boards and the port design use 68.9–79.9 A,
 > 86.3–89.5 °C, 146.2–153.7 °C, 967–1,033 A and 967–1,250 A within 0.26 s at **L/R ≤ 1 ms** — the contactor's breaking
 > data exist only at L/R ≤ 1 ms ([port report §13](../../sim/out/port_design/report.md)). This page uses the drawn values.
 > The requirement times in [control_spec.json](../../sim/out/pv_control/control_spec.json) `hardware_trips` still describe
@@ -108,7 +113,7 @@ One set-dominant flip-flop (74LVC1G74) on PV-CTL, set through a 74LVC07 open-dra
 | What sets it | inductor windows, port OV, both over-temperatures, open probe, FLT_N, RDY, ENABLE open, heartbeat stop, 3.3 V supervisor, MCU reset; **power-up always starts tripped** |
 | What it does | gates all 16 PWM lines, EN, K_PRE and STATUS low through 6 × 74LVC08; drops K_A and K_B unless the power board asserts HOLD (a trip never commands a held contactor open); signals the MCU trip zone |
 | What clears it | only a firmware rising edge on the clock input (GPIO24) **while every source is inactive**; an edge during an active source is ignored; no automatic clear after a watchdog reset, an over-current or an over-voltage trip; the cause is logged to EEPROM first |
-| How it was checked | logic evaluated from the drawn netlist for **79 fault cases in 2 builds** (PV-P75 and PV-P100/110), including dead sensors (0 V), shorted and open NTCs and firmware still commanding the outputs |
+| How it was checked | logic evaluated from the drawn netlist for **86 fault cases in 2 builds** (PV-P75 and PV-P100/110), including dead sensors (0 V), shorted and open NTCs and firmware still commanding the outputs |
 | Dual channel | none (decision D-044): a single latch, no fault-tree analysis |
 
 <sub>Source: [PV-CTL design check](../../hardware/PV-CTL/outputs/PV-CTL_design_check.txt), "Latch logic evaluated from the
@@ -278,10 +283,11 @@ arrester for reinforced insulation is not verified against the standard text ([D
 Stated plainly, from [ARCHITECTURE-COSTFIRST.md §6.4 and §12](../requirements/ARCHITECTURE-COSTFIRST.md), the
 [port report §13](../../sim/out/port_design/report.md) and the decision register:
 
-- **A bolted short at a port's terminals.** The bank (270 µF, 135 J at 1000 V) dumps through the contactor (~22 kA peak,
-  a weld is likely) and rings below zero; the leg body diodes carry up to ~4.5 kA per device — **that port's legs are
-  likely destroyed**. On the battery port the dump also melts the aR fuses. The module is expected to fail without fire,
-  stays latched and is repaired.
+- **A bolted short at a port's terminals.** The bank (270 µF, 135 J at 1000 V on the PV port; 315 µF, 158 J on the battery
+  port of the three-phase board) dumps through the contactor (~22 kA peak, a weld is likely) and rings below zero; the
+  leg body diodes carry up to ~4.5 kA per device — **that port's legs are likely destroyed**. On the battery port the
+  dump also melts the aR fuses. Both currents are calculated for 270 µF and have not been re-run for 315 µF. The module
+  is expected to fail without fire, stays latched and is repaired.
 - **Battery-fed currents of 967–1,250 A** are cleared only by the upstream protection (installation requirement above).
 - **Loss of both port voltages while more than ~1 kA flows** lets the contactor open above its rating (a double fault).
 - **No rated safety function.** ENABLE is a single-channel functional stop with no SIL / PL claim; a cabinet that needs

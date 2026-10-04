@@ -64,7 +64,7 @@ flowchart LR
     BA --> P1["Phase 1 · 0°"]:::live
     BA --> P2["Phase 2 · 120°"]:::live
     BA --> P3["Phase 3 · 240°"]:::live
-    P1 --> BB["Bank B<br/>6 × 45 µF film"]:::live
+    P1 --> BB["Bank B<br/>7 × 45 µF film"]:::live
     P2 --> BB
     P3 --> BB
     BB --> B["Port B<br/>battery or DC bus"]:::ext
@@ -175,7 +175,7 @@ alternates of the driver are compared in [GDRV-ALTERNATES.md](../requirements/GD
 
 | Position | Part and quantity | Calculated duty | Rating | Note |
 |---|---|---|---|---|
-| Port banks | 2 × FCSA3DS456 (45 µF PP film) per port per phase = 270 µF per port | 1,100 V max; OV overshoot 1,144 V; 11.8 A rms per capacitor (worst phase, no interleaving credit) | 1,100 V at 85 °C hot spot (≤ 1.15 × after IEC 61071); 22.1 A at 85 °C | ripple at 53 % of rating |
+| Port banks | FCSA3DS456 (45 µF PP film): port A 6 (2 per phase) = 270 µF; port B 7 = 315 µF; PV-P100/110: 8 per port = 360 µF | 1,100 V max; OV overshoot 1,144 V; 11.8 A rms per capacitor (worst phase, no interleaving credit) | 1,100 V at 85 °C hot spot (≤ 1.15 × after IEC 61071); 22.1 A at 85 °C | ripple at 53 % of rating; port B is sized by full-power load rejection (278.5 µF needed, [D-058](../requirements/DECISIONS.md)) |
 | Leg decoupling | 3 × FCSA3DS225 per leg | 62.5 A peak (with recovery), 3.04 A rms, 0.21 W | 176 A peak, 3.9 A rms | ESL 8.3 nH per leg against the 8.5 nH basis |
 | RC damper per leg | 2 × (3 × 15 Ω 2512) + 2 × 4.7 nF 2 kV C0G | 5.68 W at the trip corner, 235 V per resistor | 7.4 W at 85 °C board, 500 V | C0G at 687 V per element (≤ 50 %) |
 | X capacitor per port | 2.2 µF / 1300 V (RFQ) | surge network | impulse ≥ 4.5 kV | |
@@ -269,14 +269,14 @@ flowchart LR
 |---|---|---|
 | Contactor | HFE82V-300C/1000 in A+ (300 A at 85 °C; 200 openings at 300 A / 1000 V; no auxiliary contact) | same in B+ |
 | Fuses | none: the array cannot exceed 169 A | Hongfa HPE501/000B100-250 aR in both poles; breaks only 1.25–50 kA |
-| Precharge | none; with a battery present the converter precharges bank A from bank B | relay + 220 Ω: τ 59 ms, ΔV ≤ 10 V after 0.27 s, 135 J per attempt |
+| Precharge | none; with a battery present the converter precharges bank A from bank B | relay + 220 Ω: τ 69 ms, ΔV ≤ 10 V after 0.32 s, 158 J per attempt |
 | Hardware interlocks in the coil drive | polarity enable 187–213 V | polarity enable 187–213 V and precharge ΔV window 3.5–16.5 V |
 | Hold-off (contactor kept closed above its breaking capability) | 967–1,033 A | 967–1,033 A |
 | Port over-current trip (onto FLT_N) | 387–413 A | 387–413 A |
 | Current sensing | 100 µΩ shunt in `BUS-` (2 × 200 µΩ), two gains: 3.0 mV/A (±513 A, 11.3 kHz) and 1.0 mV/A (±1,539 A) | same |
 | Surge | monitored varistor Y: 3 × Thinking TVT25751, two 14 × 51 branch fuses, one monitor loop; Up,eff 3.79 kV, U<sub>c</sub> 1,230 V, I<sub>n</sub> 3 kA, I<sub>max</sub> 25 kA | same |
 | Common-mode filter | one flat-µ nanocrystalline ring + ≥ 127 nF to PE: 17.2 dB at 150 kHz (calculated) | same |
-| Discharge | passive bleeder 8 × 82.5 kΩ: 60 V after 9.3 min; label "wait 10 min" | same |
+| Discharge | passive bleeder 8 × 73.2 kΩ: 60 V after 8.2 min from 1,100 V (8.4 min worst case, calculated); label "wait 10 min" | same bleeder: 60 V after 9.5 min (9.7 min worst case, calculated); label "wait 10 min" |
 | Insulation monitor | PE divider + two switched 992 kΩ strings through CA-IS3417WT; threshold 33 kΩ; ~1.5 s per state with the 3-sample prediction | — (one monitor per connected system) |
 
 <sub>Sources: [port_spec.json](../../sim/out/port_design/port_spec.json) `lean`, `spd`, `imd`; [port report §13](../../sim/out/port_design/report.md);

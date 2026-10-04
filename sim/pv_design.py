@@ -456,8 +456,9 @@ def leg_net(des, dec=None, c_rr=0.0):
 
 
 # cost-first boards (hardware/PV-PWR + PV-CTL design checks, D-044..D-052): per-phase OC comparator band (A) and response,
-# controller (CMPSS) backup band and response, hardware OV trip band (V) and response
-TRIP_HW, TRIP_BACKUP, OV_HW = (66.2, 79.9, 1.95e-6), (81.1, 101.9, 1.21e-6), (1058.0, 1110.0, 47e-6)
+# controller (CMPSS) backup band and response, hardware OV trip band (V) and response. TRIP_HW = PV-CTL rev A1 (D-056: window
+# referenced to each sensor's Uref; rev A0 66.2-79.9 A); PV-CTL's design check fails if this record differs from the board
+TRIP_HW, TRIP_BACKUP, OV_HW = (68.9, 79.9, 1.95e-6), (81.1, 101.9, 1.21e-6), (1058.0, 1110.0, 47e-6)
 
 
 def trip_band(des):

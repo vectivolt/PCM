@@ -12,22 +12,22 @@ Inductor read at run time: rev M2, solid round enamelled Cu 3.15 mm grade 2, 1 l
 | PV port (A) | 0.60 mOhm: HFE82V 0.2 + shunt 0.1 + busbars 0.30 | Hongfa-HFE82V-300C.pdf p.1; port_spec lean shunt; busbars ESTIMATE (port report A_R_LOOP_X) |
 | battery port (B) | 2.95 mOhm: as A + 2 x HPE501/000B100-250 1.174 mOhm | port_spec lean battery_fuse loss_W_per_link |
 | aux 75 W flyback | bias 3.0 W/phase + logic 2.07 W through 5 V (0.85), coils 2 x 2.35 W, fans / 0.9 + 1.0 W SELV 5 V, all / eta_aux(V) | PV-PWR / PV-CTL budgets; aux75_spec efficiency |
-| passive HV | per port: varistor monitor 990k, bleeder 660k, 2 dividers 6 M; PE divider | PV-PWR; dividers ASSUMPTION |
+| passive HV | per port: varistor monitor 990k, bleeder 586k, 2 dividers 6 M; PE divider | PV-PWR; dividers ASSUMPTION |
 | fans | 3 x AFB1224SHE-F00 (12.0 W), PV-P100/110: 3 x FFB1224SHE-F00 capped 17 W | docs/datasheets/thermal/AFB1224SHE-F00.pdf |
 
 ## 2. Module efficiency (25 C inlet, sea level, fan law)
 
 | module | peak | at | 550->950 | 950->550 | 550->550 | 950->950 | 611->611 (45 C) | EU-weighted 750->750 (grid min-max) | standby open / held at 1000 V |
 |---|---|---|---|---|---|---|---|---|---|
-| PV-P75 | **99.47 %** | 900->1000 V, 49.5 kW | 98.94 | 98.89 | 98.86 | 99.15 | 98.83 | 98.81 (98.53-99.30) | 11.4 / 20.6 W |
-| PV-P100/110 | **99.46 %** | 900->1000 V, 66.0 kW | 98.93 | 98.94 | 98.96 | 99.13 | 98.92 | 98.78 (98.51-99.27) | 12.0 / 21.2 W |
+| PV-P75 | **99.47 %** | 900->1000 V, 49.5 kW | 98.94 | 98.89 | 98.86 | 99.15 | 98.83 | 98.80 (98.52-99.30) | 11.4 / 21.0 W |
+| PV-P100/110 | **99.46 %** | 900->1000 V, 66.0 kW | 98.93 | 98.94 | 98.96 | 99.13 | 98.92 | 98.78 (98.51-99.27) | 12.0 / 21.6 W |
 
 Losses by group at 611->611 V full power, 45 C inlet [W]:
 
 | module | phases | port | aux + passive HV | fans (at the input) | total | exhaust |
 |---|---|---|---|---|---|---|
-| PV-P75 | 837 | 65 | 24.1 | 46.8 | 972 | 52.8 C |
-| PV-P100/110 | 801 | 75 | 28.2 | 66.3 | 970 | 51.9 C |
+| PV-P75 | 837 | 65 | 24.2 | 46.8 | 972 | 52.8 C |
+| PV-P100/110 | 801 | 75 | 28.4 | 66.3 | 970 | 51.9 C |
 
 ![maps](module_efficiency_maps.png)
 
@@ -84,9 +84,9 @@ Worst case 60 C + 3000 m + one fan dead (no shutter): 41 % of P_max. Pessimistic
 
 | device | trip | band [A] | response | peak [A] | L/L0 (>= 0.35) | B/B_sat (<= 0.85) | I_DM [A] | V_pk at 1110 V (<= limit) | ok |
 |---|---|---|---|---|---|---|---|---|---|
-| primary | hardware | 66.2-79.9 | 1.95 us | 92.1 | 0.702 | 0.433 | 376 | 1396 (1445) | True |
+| primary | hardware | 68.9-79.9 | 1.95 us | 92.1 | 0.702 | 0.433 | 376 | 1396 (1445) | True |
 | primary | backup | 81.1-101.9 | 1.21 us | 110.9 | 0.597 | 0.497 | 376 | 1407 (1445) | True |
-| alternate | hardware | 66.2-79.9 | 1.95 us | 92.1 | 0.702 | 0.433 | 400 | 1386 (1445) | True |
+| alternate | hardware | 68.9-79.9 | 1.95 us | 92.1 | 0.702 | 0.433 | 400 | 1386 (1445) | True |
 | alternate | backup | 81.1-101.9 | 1.21 us | 110.9 | 0.597 | 0.497 | 400 | 1402 (1445) | True |
 
 ## 6. Cost questions (D-052)
@@ -96,9 +96,9 @@ Worst case 60 C + 3000 m + one fan dead (no shutter): 41 % of P_max. Pessimistic
 | module | port | ripple current | voltage ripple 1 % | load rejection (1110 V / 1100 V trip) | minimum parts | today | binding |
 |---|---|---|---|---|---|---|---|
 | PV-P75 | A | 94 uF | 12 uF | - | 3 | 6 | ripple_current |
-| PV-P75 | B | 94 uF | 12 uF | 278 / 199 uF | 7 | 6 | load_rejection |
+| PV-P75 | B | 94 uF | 12 uF | 278 / 199 uF | 7 | 7 | load_rejection |
 
-PV-P75: saving 10.8 USD per module; port B could fall to 3 parts if the OV trip acted within 20.4 us (today 47 us). CPL pole at 550 V: 145 Hz today, 124 Hz at the minimum, against the 300 Hz voltage-loop crossover - any smaller bank needs the control owner's re-run.
+PV-P75: saving 16.2 USD per module; port B could fall to 3 parts if the OV trip acted within 20.4 us (today 47 us). CPL pole at 550 V: 124 Hz today, 124 Hz at the minimum, against the 300 Hz voltage-loop crossover - any smaller bank needs the control owner's re-run.
 
 | PV-P100/110 | A | 88 uF | 10 uF | - | 2 | 8 | ripple_current |
 | PV-P100/110 | B | 88 uF | 8 uF | 306 / 218 uF | 7 | 8 | load_rejection |
@@ -109,11 +109,11 @@ PV-P100/110: saving 37.9 USD per module; port B could fall to 2 parts if the OV 
 
 | fsw [kHz] | L(45 A) [uH] | inductor USD/phase | module loss at the peak point [W] | peak eff | Tj max 45 C | heatsink +USD | D_max | module cost delta | ok |
 |---|---|---|---|---|---|---|---|---|---|
-| 24 | 301.2 | 47.3 | 225.6 | 99.55 % | 98.2 | 0.0 | 0.9575 | 20.4 | True |
-| 32 | 225.9 | 40.5 | 263.3 | 99.47 % | 109.5 | 0.0 | 0.9433 | 0.0 | True |
-| 40 | 180.7 | 36.1 | 302.0 | 99.39 % | 122.1 | 2.1 | 0.9292 | -11.1 | True |
-| 48 | 150.6 | 33.1 | 342.0 | 99.31 % | 136.2 | 7.2 | 0.915 | -15.0 | True |
-| 64 | 112.9 | 29.0 | 895.8 | 98.22 % | 171.1 | 39.1 | 0.8867 | 4.6 | False |
+| 24 | 301.2 | 47.3 | 226.0 | 99.55 % | 98.2 | 0.0 | 0.9575 | 20.4 | True |
+| 32 | 225.9 | 40.5 | 263.6 | 99.47 % | 109.5 | 0.0 | 0.9433 | 0.0 | True |
+| 40 | 180.7 | 36.1 | 302.4 | 99.39 % | 122.1 | 2.1 | 0.9292 | -11.1 | True |
+| 48 | 150.6 | 33.1 | 342.3 | 99.31 % | 136.2 | 7.2 | 0.915 | -15.0 | True |
+| 64 | 112.9 | 29.0 | 896.2 | 98.22 % | 171.1 | 39.1 | 0.8867 | 4.6 | False |
 
 ## 7. Open items
 

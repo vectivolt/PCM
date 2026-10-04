@@ -55,9 +55,9 @@ flowchart TD
 
 | Board | Rev | Role | Sheets | Parts | Nets | Build checks | ERC warnings (all waived with a reason) |
 |---|---|---|---:|---:|---:|---|---:|
-| **PV-PWR** | A1 | cost-first power board, PV-P75 | 22 | 1,870 | 932 | 6 / 6 pass | 12 |
-| **PV-PWR-4** | A1 | cost-first power board, PV-P100/110 | 25 | 2,318 | 1,142 | 6 / 6 pass | 16 |
-| **PV-CTL** | A0 | cost-first control board | 7 | 266 | 182 | 6 / 6 pass | 0 |
+| **PV-PWR** | A2 | cost-first power board, PV-P75 | 22 | 1,874 | 939 | 6 / 6 pass | 12 |
+| **PV-PWR-4** | A2 | cost-first power board, PV-P100/110 | 25 | 2,322 | 1,150 | 6 / 6 pass | 16 |
+| **PV-CTL** | A1 | cost-first control board | 7 | 285 | 192 | 6 / 6 pass | 0 |
 | PORT-LEAN | F0 | stand-alone build of the lean port functions | 8 | 272 | 200 | 6 / 6 pass | 0 |
 | PORT-LEAN-HOLD | F0 | the lighter interlock option kept by D-050 | 8 | 245 | 186 | 6 / 6 pass | 0 |
 | GDRV-HB | J0 | gate-drive card, one half-bridge | 3 | 128 | 68 | 6 / 6 pass | 2 |
@@ -80,7 +80,7 @@ asserts its values on every build (a failed assertion stops the build): devices,
 damper, X / Y capacitors, gate-drive channel and dead time, sensors, port currents, bleeders, the 5 V / 3.3 V
 converters, the auxiliary budget, contactor pull-in and hold, the levels on every connector pin, and the default-off
 state with the connector unplugged. The [PV-CTL design check](../../hardware/PV-CTL/outputs/PV-CTL_design_check.txt)
-reports **33 PASS, 5 INFO and no FAIL**, including the latch evaluated from the netlist for 79 fault cases and an
+reports **35 PASS, 4 INFO and no FAIL**, including the latch evaluated from the netlist for 86 fault cases and an
 interface check that reads the power board's design check *as built*. The design checks also raised findings that were
 then implemented: the heatsink trip lowered to ≤ 89.9 °C, the inductor trip raised above the 145 °C full-load hot spot,
 and the IA / IB filter changed to reach 10 kHz.

@@ -14,6 +14,7 @@ only the gate-drive islands (functional), the AUX-T1 reinforced SELV winding (le
 Values are read at build time from sim/out/pv_design/cell_spec.json, pv_control/control_spec.json, pv_design/module_spec.json,
 magnetics/design_pv_inductor.json and port_design/port_spec.json; design_check() asserts them on every build.
 Usage: .venv/bin/python gen/pv_power.py      (builds PV-PWR and PV-PWR-4, each with its own checks and BOM)
+Rev A2 (2026-10-05, D-056): PV-P75 battery-side film bank 7 x 45 uF (7th on phase 2), bleeders 8 x 73.2 k, STK Uref on PC (IL1R-IL4R).
 """
 import json
 import math
@@ -29,7 +30,7 @@ import interfaces as IF
 import port
 import pvcell
 
-REV, DATE = "A1", "2026-10-04"
+REV, DATE = "A2", "2026-10-05"
 PROJECT = {3: "PV-PWR", 4: "PV-PWR-4"}
 DS = "docs/datasheets/"
 OUT = lambda *p: os.path.join(L.REPO, "sim", "out", *p)
@@ -132,7 +133,17 @@ SUP_DIV = (107e3, 10.0e3)                      # +5V -> TPS3710 SENSE: RDY low b
 
 
 DEC_N = spec("decoupling", "count_per_leg")
-BANK_N = spec("capacitors", "port_A", "count")
+BANK_N = spec("capacitors", "port_A", "count")       # per phase and port (cell_spec)
+BANK_XTRA = {3: {"B": 2}}                           # rev A2 (D-056): PV-P75's 7th battery-side capacitor, on phase 2
+
+
+def bank_n(n_ph, t, p):
+    """FCSA3DS456 count of port t ('A' / 'B') at phase p (module_spec costfirst port_film_bank sets the minimum)."""
+    return BANK_N + (1 if BANK_XTRA.get(n_ph, {}).get(t) == p else 0)
+
+
+def bank_total(n_ph, t):
+    return sum(bank_n(n_ph, t, p) for p in range(1, n_ph + 1))
 DAMP_R, DAMP_PAR, DAMP_SER = pvcell.DAMP_R, pvcell.DAMP_PAR, pvcell.DAMP_SER
 DAMP_C = pvcell.DAMP_C                         # (value per element, elements in series)
 HS_PAD = spec("heatsink_insulator")
@@ -171,15 +182,15 @@ def sheet_pc(B, n_ph):
                 "RDY / FLT_N, +5 V supervisor, port status glue, BUS- star points")
     nc = {"NTC4", "NTC8"} | {pwm(4, k) for k in range(1, 5)} if n_ph == 3 else set()
     B.block("PC connector (interfaces.PC), live",
-            "Both boards live: GND = AGND = BUS-. Supplies +24V / +5V / +3V3 go TO the control board. Commands are 3.3 V\n"
-            "logic after the control board's trip latch; every command input is pulled low here (open = off).%s"
-            % ("\nPV-P75: PWM13-16, NTC4 and NTC8 not connected; IL4 pulled to AGND (0 V = no phase 4)." if n_ph == 3
-               else ""))
+            "Both boards live: GND = AGND = BUS-. +3V3 goes TO the control board (rev A2: the former +24V / +5V pins carry\n"
+            "the sensor references IL1R-IL4R). Commands are 3.3 V logic after the control board's trip latch; every command\n"
+            "input is pulled low here (open = off).%s"
+            % ("\nPV-P75: PWM13-16, NTC4 and NTC8 not connected; IL4 and IL4R pulled to AGND (0 V = no phase 4)."
+               if n_ph == 3 else ""))
     pins = IF.pins(IF.PC, rename=PC_RENAME)
     B.part("J_PC", {k: (None if v in nc else v) for k, v in pins.items()})
-    for net in ("+24V", "+5V", "+3V3"):
-        B.C("10u", net, "GND", pkg="1210", volt="50V" if net == "+24V" else "16V")
-        B.C("100n", net, "GND", volt="50V")
+    B.C("10u", "+3V3", "GND", pkg="1210", volt="16V")
+    B.C("100n", "+3V3", "GND", volt="50V")
     B.block("Command inputs: pull-downs and 3.3 -> 5 V buffers (gdrv.input_buffers)",
             "NSI6651 inputs are specified at VCC1 = 5 V only (VINH <= 3.5 V, p7) and the SN6505B EN needs 0.7 VCC: one\n"
             "SN74AHCT1G08 (VIH 2.0 V) per line. Each PWM is ANDed with EN here as well, so a low EN removes every\n"
@@ -207,6 +218,7 @@ def sheet_pc(B, n_ph):
     B.C("1n", "SUP5_SNS", "GND")
     if n_ph == 3:
         B.R("10k", "IL4", "AGND", note="PV-P75 variant code: IL4 = 0 V (a fitted sensor reads >= 0.5 V)")
+        B.R("10k", "IL4R", "AGND", note="PV-P75: no phase-4 sensor reference")
     B.block("Port status to PC: HOLD, MOV_OK, port over-current into FLT_N",
             "HOLD = A_HOLD OR B_HOLD (|I_port| >= 0.97-1.03 kA, contactor held). MOV_OK high only while BOTH varistor\n"
             "monitor loops conduct (each reads 'open' below ~200 V on its port). Port OC (|I| >= 387-413 A, lean_shunt)\n"
@@ -223,7 +235,7 @@ def sheet_pc(B, n_ph):
                                   "(controller ground = BUS-). Layout: gate-drive primaries decoupled to GND locally.")
     B.part("NETTIE", {"1": "AGND", "2": "GND"})
     B.part("NETTIE", {"1": "GND", "2": "BUS-"})
-    for net in ("+24V", "+5V", "+3V3", "GND", "AGND"):
+    for net in ("+5V", "+3V3", "GND", "AGND"):          # +24V no longer on this sheet (rev A2: not on PC)
         B.flag(net)
 
 
@@ -312,25 +324,29 @@ def sheet_power(B, p, st):
         for n1, n2 in ((d2, d3), (d3, "BUS-")):
             for _ in range(DAMP_PAR):
                 B.part("R_DAMP", {"1": n1, "2": n2}, value=gdrv.ohm(DAMP_R))
+    na, nb, n_ph = bank_n(st["n_ph"], "A", p), bank_n(st["n_ph"], "B", p), st["n_ph"]
     B.block("Phase %d share of the port banks" % p,
             "%d x FCSA3DS456 (45 uF) on A_BUS+ and %d on B_BUS+, at this phase's legs: the banks of all phases form the\n"
-            "port A / port B DC links. Bleeders: one string per port on the port sheets." % (BANK_N, BANK_N))
-    for bus in ("A_BUS+", "B_BUS+"):
-        for _ in range(BANK_N):
+            "port A / port B DC links (%d / %d x 45 uF)%s. Bleeders: one string per port on the port sheets."
+            % (na, nb, bank_total(n_ph, "A"), bank_total(n_ph, "B"),
+               ";\nthe third on B_BUS+ is the battery side's seventh (D-056: full-power load rejection)" if nb > BANK_N else ""))
+    for bus, k in (("A_BUS+", na), ("B_BUS+", nb)):
+        for _ in range(k):
             B.part("FILM45", {"1": bus, "2": "BUS-"})
     B.block("Phase %d inductor (chassis, CUSTOM) and current sensor" % p,
             "Lead A from SW_A%d passes the STK-HO/A 75 U-primary (pins 6-9 in, 10-13 out: + = SW_A -> SW_B) to stud\n"
             "L_A%d; lead B on stud SW_B%d. IL%d = 2.5 V + 10.667 mV/A (Vref 2.48-2.52 V), 0.5-4.5 V over +/-187.5 A;\n"
-            "100R + 1 nF at the source. Primary at the switch node: functional barrier (4 kV rms, 8 kV impulse)." %
-            (p, p, p, p))
+            "100R + 1 nF at the source. IL%dR = the sensor's own Uref (pin 4), 100R + 1 nF: PV-CTL references its trip\n"
+            "window to it. Primary at the switch node: functional barrier (4 kV rms, 8 kV impulse)." % (p, p, p, p, p))
     st["iso"].add(B.part("L_PV", {"1": la, "2": sb, "3": "NTC%d" % (4 + p), "4": "AGND", "5": "PE"}, value=MAG_ROW).ref)
     B.part("STUD", {"1": la})
     B.part("STUD", {"1": sb})
     B.part("STK75", dict({str(k): sa for k in range(6, 10)}, **{str(k): la for k in range(10, 14)},
-                          **{"1": "+5V", "2": "AGND", "3": "IL%d_S" % p, "4": None, "5": None}))
+                          **{"1": "+5V", "2": "AGND", "3": "IL%d_S" % p, "4": "IL%dR_S" % p, "5": None}))
     B.C("100n", "+5V", "AGND")
-    B.R("100R", "IL%d_S" % p, "IL%d" % p)
-    B.C("1n", "IL%d" % p, "AGND", diel="C0G", tol="5%")
+    for n in ("IL%d" % p, "IL%dR" % p):
+        B.R("100R", n + "_S", n)
+        B.C("1n", n, "AGND", diel="C0G", tol="5%")
     B.block("Phase %d NTC inputs (NTC to AGND, biased on the control board)" % p,
             "NTC%d = heatsink section of phase %d: lug probe on the EARTHED heatsink, >= 2.5 kV rms lead-to-lug (R-10).\n"
             "NTC%d = inductor winding NTC (functional to the winding). 100 nF at the header against switch-node noise."
@@ -419,7 +435,7 @@ def vranges(n_ph):
     r.update({n: (0.0, V33[1]) for n in ["EN", "BIAS_EN", "RDY", "FLT_N", "HOLD", "MOV_OK", "K_A", "K_B", "K_PRE", "IMD_SW1",
                                          "IMD_SW2"] + ["PWM%d" % k for k in range(1, 17)] + ["NTC%d" % k for k in range(1, 9)]})
     r.update({n: (0.0, V5[1]) for n in ["EN5", "BIAS_EN5", "BIAS_EN5G"] + ["PWM%d_5V" % k for k in range(1, 17)]
-              + ["IL%d" % k for k in range(1, 5)]})
+              + ["IL%d" % k for k in range(1, 5)] + ["IL%dR" % k for k in range(1, 5)]})
     return r
 
 
@@ -430,7 +446,7 @@ def build_design(n_ph):
                            % ("PV-P75" if n_ph == 3 else "PV-P100/110", n_ph),
                   comment1="Live board referenced to BUS-; gate islands functional; SELV winding reinforced; HV-PE basic",
                   comment4="Not bench-validated. Values read from sim/out/*.json; checks: design_check()")
-    st = dict(gd={}, iso=set(), xing=set(), dom={"PE_T": "PE", "PE_D": "PE"})
+    st = dict(gd={}, iso=set(), xing=set(), dom={"PE_T": "PE", "PE_D": "PE"}, n_ph=n_ph)
     sheet_pc(B, n_ph)
     for p in range(1, n_ph + 1):
         sheet_power(B, p, st)
@@ -560,10 +576,11 @@ def domain_for(st):
 # ------------------------------------------------------------------------------------------------ design check
 # Datasheet values used below (document, page). "ASSUMED" marks a value that is not a datasheet or spec number.
 STK = dict(ipn=75.0, ipm=187.5, g=10.667e-3, vref=(2.48, 2.52), voe=10e-3, voe_t=0.015, vfs=0.8, lin=0.005, x_t=0.03,
-           t_res=0.2e-6, bw=1e6, icc=9e-3, vcc=(4.75, 5.25), noise_pp=25e-3, r_out=(15.0, 25.0), ud=4000.0, uw=8000.0,
-           creep=13.78)
+           t_res=0.2e-6, bw=1e6, icc=9e-3, vcc=(4.75, 5.25), noise_pp=25e-3, r_out=(15.0, 25.0), r_ref=(12.0, 20.0),
+           ud=4000.0, uw=8000.0, creep=13.78)
 #   Sinomags STK-HO/A Ver1.5 p5 (STK-HO/A 75): IPN 75 A, IPM +/-187.5 A, Vcc 4.75-5.25 V, Icc <= 9 mA, Vref 2.48-2.52 V,
-#   V_FS 0.8 V at IPN, R_out 15-25 ohm, Voe +/-10 mV, Voe drift +/-1.5 % V_FS, G_th 10.667 mV/A, linearity +/-0.5 % IPN,
+#   V_FS 0.8 V at IPN, R_out 15-25 ohm, R_ref 12-20 ohm (Uref output), Voe +/-10 mV (Vout - Vref at 0 A),
+#   Voe drift +/-1.5 % V_FS, G_th 10.667 mV/A, linearity +/-0.5 % IPN,
 #   t_res 0.2 us, BW 1 MHz, noise 25 mVpp (DC-100 kHz), accuracy +/-3 % IPN -40..105 C; p3: 4 kV rms, 8 kV 1.2/50 us,
 #   creepage = clearance 13.78 mm. STK-HO/A 130 (architecture's pick, p7): IPN 130 A, 6.154 mV/A, linearity 0.7 % IPN.
 STK130 = dict(ipn=130.0, g=6.154e-3, lin=0.007)
@@ -579,7 +596,8 @@ T_IN, T_BOARD, ETA_5V = 45.0, pvcell.T_BOARD, 0.85   # inlet (PV-11/PV-20 rating
 ETA_33 = 0.85                                      # TPS62130 5 -> 3.3 V at 0.1-0.4 A: ASSUMED (SLVSAG7F curves ~0.88-0.92)
 R_SA = {3: 0.06, 4: 0.049}                         # K/W heatsink target incl. air rise (ARCHITECTURE section 9)
 CTL_C33, CTL_C33A = (11.0e-6, 2.9e-6), 2.5e-6     # PV-CTL rev A0 netlist: +3V3 = 10u + 1u (large) + 29 x 100n; +3V3A 2.5 uF
-CTL_IL_LOAD = 39.4e3                              # PV-CTL rev A0: load of each IL line (its x 0.7462 divider)
+CTL_IL_LOAD = 39.4e3                              # PV-CTL rev A1: load of each IL line (its x 0.7462 divider)
+CTL_ILR_LOAD = 39.8e3                             # PV-CTL rev A1: load of each ILnR line (715R + 19.1k + 20.0k trip ladder)
 CTRL_LOAD = {"+3V3": 0.20, "+5V": 0.0, "+24V": 0.0}   # A allocated to the control board (PV-CTL rev A0 draws <= 0.157 A on
 #                                                    +3V3 and nothing from +5V / +24V)
 ECON = port.S["lean"]["coil_economiser"]           # gen/port.py lean_contactor economiser (default on): hold / pull-in
@@ -694,18 +712,25 @@ def design_check(B, n_ph, st):
     # ---- capacitors: banks, decoupling, damper, X / Y
     vmax, c_a = w["port_cap_V_max_V"], spec("capacitors", "port_A")
     assert vmax <= F45["v85"] and port.V_POLE <= 1.15 * F45["v85"], "bank voltage vs 1100 V (85 C) / IEC 61071 1.15 x UN"
-    i_cap = c_a["ripple_worst_Arms"] / BANK_N
+    i_cap = c_a["ripple_worst_Arms"] / BANK_N                            # per-phase worst; the fewest per phase = BANK_N
     assert i_cap <= 0.7 * F45["irms85"], "bank ripple per capacitor above 70 % of Imax (85 C)"
+    fb = MODS["costfirst"]["modules"]["PV-P75" if n_ph == 3 else "PV-P100/110"]["port_film_bank"]
+    n_bank = {t: bank_total(n_ph, t) for t in "AB"}
+    assert all(n_bank[t] >= fb[t]["parts_min"] for t in "AB"), "port film bank below module_spec costfirst parts_min"
     dc = spec("decoupling")
     assert dc["peak_current_per_cap_with_recovery_A"] <= F22["ipk"] and dc["rms_per_cap_A"] <= F22["irms85"]
     assert F22["esl"] / DEC_N <= 8.5e-9 + 0.5e-9 and vmax <= F22["v85"], "decoupling ESL / voltage"
     p_dec = dc["rms_per_cap_A"] ** 2 * F22["esr"]
-    say("caps", "Port banks: %d x FCSA3DS456 45 uF per port per phase (%.0f uF per port): %.0f V max vs 1100 V at 85 C hot spot "
+    say("caps", "Port banks (rev A2): A %d / B %d x FCSA3DS456 45 uF (%s per phase; %.0f / %.0f uF) >= module_spec costfirst "
+        "minimum %d / %d (A: %s; B: %s, load rejection %.1f uF); %.0f V max vs 1100 V at 85 C hot spot "
         "(OV overshoot %.0f V <= 1.15 x 1100 V, IEC 61071); ripple %.1f A rms per capacitor (per-phase worst, no interleaving "
         "credit) = %.0f %% of Imax 22.1 A (85 C). Leg decoupling %d x FCSA3DS225: peak %.1f A (with recovery) vs 176 A, "
         "%.2f A rms vs 3.9 A (85 C, x%.2f), %.2f W per capacitor (%.1f K at 33 K/W); ESL %.1f nH per leg vs the 8.5 nH basis. "
         "OPEN R-08: Jianghai ESL 35 nH (bank) / 25 nH vs KEMET 19 / 24 nH in the leg deck - re-run sim/spice/pv_dpt_leg_dec.cir",
-        BANK_N, n_ph * BANK_N * F45["c"] * 1e6, vmax, port.V_POLE, i_cap, 100 * i_cap / F45["irms85"], DEC_N,
+        n_bank["A"], n_bank["B"], "/".join("%d+%d" % (bank_n(n_ph, "A", q), bank_n(n_ph, "B", q)) for q in range(1, n_ph + 1)),
+        n_bank["A"] * F45["c"] * 1e6, n_bank["B"] * F45["c"] * 1e6, fb["A"]["parts_min"], fb["B"]["parts_min"],
+        fb["A"]["binding"], fb["B"]["binding"], fb["B"]["need_uF"]["load_rejection"], vmax, port.V_POLE, i_cap,
+        100 * i_cap / F45["irms85"], DEC_N,
         dc["peak_current_per_cap_with_recovery_A"], dc["rms_per_cap_A"], F22["irms85"] / dc["rms_per_cap_A"], p_dec,
         p_dec * F22["rth"], F22["esl"] / DEC_N * 1e9)
     dmp = spec("damper")
@@ -780,6 +805,7 @@ def design_check(B, n_ph, st):
     err130 = (STK130["lin"] * STK130["ipn"] + (STK["x_t"] - STK["voe_t"] - STK130["lin"]) * i45) / i45
     assert err <= 0.02, "sensor residual error at 45 A above the +/-2 % sharing figure (ARCHITECTURE 5)"
     zero = (STK["vref"][1] - 2.5 + STK["voe"] + STK["voe_t"] * STK["vfs"]) / STK["g"]
+    zero_r = (STK["voe"] + STK["voe_t"] * STK["vfs"]) / STK["g"]              # against the sensor's own Uref (ILnR)
     noise = STK["noise_pp"] / STK["g"]
     N.update(t_s=t_s, err=err, zero=zero)
     say("isense", "Inductor current: STK-HO/A 75 per phase (architecture: HO/A 130), %.3f mV/A around Vref 2.48-2.52 V; linear "
@@ -787,12 +813,13 @@ def design_check(B, n_ph, st):
         "delay 0.2 us + RC %.2f us = %.2f us vs <= %.2f us (CMPSS backup) and %.2f us (local OC); BW %.0f kHz >= %.0f kHz. "
         "After 2-point calibration + idle re-zero: linearity %.2f A + gain drift <= %.1f %% (3 %% - 1.5 %% offset - 0.5 %% "
         "linearity, not separated in the data sheet) = %.2f %% at %.0f A <= 2 %% sharing (HO/A 130: %.2f %%); control_spec "
-        "gain 0.83 %% met at 25 C only. Uncalibrated zero +/-%.1f A (Vref + Voe + drift): fixed-threshold OC windows must "
-        "come from a DAC trimmed at idle. Noise 25 mVpp = %.1f A pp per sample (R-07). Primary at the switch node: 4 kV rms, "
+        "gain 0.83 %% met at 25 C only. Uncalibrated zero +/-%.1f A against a fixed reference (Vref + Voe + drift), +/-%.1f A "
+        "against the sensor's own Uref (Voe + drift): the fixed-threshold OC window of PV-CTL rev A1 is set from ILnR. "
+        "Noise 25 mVpp = %.1f A pp per sample (R-07). Primary at the switch node: 4 kV rms, "
         "8 kV impulse, 13.8 mm; PD and dv/dt immunity not stated (R-07, bench)", STK["g"] * 1e3, STK["ipm"],
         max(cc["range_A"]), oc["ctrl_backup"]["band_A"][1], i_pk, i_sat, i_rms, STK["ipn"], rc_ * 1e6, t_s * 1e6,
         cc["group_delay_us_max"], oc["local"]["max_response_us"], bw / 1e3, cc["bandwidth_kHz_min"],
-        STK["lin"] * STK["ipn"], drift * 100, err * 100, i45, err130 * 100, zero, noise)
+        STK["lin"] * STK["ipn"], drift * 100, err * 100, i45, err130 * 100, zero, zero_r, noise)
 
     # ---- port current paths (gen/port.py lean_shunt) for the PC levels and the port OC trip
     r_sh = port.S["lean"]["shunt"]["R_ohm"]
@@ -820,15 +847,19 @@ def design_check(B, n_ph, st):
         c = sum(F45["c"] for p_ in parts if key(p_) == "FILM45" and p_.pins["1"] == bus) + \
             sum(F22["c"] for p_ in parts if key(p_) == "FILM2U2" and p_.pins["1"] == bus)
         r = 1 / (1 / r_bl + 1 / r_div)
-        tmin.append((bank, c, r * c * math.log(V_OVP / 60.0) / 60.0, r_bl * c * math.log(V_OVP / 60.0) / 60.0))
+        r_wc = 1 / (1 / (r_bl * 1.01) + 1 / r_div)                # R +1 %, C +10 % (K), from the OV overshoot pole voltage
+        tmin.append((bank, c, r * c * math.log(V_OVP / 60.0) / 60.0, r_bl * c * math.log(V_OVP / 60.0) / 60.0,
+                     r_wc * c * 1.1 * math.log(port.V_POLE / 60.0) / 60.0))
     v_el = port.V_POLE / bl["n"]
     p_el = v_el ** 2 / bl["R_elem_ohm"]
     p_lim = 0.5 * (155.0 - T_BOARD) / (155.0 - 70.0)          # 1210 thick film 0.5 W at 70 C, linear to 155 C (R_PKG)
-    assert all(t[3] <= LABEL_MIN[n_ph] for t in tmin) and v_el <= 200.0 and p_el <= p_lim, "bleeder"
+    assert all(t[3] <= LABEL_MIN[n_ph] and t[4] <= LABEL_MIN[n_ph] for t in tmin) and v_el <= 200.0 and p_el <= p_lim, \
+        "bleeder"
     say("bleed", "Bleeders (port.lean_bleeder): %d x %s 1210 per port = %s; %s; element %.0f V at %.0f V (200 V working) and "
         "%.3f W vs %.2f W derated to %.0f C (1000 V: %.3f W); label 'wait %.0f min'", bl["n"], gdrv.ohm(bl["R_elem_ohm"]),
-        gdrv.ohm(r_bl), "; ".join("port %s %.0f uF: 1100 -> 60 V in %.1f min (bleeder alone %.1f min, with the 6 M divider %.1f)"
-                                   % (b, c * 1e6, t1, t1, t0) for b, c, t0, t1 in tmin),
+        gdrv.ohm(r_bl), "; ".join("port %s %.1f uF incl. decoupling: 1100 -> 60 V in %.1f min (bleeder alone %.1f min, with "
+                                   "the 6 M divider %.1f); worst case (R +1 %%, C +10 %%, divider, from %.0f V) %.1f min"
+                                   % (b, c * 1e6, t1, t1, t0, port.V_POLE, t2) for b, c, t0, t1, t2 in tmin),
         v_el, port.V_POLE, p_el, p_lim, T_BOARD, (1000.0 / bl["n"]) ** 2 / bl["R_elem_ohm"], LABEL_MIN[n_ph])
 
     # ---- supply budgets: +5V / +5V_GD (LMR38020 2 A), +3V3 (TPS62130 3 A, from +5V_GD), live +24V against the aux block
@@ -953,21 +984,26 @@ def design_check(B, n_ph, st):
         gdrv.farad(SS33), up[0] / 1e3, up[1] / 1e3, i_lo5, i_in, c_lo * 1e6, c_hi * 1e6, sum(c_my) * 1e6,
         (CTL_C33[0] + CTL_C33[1]) * 1e6, CTL_C33A * 1e6, gdrv.ohm(R_DIS33), dn[0] / 1e3, dn[1] / 1e3, V33[1], s33 * 1e3)
 
-    # ---- loads the control board (PV-CTL rev A0) puts on this board's outputs
+    # ---- loads the control board (PV-CTL rev A1) puts on this board's outputs
     v_rdy = V33[0] * 100e3 / (100e3 + 4.99e3 * 1.01)
     v_mov = V33[0] * 100e3 / (100e3 + 10e3 * 1.01)
     i_flt = V33[1] / (4.99e3 * 0.99)
     r_src = (STK["r_out"][0] + 99.0, STK["r_out"][1] + 101.0)
     g_il = [CTL_IL_LOAD / (CTL_IL_LOAD + r) for r in r_src]
+    r_srf = (STK["r_ref"][0] + 99.0, STK["r_ref"][1] + 101.0)
     assert v_rdy >= 2.0 + 0.5 and v_mov >= 2.0 + 0.5 and i_flt <= 5e-3 and 4.5 / CTL_IL_LOAD <= 1e-3, "PC loads"
+    assert STK["vref"][1] / CTL_ILR_LOAD <= 0.1e-3, "Uref load above 0.1 mA (no drive rating published: kept small)"
     N["il_gain"] = g_il
-    say("ctlload", "Loads from the control board (PV-CTL rev A0): FLT_N 4.99k pull-up there -> %.2f mA into the NSI6651 / "
+    say("ctlload", "Loads from the control board (PV-CTL rev A1): FLT_N 4.99k pull-up there -> %.2f mA into the NSI6651 / "
         "BSS138BK open drains (VOL <= 0.3 V at 5 mA); RDY 4.99k here vs 100k pull-down there -> high >= %.2f V (VIH 2.0 V); "
         "MOV_OK 10k here vs 100k -> high >= %.2f V; HOLD push-pull into 100k; each IL line into %.1f kOhm: source %.0f-%.0f "
         "ohm (sensor R_out 15-25 + 100R) -> gain x%.4f-x%.4f (-%.2f..-%.2f %%, removed by the 2-point calibration; spread "
-        "%.3f %%), zero 2.50 V -> %.3f V (re-zeroed at idle), drive <= %.2f mA", i_flt * 1e3, v_rdy, v_mov,
+        "%.3f %%), zero 2.50 V -> %.3f V (re-zeroed at idle), drive <= %.2f mA; each ILnR line into %.1f kOhm (trip ladder): "
+        "source %.0f-%.0f ohm (sensor R_ref 12-20 + 100R), <= %.0f uA from Uref (drive capability not published: ASSUMED "
+        "fine at this level)", i_flt * 1e3, v_rdy, v_mov,
         CTL_IL_LOAD / 1e3, r_src[0], r_src[1], g_il[1], g_il[0], 100 * (1 - g_il[0]), 100 * (1 - g_il[1]),
-        100 * (g_il[0] - g_il[1]), 2.5 * g_il[1], 4.5 / CTL_IL_LOAD * 1e3)
+        100 * (g_il[0] - g_il[1]), 2.5 * g_il[1], 4.5 / CTL_IL_LOAD * 1e3, CTL_ILR_LOAD / 1e3, r_srf[0], r_srf[1],
+        STK["vref"][1] / CTL_ILR_LOAD * 1e6)
 
     # ---- IA / IB bandwidth (gen/port.py lean_shunt: G 30 amplifier, feedback R || C)
     bw = []
@@ -1028,14 +1064,19 @@ def design_check(B, n_ph, st):
         "IL1-%d OUT: 2.50 V (2.48-2.52) + 10.667 mV/A (+ = SW_A -> SW_B), +/-100 A = 1.43-3.57 V, sensor swing 0.5-4.5 V, "
         "source 15-25 ohm + 100 ohm, 1 nF; NOT ratiometric; the control AFE must scale/clamp to its 3.3 V ADC (gain ~1.45 "
         "about 2.5 V -> 0.052 A/LSB)%s" % (n_ph, "; IL4 = 0 V on PV-P75 (variant code)" if n_ph == 3 else ""),
+        "IL1R-%dR OUT: sensor reference Uref %.2f-%.2f V (STK pin 4; ILn - ILnR = %.0f +/- %.0f mV at 0 A + 10.667 mV/A), "
+        "source %.0f-%.0f ohm (R_ref + 100R), 1 nF; PV-CTL rev A1 takes its IL trip thresholds from it%s"
+        % (n_ph, STK["vref"][0], STK["vref"][1], 0.0, STK["voe"] * 1e3, STK["r_ref"][0] + 99.0, STK["r_ref"][1] + 101.0,
+           "; IL4R = 0 V on PV-P75" if n_ph == 3 else ""),
         "IA, IB OUT: OPA2388, VMID %.3f-%.3f V + 3.0 mV/A (I into the module at the port's - terminal), linear +/-%.0f A; "
         "IA_H, IB_H: VMID + 1.0 mV/A, +/-%.0f A" % (vmid[0], vmid[1], lin_im, lin_ih),
         "VA, VB OUT (bank side): VMID + V/1203 (OPA2388); VAX, VBX (terminal side, bipolar), VPE (PE vs BUS-): VMID +/- "
         "V/1203; 1144 V = 0.951 V above VMID",
         "NTC1-%d (heatsink) / NTC5-%d (inductors): NTC 10 k to AGND + 100 nF here; the control board biases and reads them"
         "%s" % (n_ph, 4 + n_ph, "; NTC4 / NTC8 open on PV-P75" if n_ph == 3 else ""),
-        "Supplies OUT: +24V (2 pins), +5V (2 pins), +3V3 (1 pin), 3 A per pin; control board allocation %.0f / %.0f / "
-        "%.0f mA" % (CTRL_LOAD["+24V"] * 1e3, CTRL_LOAD["+5V"] * 1e3, CTRL_LOAD["+3V3"] * 1e3)]
+        "Supplies OUT: +3V3 (1 pin, 3 A); +24V / +5V are no longer on PC (rev A2: pins 1-2 / 5-6 carry IL1R-IL4R); "
+        "control board allocation %.0f / %.0f / %.0f mA" % (CTRL_LOAD["+24V"] * 1e3, CTRL_LOAD["+5V"] * 1e3,
+                                                             CTRL_LOAD["+3V3"] * 1e3)]
     for k, line in enumerate(lvl):
         say("pc%02d" % k, "PC: %s", line)
     assert n_od <= 20 and V33[1] / 4.99e3 <= 5e-3, "open-drain loading"
@@ -1061,11 +1102,11 @@ def design_check(B, n_ph, st):
     for bus in ("A_BUS+", "B_BUS+"):
         n45 = sum(1 for p_ in parts if key(p_) == "FILM45" and p_.pins["1"] == bus)
         n22 = sum(1 for p_ in parts if key(p_) == "FILM2U2" and p_.pins["1"] == bus)
-        assert (n45, n22) == (BANK_N * n_ph, DEC_N * n_ph), "%s bank %d + decoupling %d" % (bus, n45, n22)
+        assert (n45, n22) == (bank_total(n_ph, bus[0]), DEC_N * n_ph), "%s bank %d + decoupling %d" % (bus, n45, n22)
     assert cnt("NSI6651ASC") == n_ch and cnt("T_BIAS4") == n_ph and cnt("STK75") == n_ph and cnt("SN6505B") == n_ph
     say("draw", "Drawing = spec: %d phases, %d x SG2M040170HJ, Ron/Roff %g/%g ohm on every gate, %d + %d bank capacitors, %d "
         "+ %d decoupling, %d NSI6651, %d T_BIAS4, %d STK-HO/A 75; pending PC nets: %s", n_ph, 8 * n_ph, R_GATE[0], R_GATE[1],
-        BANK_N * n_ph, BANK_N * n_ph, DEC_N * n_ph, DEC_N * n_ph, n_ch, n_ph, n_ph, ", ".join(st["todo"]) or "none")
+        bank_total(n_ph, "A"), bank_total(n_ph, "B"), DEC_N * n_ph, DEC_N * n_ph, n_ch, n_ph, n_ph, ", ".join(st["todo"]) or "none")
     return out, N
 
 

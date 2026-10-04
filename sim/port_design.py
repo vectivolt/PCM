@@ -1806,8 +1806,10 @@ FA = dict(In=250.0, i_min=1250.0, icu=50e3, i2t_pre=5270.0, i2t_clr=85.2e3, p07=
           kt=[(40, 0.907), (50, 0.852), (60, 0.798), (65, 0.772), (70, 0.744), (80, 0.689)])
 LEAN = dict(r_sh=100e-6, sh_tol=0.01, sh_tcr=150e-6, dT_sh=80.0, g_hold=10.0, r_tol=0.001, ref_tol=0.002,
             ref_tc=15e-6, cmp_vos=6.5e-3, i_hold=1000.0, i_oc=400.0, v_pol=200.0, dv_win=10.0, g_dv=20.0,
-            n_bl=8, r_bl=82.5e3, r_bl_tol=0.01, c_tol=0.10, c_bank={3: 270e-6, 4: 360e-6}, label_min={3: 10, 4: 15},
+            n_bl=8, r_bl=73.2e3, r_bl_tol=0.01, c_tol=0.10, c_bank={3: 315e-6, 4: 360e-6}, label_min={3: 10, 4: 15},
             r_pre=220.0, t_relay=30e-3, isc_pv={135: 1.25 * 135, 180: 1.25 * 180})
+# c_bank = battery-side film bank as drawn (D-056: PV-PWR rev A2 7 x 45 uF, PV-PWR-4 8 x 45 uF); the bleeder went from 8 x 82.5 k
+# to 8 x 73.2 k with the seventh capacitor (82.5 k: 10.2 min worst case); gen/pv_power.py adds the leg decoupling on the board
 
 
 # HFE82V-300C coil (Hongfa-HFE82V-300C.pdf p1 table at 23 C, 24 V coil): pick-up <= 18 V, drop-out >= 2 V, 6 W
@@ -1959,8 +1961,8 @@ def lean(sg):
          "%.1f V | shorted bank: %.1f kW, %.0f J to the abort at 1.1 tau + relay |" %
          (n, L["c_bank"][n] * 1e6, d["tau"] * 1e3, d["t_done"], d["E"], d["i_pk"], dv_band[1], d["P_short"] / 1e3, d["E_short"])
          for n, d in pre.items()] + [
-        "| bleeder %d phases | %.1f min to 60 V worst case (8 x 82.5 k, label %d min); 800 k: %.1f min | R +1 %%, C +10 %%, from "
-        "%.0f V, divider in parallel; %.2f W at 1000 V |" % (n, d["t60_min"], L["label_min"][n], d["t60_800k_min"],
+        "| bleeder %d phases | %.1f min to 60 V worst case (%d x %.1f k, label %d min); 800 k: %.1f min | R +1 %%, C +10 %%, from "
+        "%.0f V, divider in parallel; %.2f W at 1000 V |" % (n, d["t60_min"], L["n_bl"], L["r_bl"] / 1e3, L["label_min"][n], d["t60_800k_min"],
                                                           a["A_V_TRIP_OS"], d["P_bleed_W"]) for n, d in pre.items()] + [
         "| contactor coil economiser (both ports) | hold %.2f W at 24 V (coil %.2f W), %.2f W max at 26.45 V; full drive "
         "%.1f / %.1f W | R_h 4 x 37.4 ohm 2512 bypassed for %.0f-%.0f ms by a PMV30ENEA (RC from the coil feed) |" %
@@ -2008,9 +2010,9 @@ def lean(sg):
         "1 ms - not at the architecture's 3 ms; making at 1000 V (K_A closing on an empty bank) - only 140 A / 20 V is "
         "published; the HPE501's L/R, let-through peak and DC curve conditions; the 180 A port's fuse loading (needs Hongfa's "
         "reading of Kt vs the 75 %% rule). **Disagree:** 800 kOhm bleeders reach 60 V only after %.1f min worst case (3 "
-        "phases) - 8 x 82.5 k gives %.1f min; and a port over-current trip (%.0f A) is needed, or a battery-fed fault "
-        "of 250 A-0.95 kA reaches the aR link's partial range." % (n_at_band, pre[3]["t60_800k_min"], pre[3]["t60_min"],
-                                                                  L["i_oc"])]
+        "phases) - %d x %.1f k gives %.1f min; and a port over-current trip (%.0f A) is needed, or a battery-fed fault "
+        "of 250 A-0.95 kA reaches the aR link's partial range." % (n_at_band, pre[3]["t60_800k_min"], L["n_bl"], L["r_bl"] / 1e3,
+                                                                  pre[3]["t60_min"], L["i_oc"])]
     res["spec"] = {
         "contactor": {"mpn": "HFE82V-300C/1000-24-H-C5-1", "mfr": "Hongfa", "I_open_normal_max_A": c["i_norm"],
                       "hold_off_band_A": [round(x) for x in band], "openings_at_band_top": round(n_at_band, 1),

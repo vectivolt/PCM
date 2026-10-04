@@ -117,6 +117,10 @@ def build_boards():
 
 def roll_up(module, boards):
     """Sum the fitted (non-DNP) lines of each board BOM times its quantity; identical parts merge into one line."""
+    kept = os.path.join(REPO, "bom", module + "_module_BOM.csv")
+    if module in CELLS and os.path.exists(kept):    # frozen platform: its fan came from the earlier thermal run,
+        print("%-12s frozen: %s kept" % (module, os.path.relpath(kept, REPO)))    # which module_spec.json no longer holds
+        return True
     lines = defaultdict(lambda: defaultdict(int))
     for board, n in boards.items():
         path = os.path.join(REPO, "bom", board + "_BOM.csv")

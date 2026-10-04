@@ -3,7 +3,7 @@
 Run:  .venv/bin/python sim/pv_module.py      (needs sim/out/pv_design/cell_spec.json from sim/pv_design.py)
 Out:  sim/out/pv_design/{module_spec.json, module_report.md, module_*.png, module_*.csv}
 
-As built (docs/requirements/ARCHITECTURE-COSTFIRST.md, hardware/PV-PWR rev A1 / PV-PWR-4, hardware/PV-CTL rev A0): all phases on
+As built (docs/requirements/ARCHITECTURE-COSTFIRST.md, hardware/PV-PWR rev A2 / PV-PWR-4, hardware/PV-CTL rev A1): all phases on
 ONE earthed extrusion with AlN pads, three 120 mm Delta fans for both builds, one 75 W flyback (sim/out/aux_hv_design/aux75_spec.json)
 feeding gate bias, logic, contactor coils and fans, the lean port of port_spec.json (PV port: one contactor, no fuse; battery
 port: contactor + two 250 A aR links), no separate control/system boards.  Adds to the cell model (sim/pv_design.py) the port
@@ -13,6 +13,7 @@ ambient/altitude derating and one-fan-failed.  Calculated, not measured; estimat
 import json
 import math
 import os
+import re
 import sys
 
 import numpy as np
@@ -71,7 +72,7 @@ LEAN_I_B = {3: 135.0, 4: 145.0}  # A battery-port limit: 135 A passes at 65 C fu
 R_CONTACT = 0.2e-3       # ohm HFE82V contact resistance max at 250 A (Hongfa-HFE82V-300C.pdf p.1)
 R_SHUNT = 0.1e-3         # ohm port shunt (port_spec lean shunt: 2 x 200 uOhm)
 R_BUSBAR = 0.30e-3       # ohm busbars + lugs per port (port report A_R_LOOP_X 0.65 less contactor 0.25 and shunt 0.1; ESTIMATE)
-R_VMON, R_BLEED, R_DIV = 990e3, 660e3, 6e6   # varistor monitor loop and bleeder per port (PV-PWR); dividers 6 M (ASSUMPTION, PV-PWR
+R_VMON, R_DIV = 990e3, 6e6   # varistor monitor loop per port (PV-PWR); dividers 6 M (ASSUMPTION, PV-PWR
                                              # quotes 'the 6 M divider'): terminal x2 and PE always, bank x2 with the banks charged
 P_BIAS = 3.0             # W per phase gate-drive bias at the 5 V rail (coordinator; PV-PWR worst raw 3.11 W)
 P_LOGIC5 = 11.4 - 3 * 3.11   # W at the 5 V output besides gate bias, incl. 3.3 V and the control board (PV-PWR live budget, maxima)
@@ -92,6 +93,15 @@ AUX = json.load(open(AUX_SPEC))
 LEAN = json.load(open(PORT_SPEC))["lean"]
 R_FUSE = LEAN["battery_fuse"]["loss_W_per_link"]["135"] / 135.0 ** 2      # ohm per aR link (21.4 W at 135 A)
 R_PORT_A = R_CONTACT + R_SHUNT + R_BUSBAR
+R_BLEED = LEAN["bleeder"]["n"] * LEAN["bleeder"]["R_elem_ohm"]          # bleeder per port as drawn (port_spec lean, PV-PWR)
+PWR_CHECK = {3: "hardware/PV-PWR/outputs/PV-PWR_design_check.txt", 4: "hardware/PV-PWR-4/outputs/PV-PWR-4_design_check.txt"}
+
+
+def drawn_bank(n):
+    """FCSA3DS456 count per port as drawn: the PV-PWR / PV-PWR-4 design check ('Port banks ...: A a / B b x FCSA3DS456')"""
+    m = re.search(r"Port banks[^:]*: A (\d+) / B (\d+) x FCSA3DS456", open(os.path.join(ROOT, PWR_CHECK[n])).read())
+    assert m, "port film bank count not found in " + PWR_CHECK[n]
+    return {"A": int(m.group(1)), "B": int(m.group(2))}
 R_PORT_B = R_PORT_A + 2 * R_FUSE
 
 
@@ -345,6 +355,7 @@ def bank_study(des, n, f_cv):
     l45 = tr.inductor_L(des["ind"], tr.I_MAX)
     q_l = n * l45 * tr.I_MAX ** 2 / (2 * pdz.OV_HW[1])                  # inductor energy into port B after the gates are off
     i_lr = min(n * tr.I_MAX, LEAN_I_B[n])
+    drawn = drawn_bank(n)
     out = {}
     for port in "AB":
         rr = [r for r in rows if r["port"] == port]
@@ -354,7 +365,7 @@ def bank_study(des, n, f_cv):
             for tag, v_trip in (("load_rejection", pdz.OV_HW[1]), ("load_rejection_at_1100V_nominal", 1100.0)):
                 need[tag] = (i_lr * pdz.OV_HW[2] + q_l) / (V_OV_LIMIT - v_trip)
         n_min = max(math.ceil(c / c1 - 1e-6) for k, c in need.items() if k != "load_rejection_at_1100V_nominal")
-        x = {"need_uF": {k: round(v * 1e6, 1) for k, v in need.items()}, "parts_min": n_min, "parts_today": 2 * n,
+        x = {"need_uF": {k: round(v * 1e6, 1) for k, v in need.items()}, "parts_min": n_min, "parts_today": drawn[port],
              "C_min_uF": n_min * c1 * 1e6, "binding": max((k for k in need if k != "load_rejection_at_1100V_nominal"), key=need.get),
              "i_rms_ac_max_A": round(max(r["irms_ac"] for r in rr), 1)}
         if port == "B":   # OV response that would let the bank fall to the ripple / voltage-ripple minimum
@@ -363,7 +374,7 @@ def bank_study(des, n, f_cv):
             x["parts_with_that_response"] = round(c_other / c1)
             v_b = 550.0                                       # CPL pole at the low end of the full-power window, for the record
             p_b = min(n * tr.p_limit(v_b, v_b), LEAN_I_B[n] * v_b)
-            x["cpl_pole_Hz_at_550V"] = {"today": round(p_b / (2 * math.pi * v_b ** 2 * 2 * n * c1), 0),
+            x["cpl_pole_Hz_at_550V"] = {"today": round(p_b / (2 * math.pi * v_b ** 2 * drawn["B"] * c1), 0),
                                         "minimum": round(p_b / (2 * math.pi * v_b ** 2 * n_min * c1), 0), "f_cv_Hz": f_cv}
         out[port] = x
     out["saving_usd"] = round(sum(out[p_]["parts_today"] - out[p_]["parts_min"] for p_ in "AB") * usd1, 1)
@@ -658,8 +669,9 @@ def write_outputs(res, fan_rows, choice, des, cell_spec, plt, ind_used, fsw):
             "derating_pessimistic_sea_level": [round(x, 3) for x in r["sens"][0]],
             "derating_pessimistic_3000m": [round(x, 3) for x in r["sens"][1]],
             "one_fan_failed_fraction_45C": {"flap": r["der"]["1 fan failed (flap)"][4], "no flap": r["der"]["1 fan failed (no flap)"][4]},
-            "bus_capacitance_uF": {"port_A": n * 2 * 45.0, "port_B": n * 2 * 45.0, "port_X_caps_uF": None,
-                                   "note": "PV-PWR: 2 x FCSA3DS456 45 uF per port per phase on the common bus (no separate port-board X caps)"},
+            "bus_capacitance_uF": {"port_A": drawn_bank(n)["A"] * 45.0, "port_B": drawn_bank(n)["B"] * 45.0, "port_X_caps_uF": None,
+                                   "note": "PV-PWR: FCSA3DS456 45 uF on the common bus as drawn (design check 'Port banks'; PV-P75 rev "
+                                           "A2: 6 + 7, the 7th on phase 2, D-056); no separate port-board X caps"},
             "standby_W_estimate": round(r["standby"], 1),
             "port_current_limit_fraction_vs_inlet": [round(port_frac(n, t), 3) for t in r["temps"]],
             "rs3_2415d_cell_board_supply": {"superseded": "no cell boards in the cost-first build (D-044): the LA 150-P and its RS3-2415D "
@@ -685,7 +697,7 @@ def write_outputs(res, fan_rows, choice, des, cell_spec, plt, ind_used, fsw):
 
 def costfirst_block(res, des, cell_spec, ind_used, fsw):
     """everything new for the cost-first build (D-044..D-052) in one place for sim/compare_megarevo.py"""
-    cf = {"basis": ("ARCHITECTURE-COSTFIRST sec. 9; hardware/PV-PWR rev A1 / PV-PWR-4 and PV-CTL rev A0 design checks; port_spec "
+    cf = {"basis": ("ARCHITECTURE-COSTFIRST sec. 9; hardware/PV-PWR rev A2 / PV-PWR-4 and PV-CTL rev A1 design checks; port_spec "
                     "lean; aux75_spec; calculated, not measured"),
           "superseded_keys": ("modules.* efficiency, losses, airflow, fan, noise, derating, standby_W_estimate (now: contactors held, "
                               "1000 V), port_current_limit_fraction_vs_inlet (lean, flat), bus_capacitance_uF, port_variant, fan.*, "
@@ -895,7 +907,8 @@ if __name__ == "__main__":
               f"worst combo {r['worst_combo']*100:.0f}%")
         bk = e["port_film_bank"]
         print(f"  bank: A min {bk['A']['parts_min']} ({bk['A']['binding']}), B min {bk['B']['parts_min']} ({bk['B']['binding']}), "
-              f"today {bk['A']['parts_today']} per port; saving {bk['saving_usd']} USD; B needs {bk['B']['need_uF']}; OV response for "
+              f"today A {bk['A']['parts_today']} / B {bk['B']['parts_today']}; saving {bk['saving_usd']} USD; "
+              f"B needs {bk['B']['need_uF']}; OV response for "
               f"{bk['B']['parts_with_that_response']} parts: {bk['B']['ov_response_for_that_us']} us")
     for x in fsw:
         print(f"  fsw {x['fsw_kHz']:.0f} kHz: ind {x['inductor_usd_per_phase']} USD, loss@peak {x['loss_at_peak_point_W']} W, peak "

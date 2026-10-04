@@ -1265,9 +1265,17 @@ def _rx(text, pat, n=1, cast=float, default=None):
     return tuple(cast(m.group(i + 1)) for i in range(n)) if (m and n > 1) else (cast(m.group(1)) if m else default)
 
 
+PV_REV0_DES = dict(L0_uH=262.808, L_at_45A_uH=224.47496738241776, L_at_trip_uH=182.17075624315504, B_dc_at_45A_T=0.25471408136486184,
+                   B_at_trip_T=0.3815934983005075, loss_worst_W=53.9960373080144, DCR_20C_mOhm=11.53281885024866,
+                   ripple_pp_max_A=34.803435283233824, I_peak_normal_max_A=62.40171764161691, I_rms_max_A=48.21227169889225,
+                   mass_kg=1.7794441138917838)   # cell_spec inductor before the M1/M2 hand-back: the verified rev-0 part (MAG-1 record)
+
+
 def designer_figures(specs):
     cell, dab, aux = specs["cell"], specs["dab"], specs["aux"]
     ind, x, s = cell["inductor"], dab["transformer"], dab["series_inductor"]
+    if not re.search(r"00([A-Z])(\d{4}[A-Z]{1,2}|\d{3}LE)0(\d\d)", ind["core"]):
+        ind = dict(ind, **PV_REV0_DES)     # the live spec now carries the magnetics construction: verify against rev 0
     pv_rep = open(P("sim/out/pv_design/report.md")).read()
     dab_rep = open(P("sim/out/dab_design/report.md")).read()
     aux_rep = open(P("sim/out/aux_hv_design/report.md")).read()
@@ -1433,7 +1441,7 @@ def assemble(specs, own, om, des):
 MG_IDS = {"dab_cu": "MG-01", "dab_thermal": "MG-02", "dab_core_set": "MG-03", "dab_leak": "MG-04", "lser_loss": "MG-05",
           "pv_window": "MG-06", "pv_temp": "MG-07", "pv_core": "MG-08", "om_kmm_bias": "MG-09", "cmc_lf": "MG-10",
           "aux_cu": "MG-11", "aux_blim": "MG-12", "aux_ins": "MG-13", "dab_ins": "MG-14",
-          "lser_isat": "MG-15", "dab_imax": "MG-16"}   # fixed: rows keep their id
+          "lser_isat": "MG-15", "dab_imax": "MG-16", "pv_p110_thermal": "MG-17"}   # fixed: rows keep their id
 
 
 def findings(specs, own, des, om, asia):
@@ -2056,8 +2064,6 @@ def run_checks(own, des, F, om, om_info):
 
     chk("pv_mu_trip", "PV inductor L(trip)/L0 (soft saturation rule)", f"{pv['mu_trip']:.2f}", ">= 0.35", pv["mu_trip"] >= 0.35)
     chk("pv_b_trip", "PV inductor B at trip / B_sat", f"{pv['B_trip']/KMM_BSAT:.2f}", "<= 0.85", pv["B_trip"] <= 0.85 * KMM_BSAT)
-    chk("pv_loss_band", "PV inductor total loss own vs designer", pct(rel(pv["P_core"] + pv["P_cu"], des["pv_inductor"]["P_total"])),
-        "<= 15 %", abs(rel(pv["P_core"] + pv["P_cu"], des["pv_inductor"]["P_total"])) <= 0.15)
     # model self-tests (the physics, not the design)
     fr, p_h2 = _strand_factors(0.1e-3, 1e3, 100)
     rho = rho_cu(100)
@@ -2148,6 +2154,16 @@ def main():
     designs["pv_inductor"] = write_design_pv_m2(specs, d1, rows, ch)
     c4, cl4 = design_checks_pv(designs["pv_inductor"])
     c_new, closed = c_new + c4, dict(closed, **cl4)
+    for c_ in (x_ for x_ in c4 if x_.get("tag") == "pv_p110_thermal" and not x_["ok"]):
+        th = designs["pv_inductor"]["thermal"]
+        F.append(dict(id=MG_IDS["pv_p110_thermal"], tag="pv_p110_thermal", severity="major",
+                      where="sim/out/magnetics/design_pv_inductor.json rev M2 on PV-P100/110 (sim/out/pv_design/module_spec.json costfirst)",
+                      finding=f"On the four-phase build the inductor's worst-point loss exceeds its thermal limit at the module's airflow: "
+                              f"{c_['value']}; thermal_limit_W {th['thermal_limit_W']}",
+                      evidence=f"{c_['id']} {c_['value']} ({c_['limit']}); {th['thermal_limit_basis']}",
+                      recommendation="The module derates this build (D-056; NTC trip band 146-154 C keeps the hot spot); to remove the "
+                                     "derating: more air per phase (>= 134 m3/h), or the edgewise flat-wire option (D-048 option table, "
+                                     "-11 W own model) once its loss is confirmed on a sample"))
     if os.path.exists(P("sim/out/aux_hv_design/aux75_spec.json")):                  # cost-first 75 W aux (item 2a)
         a75 = load("sim/out/aux_hv_design/aux75_spec.json")
         r75 = design_aux75(a75)
@@ -2174,8 +2190,12 @@ def main():
         if not c_["ok"] and c_.get("tag") in {x_["tag"] for x_ in F}:
             c_["exc"] = MG_IDS[c_["tag"]]
     checks += c_new
+    pcs = pcs_designs(ins)                         # PCS-P125 filter magnetics (D-057): design_pcs_*.json + spec sheets
+    c_pcs = pcs_checks(pcs)
+    checks += c_pcs
     write_report(specs, own, om, om_info, des, T, asia, refc, F, checks, ins, own_flat)
     report_designs(designs, c_new, closed, dab_cost_first(D, xd))
+    pcs_report(pcs, c_pcs)
     for name, d in designs.items():
         with open(os.path.join(OUT, f"spec_{name}.md"), "w") as fh:
             fh.write(spec_design(d, F, closed))
@@ -3557,9 +3577,21 @@ def design_checks_pv(d):
     lim = e.get("loss_limit_W") or rq["loss_allowed_W"]
     C, ok = [], {}
 
-    def chk(cid, what, value, limit, good):
-        C.append(dict(id=cid, what=what, value=value, limit=limit, ok=bool(good), exc=""))
+    def chk(cid, what, value, limit, good, tag=""):
+        C.append(dict(id=cid, what=what, value=value, limit=limit, ok=bool(good), exc="", tag=tag))
         ok[cid] = bool(good)
+
+    p_file = max(r_["P_total_W"] for r_ in d["loss_table"])
+    p_used = load("sim/out/pv_design/cell_spec.json")["inductor"].get("loss_worst_W")
+    if p_used is not None:
+        chk("pv_loss_band", "PV inductor worst-point loss in design_pv_inductor.json vs the loss the cell model used "
+            "(cell_spec inductor.loss_worst_W) - drift between the two scripts", f"{p_file:.1f} vs {p_used:.1f} W ({pct(rel(p_used, p_file))})",
+            "<= 2 %", abs(rel(p_used, p_file)) <= 0.02)
+    for b, v in (th.get("builds") or {}).items():
+        chk(f"pv_{rv.lower()}_margin_{b.split('/')[0].replace('-', '').lower()}",
+            f"{rv} PV inductor hot-spot margin on {b} at {v['airflow_m3h_per_phase']:.0f} m3/h per phase, 45 C inlet (worst-point loss)",
+            f"{v['margin_K']:+.1f} K ({v['T_hotspot_C']:.0f} C; module model {v['module_model_T_hotspot_C']:.0f} C)", f">= 0 K ({th['T_hotspot_max_C']:.0f} C)",
+            v["margin_K"] >= 0, "pv_p110_thermal" if b != "PV-P75" else "")
 
     chk(f"pv_{rv.lower()}_L", f"{rv} PV inductor L(45 A) at -8 % A_L; L_trip/L0", f"{e['L_at_45A_min_H']*1e6:.0f} uH, {e['L_trip_over_L0']:.2f}",
         f">= {e['L_at_45A_req_H']*1e6:.1f} uH, >= {e['L_trip_req']}", e["L_at_45A_min_H"] >= e["L_at_45A_req_H"]
@@ -3750,6 +3782,8 @@ def write_design_pv_m2(specs, d1, rows, ch):
                     note="build_m = centre hole left (>= 16 mm for clamp and air); single layer fits at the bore")
     d["insulation"]["system"] = d["insulation"]["system"].replace("litz served + polyimide-wrapped (1.1 kV)",
                                                                   "grade-2 enamel (not counted as insulation)")
+    d["insulation"]["type_tests"] = re.sub(r"thermal run at [\d.]+ W", f"thermal run at {p_tot:.1f} W (worst-point loss of this "
+                                           "revision)", d["insulation"]["type_tests"])   # M1 text carried the 54 W cell budget
     d["loss_model"]["winding"] = {"R_ac_per_harmonic": hh, "referred_to": "the winding", "temperature_C": 110.0,
                                   "formula": "P_cu = R_dc I_dc^2 + sum_h R(h) I_h,rms^2; " + ("R(h) Dowell m = 1 on the radial "
                                              "height with the circumferential porosity" if cd == "rect" else "R(h) Bessel skin + proximity "
@@ -3766,6 +3800,7 @@ def write_design_pv_m2(specs, d1, rows, ch):
     d["thermal"].update(Rth_hotspot_to_air_K_W=rth, dT_hotspot_K=rth * p_tot, dT_internal_K=0.0, T_hotspot_C=t_air + rth * p_tot,
                         basis="surface model of the cell designer (forced air, h ~25 W/m2K on the wound toroid surface); solid copper: "
                               "no internal winding gradient; core gradient < 1 K")
+    pv_thermal_limits(d, rth, t_air, p_tot)
     d["mass_kg"] = ch["mass"]
     co = ch["cost"]
     d["cost"] = dict(co, basis=f"ESTIMATES, no quote: core 2 x 8.0 USD (13.3 USD/kg Asian powder, as M1); {ch['conductor'].split(',')[0]} "
@@ -4362,6 +4397,770 @@ def om_aux75(spec, r):
                                                  "secondary ampere-turns in the SELV winding"}
     except Exception as e:
         return {"error": f"{type(e).__name__}: {str(e)[:300]}"}
+
+
+# =====================================================================================================================
+# PCS-P125 filter magnetics (MAG-1 / MAG-2 for the inverter, D-057): L1 converter side, L2 grid side, AC CM choke
+# =====================================================================================================================
+PCS_SPEC = "sim/out/pcs_design/pcs_spec.json"
+CC_MAT = {   # tape-wound cut cores (C-cores); Steinmetz k in W/m3 (f in Hz, B in T, sine), cut = gap-face / cutting factor
+    "nano": dict(label="Fe-based nanocrystalline C-core (Yunlu N-R series, 1K107 class)", rho=7300.0, kfe=0.75, bsat25=1.24,
+                 bsat_hot=1.15, mu_i=20000.0, stein=(3.53e-3, 1.826, 2.077), cut=1.5, kh=1.0e-3, usd_kg=15.0, om="Yunlu YNB",
+                 src=MAG + "Yunlu-Nanocrystalline-Cores.pdf p.15-17 (C-core table: Ae = 0.75 a H, le = 2(C+D) + 2.69 a), loss fit "
+                     "p.11 (= MAS 'Yunlu YNB'); ATM-1K107-Ribbon.pdf p.1 (Bsat 1.24 T)"),
+    "amor": dict(label="Fe-based amorphous C-core (Yunlu A-R series, 1K101 / 2605SA1 class)", rho=7180.0, kfe=0.86, bsat25=1.56,
+                 bsat_hot=1.40, mu_i=10000.0, stein=(1.377, 1.51, 1.74), cut=1.5, kh=1.7e-3, usd_kg=7.5, om="Metglas 2605SA1",
+                 src=MAG + "Metglas-2605SA1.pdf p.1-2 (Bsat 1.56 T, 7.18 g/cm3, <= 0.17 W/kg at 60 Hz 1.3 T); 20-50 kHz fit "
+                     "P = 6.5 f_kHz^1.51 B^1.74 W/kg (Metglas Powerlite C-core data, quoted from memory - the Yunlu amorphous "
+                     "C-core curve p.15 is an image); Yunlu A-R-1327950 p.16 (kfe 0.86)"),
+}
+CC_RULES = dict(t_f=2.5e-3, spacer=1.5e-3, mid=4e-3, flange=2e-3, margin=5e-3, g_each=1.2e-3, k_litz=0.45, foil_ins=0.13e-3,
+                lead=0.3, k_rad=0.5)
+CC_COND_USD = {"litz": 26.0, "foil": 18.0, "alfoil": 5.5}   # USD/kg: litz 0.2 mm (LME 14.4 + bunching / serving), Cu strip
+#   (LME + 3.6), Al strip EC grade (LME Al ~2.6 + rolling / slitting ~2.9) - ESTIMATES, no quote
+def rho_al(t):
+    return 2.82e-8 * (1 + 0.0039 * (t - 20.0))
+HF_SPLIT = ((1.0, 0.75), (2.0, 0.20), (3.0, 0.05))   # share of the HF rms^2 at f_sw, 2 f_sw, 3 f_sw (carrier groups, ASSUMED)
+
+
+def _ki(k, a, b):
+    th = np.linspace(0, 2 * math.pi, 20001)
+    return k / ((2 * math.pi) ** (a - 1) * np.trapezoid(np.abs(np.cos(th)) ** a * 2 ** (b - a), th))
+
+
+def pcs_air(s):
+    th = s["thermal_and_losses"]
+    hs = th["heatsink"]
+    flow = hs["flow_m3h_per_section"]
+    p_sec = th["loss_budget_125kW_750V_W"]["semiconductors"] / hs["sections"]
+    return dict(flow_m3h=flow, preheat_K=p_sec / (1.11 * 1005 * flow / 3600), h=25.0, inlet_C=(45.0, 60.0),
+                basis=f"{hs['fans']}: {flow:.0f} m3/h per heatsink section; the inductors sit downstream of the heatsink in the same "
+                      f"duct (pcs_spec), so the air reaching them is pre-heated by the section's semiconductor loss ({p_sec:.0f} W -> "
+                      f"+{p_sec / (1.11 * 1005 * flow / 3600):.1f} K); h = 25 W/m2K on the exposed coil and core surfaces (about 4 m/s "
+                      "past a 0.1 m body, ASSUMED - the duct section around the inductors is not drawn)")
+
+
+def pcs_inputs():
+    s = load(PCS_SPEC)
+    ind = s["inductors"]
+    return dict(spec=s, L1=ind["L1"], L2=ind["L2"], LN=ind["LN_four_wire"], f=s["design"]["fsw_Hz"],
+                cm=s["ports_and_common_mode"], air=pcs_air(s), vph_pk=400.0 * math.sqrt(2 / 3), mtime=_mtime(PCS_SPEC))
+
+
+def cc_core(mat, a, H, wl, ws):
+    m = CC_MAT[mat]
+    ae = a * H * m["kfe"]
+    le = 2 * (wl + ws) + 2.69 * a
+    return dict(mat=mat, a=a, H=H, wl=wl, ws=ws, Ae=ae, A_geo=a * H, le=le, Ve=ae * le, mass=ae * le * m["rho"])
+
+
+def cc_gap(c, N, L, g_max=CC_RULES["g_each"]):
+    """total gap (two legs, k quasi-distributed gaps per leg of <= g_max) for inductance L, McLyman fringing per gap"""
+    lo, hi = 1e-5, 0.2
+    for _ in range(70):
+        g = math.sqrt(lo * hi)
+        k = max(1, math.ceil(g / 2 / g_max))
+        ge = g / (2 * k)
+        F = fringing_mclyman(ge, c["A_geo"], c["wl"])
+        Lg = MU0 * N ** 2 * c["A_geo"] * F / (g + c["le"] * c["A_geo"] / (c["Ae"] * CC_MAT[c["mat"]]["mu_i"]))
+        lo, hi = (g, hi) if Lg > L else (lo, g)
+    return dict(g=g, k=k, g_each=ge, F=F)
+
+
+def cc_flux(c, N, gp, I):
+    """tape flux density B(I): N I = H_c(B) le + B Ae g / (mu0 A_geo F), tape B = Bsat tanh(mu0 mu_i H / Bsat) (hot Bsat)"""
+    m = CC_MAT[c["mat"]]
+    bs, ag = m["bsat_hot"], c["A_geo"] * gp["F"]
+    f = lambda B: bs / (MU0 * m["mu_i"]) * math.atanh(min(B / bs, 1 - 1e-12)) * c["le"] + B * c["Ae"] * gp["g"] / (MU0 * ag) - N * abs(I)  # noqa: E731
+    lo, hi = 0.0, bs * (1 - 1e-12)
+    if f(hi) < 0:
+        return bs * math.copysign(1, I), True
+    for _ in range(80):
+        mid = 0.5 * (lo + hi)
+        lo, hi = (mid, hi) if f(mid) < 0 else (lo, mid)
+    return 0.5 * (lo + hi) * math.copysign(1, I), False
+
+
+def cc_L_of_I(c, N, gp, I, L_air):
+    """incremental inductance at current I (central difference of the flux linkage, + air-core term)"""
+    d = max(1.0, 0.01 * I)
+    b1, s1 = cc_flux(c, N, gp, I + d)
+    b0, s0 = cc_flux(c, N, gp, max(I - d, 0.0))
+    return N * c["Ae"] * (b1 - b0) / (I + d - max(I - d, 0.0)) + (L_air if s1 else 0.0), s1
+
+
+def cc_core_loss(c, N, vdc, m_mod, f, I_pk50, L, i_hf=None):
+    """ripple (iGSE on the triangular flux, envelope over the fundamental) + 50 Hz major loop, x cut factor;
+    i_hf given (grid-side L2): flux ripple from that current (triangle of the same rms) instead of the bridge voltage"""
+    mt = CC_MAT[c["mat"]]
+    k, a, b = mt["stein"]
+    ki = _ki(k, a, b)
+    th = np.linspace(0, math.pi / 2, 48)
+    db = (vdc / (4 * f * N * c["Ae"]) * (1 - m_mod ** 2 * np.sin(th) ** 2) if not i_hf else
+          np.full(th.shape, L * math.sqrt(12) * i_hf / (N * c["Ae"])))
+    d = 0.5 * (1 + m_mod * np.sin(th))
+    pv = ki * db ** b * f ** a * (d ** (1 - a) + (1 - d) ** (1 - a))
+    p_rip = float(np.mean(pv)) * c["Ve"] * mt["cut"]
+    b50 = L * I_pk50 / (N * c["Ae"])
+    p50 = mt["kh"] * 50 * b50 ** 2 * c["mass"]
+    return dict(P_ripple=p_rip, P_50Hz=p50, P=p_rip + p50, dB_pp_max=float(db[0]), B_50=b50,
+                envelope=float(np.mean((1 - m_mod ** 2 * np.sin(th) ** 2) ** b)))
+
+
+def cc_winding(c, N, wire, I_lf, I_hf, f, n_gap_leg, R=CC_RULES, T=110.0):
+    """two coils (one per leg, N/2 turns each); litz (profiled, k_litz copper fill) or Cu foil (one turn per layer)"""
+    b_c = (c["ws"] - 2 * (R["t_f"] + R["spacer"]) - R["mid"]) / 2
+    l_c = c["wl"] - 2 * (R["flange"] + R["margin"])
+    n_c = N // 2
+    if b_c <= 1e-3 or l_c <= 5e-3:
+        return None
+    mlt = 2 * (c["a"] + c["H"]) + 8 * R["t_f"] + math.pi * b_c
+    s = R["t_f"] + R["spacer"]
+    p = c["wl"] / n_gap_leg                                    # gap pitch along the leg
+    fg = N / (2 * n_gap_leg)                                   # gap MMF per gap, per ampere
+    h2_fr = (2 * fg / p) ** 2 * p / (4 * math.pi * b_c) * (math.exp(-4 * math.pi * s / p) - math.exp(-4 * math.pi * (s + b_c) / p))
+    harm = [(50.0, I_lf)] + [(h * f, I_hf * math.sqrt(sh)) for h, sh in HF_SPLIT]
+    if wire[0] == "litz":
+        d = wire[1]
+        a_cu = R["k_litz"] * b_c * l_c / n_c
+        n_str = int(a_cu / (math.pi * d * d / 4))
+        wl_ = litz_loss(harm, n_str, d, N, mlt, ramp_h2(0, n_c, l_c) + h2_fr, T,
+                        math.sqrt(a_cu / LITZ_PACK["rect"] / math.pi))
+        r_dc = wl_["R_dc"] + rho_cu(T) * R["lead"] / a_cu
+        p_cu = wl_["total"] + rho_cu(T) * R["lead"] / a_cu * I_lf ** 2
+        p_lf = r_dc * I_lf ** 2
+        desc, fits, scrap = f"profiled litz {n_str} x {d*1e3:.2f} mm ({a_cu*1e6:.0f} mm2)", True, 1.15
+    else:
+        t = wire[1]
+        rho = rho_cu(T) if wire[0] == "foil" else rho_al(T)
+        layers = n_c
+        fits = layers * (t + R["foil_ins"]) <= b_c
+        a_cu = t * (l_c - 2e-3)
+        r_dc = rho * (N * mlt + R["lead"]) / a_cu
+        p_lf = r_dc * I_lf ** 2
+        p_hf = 0.0
+        for fh, ih in harm[1:]:
+            dl = math.sqrt(rho / (math.pi * fh * MU0))
+            p_hf += r_dc * dowell_fr(t / dl, layers) * ih ** 2
+            p_hf += 0.5 * rho / dl * (2 * fg * ih * math.sqrt(2) / p * math.exp(-2 * math.pi * s / p)) ** 2 * l_c * mlt * 2
+        p_cu, scrap = p_lf + p_hf, 1.0
+        desc = f"{'Cu' if wire[0] == 'foil' else 'Al'} foil {t*1e3:.2f} x {(l_c-2e-3)*1e3:.0f} mm, {layers} layers per coil"
+    m_cu = scrap * (N * mlt + R["lead"]) * a_cu * (2700 if wire[0] == "alfoil" else 8960)
+    return dict(b_c=b_c, l_c=l_c, mlt=mlt, a_cu=a_cu, R_dc=r_dc, P_lf=p_lf, P_cu=p_cu, P_hf=p_cu - p_lf, desc=desc, fits=fits,
+                m_cu=m_cu, h_rms_fr_per_A=math.sqrt(h2_fr), wire=wire)
+
+
+def cc_thermal(c, w, p_tot, p_cu, t_air, h):
+    a_coils = 2 * ((2 * (c["a"] + c["H"]) + 8 * CC_RULES["t_f"] + 2 * math.pi * w["b_c"]) * w["l_c"])
+    box = (c["wl"] + 2 * c["a"], c["ws"] + 2 * c["a"])
+    a_core = 2 * (box[0] * box[1]) * 0.6 + 2 * (box[0] + box[1]) * c["H"] * 0.6
+    q = p_cu / (2 * w["b_c"] * w["l_c"] * (2 * (c["a"] + c["H"]) + 8 * CC_RULES["t_f"] + math.pi * w["b_c"]))
+    dt_int = q * w["b_c"] ** 2 / (2 * CC_RULES["k_rad"]) * 0.5 if w["wire"][0] == "litz" else q * w["b_c"] ** 2 / (2 * 2.0) * 0.5
+    return dict(A_m2=a_coils + a_core, dT_surface=p_tot / (h * (a_coils + a_core)), dT_internal=dt_int,
+                T_hot=t_air + p_tot / (h * (a_coils + a_core)) + dt_int)
+
+
+def cc_cost(c, w, N):
+    m = CC_MAT[c["mat"]]
+    core = c["mass"] * m["usd_kg"]
+    cu = w["m_cu"] * CC_COND_USD[w["wire"][0]]
+    ins = 6.0 + 0.8 * w["m_cu"] + (2.0 if w["wire"][0] == "alfoil" else 0.0)    # Al: Cu-Al transition lugs
+    lab = 10.0 + 0.5 * N + 4.0 + 3.0
+    cat = round((core + cu + ins + lab) * 1.10, 1)
+    k5 = round(((core + cu + ins) * 0.85 + lab * 0.7) * 1.10, 1)
+    return dict(core_usd=core, copper_usd=cu, insulation_usd=ins, labour_usd=lab, total_usd=cat, catalogue_1k_usd=cat, build_5k_usd=k5)
+
+
+def pcs_L1_req(P, L):
+    """electrical requirement of L1 scaled to inductance L (ripple ~ 1/L; the L(I) minima keep their per-unit shape)"""
+    x = P["L1"]
+    L0 = x["inductance_uH"] * 1e-6
+    sc = L0 / L
+    tab = {float(re.match(r"([0-9.]+)", k).group(1)): v * 1e-6 * L / L0 for k, v in x["L_vs_I_min_uH"].items()}
+    cur = x["current"]
+    return dict(L=L, tol=0.10, L_min_tab=tab, I_rated=cur["fundamental_rms_A"]["rated"], I_cont=cur["fundamental_rms_A"]["continuous"],
+                I_2min=cur["fundamental_rms_A"]["2_min"], I_200ms=cur["fundamental_rms_A"]["200_ms"],
+                hf={750.0: cur["hf_rms_A_750V"] * sc, 950.0: cur["hf_rms_A_950V"] * sc}, ripple_pp=cur["ripple_pp_max_A"] * sc,
+                I_trip=max(tab), budget=x["loss_budget_W"]["total_at_125kW_750V"], budget_cu=x["loss_budget_W"]["copper_at_180A"],
+                budget_core=x["loss_budget_W"]["core_and_gap_at_750V"], T_hot_max=140.0)
+
+
+def pcs_ind_eval(P, rq, mat, a, H, wl, ws, N, wire, g_max=CC_RULES["g_each"]):
+    c = cc_core(mat, a, H, wl, ws)
+    L = rq["L"]
+    if 1.05 * L * rq["I_trip"] / (N * c["Ae"]) > 0.98 * CC_MAT[mat]["bsat_hot"]:     # quick flux pre-check (linear region)
+        return None
+    if (ws - 2 * (CC_RULES["t_f"] + CC_RULES["spacer"]) - CC_RULES["mid"]) / 2 <= 1e-3:
+        return None
+    gp = cc_gap(c, N, L, g_max)
+    gp_hi = cc_gap(c, N, 1.05 * L, g_max)                      # gap ground to +/-5 %: the high part has the highest flux
+    b_trip, sat = cc_flux(c, N, gp_hi, rq["I_trip"])
+    if sat or abs(b_trip) > 0.98 * CC_MAT[mat]["bsat_hot"]:
+        return None
+    w = cc_winding(c, N, wire, rq["I_cont"], rq["hf"][950.0], P["f"], gp["k"])
+    if not w or not w["fits"]:
+        return None
+    l_air = MU0 * (N // 2) ** 2 * (c["a"] + 2 * CC_RULES["t_f"] + w["b_c"]) * (c["H"] + 2 * CC_RULES["t_f"] + w["b_c"]) / w["l_c"] * 2
+    ltab = {i: cc_L_of_I(c, N, gp, i, l_air)[0] for i in sorted(rq["L_min_tab"])}
+    l_ok = all(ltab[i] * (1 - rq["tol"]) >= 0.999 * rq["L_min_tab"][i] for i in ltab)
+    pts = {}
+    for name, i_lf, vdc in (("budget: 180 A, 750 V", rq["I_rated"], 750.0), ("continuous: 198 A, 950 V", rq["I_cont"], 950.0),
+                            ("180 A, 950 V", rq["I_rated"], 950.0), ("2 min: 216 A, 950 V", rq["I_2min"], 950.0)):
+        hf = rq["hf"][vdc]
+        ww = cc_winding(c, N, wire, i_lf, hf, P["f"], gp["k"])
+        m_mod = P["vph_pk"] / (vdc / 2)
+        cl = cc_core_loss(c, N, vdc, m_mod, P["f"], i_lf * math.sqrt(2), L, rq.get("ripple_from_current") and hf)
+        pts[name] = dict(I_rms_A=i_lf, I_hf_rms_A=hf, V_dc=vdc, P_cu=ww["P_cu"], P_cu_lf=ww["P_lf"], P_cu_hf=ww["P_hf"],
+                         P_core=cl["P"], P_core_ripple=cl["P_ripple"], P_core_50=cl["P_50Hz"], dB_pp_max=cl["dB_pp_max"],
+                         B_50=cl["B_50"], P_total=ww["P_cu"] + cl["P"])
+    pw = pts["continuous: 198 A, 950 V"]
+    th = {t: cc_thermal(c, w, pw["P_total"], pw["P_cu"], t + P["air"]["preheat_K"], P["air"]["h"]) for t in P["air"]["inlet_C"]}
+    cost = cc_cost(c, w, N)
+    return dict(mat=mat, geom=(a, H, wl, ws), core=c, N=N, wire=wire, gap=gp, B_trip=b_trip, L_I=ltab, L_ok=l_ok, L_air=l_air,
+                w=w, points=pts, thermal=th, T_hot_60=th[60.0]["T_hot"], T_hot_45=th[45.0]["T_hot"],
+                P_budget=pts["budget: 180 A, 750 V"]["P_total"], P_worst=pw["P_total"], mass=c["mass"] + w["m_cu"] + 0.05 * (c["mass"] + w["m_cu"]),
+                cost=cost, feasible=l_ok and th[60.0]["T_hot"] <= rq["T_hot_max"])
+
+
+L1_GRID = dict(a=(25e-3, 30e-3, 35e-3, 40e-3), H=(40e-3, 50e-3, 60e-3, 80e-3, 100e-3), wl=(80e-3, 100e-3, 120e-3, 140e-3),
+               ws=(30e-3, 40e-3, 50e-3, 60e-3, 70e-3), N=tuple(range(10, 31, 2)))
+
+
+def pcs_search(P, rq, mats=("nano", "amor"), wires=(("litz", 0.2e-3),), grid=L1_GRID):
+    out = []
+    for mat in mats:
+        for wire in wires:
+            for a in grid["a"]:
+                for H in grid["H"]:
+                    for wl in grid["wl"]:
+                        for ws in grid["ws"]:
+                            for N in grid["N"]:
+                                r = pcs_ind_eval(P, rq, mat, a, H, wl, ws, N, wire)
+                                if r and r["feasible"]:
+                                    out.append(r)
+    return out
+
+
+def pcs_pick(rows, budget):
+    """cheapest meeting temperature / lowest loss (within 2 x the cheapest cost) / recommended = cheapest within the budget"""
+    if not rows:
+        return {}
+    cheap = min(rows, key=lambda r: r["cost"]["total_usd"])
+    low = min((r for r in rows if r["cost"]["total_usd"] <= 2 * cheap["cost"]["total_usd"]), key=lambda r: r["P_budget"])
+    ok = [r for r in rows if r["P_budget"] <= budget]
+    rec = min(ok, key=lambda r: r["cost"]["total_usd"]) if ok else low
+    return dict(cheapest=cheap, lowest_loss=low, recommended=rec)
+
+
+def om_cc_ind(P, r, i_lf, i_hf, f=None):
+    """OpenMagnetics on one coil of the two-coil C-core: N/2 turns on column 0 with that leg's gaps (k x g_each), the other leg
+    ungapped -> same flux density as the part; OM's winding loss x 2 = the part, core loss = the part, L_OM x 2 = L"""
+    f = f or P["f"]
+    c, gp, n_c = r["core"], r["gap"], r["N"] // 2
+    try:
+        shape = {"family": "c", "type": "custom", "name": f"C custom {r['mat']} {c['a']*1e3:.0f}x{c['H']*1e3:.0f}",
+                 "magneticCircuit": "open", "dimensions": {"A": 2 * c["a"] + c["ws"], "B": c["a"] + c["wl"] / 2, "C": c["H"],
+                                                           "D": c["wl"] / 2, "E": c["ws"]}}
+        gaps = [{"type": "subtractive", "length": gp["g_each"], "coordinates": [0.0, (j + 0.5) * c["wl"] / gp["k"] - c["wl"] / 2, 0.0]}
+                for j in range(gp["k"])] + [{"type": "residual", "length": 5e-6, "coordinates": [c["a"] + c["ws"], 0.0, 0.0]}]
+        core_fd = {"type": "two-piece set", "material": CC_MAT[r["mat"]]["om"], "shape": shape, "numberStacks": 1, "gapping": gaps}
+        w = r["w"]
+        if r["wire"][0] == "litz":
+            n_str = int(w["a_cu"] / (math.pi * r["wire"][1] ** 2 / 4))
+            wire = _om_litz(n_str, r["wire"][1], math.sqrt(w["a_cu"] / LITZ_PACK["round"] * 4 / math.pi))
+        else:
+            t, h = r["wire"][1], w["l_c"] - 2e-3
+            wire = {"type": "foil", "name": f"Foil {t*1e3:.2f} x {h*1e3:.0f} (custom)", "material": "copper" if r["wire"][0] == "foil" else "aluminium",
+                    "numberConductors": 1, "conductingWidth": {"nominal": t}, "conductingHeight": {"nominal": h},
+                    "outerWidth": {"nominal": t + CC_RULES["foil_ins"]}, "outerHeight": {"nominal": h}}
+        wnd = [{"name": "L", "numberTurns": n_c, "numberParallels": 1, "isolationSide": "primary", "wire": wire}]
+        T = 1 / f
+        pp = math.sqrt(12) * i_hf
+        L_coil = r["L"] / 2
+        v = L_coil * pp * 2 * f
+        exc = [{"current": _om_wave([0, T / 2, T], [i_lf - pp / 2, i_lf + pp / 2, i_lf - pp / 2]),
+                "voltage": _om_wave([0, T / 2, T / 2, T], [v, v, -v, -v])}]
+        core, coil, mag, inp = _om_build(core_fd, wnd, exc, f, 60.0, l_target=L_coil, wall=CC_RULES["t_f"] + CC_RULES["spacer"],
+                                         margin=CC_RULES["flange"] + CC_RULES["margin"])
+        o = _om_eval(core, coil, mag, inp, 110.0)
+        return {"L_H": 2 * (_num(o.get("L"), "magnetizingInductance") or 0), "P_core_W": _num(o.get("core"), "coreLosses"),
+                "P_cu_W": 2 * (_num(o.get("winding"), "windingLosses") or 0), "material": CC_MAT[r["mat"]]["om"],
+                "I_lf_A": i_lf, "I_hf_A": i_hf,
+                "note": "one coil (N/2) on one leg with that leg's gaps (same B); OM winding loss x 2; triangle ripple of the HF rms on a DC "
+                        "offset equal to the fundamental rms (same copper heating); core loss for that ripple (no envelope)"}
+    except Exception as e:
+        return {"error": f"{type(e).__name__}: {str(e)[:300]}"}
+
+
+_PCS_OM = {}
+
+
+def pcs_verify(P, rq, r):
+    """design loss = higher of own and OpenMagnetics (copper and core separately) at the budget and continuous points"""
+    key = (r["mat"], r["geom"], r["N"], r["wire"], rq["L"])
+    if key in _PCS_OM:
+        r.update(_PCS_OM[key])
+        return r
+    r["L"] = rq["L"]
+    out = {"om": {}}
+    for nm, i_lf, vdc in (("budget: 180 A, 750 V", rq["I_rated"], 750.0), ("continuous: 198 A, 950 V", rq["I_cont"], 950.0)):
+        o = om_cc_ind(P, r, i_lf, rq["hf"][vdc]) if HAVE_OM else {}
+        pt = r["points"][nm]
+        cu = max(pt["P_cu"], o.get("P_cu_W") or 0.0)
+        core = max(pt["P_core"], o.get("P_core_W") or 0.0)
+        out["om"][nm] = o
+        out.setdefault("design", {})[nm] = dict(P_cu=cu, P_core=core, P_total=cu + core, own_cu=pt["P_cu"], own_core=pt["P_core"],
+                                                om_cu=o.get("P_cu_W"), om_core=o.get("P_core_W"), om_L=o.get("L_H"))
+    dw = out["design"]["continuous: 198 A, 950 V"]
+    pw = r["points"]["continuous: 198 A, 950 V"]
+    th = {}
+    for t in P["air"]["inlet_C"]:
+        t0 = r["thermal"][t]
+        th[t] = dict(t0, dT_surface=t0["dT_surface"] * dw["P_total"] / pw["P_total"], dT_internal=t0["dT_internal"] * dw["P_cu"] / pw["P_cu"],
+                     T_hot=t + P["air"]["preheat_K"] + t0["dT_surface"] * dw["P_total"] / pw["P_total"] + t0["dT_internal"] * dw["P_cu"] / pw["P_cu"])
+    out.update(thermal_design=th, P_budget_d=out["design"]["budget: 180 A, 750 V"]["P_total"], P_worst_d=dw["P_total"],
+               T60_d=th[60.0]["T_hot"], T45_d=th[45.0]["T_hot"], ok_d=th[60.0]["T_hot"] <= rq["T_hot_max"])
+    _PCS_OM[key] = out
+    r.update(out)
+    return r
+
+
+def pcs_pick_verified(P, rq, rows, cap=None, limit=400):
+    """cheapest candidate whose design (higher-of) loss meets temperature and, if given, the loss cap at the budget point"""
+    cand = sorted((r for r in rows if cap is None or r["P_budget"] <= cap), key=lambda r: r["cost"]["total_usd"])
+    for r in cand[:limit]:
+        pcs_verify(P, rq, r)
+        if r["ok_d"] and (cap is None or r["P_budget_d"] <= cap):
+            return r
+    return None
+
+
+def pcs_l1_options(P, rq, rows):
+    b = rq["budget"]
+    picks = dict(cheapest=pcs_pick_verified(P, rq, rows), recommended=pcs_pick_verified(P, rq, rows, 2 * b),
+                 within_budget=pcs_pick_verified(P, rq, rows, b))
+    lit = [r for r in rows if r["wire"][0] == "litz"]
+    low = sorted(lit, key=lambda r: r["P_budget"])[:3]
+    for r in low:
+        pcs_verify(P, rq, r)
+    picks["lowest_loss"] = min((r for r in low if r["ok_d"]), key=lambda r: r["P_budget_d"], default=None)
+    return {k: v for k, v in picks.items() if v}
+
+
+L1_GRID_MAIN = dict(a=(20e-3, 30e-3, 40e-3, 50e-3), H=(40e-3, 60e-3, 80e-3, 100e-3), wl=(80e-3, 120e-3, 160e-3),
+                    ws=(30e-3, 40e-3, 50e-3, 60e-3), N=tuple(range(10, 37, 2)))
+L1_WIRES = (("litz", 0.2e-3), ("foil", 0.5e-3), ("alfoil", 0.8e-3))
+L1_SENS_uH = (60.0, 80.0, 97.2, 120.0, 150.0)
+
+
+def pcs_l1_sensitivity(P, sens=L1_SENS_uH):
+    out = {}
+    for luh in sens:
+        rq = pcs_L1_req(P, luh * 1e-6)
+        rows = pcs_search(P, rq, mats=("nano", "amor"), wires=L1_WIRES, grid=L1_GRID_MAIN)
+        pk = pcs_l1_options(P, rq, rows)
+        out[luh] = dict(rq=rq, picks=pk, n_feasible=len(rows))
+    return out
+
+
+def pcs_L2_req(P):
+    x = P["L2"]
+    cur = x["current"]["fundamental_rms_A"]
+    hf = 0.005 * cur["rated"]                                   # spec: HF rms < 0.5 % of rated (attenuated by C_f)
+    tab = {float(re.match(r"([0-9.]+)", k).group(1)): v * 1e-6 for k, v in x["L_vs_I_min_uH"].items()}
+    return dict(L=x["inductance_uH"] * 1e-6, tol=0.10, L_min_tab=tab, I_rated=cur["rated"], I_cont=cur["continuous"],
+                I_2min=cur["2_min"], I_200ms=cur["200_ms"], hf={750.0: hf, 950.0: hf}, ripple_pp=math.sqrt(12) * hf,
+                I_trip=max(tab), budget=x["loss_budget_W"]["total_at_180A"], T_hot_max=140.0, ripple_from_current=True)
+
+
+L2_GRID = dict(a=(15e-3, 20e-3, 25e-3, 30e-3), H=(30e-3, 40e-3, 60e-3, 80e-3), wl=(60e-3, 80e-3, 100e-3, 120e-3),
+               ws=(20e-3, 30e-3, 40e-3), N=(4, 6, 8, 10, 12))
+
+
+def pcs_l2_options(P):
+    rq = pcs_L2_req(P)
+    rows = pcs_search(P, rq, mats=("amor", "nano"), wires=(("foil", 1.0e-3), ("foil", 1.5e-3), ("alfoil", 1.5e-3), ("alfoil", 2.0e-3)), grid=L2_GRID)
+    return rq, rows, dict(cheapest=pcs_pick_verified(P, rq, rows), within_budget=pcs_pick_verified(P, rq, rows, rq["budget"]))
+
+
+CMC_PCS = dict(core="N-R-564440", outer=(56e-3, 44.6e-3), window=(33e-3, 21.6e-3), H=40e-3, Ae=345e-6, le=134.4e-3, mu=30000.0,
+               mu_tol=0.25, bsat=1.2, rho=7300.0, bar=(25e-3, 3e-3), sleeve=1.0e-3, bar_gap=2.0e-3, l_dm_frac=0.003,
+               src=MAG + "Yunlu-Nanocrystalline-Cores.pdf p.13 (rectangular CM cores, table 2: N-R-564440 56 x 44.6 x 40 mm, window "
+                   "33 x 21.6 mm, Ae 345 mm2, le 134.4 mm) and p.6 (adjustable mu); flat grade mu 30 000 +/-25 % = RFQ (MAS reference "
+                   "material SC-1K107-LP)")
+
+
+def pcs_cm_design(P):
+    c = CMC_PCS
+    hf = P["cm"]["hf"]
+    lf = P["cm"]["lf_zero_sequence"]
+    v150 = max(x["v150_rms"] for x in lf)
+    cbe = P["cm"]["cbe_limit_uF_at_10mA_per_kVA"] * 1e-6
+    i_lf = v150 * 2 * math.pi * 150 * cbe
+    L_req = hf["L_cm_uH"] * 1e-6
+    i_hf = max(v["with_choke_mA"] for v in hf["earth_current"].values()) * 1e-3
+    mu32, mu150 = c["mu"], c["mu"]
+    om = {}
+    if HAVE_OM:
+        try:
+            mu32 = PyOM.get_material_permeability("SC-1K107-LP", 25.0, 0.0, P["f"])
+            mu150 = PyOM.get_material_permeability("SC-1K107-LP", 25.0, 0.0, 150.0)
+            om = dict(material="SC-1K107-LP (MAS)", mu_32kHz=mu32, mu_150Hz=mu150)
+        except Exception as e:
+            om = {"error": str(e)[:200]}
+    L1c = MU0 * c["mu"] * c["Ae"] / c["le"]
+    k = math.ceil(L_req / (L1c * (1 - c["mu_tol"])))
+    L_nom, L_min = k * L1c, k * L1c * (1 - c["mu_tol"])
+    L_om = k * MU0 * mu32 * c["Ae"] / c["le"]
+    b_lf = MU0 * c["mu"] * (1 + c["mu_tol"]) * i_lf * math.sqrt(2) / c["le"]
+    b_lf_om = MU0 * mu150 * (1 + c["mu_tol"]) * i_lf * math.sqrt(2) / c["le"]
+    i_pk = P["L1"]["current"]["peak_A"]["200 ms"]
+    b_dm = c["l_dm_frac"] * L_nom * i_pk / (k * c["Ae"])
+    v_hf = i_hf * 2 * math.pi * P["f"] * L_nom
+    b_hf = v_hf * math.sqrt(2) / (2 * math.pi * P["f"] * k * c["Ae"])
+    n_bar = {"three-wire": 3, "four-wire": 4}
+    stack = {kk: n * (c["bar"][1] + 2 * c["sleeve"]) + (n - 1) * c["bar_gap"] for kk, n in n_bar.items()}
+    fits = {kk: v <= c["window"][1] - 2e-3 and c["bar"][0] + 2 * c["sleeve"] <= c["window"][0] - 2e-3 for kk, v in stack.items()}
+    m_core = k * c["Ae"] * c["le"] * c["rho"]
+    cost_m = dict(core_usd=20.0 * m_core + 1.5 * k, copper_usd=0.0, insulation_usd=3.0, labour_usd=2.0 + 0.5 * k)
+    cat = round(sum(cost_m.values()) * 1.10, 1)
+    k5 = round(((cost_m["core_usd"] + cost_m["insulation_usd"]) * 0.85 + cost_m["labour_usd"] * 0.7) * 1.10, 1)
+    return dict(k=k, L_per_core=L1c, L_nom=L_nom, L_min=L_min, L_req=L_req, L_om=L_om, i_lf=i_lf, v150=v150, cbe=cbe, b_lf=b_lf, b_lf_om=b_lf_om,
+                b_dm=b_dm, b_hf=b_hf, v_hf=v_hf, i_hf=i_hf, b_allow=0.8 * c["bsat"], stack=stack, fits=fits, mass=m_core + 0.05 * k,
+                cost=dict(cost_m, total_usd=cat, catalogue_1k_usd=cat, build_5k_usd=k5), om=om)
+
+
+def pcs_refs(P, l1):
+    """MAG-2: per-unit comparison of converter-side filter inductors (sim/data/reference_magnetics.csv)"""
+    rows = _csv("sim/data/reference_magnetics.csv")
+    g = lambda d, prt, par: next((float(r["value"]) for r in rows if r["design"] == d and r["part"] == prt and r["parameter"] == par), None)  # noqa: E731
+    out = []
+    ws = "Wolfspeed CRD-25BDA6512N-K"
+    L, I, m, rdc, rp = g(ws, "filter_inductor", "L_as_built"), g(ws, "filter_inductor", "I_rms"), g(ws, "filter_inductor", "mass"), \
+        g(ws, "filter_inductor", "R_dc"), g(ws, "filter_inductor", "ripple_pp")
+    pw = g(ws, "system", "P_rated") / 3
+    e = 0.5 * L * (math.sqrt(2) * I + rp / 2) ** 2
+    out.append(dict(design=ws, L_uH=L * 1e6, I_rms_A=I, f_sw_kHz=g(ws, "system", "f_sw") / 1e3, E_J=e, mass_kg=m / 1e3, kg_per_J=m / 1e3 / e,
+                    loss_W=rdc * I ** 2, loss_basis="R_dc x I_rms^2 only (core loss not published)", loss_pct_of_phase=100 * rdc * I ** 2 / pw))
+    ti = "TI TIDA-01606"
+    L, I, lw, irp = g(ti, "filter_inductor", "L_bom"), g(ti, "filter_inductor", "I_rms"), g(ti, "filter_inductor", "loss_total"), \
+        g(ti, "filter_inductor", "I_ripple_rms")
+    e = 0.5 * L * (math.sqrt(2) * I + math.sqrt(3) * irp) ** 2
+    out.append(dict(design=ti, L_uH=L * 1e6, I_rms_A=I, f_sw_kHz=g(ti, "system", "f_sw") / 1e3, E_J=e, mass_kg=None, kg_per_J=None,
+                    loss_W=lw, loss_basis="TI Eq. 8 (copper, 10 kW case)", loss_pct_of_phase=100 * lw / (10e3 / 3)))
+    t2 = "TIDA-010210"
+    L, I = g(t2, "inverter-side filter inductor", "inductance at 0 A"), g(t2, "inverter-side filter inductor", "rated current")
+    if L and I:
+        out.append(dict(design=t2, L_uH=L, I_rms_A=I, f_sw_kHz=100.0, E_J=0.5 * L * 1e-6 * (math.sqrt(2) * I) ** 2, mass_kg=None,
+                        kg_per_J=None, loss_W=None, loss_basis="not published", loss_pct_of_phase=None))
+    for k, r in l1.items():
+        rq = r["_rq"]
+        e = 0.5 * rq["L"] * (math.sqrt(2) * rq["I_rated"] + rq["ripple_pp"] / 2) ** 2
+        out.append(dict(design=f"PCS-P125 L1 ({k})", L_uH=rq["L"] * 1e6, I_rms_A=rq["I_rated"], f_sw_kHz=P["f"] / 1e3, E_J=e, mass_kg=r["mass"],
+                        kg_per_J=r["mass"] / e, loss_W=r["P_budget_d"], loss_basis="design (higher of own / OM), 180 A 750 V",
+                        loss_pct_of_phase=100 * r["P_budget_d"] / (125e3 / 3)))
+    return out
+
+
+def _cc_desc(r):
+    c, gp = r["core"], r["gap"]
+    return (f"{CC_MAT[r['mat']]['label'].split(' (')[0]}, leg {c['a']*1e3:.0f} x {c['H']*1e3:.0f} mm, window {c['wl']*1e3:.0f} x "
+            f"{c['ws']*1e3:.0f} mm; {r['N']} turns in two coils ({r['N']//2} per leg) of {r['w']['desc']}; {2*gp['k']} gaps of "
+            f"{gp['g_each']*1e3:.2f} mm ({gp['k']} per leg, {gp['g']*1e3:.1f} mm in all)")
+
+
+def _cc_json(P, rq, r, part, title_ins, levels, ins_tests, prev, options, extra):
+    c, gp, w = r["core"], r["gap"], r["w"]
+    k_, a_, b_ = CC_MAT[r["mat"]]["stein"]
+    harm = []
+    for h, _ in ((1, 0),) + tuple((hh, 0) for hh, _x in HF_SPLIT[1:]):
+        fh = h * P["f"]
+        if r["wire"][0] == "litz":
+            n_str = int(w["a_cu"] / (math.pi * r["wire"][1] ** 2 / 4))
+            rh = litz_loss([(fh, 1.0)], n_str, r["wire"][1], r["N"], w["mlt"], ramp_h2(0, r["N"] // 2, w["l_c"]) + w["h_rms_fr_per_A"] ** 2,
+                           110.0, math.sqrt(w["a_cu"] / LITZ_PACK["rect"] / math.pi))["total"]
+        else:
+            rho = rho_cu(110.0) if r["wire"][0] == "foil" else rho_al(110.0)
+            rh = w["R_dc"] * dowell_fr(r["wire"][1] / math.sqrt(rho / (math.pi * fh * MU0)), r["N"] // 2)
+        harm.append([fh, rh])
+    dsg = r["design"]
+    lt = []
+    for nm, pt in r["points"].items():
+        dd = dsg.get(nm)
+        lt.append(dict(point=nm, I_rms_A=pt["I_rms_A"], I_hf_rms_A=pt["I_hf_rms_A"], B_pk_T=pt["B_50"], dB_pp_max_T=pt["dB_pp_max"],
+                       P_cu_own_W=pt["P_cu"], P_cu_om_W=dd["om_cu"] if dd else None, P_core_own_W=pt["P_core"],
+                       P_core_om_W=dd["om_core"] if dd else None, P_core_W=dd["P_core"] if dd else pt["P_core"],
+                       P_cu_W=dd["P_cu"] if dd else pt["P_cu"], P_total_W=dd["P_total"] if dd else pt["P_total"]))
+    th = r["thermal_design"]
+    d = dict(part=part, revision="M1", status="proposed construction - calculated, not built or measured",
+             basis={"spec": PCS_SPEC, "spec_mtime": P["mtime"], "decision": "D-057",
+                    "requirement": dict(L_uH=rq["L"] * 1e6, tol=rq["tol"], L_min_uH={str(k): v * 1e6 for k, v in rq["L_min_tab"].items()},
+                                        I_rms_A=dict(rated=rq["I_rated"], continuous=rq["I_cont"], two_min=rq["I_2min"], ms200=rq["I_200ms"]),
+                                        I_hf_rms_A=rq["hf"], loss_budget_W=rq["budget"], T_hot_max_C_at_60C_inlet=rq["T_hot_max"])},
+             construction=_cc_desc(r) + "; formers 2.5 mm GF-PPS on each leg, VPI class F/H, banded; mounted in the fan air stream "
+                                         "downstream of the heatsink",
+             electrical=dict(L_H=rq["L"], L_tol="+/-10 % at 0 A (gap ground to +/-5 %)",
+                             L_inc_vs_I_H={f"{k:.0f} A": v for k, v in r["L_I"].items()},
+                             L_min_required_H={f"{k:.0f} A": v for k, v in rq["L_min_tab"].items()},
+                             L_inc_at_minus10pct_part_H={f"{k:.0f} A": v * (1 - rq["tol"]) for k, v in r["L_I"].items()},
+                             B_at_trip_T=r["B_trip"], B_sat_100C_T=CC_MAT[r["mat"]]["bsat_hot"], B_sat_25C_T=CC_MAT[r["mat"]]["bsat25"],
+                             ripple_pp_max_A=rq["ripple_pp"], dB_pp_max_T=r["points"]["continuous: 198 A, 950 V"]["dB_pp_max"],
+                             L_om_H=dsg["budget: 180 A, 750 V"]["om_L"] or None),
+             core=dict(maker="Qingdao Yunlu (or AT&M) - RFQ: C-cores are wound and cut to drawing; nearest catalogue sizes in the note",
+                       part_number=f"C-core pair, leg {c['a']*1e3:.0f} x {c['H']*1e3:.0f} mm, window {c['wl']*1e3:.0f} x {c['ws']*1e3:.0f} mm",
+                       material=CC_MAT[r["mat"]]["label"], Ae_m2=c["Ae"], A_geo_m2=c["A_geo"], le_m=c["le"], Ve_m3=c["Ve"], mass_kg=c["mass"],
+                       datasheet=CC_MAT[r["mat"]]["src"],
+                       gap={"type": "quasi-distributed: each leg cut into segments with spacers", "per_leg": gp["k"], "length_each_m": gp["g_each"],
+                            "total_m": gp["g"], "fringing_factor": gp["F"]},
+                       asian_alternative="this is the Asian part (Yunlu / AT&M); Western reference Hitachi Finemet / Metglas Powerlite C-cores"),
+             windings=[dict(name=f"coil {i+1} (leg {i+1})", turns=r["N"] // 2, conductor=w["desc"], copper_area_m2=w["a_cu"],
+                            MLT_m=w["mlt"], build_m=w["b_c"], length_m=w["l_c"], R_dc_110C_ohm=w["R_dc"] / 2) for i in range(2)],
+             fit=dict(build_m=w["b_c"], available_m=w["b_c"], fits=w["fits"], window_m=[c["wl"], c["ws"]],
+                      note="two coils share the window width: (ws - 2 x (former 2.5 + spacer 1.5 mm) - 4 mm) / 2 each"),
+             insulation=dict(system=title_ins, levels=levels, routine_tests=ins_tests[0], type_tests=ins_tests[1],
+                             former_m=CC_RULES["t_f"], margin_m=CC_RULES["margin"]),
+             loss_model=dict(core={"k": k_, "alpha": a_, "beta": b_, "Ve_m3": c["Ve"], "N": r["N"], "Ae_m2": c["Ae"],
+                                   "cut_factor": CC_MAT[r["mat"]]["cut"], "hysteresis_50Hz_W_per_kg_T2_Hz": CC_MAT[r["mat"]]["kh"],
+                                   "formula": "iGSE on the triangular ripple flux dB(theta) = V_dc/(4 f N Ae) (1 - m^2 sin^2 theta), duty "
+                                              "0.5 (1 + m sin theta), averaged over the fundamental, x cut factor; + 50 Hz major loop"},
+                             winding={"R_dc_110C_ohm": w["R_dc"], "R_ac_per_harmonic": harm, "referred_to": "the whole winding (2 coils)",
+                                      "temperature_C": 110.0, "formula": "P_cu = R_dc I_50^2 + sum R(f) I_f^2; HF rms split 75/20/5 % at "
+                                                                         "f_sw / 2 f_sw / 3 f_sw (ASSUMED)"}),
+             loss_table=lt,
+             loss_grid=dict(I_rms_A=[], P_cu_W=[], B_pk_T=[], P_core_W=[], note="see loss_table and sensitivity"),
+             thermal=dict(airflow=P["air"]["basis"], T_hot_45C_inlet_C=th[45.0]["T_hot"], T_hot_60C_inlet_C=th[60.0]["T_hot"],
+                          T_hot_max_C=rq["T_hot_max"], dT_surface_K=th[60.0]["dT_surface"], dT_internal_K=th[60.0]["dT_internal"],
+                          exposed_area_m2=th[60.0]["A_m2"], at="198 A, 950 V (design loss)"),
+             mass_kg=r["mass"],
+             cost=dict(r["cost"], basis=f"ESTIMATES from material masses, no quote: {CC_MAT[r['mat']]['label'].split(' (')[0]} "
+                                        f"{CC_MAT[r['mat']]['usd_kg']} USD/kg; conductor {CC_COND_USD[r['wire'][0]]} USD/kg; insulation 6 + 0.8 "
+                                        "USD/kg of conductor; labour 10 + 0.5/turn + core assembly 4 + test 3; +10 %; 5,000 units: materials x0.85, "
+                                        "labour x0.7", previous_designer=prev),
+             verification=dict(own={nm: dict(P_cu_W=v["own_cu"], P_core_W=v["own_core"]) for nm, v in dsg.items()},
+                               openmagnetics={nm: dict(P_cu_W=v["om_cu"], P_core_W=v["om_core"], L_H=v["om_L"]) for nm, v in dsg.items()},
+                               design_rule="design loss = higher of own and OpenMagnetics, copper and core separately",
+                               previous_designer=prev),
+             options=options)
+    d.update(extra)
+    return d
+
+
+def _opt_rows(pk):
+    return [dict(option=k, construction=_cc_desc(r), P_budget_W=round(r["P_budget_d"], 1), P_worst_W=round(r["P_worst_d"], 1),
+                 P_budget_own_om=f"{r['design']['budget: 180 A, 750 V']['own_cu'] + r['design']['budget: 180 A, 750 V']['own_core']:.0f} / "
+                                 f"{(r['design']['budget: 180 A, 750 V']['om_cu'] or 0) + (r['design']['budget: 180 A, 750 V']['om_core'] or 0):.0f}",
+                 T_hot_45_C=round(r["T45_d"]), T_hot_60_C=round(r["T60_d"]), mass_kg=round(r["mass"], 1),
+                 cost_usd=r["cost"]["total_usd"], cost_5k_usd=r["cost"]["build_5k_usd"]) for k, r in pk.items()]
+
+
+PCS_TITLES = {"pcs_l1": "PCS-P125 converter-side filter inductor L1 (and four-wire neutral inductor L_N)",
+              "pcs_l2": "PCS-P125 grid-side filter inductor L2", "pcs_cm_choke": "PCS-P125 AC common-mode choke"}
+
+
+def pcs_designs(ins):
+    """PCS-P125 filter magnetics: L1 options + sensitivity, L2, AC CM choke; writes design_pcs_*.json and spec_pcs_*.md"""
+    P = pcs_inputs()
+    study = {r["function"][:2]: r for r in P["spec"]["cost_usd"]["rows"] if r["block"] == "LCL FILTER"}
+    cm_row = next((r for r in P["spec"]["cost_usd"]["rows"] if "common-mode choke" in r["function"]), {})
+    sens = pcs_l1_sensitivity(P)
+    rq1 = sens[97.2]["rq"]
+    pk1 = sens[97.2]["picks"]
+    rec = pk1["recommended"]
+    for r in pk1.values():
+        r["_rq"] = rq1
+    refs = pcs_refs(P, pk1)
+    l1_ins = ("basic winding - core/PE (DC-side system, 1000 V DC, OVC II): 2.5 mm GF-PPS formers, 5 mm creepage margins at the coil "
+              "ends, VPI (void-free) - PD-free at 1.5 x 1.0 kV peak; turn-to-turn for 1050 V steps at 60 V/ns: 0.13 mm polyimide/Nomex "
+              "interlayer (foil) or served litz + 0.05 mm film; the switch-node end of each coil on the outer layer with one extra wrap")
+    lev1 = [dict(label="winding - core/PE, basic (DC side)", u_w=1000.0, imp=6000.0, ac=2200.0, pd_test=1500.0,
+                 note="pcs_spec inductors.L1.insulation (ARCHITECTURE-PCS section 3)")]
+    tests1 = ("winding-core AC 2.2 kV rms 1 s (60 s type), PD <= 10 pC at 1.5 kV pk; L at 0 A and at 300 A DC bias; R_dc",
+              "impulse 6 kV 1.2/50; L(I) to 450 A (pulsed); thermal run at 198 A + 32 kHz ripple in the duct air")
+    prev1 = dict(study_usd_cat=study["L1"]["unit_cat_usd"], study_usd_5k=study["L1"]["unit_5k_usd"], basis=study["L1"]["basis_cat"],
+                 loss_budget_W=rq1["budget"])
+    sens_rows = []
+    for luh, v in sens.items():
+        for k in ("cheapest", "recommended", "within_budget"):
+            r = v["picks"].get(k)
+            sens_rows.append(dict(L_uH=luh, pick=k, construction=_cc_desc(r) if r else "none feasible on the grid",
+                                  ripple_pp_A=v["rq"]["ripple_pp"], P_budget_W=r and round(r["P_budget_d"], 1),
+                                  P_worst_W=r and round(r["P_worst_d"], 1), T_hot_60_C=r and round(r["T60_d"]), mass_kg=r and round(r["mass"], 1),
+                                  cost_usd=r and r["cost"]["total_usd"], cost_5k_usd=r and r["cost"]["build_5k_usd"]))
+    dhf = math.sqrt(max(rq1["hf"][950.0] ** 2 - P["L1"]["current"]["of_which_common_mode_rms_A_950V"] ** 2, 0.0))
+    w_dm = cc_winding(rec["core"], rec["N"], rec["wire"], rq1["I_cont"], dhf, P["f"], rec["gap"]["k"])
+    o_dm = om_cc_ind(P, rec, rq1["I_cont"], dhf) if HAVE_OM else {}
+    notes = dict(
+        neutral_inductor="Four-wire L_N: same electrical requirement as L1 (pcs_spec LN_four_wire) - same part. Its 50 Hz current is the "
+                         "zero-sequence sum (about 0 A balanced, 216 A at 100 % unbalance), so its copper loss is lower than L1's in "
+                         "normal operation; its HF current depends on the four-wire modulation (if the three phases' common-mode ripple "
+                         "returns through L_N it carries about 3 x 16 A rms at 32 kHz and needs its own design) - converter engineer to state",
+        common_mode_ripple=f"16.1 of the 17.2 A rms HF current in L1 is common mode (C_f star tied to the DC midpoint). With the DM part "
+                           f"only ({dhf:.1f} A rms) the recommended L1's copper loss at 198 A / 950 V would be "
+                           f"{max(w_dm['P_cu'], (o_dm.get('P_cu_W') or 0)):.0f} W instead of "
+                           f"{rec['design']['continuous: 198 A, 950 V']['P_cu']:.0f} W; the core loss is set by the leg voltage and does not change",
+        amorphous_loss="The amorphous options use Metglas' 20-50 kHz fit quoted from memory (Yunlu's amorphous C-core curve is an image); "
+                       "OpenMagnetics (MAS 2605SA1) gives about 0.6 x that - the design takes the higher",
+        flux_driver="Core size is set by the hardware-trip requirement L(450 A) >= 50 % (flux linkage 1.05 L x 450 A below B_sat at 100 C), "
+                    "not by the ripple: with a tape core that saturates sharply the 450 A point must stay below the knee")
+    opts = _opt_rows(pk1)
+    extra = dict(sensitivity=sens_rows, references=refs, notes=notes,
+                 sensitivity_basis="each L re-optimised on the same grid and rules (ripple and HF current x 97.2/L, the L(I) minima x L/97.2, "
+                                   "same 450 A trip and 57 W budget); recommended = cheapest within 2 x the budget at 180 A / 750 V")
+    d1 = _cc_json(P, rq1, rec, "pcs_l1", l1_ins, lev1, tests1, prev1, opts, extra)
+    rq2, rows2, pk2 = pcs_l2_options(P)
+    rec2 = pk2["within_budget"] or pk2["cheapest"]
+    l2_ins = ("basic winding - core/PE (mains side, OVC III): 2.5 mm GF-PPS formers, 5 mm margins, VPI; 4 kV impulse (6 kV if the AC "
+              "SPD is not credited), 1.5 kV rms test")
+    lev2 = [dict(label="winding - core/PE, basic (mains, OVC III)", u_w=460.0 * math.sqrt(2 / 3), imp=6000.0, ac=1500.0,
+                 note="pcs_spec inductors.L2.insulation")]
+    prev2 = dict(study_usd_cat=study["L2"]["unit_cat_usd"], study_usd_5k=study["L2"]["unit_5k_usd"], basis=study["L2"]["basis_cat"],
+                 loss_budget_W=rq2["budget"])
+    d2 = _cc_json(P, rq2, rec2, "pcs_l2", l2_ins, lev2, ("winding-core AC 1.5 kV rms 1 s; L at 0 A and 300 A DC; R_dc",
+                                                         "impulse 6 kV; L(I) to 367 A; thermal at 198 A"), prev2,
+                  _opt_rows({k: v for k, v in pk2.items() if v}), dict(notes=dict(hf="HF current taken as 0.5 % of rated (spec: < 0.5 %)")))
+    cm = pcs_cm_design(P)
+    c = CMC_PCS
+    d3 = dict(part="pcs_cm_choke", revision="M1", status="proposed construction - calculated, not built or measured",
+              basis={"spec": PCS_SPEC, "spec_mtime": P["mtime"], "decision": "D-057",
+                     "requirement": dict(L_cm_min_H=cm["L_req"], at_Hz=P["f"], v150_max_V_rms=cm["v150"], C_be_max_F=cm["cbe"],
+                                         I_earth_HF_A=cm["i_hf"])},
+              construction=f"{cm['k']} x Yunlu {c['core']} rectangular nanocrystalline cores (56 x 44.6 x 40 mm, window 33 x 21.6 mm) in a "
+                           f"flat-mu grade (mu {c['mu']:.0f} +/-25 %, RFQ), stacked over the phase bars (N = 1): three-wire 3 bars "
+                           f"{c['bar'][0]*1e3:.0f} x {c['bar'][1]*1e3:.0f} mm flat-stacked; four-wire 4 bars 16 x 4.5 mm on edge; bars sleeved 1 mm",
+              electrical=dict(L_nom_H=cm["L_nom"], L_min_H=cm["L_min"], L_required_H=cm["L_req"], L_om_H=cm["L_om"], turns=1, cores=cm["k"],
+                              I_LF_cm_A_rms=cm["i_lf"], B_LF_T=cm["b_lf"], B_LF_om_T=cm["b_lf_om"],
+                              B_DM_198A_T=cm["b_dm"] * 198 * math.sqrt(2) / P["L1"]["current"]["peak_A"]["200 ms"], B_DM_405A_T=cm["b_dm"],
+                              B_HF_T=cm["b_hf"], V_HF_V_rms=cm["v_hf"], B_allow_T=cm["b_allow"],
+                              note="B_LF independent of the number of cores at N = 1 (mu I / le); DM leakage taken as 0.3 % of L_cm (ASSUMED)"),
+              core=dict(maker="Qingdao Yunlu", part_number=f"{c['core']} (flat-mu grade, RFQ)", material="Fe-based nanocrystalline, field-annealed flat loop",
+                        Ae_m2=c["Ae"], le_m=c["le"], n_cores=cm["k"], datasheet=c["src"], gap={"type": "none"},
+                        asian_alternative="this is the Asian part; Shincore SC-1K107-LP is the MAS reference material"),
+              windings=[dict(name="phase bars", turns=1, conductor=f"three-wire {c['bar'][0]*1e3:.0f} x {c['bar'][1]*1e3:.0f} mm Cu; four-wire 16 x 4.5 mm",
+                             arrangement="bars centred in the window (DM leakage)")],
+              fit=dict(fits=cm["fits"]["three-wire"], stack_m=cm["stack"], four_wire_on_edge=dict(width_m=4 * (4.5e-3 + 2 * c["sleeve"]) + 3 * 1.5e-3,
+                                                                                               height_m=16e-3 + 2 * c["sleeve"]),
+                       window_m=list(c["window"])),
+              insulation=dict(system="sleeved bars (>= 1 mm, rated 1.5 kV rms) inside cased cores; mains side basic (OVC III) as L2", levels=lev2,
+                              routine_tests="L_cm at 32 kHz, 1 V; bar-core 1.5 kV rms 1 s", type_tests="impulse 6 kV; L_cm with 1.25 A rms 150 Hz CM bias"),
+              loss_model=dict(core={"formula": "negligible (B_HF ~ 0.04 T at 32 kHz on a flat nanocrystalline grade)"},
+                              winding={"R_ac_per_harmonic": None, "referred_to": "the bars (busbar loss counted with the AC port)", "temperature_C": 90.0,
+                                       "formula": "-"}),
+              loss_table=[dict(point="any", P_core_W=0.5, P_cu_W=0.0, P_total_W=0.5)],
+              loss_grid=dict(I_rms_A=[], P_cu_W=[], B_pk_T=[], P_core_W=[], note="-"),
+              thermal=dict(dT_K=0.0, basis="no winding; core loss < 1 W", airflow=P["air"]["basis"]),
+              mass_kg=cm["mass"], cost=dict(cm["cost"], basis="ESTIMATES: flat nanocrystalline 20 USD/kg + 1.5 USD case per core; insulation 3; labour 2 "
+                                                              "+ 0.5/core; +10 %; Y1 capacitors not included (the study's row includes 3 x Y1)",
+                                            previous_designer=dict(study_usd_cat=cm_row.get("unit_cat_usd"), study_usd_5k=cm_row.get("unit_5k_usd"))),
+              verification=dict(own=dict(L_min_H=cm["L_min"], B_LF_T=cm["b_lf"]), openmagnetics=dict(cm["om"], L_H=cm["L_om"], B_LF_T=cm["b_lf_om"]),
+                                previous_designer=dict(study=cm_row.get("function"))))
+    out = dict(P=P, sens=sens, pk1=pk1, rec1=rec, rq1=rq1, pk2=pk2, rec2=rec2, rq2=rq2, cm=cm, refs=refs,
+               files=dict(pcs_l1=d1, pcs_l2=d2, pcs_cm_choke=d3), study=dict(L1=study["L1"], L2=study["L2"], cm=cm_row))
+    for name, d in out["files"].items():
+        with open(os.path.join(OUT, f"design_{name}.json"), "w") as fh:
+            json.dump(d, fh, indent=1, default=lambda o: o.item() if hasattr(o, "item") else str(o))
+        with open(os.path.join(OUT, f"spec_{name}.md"), "w") as fh:
+            fh.write(spec_design(d, [], {}).replace(f"# Specification - {name}", f"# Specification - {PCS_TITLES[name]}"))
+    return out
+
+
+def pcs_checks(pc):
+    C = []
+
+    def chk(cid, what, value, limit, good):
+        C.append(dict(id=cid, what=what, value=value, limit=limit, ok=bool(good), exc=""))
+
+    for tag, r, rq in (("pcs_l1", pc["rec1"], pc["rq1"]), ("pcs_l2", pc["rec2"], pc["rq2"])):
+        chk(f"{tag}_L", f"{tag} L(I) of the -10 % part against the required minima", _v({f"{k:.0f}A": round(v * 0.9e6, 1) for k, v in r["L_I"].items()}),
+            _v({f"{k:.0f}A": round(v * 1e6, 1) for k, v in rq["L_min_tab"].items()}), r["L_ok"])
+        chk(f"{tag}_B", f"{tag} B at {rq['I_trip']:.0f} A (L + 5 %) / B_sat(100 C)", f"{abs(r['B_trip'])/CC_MAT[r['mat']]['bsat_hot']:.2f}", "<= 0.98",
+            abs(r["B_trip"]) <= 0.98 * CC_MAT[r["mat"]]["bsat_hot"])
+        chk(f"{tag}_fit", f"{tag} coils fit the window", f"{r['w']['b_c']*1e3:.1f} mm build", "> 0, foil layers inside", r["w"]["fits"])
+        chk(f"{tag}_hot", f"{tag} hot spot at 60 C inlet (design loss, 198 A 950 V)", f"{r['T60_d']:.0f} C", f"<= {rq['T_hot_max']:.0f} C",
+            r["T60_d"] <= rq["T_hot_max"])
+        d = r["design"]["continuous: 198 A, 950 V"]
+        chk(f"{tag}_higher", f"{tag} design loss covers own and OpenMagnetics (198 A 950 V)", f"{d['P_total']:.1f} W",
+            f">= own {d['own_cu'] + d['own_core']:.1f} / OM {(d['om_cu'] or 0) + (d['om_core'] or 0):.1f} W",
+            d["P_total"] >= 0.999 * max(d["own_cu"] + d["own_core"], (d["om_cu"] or 0) + (d["om_core"] or 0)))
+        lom = r["design"]["budget: 180 A, 750 V"]["om_L"]
+        if lom:
+            chk(f"{tag}_om_L", f"{tag} L own (gap set) vs OpenMagnetics", pct(rel(rq["L"], lom)), "<= 15 %", abs(rel(rq["L"], lom)) <= 0.15)
+    chk("pcs_l1_rule", "L1 recommended within 2 x the study's loss budget at 180 A / 750 V (selection rule)", f"{pc['rec1']['P_budget_d']:.0f} W",
+        f"<= {2 * pc['rq1']['budget']:.0f} W", pc["rec1"]["P_budget_d"] <= 2 * pc["rq1"]["budget"])
+    chk("pcs_l2_budget", "L2 within the study's loss budget at 180 A", f"{pc['rec2']['P_budget_d']:.1f} W", f"<= {pc['rq2']['budget']:.0f} W",
+        pc["rec2"]["P_budget_d"] <= pc["rq2"]["budget"])
+    chk("pcs_l1_sens", "L1 sensitivity has a feasible design at every inductance", _v([k for k, v in pc["sens"].items() if v["picks"]]),
+        _v(list(L1_SENS_uH)), all(v["picks"] for v in pc["sens"].values()))
+    cm = pc["cm"]
+    chk("pcs_cm_L", "AC CM choke L at 32 kHz at -25 % mu", f"{cm['L_min']*1e6:.0f} uH", f">= {cm['L_req']*1e6:.0f} uH", cm["L_min"] >= cm["L_req"])
+    bt = cm["b_lf"] + cm["b_dm"] * 198 * math.sqrt(2) / pc["P"]["L1"]["current"]["peak_A"]["200 ms"] + cm["b_hf"]
+    chk("pcs_cm_B", "AC CM choke B: 150 Hz CM (24 uF, +25 % mu) + DM leakage (198 A) + HF", f"{bt:.2f} T", f"<= {cm['b_allow']:.2f} T", bt <= cm["b_allow"])
+    chk("pcs_cm_fit", "AC CM choke bars fit (three-wire flat, four-wire on edge)", _v(cm["fits"]) + ", on edge 30.5 x 18 mm", "window 31 x 19.6 mm usable",
+        cm["fits"]["three-wire"] and 4 * (4.5e-3 + 2e-3) + 4.5e-3 <= 31e-3 and 18e-3 <= 19.6e-3)
+    return C
+
+
+def pcs_report(pc, C):
+    r1, r2, cm, st = pc["rec1"], pc["rec2"], pc["cm"], pc["study"]
+    n = 3
+    lcl_cat = n * (r1["cost"]["total_usd"] + r2["cost"]["total_usd"]) + 6 * 3.0 + 3 * 3.0      # + C_f and damping (study's rows)
+    lcl_5k = n * (r1["cost"]["build_5k_usd"] + r2["cost"]["build_5k_usd"]) + 6 * 2.55 + 3 * 2.55
+    P = pc["P"]
+    L = ["", "## PCS-P125 filter magnetics (D-057; MAG-1 / MAG-2 for the inverter)", "",
+         f"Inputs: `{PCS_SPEC}` ({P['mtime']}), blocks inductors / ports_and_common_mode. Airflow: {P['air']['basis']}. Everything "
+         "CALCULATED; losses are the higher of the own model and OpenMagnetics (copper and core separately).", "",
+         table([dict(part="L1 (x3, + L_N)", c=_cc_desc(r1), loss=f"{r1['P_budget_d']:.0f} / {r1['P_worst_d']:.0f}", t=f"{r1['T45_d']:.0f} / {r1['T60_d']:.0f}",
+                     m=f"{r1['mass']:.1f}", usd=f"{r1['cost']['total_usd']:.0f} / {r1['cost']['build_5k_usd']:.0f}",
+                     s=f"{st['L1']['unit_cat_usd']:.0f} / {st['L1']['unit_5k_usd']:.0f}, budget {pc['rq1']['budget']:.0f} W"),
+                dict(part="L2 (x3)", c=_cc_desc(r2), loss=f"{r2['P_budget_d']:.1f} / {r2['P_worst_d']:.1f}", t=f"{r2['T45_d']:.0f} / {r2['T60_d']:.0f}",
+                     m=f"{r2['mass']:.1f}", usd=f"{r2['cost']['total_usd']:.0f} / {r2['cost']['build_5k_usd']:.0f}",
+                     s=f"{st['L2']['unit_cat_usd']:.0f} / {st['L2']['unit_5k_usd']:.0f}, budget {pc['rq2']['budget']:.0f} W"),
+                dict(part="AC CM choke", c=pc["files"]["pcs_cm_choke"]["construction"], loss="< 1", t="-", m=f"{cm['mass']:.1f}",
+                     usd=f"{cm['cost']['total_usd']:.0f} / {cm['cost']['build_5k_usd']:.0f}",
+                     s=f"{st['cm'].get('unit_cat_usd', 0):.0f} / {st['cm'].get('unit_5k_usd', 0):.0f} (incl. 3 Y1)")],
+               [("part", lambda r: r["part"]), ("construction", lambda r: r["c"]), ("loss W (180 A 750 V / 198 A 950 V)", lambda r: r["loss"]),
+                ("hot spot C (45 / 60 C inlet)", lambda r: r["t"]), ("kg", lambda r: r["m"]), ("USD cat / 5k", lambda r: r["usd"]),
+                ("study USD cat / 5k", lambda r: r["s"])]), "",
+         f"**LCL filter (3 x L1 + 3 x L2 + C_f and damping as the study): {lcl_cat:.0f} USD catalogue / {lcl_5k:.0f} USD at 5,000 units** against "
+         f"the study's 207 / 167; L1 + L2 loss at 198 A / 950 V: {n * (r1['P_worst_d'] + r2['P_worst_d']):.0f} W, at 180 A / 750 V: "
+         f"{n * (r1['P_budget_d'] + r2['P_budget_d']):.0f} W against the study's {n * (pc['rq1']['budget'] + pc['rq2']['budget']):.0f} W.", "",
+         "### L1 options (97.2 uH)", "", _rows(pc["files"]["pcs_l1"]["options"]), "",
+         "### L1 sensitivity to its inductance (filter re-optimisation input; values not changed here)", "",
+         _rows([dict(L_uH=x["L_uH"], pick=x["pick"], ripple_pp_A=round(x["ripple_pp_A"], 1), P_budget_W=x["P_budget_W"], P_worst_W=x["P_worst_W"],
+                     T60=x["T_hot_60_C"], kg=x["mass_kg"], usd=x["cost_usd"], usd_5k=x["cost_5k_usd"]) for x in pc["files"]["pcs_l1"]["sensitivity"]]), "",
+         "### Reference designs (MAG-2), per unit", "",
+         _rows([{k: (round(v, 3) if isinstance(v, float) else v) for k, v in x.items()} for x in pc["refs"]]), "",
+         "### Where the two loss models disagree", "",
+         "- Litz windings: own and OpenMagnetics agree within a few percent (copper).",
+         "- Foil windings: OpenMagnetics gives 1.3-2 x the own copper loss (2-D foil-edge and gap-fringing currents that the 1-D "
+         "Dowell model plus a surface-loss fringing term does not capture) - the design takes OM, which removes most of the foil's cost advantage.",
+         "- Cores: own is higher (cut-core factor 1.5 and, for amorphous, Metglas' 20-50 kHz fit vs MAS 2605SA1: OM ~0.6 x own).", "",
+         "### Notes", ""] + [f"- {k}: {v}" for k, v in pc["files"]["pcs_l1"]["notes"].items()] + [
+         "", "Checks (no allowances):", "",
+         table(C, [("check", lambda c: c["id"]), ("what", lambda c: c["what"]), ("value", lambda c: c["value"]),
+                   ("limit", lambda c: c["limit"]), ("result", lambda c: "pass" if c["ok"] else "FAIL")]), ""]
+    with open(os.path.join(OUT, "report.md"), "a") as fh:
+        fh.write("\n".join(L))
+    return dict(lcl_cat=lcl_cat, lcl_5k=lcl_5k)
+
+
+def pv_thermal_limits(d, rth, t_air, p_tot):
+    """thermal budget of the PV inductor per build: hot spot and the loss that reaches T_hotspot_max at the module model's airflow
+    (sim/out/pv_design/module_spec.json costfirst, 45 C inlet); h ~ (mass flow)^0.6 from the 25 W/m2K at 150 m3/h basis, as
+    sim/pv_module.py; local air = inlet + 10 K pre-heat (PV_T_AIR, ASSUMED - the module model uses its own heatsink pre-heat)"""
+    mods = load("sim/out/pv_design/module_spec.json")["costfirst"]["modules"]
+    t_lim = d["thermal"]["T_hotspot_max_C"]
+    out = {}
+    for b, m in mods.items():
+        fc = m["full_current_no_port_cap_45C"]
+        q = fc["air_per_phase_m3h"]
+        r_b = rth * ((1.10 * 150.0) / (1.11 * q)) ** 0.6
+        t_b = t_air + r_b * p_tot
+        out[b] = dict(airflow_m3h_per_phase=q, Rth_K_W=r_b, T_hotspot_C=t_b, margin_K=t_lim - t_b, thermal_limit_W=(t_lim - t_air) / r_b,
+                      module_model_T_hotspot_C=fc["inductor_hot_spot_C"], module_model_point=fc["at"])
+    d["thermal"].update(builds=out, thermal_limit_W={b: v["thermal_limit_W"] for b, v in out.items()},
+                        thermal_limit_basis=f"loss at which the hot spot reaches {t_lim:.0f} C at the module's airflow per phase and 45 C "
+                                            f"inlet (local air {t_air:.0f} C ASSUMED); Rth scaled from {rth:.3f} K/W at 150 m3/h with "
+                                            "(mass flow)^-0.6 as sim/pv_module.py")
 
 
 if __name__ == "__main__":

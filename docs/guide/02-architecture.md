@@ -6,8 +6,8 @@
 > How PV-P75 and PV-P100/110 are partitioned: what each circuit is referenced to, the one reinforced barrier and what crosses it, the two boards and the 64-pin contract between them, the self-powered supply tree, the insulation concept, and what was given up against the earlier platform.
 
 ![status](https://img.shields.io/badge/build%20checks-all%20passing-00A99D?style=flat-square)
-![PV-PWR](https://img.shields.io/badge/PV--PWR-rev%20A1-0B1F33?style=flat-square)
-![PV-CTL](https://img.shields.io/badge/PV--CTL-rev%20A0-0B1F33?style=flat-square)
+![PV-PWR](https://img.shields.io/badge/PV--PWR-rev%20A2-0B1F33?style=flat-square)
+![PV-CTL](https://img.shields.io/badge/PV--CTL-rev%20A1-0B1F33?style=flat-square)
 ![barriers](https://img.shields.io/badge/reinforced%20barriers-1-00A99D?style=flat-square)
 ![bench](https://img.shields.io/badge/bench--validated-no-E4572E?style=flat-square)
 ![date](https://img.shields.io/badge/as%20of-2026--10--05-5B6B7A?style=flat-square)
@@ -37,7 +37,7 @@ flowchart LR
         PA["Port A<br/>varistor Y · contactor K_A"]:::live
         BA["Bank A<br/>270 µF film"]:::live
         PH["3 (4) interleaved FSBB phases<br/>2 × SG2M040170HJ per switch"]:::live
-        BB["Bank B<br/>270 µF film"]:::live
+        BB["Bank B<br/>315 µF film"]:::live
         PB["Port B<br/>aR fuse per pole · K_B · precharge"]:::live
         GD["12 (16) NSI6651 gate-drive channels<br/>bias transformer per phase"]:::live
         AUX["Auxiliary flyback<br/>fed from both ports"]:::live
@@ -50,7 +50,7 @@ flowchart LR
     PV --- PA --- BA --- PH --- BB --- PB --- BAT
     GD -->|"gates"| PH
     MCU -->|"PC connector 2 × 32<br/>PWM, EN, contactor commands"| GD
-    AUX -->|"live 24 V"| MCU
+    AUX -->|"3.3 V"| MCU
     AUX -->|"SELV 24 V<br/>reinforced winding"| IO
     MCU --- B1 --- IO
     classDef live fill:#FDE7E0,stroke:#E4572E,color:#0B1F33
@@ -65,12 +65,12 @@ flowchart LR
 | | Earlier platform (kept as reference) | Cost-first module (baseline) |
 |---|---|---|
 | Boards per PV-P75 | 8: CTRL-C2000, SYS-IO-AUX, PV-PORT, 3 × PVCELL-25, AUX-HV, BMU-GW | 2: PV-PWR (power) + PV-CTL (control) |
-| Parts per PV-P75 | 3,345 ([COST-REVIEW.md §3](../requirements/COST-REVIEW.md)) | 2,136 as drawn: 1,870 + 266 ([report JSONs](../../hardware/PV-PWR/outputs/PV-PWR_report.json)); the architecture estimated ~1,850 |
+| Parts per PV-P75 | 3,345 ([COST-REVIEW.md §3](../requirements/COST-REVIEW.md)) | 2,159 as drawn: 1,874 + 285 ([report JSONs](../../hardware/PV-PWR/outputs/PV-PWR_report.json)); the architecture estimated ~1,850 |
 | Controller | dual-core F28388D on a protected low-voltage (PELV) island | single-core F280039C on `BUS-` |
 | Safety barriers | 132 audited HV–PELV barrier rows ([insulation report](../../sim/out/insulation/report.md)) | B1 only: the auxiliary transformer's SELV winding + 5 isolators |
 | Safety chain | dual channel, 75-row FMEA | one hardware latch + watchdog |
 | Supply | cabinet 24 V, 30 W bootstrap flyback | self-powered from both ports |
-| BOM, catalogue prices | 2,812 USD | 947 USD ([bom/COST.md](../../bom/COST.md), estimate, as of 2026-10-05) |
+| BOM, catalogue prices | 2,812 USD | 952 USD ([bom/COST.md](../../bom/COST.md), estimate, as of 2026-10-05) |
 
 The costing itself is on [07 · Sourcing and cost](07-sourcing-and-cost.md).
 
@@ -147,9 +147,9 @@ flowchart LR
 
 | Board | Revision | Sheets | Parts | Nets | Content |
 |---|---|---:|---:|---:|---|
-| PV-PWR (PV-P75) | A1 | 22 | 1,870 | 932 | PC connector and command buffers; 3 phases × (power stage, 2 gate-drive sheets); port A and port B (power path, sensing and interlocks, coil drives); terminals, EMI ring, insulation monitor; live 5 V / 3.3 V; 4 sheets of auxiliary flyback |
-| PV-PWR-4 (PV-P100/110) | A1 | 25 | 2,318 | 1,142 | as PV-PWR with a fourth phase |
-| PV-CTL | A0 | 7 | 266 | 182 | supply and reset; F280039C, clock, debug, EEPROM; reference and analog front ends; trip comparators; latch, watchdog, gating; barrier B1 with CAN and RS-485; SELV supply, fans, ENABLE / STATUS |
+| PV-PWR (PV-P75) | A2 | 22 | 1,874 | 939 | PC connector and command buffers; 3 phases × (power stage, 2 gate-drive sheets); port A and port B (power path, sensing and interlocks, coil drives); terminals, EMI ring, insulation monitor; live 5 V / 3.3 V; 4 sheets of auxiliary flyback |
+| PV-PWR-4 (PV-P100/110) | A2 | 25 | 2,322 | 1,150 | as PV-PWR with a fourth phase |
+| PV-CTL | A1 | 7 | 285 | 192 | supply and reset; F280039C, clock, debug, EEPROM; reference and analog front ends; trip comparators; latch, watchdog, gating; barrier B1 with CAN and RS-485; SELV supply, fans, ENABLE / STATUS |
 
 <sub>Source: [PV-PWR](../../hardware/PV-PWR/outputs/PV-PWR_report.json),
 [PV-PWR-4](../../hardware/PV-PWR-4/outputs/PV-PWR-4_report.json),
@@ -166,14 +166,15 @@ connector leaves the enclosure.** Levels below are as built on PV-PWR and accept
 
 | Group | Signals | Pins | Direction | Level and scaling (as built) |
 |---|---|---:|---|---|
-| Supplies | +24V ×2, +5V ×2, +3V3 | 5 | power → control | 3 A per pin; the control board uses only +3V3 (≤ 157 mA of a 200 mA allocation) |
+| Supplies | +3V3 | 1 | power → control | 3 A; the only supply that crosses (the four former 24 V / 5 V pins now carry IL1R–IL4R); the control board uses ≤ 157 mA of a 200 mA allocation |
 | Returns | GND ×8, AGND ×3 | 11 | — | all equal to `BUS-`, joined at one star point |
 | Gate commands | PWM1–PWM16 | 16 | control → power | 3.3 V CMOS **after** the latch gating; 10 k pull-down and an AND with EN on the power board; PWM13–16 unused on PV-P75 |
 | Enables | EN, BIAS_EN | 2 | control → power | as PWM; EN low forces every gate off; BIAS_EN starts the gate-bias converters |
 | Contactor commands | K_A, K_B, K_PRE | 3 | control → power | 100 k pull-down; the power board's polarity, precharge-ΔV and hold-off interlocks sit between these and the coils |
 | Insulation test | IMD_SW1, IMD_SW2 | 2 | control → power | 100 k pull-down into a MOSFET gate |
 | Fault and status | FLT_N, RDY, HOLD, MOV_OK | 4 | power → control | FLT_N open-drain wired-OR (12 drivers + 2 port over-current comparators), pulled up on PV-CTL; RDY open-drain wired-AND, pulled up on PV-PWR; HOLD push-pull; MOV_OK open drain, valid above ~200 V |
-| Inductor currents | IL1–IL4 | 4 | power → control | 2.50 V + 10.667 mV/A, ±100 A = 1.43–3.57 V; IL4 = 0 V on PV-P75 |
+| Inductor currents | IL1–IL4 | 4 | power → control | 2.50 V + 10.667 mV/A, ±100 A = 1.43–3.57 V, from the sensor's own fixed reference (not ratiometric); IL4 = 0 V on PV-P75 |
+| Sensor references | IL1R–IL4R | 4 | power → control | each sensor's own reference output, 2.48–2.52 V (source 111–121 Ω, ≤ 63 µA); PV-CTL derives each phase's over-current thresholds from it; IL4R = 0 V on PV-P75 |
 | Port currents | IA, IA_H, IB, IB_H | 4 | power → control | around VMID 1.641–1.651 V: 3.0 mV/A (±513 A) and 1.0 mV/A (±1,539 A, hold-off path) |
 | Port voltages | VA, VAX, VB, VBX, VPE | 5 | power → control | VMID + V/1203 (bank side); bipolar around VMID (terminal side and PE) |
 | Temperatures | NTC1–NTC8 | 8 | power → control | NTC 10 k to AGND, biased and read on PV-CTL; NTC4 / NTC8 open on PV-P75 |
@@ -187,10 +188,11 @@ With the connector unplugged, every command is pulled low and no gate turns on a
 the netlist by the power board's design check.
 
 > [!NOTE]
-> **Where the records disagree.** [ARCHITECTURE-COSTFIRST.md §10](../requirements/ARCHITECTURE-COSTFIRST.md) describes
-> the connector as 2 × 30; the contract and both boards use 2 × 32. The comment in `gen/interfaces.py` calls the IL
-> signals "ratiometric to +5V"; the power board's check states they are **not** ratiometric (fixed 2.50 V ± 0.02 V
-> zero, re-zeroed by firmware at idle).
+> **Where the records disagree.** [ARCHITECTURE-COSTFIRST.md §10](../requirements/ARCHITECTURE-COSTFIRST.md) still
+> describes the connector as 2 × 30 (with a correction note); the contract and both boards use 2 × 32. The comment in
+> `gen/interfaces.py` called the IL signals "ratiometric to +5V" until [D-058](../requirements/DECISIONS.md) aligned it
+> with the power board's check: they are **not** ratiometric (a fixed 2.50 V ± 0.02 V zero from the sensor's own
+> reference, re-zeroed by firmware at idle).
 
 ## ⚡ Supply tree
 
@@ -228,7 +230,7 @@ flowchart TD
 | One flyback design for both: continuous / 1 s peak (W) | 86.6 / 94.6 | | [aux75_spec.json](../../sim/out/aux_hv_design/aux75_spec.json) `ratings` |
 | Flyback efficiency at full power, 250 / 600 / 1000 V input (%) | 82.2 / 85.6 / 83.8 | | aux75_spec.json `efficiency` |
 | Brown-in / brown-out / over-voltage lock-out (V) | 206–215 / 179–192 / 1,107–1,162 | | aux75_spec.json `startup`, `protection` |
-| Standby, gates and fans off, contactors open / both held, at 1000 V (W) | 11.3 / 20.5 | 11.9 / 21.1 | power-board design checks (estimate) |
+| Standby, gates and fans off, contactors open / both held, at 1000 V (W) | 11.3 / 20.9 | 11.9 / 21.5 | power-board design checks (estimate) |
 
 All values are calculated maxima; none is measured.
 
@@ -237,7 +239,7 @@ All values are calculated maxima; none is measured.
 - **Full fan speed is guaranteed only while the converter is switching:** the SELV winding is cross-regulated and reaches
   ≥ 24.5 V at full fan load only once the live winding carries ≥ 5.7 W (PV-PWR design check).
 - **Standby:** Megarevo publishes < 20 W. The estimate meets it with the contactors open (11.3 W at 1000 V), not with both
-  held (20.5 W). The architecture estimated ≈ 15 W and [aux75_spec.json](../../sim/out/aux_hv_design/aux75_spec.json)
+  held (20.9 W). The architecture estimated ≈ 15 W and [aux75_spec.json](../../sim/out/aux_hv_design/aux75_spec.json)
   15.7–18.3 W for its own load assumptions — three estimates, no measurement.
 - **Drain stress is the flyback's tight margin:** 1,316 V at 1000 V input and 1,420 V at 1100 V on a 1700 V SiC switch;
   the spec file states that a 10 % margin at 1000 V is not reachable with this winding ratio (risk R-13).

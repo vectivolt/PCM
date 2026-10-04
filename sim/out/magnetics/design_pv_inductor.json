@@ -4,7 +4,7 @@
  "status": "proposed construction - calculated, not built or measured (design to cost, D-044)",
  "basis": {
   "spec": "sim/out/pv_design/cell_spec.json",
-  "spec_mtime": "2026-10-04 20:57",
+  "spec_mtime": "2026-10-05 02:16",
   "requirement": {
    "L_at_45A_uH_min": 207.8,
    "L_at_trip_fraction_of_L0_min": 0.35,
@@ -13,7 +13,7 @@
    "I_peak_normal_max_A": 62.3,
    "I_trip_A": 72.4,
    "ripple_pp_max_A": 34.6,
-   "loss_allowed_W": 51.2,
+   "loss_allowed_W": 83.8,
    "hot_spot_max_C": 155.0,
    "air_flow_m3h_at_full_load": 150.0
   }
@@ -33,7 +33,7 @@
   "f_ripple_Hz": 32000.0,
   "note": "the converter engineer's L(I) table (inductor_L_vs_I.csv) is for Kool Mu MAX; NPC 26 rolls off less (L_trip/L0 0.81 vs 0.69) - pv_tradeoff.py should read L0/L(45 A) from here",
   "loss_limit_W": 93.2273459388116,
-  "loss_note": "worst-point loss 84 W against the cell budget 51 W and M1 51 W: +33 W per inductor = 98 W per PV-P75 (0.13 % of 75 kW at the 1000 V / D 0.5 / 45 A point), 130 W per PV-P100/110; loss_limit_W = hot-spot-limited value"
+  "loss_note": "worst-point loss 84 W against the cell budget 84 W and M1 51 W: +33 W per inductor = 98 W per PV-P75 (0.13 % of 75 kW at the 1000 V / D 0.5 / 45 A point), 130 W per PV-P100/110; loss_limit_W = hot-spot-limited value"
  },
  "core": {
   "maker": "POCO (Shenzhen POCO Magnetic)",
@@ -104,7 +104,7 @@
   ],
   "creepage_turn_gap_m": 0.01,
   "routine_tests": "PD-free (<= 10 pC) at 1910 V pk winding-core; AC 2200 V rms 1 s; NTC-winding AC 4400 V rms 1 s",
-  "type_tests": "AC 2200 V rms 1 min winding-core, 4400 V rms NTC-winding, impulse 6 kV / 8 kV; L(I) to 72.4 A; thermal run at 54 W in 150 m3/h"
+  "type_tests": "AC 2200 V rms 1 min winding-core, 4400 V rms NTC-winding, impulse 6 kV / 8 kV; L(I) to 72.4 A; thermal run at 83.8 W (worst-point loss of this revision) in 150 m3/h"
  },
  "loss_model": {
   "core": {
@@ -249,7 +249,32 @@
   "T_hotspot_C": 144.8420898529506,
   "T_hotspot_max_C": 155.0,
   "basis": "surface model of the cell designer (forced air, h ~25 W/m2K on the wound toroid surface); solid copper: no internal winding gradient; core gradient < 1 K",
-  "interface": "in the cell air stream (150 m3/h at full load); sim/pv_module.py derates with T_air + Rth x P"
+  "interface": "in the cell air stream (150 m3/h at full load); sim/pv_module.py derates with T_air + Rth x P",
+  "builds": {
+   "PV-P75": {
+    "airflow_m3h_per_phase": 134.0,
+    "Rth_K_W": 1.1415380173318688,
+    "T_hotspot_C": 150.61225165926518,
+    "margin_K": 4.387748340734817,
+    "thermal_limit_W": 87.6011122553161,
+    "module_model_T_hotspot_C": 144.7,
+    "module_model_point": "1000->500"
+   },
+   "PV-P100/110": {
+    "airflow_m3h_per_phase": 114.0,
+    "Rth_K_W": 1.257796401382044,
+    "T_hotspot_C": 160.34975115953216,
+    "margin_K": -5.349751159532161,
+    "thermal_limit_W": 79.50412315548192,
+    "module_model_T_hotspot_C": 155.3,
+    "module_model_point": "1000->500"
+   }
+  },
+  "thermal_limit_W": {
+   "PV-P75": 87.6011122553161,
+   "PV-P100/110": 79.50412315548192
+  },
+  "thermal_limit_basis": "loss at which the hot spot reaches 155 C at the module's airflow per phase and 45 C inlet (local air 55 C ASSUMED); Rth scaled from 1.073 K/W at 150 m3/h with (mass flow)^-0.6 as sim/pv_module.py"
  },
  "mass_kg": 1.7447046857839288,
  "cost": {
@@ -279,8 +304,8 @@
   },
   "previous_designer": {
    "design": "NPC290026 x 2 (stacked, 0.5 mm spacer)",
-   "conductor": "profiled litz 1923 x 0.10 mm, 3.07 x 8.06 mm, 1 layer",
-   "P_total_W": 51.2234267797798,
+   "conductor": "solid round enamelled Cu 3.15 mm grade 2, 1 layer",
+   "P_total_W": 83.7573959058682,
    "L_at_45A_H": 0.0002258909319762923,
    "dT_hotspot_K_own": 74.50827896373379,
    "cost_usd": 66

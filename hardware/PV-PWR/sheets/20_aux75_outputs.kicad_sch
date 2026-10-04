@@ -6,8 +6,8 @@
 	(paper "A3")
 	(title_block
 		(title "PV-PWR power board - AUX75 live 24 V, SELV 24 V, status")
-		(date "2026-10-04")
-		(rev "A1")
+		(date "2026-10-05")
+		(rev "A2")
 		(comment 1 "Live board referenced to BUS-; gate islands functional; SELV winding reinforced; HV-PE basic")
 		(comment 2 "Schematics authored by Chinmoy Bhuyan")
 		(comment 3 "Sheet 23")
@@ -1622,7 +1622,7 @@
 	)
 	(rectangle
 		(start 12 14)
-		(end 208.72 68.95)
+		(end 208.72 74.9)
 		(stroke
 			(width 0.254)
 			(type dash)
@@ -1693,7 +1693,7 @@
 	)
 	(text "D2PAK tab = cathode on the output. Snubber 150R + 68p."
 		(exclude_from_sim no)
-		(at 14 66.452 0)
+		(at 14 72.4 0)
 		(effects
 			(font
 				(size 1.1 1.1)
@@ -2010,6 +2010,16 @@
 	)
 	(wire
 		(pts
+			(xy 50.8 132.08) (xy 50.8 134.62)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "80193328-e29e-528d-81b6-a6a904030f40")
+	)
+	(wire
+		(pts
 			(xy 229.87 58.42) (xy 227.33 58.42)
 		)
 		(stroke
@@ -2050,7 +2060,7 @@
 	)
 	(wire
 		(pts
-			(xy 304.8 60.96) (xy 304.8 63.5)
+			(xy 292.1 60.96) (xy 292.1 63.5)
 		)
 		(stroke
 			(width 0)
@@ -2090,7 +2100,7 @@
 	)
 	(wire
 		(pts
-			(xy 292.1 60.96) (xy 292.1 63.5)
+			(xy 55.88 58.42) (xy 55.88 60.96)
 		)
 		(stroke
 			(width 0)
@@ -2290,7 +2300,7 @@
 	)
 	(wire
 		(pts
-			(xy 50.8 132.08) (xy 50.8 134.62)
+			(xy 304.8 60.96) (xy 304.8 63.5)
 		)
 		(stroke
 			(width 0)
@@ -2327,6 +2337,16 @@
 			(justify right bottom)
 		)
 		(uuid "2148dfdb-c713-5547-aef0-bb42495b1694")
+	)
+	(label "AUX_PG3V3"
+		(at 50.8 134.62 270)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right bottom)
+		)
+		(uuid "3c986766-0106-5632-9ad0-19a66feeff0d")
 	)
 	(label "AUX_PG_OV"
 		(at 82.55 129.54 0)
@@ -2407,16 +2427,6 @@
 			(justify right bottom)
 		)
 		(uuid "acf189af-4a3b-5eee-8313-28590acf16b3")
-	)
-	(label "AUX_PG3V3"
-		(at 50.8 134.62 270)
-		(effects
-			(font
-				(size 1 1)
-			)
-			(justify right bottom)
-		)
-		(uuid "bb7fc9cb-b53d-5d35-83c5-b22c3a67ba75")
 	)
 	(label "AUX_PG_OVN"
 		(at 69.85 149.86 0)
@@ -2705,9 +2715,9 @@
 			)
 		)
 	)
-	(global_label "SELV_0V"
+	(global_label "SELV_24V"
 		(shape bidirectional)
-		(at 304.8 63.5 270)
+		(at 292.1 63.5 270)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2717,7 +2727,7 @@
 		)
 		(uuid "50153c94-1d7f-5bbd-83cb-f1077b27a5d9")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 304.8 63.5 270)
+			(at 292.1 63.5 270)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2912,29 +2922,6 @@
 			)
 		)
 	)
-	(global_label "SELV_24V"
-		(shape bidirectional)
-		(at 292.1 63.5 270)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1 1)
-			)
-			(justify right)
-		)
-		(uuid "8e57f237-c7e9-5b9d-b0be-f87766dc7402")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 292.1 63.5 270)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1 1)
-				)
-			)
-		)
-	)
 	(global_label "AUX_LIVE_A"
 		(shape bidirectional)
 		(at 26.67 55.88 180)
@@ -2948,6 +2935,29 @@
 		(uuid "9527d6f1-ca81-55e1-9ea7-73ebbe9452c9")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 26.67 55.88 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "SELV_0V"
+		(shape bidirectional)
+		(at 304.8 63.5 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "9a81209e-ab1d-5194-ad0f-1eeb68ff75b7")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 304.8 63.5 270)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3483,7 +3493,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_FLAG")
-		(at 304.8 60.96 0)
+		(at 292.1 60.96 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -3493,7 +3503,7 @@
 		(dnp no)
 		(uuid "0e3979d6-9396-555e-b69f-73403e47554f")
 		(property "Reference" "#FLG2202"
-			(at 304.8 57.02 0)
+			(at 292.1 57.02 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3504,7 +3514,7 @@
 			)
 		)
 		(property "Value" "PWR_FLAG"
-			(at 304.8 62.36 0)
+			(at 292.1 62.36 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3514,7 +3524,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 304.8 60.96 0)
+			(at 292.1 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3525,7 +3535,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 304.8 60.96 0)
+			(at 292.1 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3536,7 +3546,7 @@
 			)
 		)
 		(property "Description" "ERC power flag"
-			(at 304.8 60.96 0)
+			(at 292.1 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3547,7 +3557,7 @@
 			)
 		)
 		(property "Manufacturer" ""
-			(at 304.8 60.96 0)
+			(at 292.1 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3558,7 +3568,7 @@
 			)
 		)
 		(property "MPN" ""
-			(at 304.8 60.96 0)
+			(at 292.1 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3569,7 +3579,7 @@
 			)
 		)
 		(property "Package" ""
-			(at 304.8 60.96 0)
+			(at 292.1 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3580,7 +3590,7 @@
 			)
 		)
 		(property "Sourcing" "NOPART"
-			(at 304.8 60.96 0)
+			(at 292.1 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3591,7 +3601,7 @@
 			)
 		)
 		(property "Domain" "SELV"
-			(at 304.8 60.96 0)
+			(at 292.1 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4034,6 +4044,81 @@
 		)
 	)
 	(symbol
+		(lib_id "dcdc:PWR_+24V")
+		(at 88.9 100.33 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "2469ded9-883e-5f31-9387-b5e54cbd3b91")
+		(property "Reference" "#PWR20010"
+			(at 88.9 100.33 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Value" "+24V"
+			(at 88.9 96.13 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 88.9 100.33 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 88.9 100.33 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 88.9 100.33 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "2c0d2cd0-00cc-53c2-a782-b738c4bed4bc")
+		)
+		(instances
+			(project "PV-PWR"
+				(path "/c36ce6c8-3b13-5ed4-bd1b-77f09456e1b5/0ccc51d4-e70e-59c6-ab53-1249b50a3384"
+					(reference "#PWR20010")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "dcdc:CHOLD1500")
 		(at 119.38 35.56 0)
 		(unit 1)
@@ -4170,7 +4255,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_FLAG")
-		(at 50.8 132.08 0)
+		(at 304.8 60.96 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -4180,6 +4265,138 @@
 		(dnp no)
 		(uuid "2df4943f-ed40-56b9-8da3-7fb29e065aa8")
 		(property "Reference" "#FLG2203"
+			(at 304.8 57.02 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 304.8 62.36 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 304.8 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 304.8 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "ERC power flag"
+			(at 304.8 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 304.8 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 304.8 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" ""
+			(at 304.8 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "NOPART"
+			(at 304.8 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "SELV"
+			(at 304.8 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "dbb090a5-58e3-5a5f-b9db-d49bd80cb4a7")
+		)
+		(instances
+			(project "PV-PWR"
+				(path "/c36ce6c8-3b13-5ed4-bd1b-77f09456e1b5/0ccc51d4-e70e-59c6-ab53-1249b50a3384"
+					(reference "#FLG2203")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:PWR_FLAG")
+		(at 50.8 132.08 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "39493c6a-2127-5577-bf2c-70893b3c617d")
+		(property "Reference" "#FLG2204"
 			(at 50.8 128.14 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4289,12 +4506,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "dbb090a5-58e3-5a5f-b9db-d49bd80cb4a7")
+			(uuid "99808fa0-6780-568d-9440-46ad2f28d1a1")
 		)
 		(instances
 			(project "PV-PWR"
 				(path "/c36ce6c8-3b13-5ed4-bd1b-77f09456e1b5/0ccc51d4-e70e-59c6-ab53-1249b50a3384"
-					(reference "#FLG2203")
+					(reference "#FLG2204")
 					(unit 1)
 				)
 			)
@@ -5325,7 +5542,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_FLAG")
-		(at 292.1 60.96 0)
+		(at 55.88 58.42 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -5335,7 +5552,7 @@
 		(dnp no)
 		(uuid "6d9c3748-cf99-501b-8c92-55becb418d80")
 		(property "Reference" "#FLG2201"
-			(at 292.1 57.02 0)
+			(at 55.88 54.48 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5346,7 +5563,7 @@
 			)
 		)
 		(property "Value" "PWR_FLAG"
-			(at 292.1 62.36 0)
+			(at 55.88 59.82 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5356,7 +5573,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 292.1 60.96 0)
+			(at 55.88 58.42 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5367,7 +5584,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 292.1 60.96 0)
+			(at 55.88 58.42 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5378,7 +5595,7 @@
 			)
 		)
 		(property "Description" "ERC power flag"
-			(at 292.1 60.96 0)
+			(at 55.88 58.42 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5389,7 +5606,7 @@
 			)
 		)
 		(property "Manufacturer" ""
-			(at 292.1 60.96 0)
+			(at 55.88 58.42 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5400,7 +5617,7 @@
 			)
 		)
 		(property "MPN" ""
-			(at 292.1 60.96 0)
+			(at 55.88 58.42 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5411,7 +5628,7 @@
 			)
 		)
 		(property "Package" ""
-			(at 292.1 60.96 0)
+			(at 55.88 58.42 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5422,7 +5639,7 @@
 			)
 		)
 		(property "Sourcing" "NOPART"
-			(at 292.1 60.96 0)
+			(at 55.88 58.42 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5432,8 +5649,8 @@
 				)
 			)
 		)
-		(property "Domain" "SELV"
-			(at 292.1 60.96 0)
+		(property "Domain" "LIVE"
+			(at 55.88 58.42 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6000,7 +6217,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_+24V")
-		(at 17.78 100.33 0)
+		(at 55.88 60.96 180)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6010,7 +6227,7 @@
 		(dnp no)
 		(uuid "9ba211d5-049c-591c-878e-103d6863727e")
 		(property "Reference" "#PWR20008"
-			(at 17.78 100.33 0)
+			(at 55.88 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6021,7 +6238,7 @@
 			)
 		)
 		(property "Value" "+24V"
-			(at 17.78 96.13 0)
+			(at 55.88 65.36 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6031,7 +6248,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 17.78 100.33 0)
+			(at 55.88 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6042,7 +6259,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 17.78 100.33 0)
+			(at 55.88 60.96 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6052,7 +6269,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 17.78 100.33 0)
+			(at 55.88 60.96 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7041,7 +7258,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_+24V")
-		(at 88.9 100.33 0)
+		(at 17.78 100.33 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -7051,7 +7268,7 @@
 		(dnp no)
 		(uuid "d308d992-51d4-520a-8eff-7be2226603ed")
 		(property "Reference" "#PWR20009"
-			(at 88.9 100.33 0)
+			(at 17.78 100.33 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7062,7 +7279,7 @@
 			)
 		)
 		(property "Value" "+24V"
-			(at 88.9 96.13 0)
+			(at 17.78 96.13 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7072,7 +7289,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 88.9 100.33 0)
+			(at 17.78 100.33 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7083,7 +7300,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 88.9 100.33 0)
+			(at 17.78 100.33 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7093,7 +7310,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 88.9 100.33 0)
+			(at 17.78 100.33 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects

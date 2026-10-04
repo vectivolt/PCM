@@ -6,8 +6,8 @@
 	(paper "A3")
 	(title_block
 		(title "PV-CTL control board - PC connector, supply, reset")
-		(date "2026-10-04")
-		(rev "A0")
+		(date "2026-10-05")
+		(rev "A1")
 		(comment 1 "LIVE zone = BUS- (hazardous live); SELV zone behind reinforced barrier B1")
 		(comment 2 "Schematics authored by Chinmoy Bhuyan")
 		(comment 3 "Sheet 2")
@@ -2810,7 +2810,7 @@
 		)
 		(uuid "f14c16b8-27d8-5e86-8529-fd7ca0586b6d")
 	)
-	(text "LIVE: GND = AGND = BUS-; nothing on this connector leaves the enclosure. +24V and +5V are NOT used (PV-PWR\nallocation 0 / 50 mA; the live 24 V is already over its rating): pins left open. +3V3 feeds the MCU, so the\npower board's 3.3 V signals and VDDIO share one rail and one power-up order (no back-powering)."
+	(text "LIVE: GND = AGND = BUS-; nothing on this connector leaves the enclosure. Only +3V3 comes across (the former\n+24V / +5V pins carry the sensor references IL1R-IL4R since PV-PWR rev A2). +3V3 feeds the MCU, so the\npower board's 3.3 V signals and VDDIO share one rail and one power-up order (no back-powering)."
 		(exclude_from_sim no)
 		(at 14 122.78 0)
 		(effects
@@ -2857,24 +2857,18 @@
 		(uuid "e744ac13-f61e-5dba-862e-2fb4e7e9b64f")
 	)
 	(no_connect
-		(at 27.94 27.94)
-		(uuid "348cd89c-24a2-5d54-82cf-e91c06a51381")
-	)
-	(no_connect
 		(at 139.7 33.02)
 		(uuid "6a2f919c-3340-5be6-97c6-2213192b4008")
 	)
-	(no_connect
-		(at 40.64 33.02)
-		(uuid "95f15d0e-a8b7-5c82-ad89-1e5a25aadb09")
-	)
-	(no_connect
-		(at 40.64 27.94)
-		(uuid "a420f68a-ecff-5a5f-ae9b-25ef469f7c41")
-	)
-	(no_connect
-		(at 27.94 33.02)
-		(uuid "da064270-21d0-5454-a55b-6d41c2e2b10a")
+	(wire
+		(pts
+			(xy 27.94 27.94) (xy 25.4 27.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "009cd118-6d78-50ac-a628-cb09e84ec4c4")
 	)
 	(wire
 		(pts
@@ -2955,6 +2949,16 @@
 			(type default)
 		)
 		(uuid "0eb27cdc-22ff-5db7-b844-b09fd7beaf5e")
+	)
+	(wire
+		(pts
+			(xy 40.64 33.02) (xy 43.18 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0fc91a60-94d5-5119-9f67-252d62020518")
 	)
 	(wire
 		(pts
@@ -3098,6 +3102,16 @@
 	)
 	(wire
 		(pts
+			(xy 27.94 33.02) (xy 25.4 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3c8a4e77-ab8b-57ed-aaef-48f1046beaa4")
+	)
+	(wire
+		(pts
 			(xy 27.94 91.44) (xy 25.4 91.44)
 		)
 		(stroke
@@ -3235,6 +3249,16 @@
 			(type default)
 		)
 		(uuid "663f9650-6d20-59c2-a90d-37f7fda59cec")
+	)
+	(wire
+		(pts
+			(xy 40.64 27.94) (xy 43.18 27.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6a97031f-a3d6-57e2-82b9-5e7f78cb8db9")
 	)
 	(wire
 		(pts
@@ -3675,6 +3699,29 @@
 		(uuid "0df7f0d4-15ec-5b37-ab5a-281cec4c282d")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 25.4 76.2 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "IL2R"
+		(shape bidirectional)
+		(at 43.18 27.94 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "10fb8404-f58c-5803-ba41-b22919a035dd")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 43.18 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4214,6 +4261,29 @@
 			)
 		)
 	)
+	(global_label "IL1R"
+		(shape bidirectional)
+		(at 25.4 27.94 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "81dd4e20-105a-5128-8741-4c50ca1a9e8f")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 25.4 27.94 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
 	(global_label "IA_H"
 		(shape bidirectional)
 		(at 25.4 86.36 180)
@@ -4273,6 +4343,29 @@
 		(uuid "86b9c49c-0e9c-5439-a695-e7ac6337312d")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 25.4 81.28 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "IL3R"
+		(shape bidirectional)
+		(at 25.4 33.02 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "89219d3b-5361-5954-817c-d68b4573b7a2")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 25.4 33.02 180)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4595,6 +4688,29 @@
 		(uuid "c4108f58-42d9-5ef7-a94b-d19c1d1695cc")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 25.4 38.1 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "IL4R"
+		(shape bidirectional)
+		(at 43.18 33.02 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "c6ac4ef3-e821-52ec-97a5-3341a0e314a6")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 43.18 33.02 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)

@@ -196,8 +196,8 @@ three ADCs = 10 %.</sub>
 
 <sub>Sources: [PV-CTL design check](../../hardware/PV-CTL/outputs/PV-CTL_design_check.txt) ADC checks;
 [PV-PWR design check](../../hardware/PV-PWR/outputs/PV-PWR_design_check.txt) "Inductor current", "IA / IB bandwidth".
-The PV-CTL text still reports the IA / IB bandwidth as an open 5.3 kHz item; the later PV-PWR build fitted 470 pF and
-reports 11.3 kHz.</sub>
+PV-CTL rev A1 reads the IA / IB bandwidth from the PV-PWR check: 11.3 kHz with the 470 pF fitted, no longer an open
+5.3 kHz item.</sub>
 
 > [!WARNING]
 > **Timing at 120 MHz is open (risk R-14).** The ISR budget of 14.2 µs was set for a 200 MHz F28388D. The architecture's

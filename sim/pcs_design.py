@@ -14,6 +14,7 @@ import csv
 import json
 import math
 import os
+import re
 import sys
 
 import numpy as np
@@ -848,13 +849,14 @@ def report_a(rows, choice, arch):
        f"costs inside two-level: {d5(ch)-d5(l2_12):.0f} USD against the same two-level with 1200 V SiC "
        f"({l2_12['name']}, 0.79 of rating at 950 V, FIT {l2_12['fit950']:.0f} at 950 V vs {ch['fit950']:.2f}).  The efficiency price against "
        f"the best SiC three-level: module loss {ch['loss_mod_full_W']:.0f} W vs {b3['loss_mod_full_W']:.0f} W at 125 kW, peak "
-       f"{ch['eta_peak']*100:.2f} % vs {b3['eta_peak']*100:.2f} % ({(b3['eta_peak']-ch['eta_peak'])*100:.2f} %-points); against the architect's "
+       f"{ch['eta_peak']*100:.2f} % vs {b3['eta_peak']*100:.2f} % ({(b3['eta_peak']-ch['eta_peak'])*100:.2f} %-points; the slower gate resistor "
+       f"that the 950 V commutation needs adds about 60 W more, step e); against the architect's "
        f"IGBT T-type it is a gain ({arch_r['loss_mod_full_W']:.0f} W, peak {arch_r['eta_peak']*100:.2f} %).")
     wr(f"- **Four-wire:** the fourth leg of a two-level design is one more half-bridge; a T-type phase leg under 100 % unbalance pushes a "
        f"50 Hz current into its midpoint (step d) that the two-level bank does not have.")
     wr(f"- **What two-level costs elsewhere:** common-mode voltage at f_sw {cm2['cm_fsw_peak_V']:.0f} V peak against {cm3['cm_fsw_peak_V']:.0f} V "
        f"for three-level (950 V DC, calculated spectrum): the C_f star must be tied to the DC midpoint (split film bank) and the EMI filter "
-       f"needs about 6 dB more common-mode attenuation (step f); full-V_dc steps at up to 30 V/ns on L1, the heatsink capacitance and the "
+       f"needs about 6 dB more common-mode attenuation (step f); full-V_dc steps at up to 60 V/ns (step e) on L1, the heatsink capacitance and the "
        f"cables; L1 stores {cm2['l1_energy_J']:.1f} J against {cm3['l1_energy_J']:.1f} J per phase (twice the inductor) - all inside the totals "
        f"above except the extra common-mode core.  The higher peak efficiency of three-level SiC does not pay for its "
        f"{d5(b3)-d5(ch):.0f} USD.")
@@ -1113,7 +1115,9 @@ def report_b(D, r):
     wr(f"\n**Current sharing of paralleled discretes:** the hottest device is taken to carry k = {K_SHARE['sic']:.2f} x the mean current "
        f"(conduction and switching) - it requires devices from one lot (R_DS(on) spread within +-10 %), Kelvin-source drive with a "
        f"0.5 ohm Kelvin resistor per device (gen/gdrv.py R_KS) and a symmetric layout; positive R_DS(on) temperature coefficient "
-       f"(x1.4-1.9 from 25 to 150 C) stabilises it.  Without binning (data-sheet max/typ 1.45 for SG2M035120LJ) k = 1.2 gives "
+       f"(x1.4-1.9 from 25 to 150 C) stabilises it.  Without binning (data-sheet max/typ R_DS(on) "
+       f"{pv.MOSFETS[D['devs'][next(iter(D['devs']))][0]]['rds25_max']/pv.MOSFETS[D['devs'][next(iter(D['devs']))][0]]['rds25']:.2f} for "
+       f"{D['devs'][next(iter(D['devs']))][0]}) k = 1.2 gives "
        f"Tj {r['sharing_k1p2_tj_C']:.0f} C at the worst 110 % corner (vs {r['envelope_45C']['tj_max_C']:.0f} C): binning or one-lot "
        f"assembly is a production requirement.")
     e = r["envelope_45C"]
@@ -1573,7 +1577,7 @@ def report_d(r):
 
 # ------------------------------------------------------------------------------------------------ (e) commutation, gate drive, protection
 CAL_JSON = os.path.join(HERE, "out", "pv_tradeoff", "vdmos_calibration.json")   # READ ONLY: VDMOS fits made for the PV design (same devices)
-V_OV_TRIP = 1050.0            # V, DC over-voltage trip (controller ADC limit, D-049) - the commutation worst case
+V_OV_TRIP = 1050.0            # V, DC over-voltage trip (discrete comparator on the control board, ADC limit as second layer, D-050)
 # commutation loop, lumped equivalent for the six paralleled device pairs of one leg.  LAYOUT REQUIREMENT behind it: every high/low device
 # pair gets its own local decoupling film at its pins, so each pair commutates its 1/6 share in a loop like the PV module's (20 nH for two
 # devices = 40 nH per device); six in parallel = 6.7 nH lumped (design), 10 nH (sensitivity, 60 nH per device).  ESTIMATES, to be replaced
@@ -1722,7 +1726,10 @@ def report_e(r):
        f"transformer per phase with two secondaries); peak gate current {g['I_peak_A_needed']:.0f} A wanted against the NSI6651's "
        f"{g['NSI6651_peak_A']:.0f} A - **add a discrete NPN/PNP push-pull buffer per channel** (two SOT-89 transistors, about 0.3 USD) or "
        f"split the six devices over two drivers (+6 channels); the buffer is the cheaper answer.  Dead time: **{r['dead_time_ns']:.0f} ns** in "
-       f"the ePWM dead-band (D-049: no RC stretch; the drivers' cross-wired IN-/interlock still blocks an overlap).")
+       f"the ePWM dead-band, with the channel's RC + Schmitt stretch on IN- as the hardware minimum and the negative-rail detector "
+       f"(gen/gdrv.py stretch=True, neg_det=True, D-050).  The stretch values of the PV preset (2 gates, no buffer) do NOT carry over: six "
+       f"gates behind a buffer at R_G,off {r['chosen']['R_G_off_ext_ohm_per_device']:.1f} ohm turn off more slowly, so a '6 x SG2M040170HJ' "
+       f"preset must be added to gen/gdrv.py and its design_check re-run before the channel is drawn.")
     ds = r["desat"]
     wr(f"\n**Short circuit:** DESAT trips at V_DS {ds['threshold_V_DS']}; at the {OC_TRIP:.0f} A over-current trip the hottest device sits "
        f"at {ds['V_DS_at_OC_trip_V']:.1f} V (no nuisance trip); blanking {ds['blanking_ns'][0]}-{ds['blanking_ns'][1]} ns, detection to off "
@@ -1732,13 +1739,15 @@ def report_e(r):
        "V_CE(sat) of 3-4 V at twice rated current with 2-3 us blanking against a 3-10 us withstand (CR Micro / NCE parts state none or 3-10 us); "
        "no SiC booster (the driver's soft turn-off suffices, the IGBT limits its own short-circuit current); dead time 1.0-1.5 us; gate "
        "resistors 5-10 ohm; gate charge 208-331 nC per 40-80 A device at a 23 V swing.")
-    wr("\n**Hardware / firmware split (D-049, owner's input 2):** discrete hardware only for what must act faster than the controller or "
-       "with the controller dead where a hazard follows: driver DESAT + booster -> FLT -> trip-zone pin; driver UVLO -> RDY -> trip zone; "
-       "pull-downs on every PWM and EN line (controller in reset = gates off); external stop wired onto the drivers' EN; the DC contactor "
-       "hold-off comparator (lean port).  In the controller's own hardware: per-phase over-current (CMPSS window at +-450 A on the L1 sensor, "
-       "digital filter) and DC over-current / over-voltage (ADC limit trips at 400 A / 1050 V) -> trip zone, latching all PWM low; dead "
-       "time (dead-band).  Everything else - grid protection, relay tests, anti-islanding, sequencing, temperature, fans, insulation and "
-       "residual-current monitoring - is firmware (list in the hand-over section).")
+    wr("\n**Hardware / firmware split (D-050, as on the PV module):** the discrete layer stays and the controller is the second layer.  "
+       "Discrete: driver DESAT + booster and UVLO -> FLT / RDY; default-off pull-downs; the external stop on the drivers' EN and on the latch; "
+       "the RC dead-time stretch and the negative-rail detector in every channel; on the control board (PV-CTL as drawn, sheets 04 / 05) "
+       "window comparators for each phase current (+-450 A), DC over-voltage (1050 V), over-temperature and open probe, one set-dominant "
+       "latch, the heartbeat watchdog and the AND gating of every PWM, EN and coil line; on the DC port the polarity and precharge-dV "
+       "interlocks, the hold-off comparator and the port over-current window (gen/port.py interlocks='full', oc_trip=True).  Second layer "
+       "in the controller's own hardware: CMPSS windows, ADC limit trips, trip zone, dead-band.  Firmware: everything that is sequencing, "
+       "monitoring or a non-hazard edge case (list in the hand-over section).  What does not carry over from the PV design is listed in "
+       "step g.")
 
 
 # ------------------------------------------------------------------------------------------------ (f) AC port, DC port, common mode
@@ -1803,7 +1812,10 @@ def report_f(r, rc):
        f"non-isolated and the disconnection must survive one welded contact (IEC 62109-2 / EN 50549-1 'AC relay automatic checking' as the "
        f"PMA cites them - clauses from memory).  The contactors make only after synchronisation (|dV| <= 5 %, 5 deg: {rc['inrush']['synchronised_5pct_5deg_peak_A']:.0f} A "
        f"peak, step c) and break only at zero current (firmware); with the controller dead the gates are off and only the brief diode-"
-       f"rectifier current flows, inside the AC-1 breaking capacity - no hardware hold-off is needed on the AC side (D-049).")
+       f"rectifier current flows, inside the AC-1 breaking capacity.  No AC-side hold-off comparator (D-050 keeps it for the DC contactor): "
+       f"after a trip the converter current is zero within microseconds, and a short behind the contactors is fed by the grid at a level only "
+       f"the upstream breaker can clear - a hold-off could not help.  Synchronised closing is firmware: an unsynchronised close rings L2-C_f "
+       f"({rc['inrush']['unsynchronised_C_f_empty_peak_A']:.0f} A peak) inside the contactor's making capacity - a stressed unit, not a hazard.")
     pc = r["precharge"]
     wr(f"\n**Precharge and start:** from the DC side through the lean port's relay and {pc['R_ohm']:.0f} ohm: C_eq {pc['C_eq_uF']:.0f} uF, "
        f"tau {pc['tau_s']*1e3:.0f} ms, within 10 V of 950 V after {pc['t_to_10V_s']:.2f} s, {pc['E_J_950V']:.0f} J, {pc['I_pk_A']:.1f} A peak.  "
@@ -1843,7 +1855,7 @@ def report_f(r, rc):
        "noted): its insulation and IMD must be rated for that.")
     d = r["dc_port"]
     wr(f"\n**DC port = the lean battery port scaled to 250 A:** {d['contactor']}; {d['fuse']}; hold-off threshold {d['hold_off_threshold_A']:.0f} A "
-       f"(the contactor stays closed above it and lets the fuse clear - discrete comparator, D-049); {d['shunt']}; port over-current "
+       f"(the contactor stays closed above it and lets the fuse clear - discrete comparator, D-050) and hardware polarity / precharge-dV interlocks in the coil drives; {d['shunt']}; port over-current "
        f"{d['oc_trip_A']:.0f} A and over-voltage {d['ov_trip_V']:.0f} V as ADC limit trips.  The 400 A fuse's slow region (1.5-3 kA, seconds) "
        f"leaves the upstream requirement on the battery's own breaker (R-05: re-run the port_design coordination with the chosen fuse).")
 
@@ -1852,7 +1864,115 @@ def report_f(r, rc):
 ARCH_COST = {"3W": (1037.04, 800.87), "4W": (1193.82, 919.18)}     # ARCHITECTURE-PCS section 12 / costfirst_pcs_bom.csv totals
 
 
-def bom_rows(D, rc, rd, re_):
+# ---- D-050 discrete protection layer: counts from the PV boards, prices from the PV module's costed BOM (gen/cost.py output)
+PV_COSTED = os.path.join(ROOT, "bom", "PV-P75_costed_BOM.csv")
+GEN = os.path.join(ROOT, "gen")
+
+
+def pv_price_book():
+    """MPN (or (value, package) for GENERIC) -> (unit catalogue USD, unit 5k USD, 5k basis) from bom/PV-P75_costed_BOM.csv"""
+    book = {}
+    for r in csv.DictReader(open(PV_COSTED)):
+        try:
+            c, k = float(r["unit_cost_usd"]), float(r["unit_cost_5k_usd"])
+        except ValueError:
+            continue
+        key = r["MPN"] or (r["Value"], r["Package"])
+        if key not in book or c > book[key][0]:
+            book[key] = (c, k, r["basis_5k"])
+    return book
+
+
+def price_parts(parts, book):
+    """parts: {(mpn, value, package): n} -> (USD catalogue, USD 5k, USD 5k on REAL evidence); TLV9024PWR is unpriced in the costed BOM:
+    gen/pv_ctrl.py's PRICE estimate 0.25 USD (TI class), x0.85 at 5k; a generic value missing from the book takes the book's dearest
+    part of the same kind and package (R or C)"""
+    cat = k5 = real = 0.0
+    for (mpn, val, pkg), n in parts.items():
+        if val == "TP" or n <= 0:
+            continue
+        key = mpn or (val, pkg)
+        if key in book:
+            c, k, basis = book[key]
+        elif mpn == "TLV9024PWR":
+            c, k, basis = 0.25, 0.2125, "ESTIMATE (pv_ctrl PRICE)"
+        else:
+            kind_c = bool(re.search(r"[pnu]\s*\d*V?|[pnu]$", val)) or " " in val
+            same = [v for kk, v in book.items() if isinstance(kk, tuple) and kk[1] == pkg and
+                    (bool(re.search(r"[pnu]\s*\d*V?|[pnu]$", kk[0])) or " " in kk[0]) == kind_c]
+            c, k, basis = max(same) if same else (0.01, 0.01, "ESTIMATE")
+        cat += n * c
+        k5 += n * k
+        real += n * k if str(basis).startswith("REAL") else 0.0
+    return cat, k5, real
+
+
+def sheet_parts(bom_csv, sheets):
+    """parts of a generated board BOM whose references sit on the given sheets (ref = prefix + sheet number + two digits)"""
+    out = {}
+    for r in csv.DictReader(open(os.path.join(ROOT, "bom", bom_csv))):
+        if r.get("DNP"):
+            continue
+        n = sum(1 for x in re.split(r"[ ,;]+", r["References"].strip()) if x and int(re.sub(r"\D", "", x)[:-2] or 0) in sheets)
+        if n:
+            k = (r["MPN"] or "", r["Value"], r["Package"])
+            out[k] = out.get(k, 0) + n
+    return out
+
+
+def port_d050_parts():
+    """battery-type lean port (sheets 5-7 of gen/port.py build_lean): parts of interlocks='full', oc_trip=True that the hold-only
+    variant does not have = polarity + precharge-dV interlocks and the port over-current window; plus the hold-off comparator itself"""
+    import contextlib
+    import io
+    sys.path.insert(0, GEN)
+    import port as gport
+
+    def parts(il, oc):
+        with contextlib.redirect_stdout(io.StringIO()):
+            B, _, _ = gport.build_lean(il, oc)
+        out = {}
+        for ref, m in B.bom.items():
+            if ref.startswith("#") or m.get("sourcing") == "NOPART":
+                continue
+            if int(re.sub(r"\D", "", ref)[:-2] or 0) in (5, 6, 7):
+                k = (m["mpn"] or "", str(m["value"]), m.get("pkg", ""))
+                out[k] = out.get(k, 0) + 1
+        return out
+    full, hold = parts("full", True), parts("hold", False)
+    add = {k: full.get(k, 0) - hold.get(k, 0) for k in set(full) | set(hold) if full.get(k, 0) > hold.get(k, 0)}
+    holdoff = {("TLV3502AIDCNR", "TLV3502AIDCNR", "SOT-23-8 (DCN)"): 1}
+    return add, holdoff
+
+
+def gdrv_d050_parts():
+    """per channel, as gen/gdrv.py channel() draws them: dead-time stretch (R, BAT54, 100p, SN74LVC1G17, 100n, 100R, 100p) and the
+    negative-rail detector (MMBT3904, 10k, 100k 0805, BAT54)"""
+    sys.path.insert(0, GEN)
+    import gdrv
+    r_dt = gdrv.ohm(gdrv.DEADTIME_CLASS[1700][0])
+    stretch = {("", r_dt, "0603"): 1, ("BAT54", "BAT54", "SOT-23"): 1, ("", "100p 50V", "0603"): 2,
+               ("SN74LVC1G17DBVR", "SN74LVC1G17DBVR", "SOT-23-5"): 1, ("", "100n 50V", "0603"): 1, ("", "100R", "0603"): 1}
+    negdet = {("MMBT3904,215", "MMBT3904,215", "SOT-23"): 1, ("", "10k", "0603"): 1, ("", "100k", "0805"): 1, ("BAT54", "BAT54", "SOT-23"): 1}
+    return stretch, negdet
+
+
+def protection_layer():
+    """D-050 lines: (catalogue, 5k, 5k REAL) per item and the counts behind them"""
+    book = pv_price_book()
+    ctl3 = sheet_parts("PV-CTL-P75_BOM.csv", (4, 5))        # three phase windows (PCS three-wire)
+    ctl4 = sheet_parts("PV-CTL_BOM.csv", (4, 5))            # four windows (PCS four-wire: + the N leg)
+    port_add, holdoff = port_d050_parts()
+    stretch, negdet = gdrv_d050_parts()
+    out = {"control_3W": price_parts(ctl3, book), "control_4W": price_parts(ctl4, book), "port_interlocks_oc": price_parts(port_add, book),
+           "port_holdoff": price_parts(holdoff, book), "stretch_per_ch": price_parts(stretch, book), "negdet_per_ch": price_parts(negdet, book),
+           "counts": {"control_3W_parts": sum(n for k, n in ctl3.items() if k[1] != "TP"), "control_4W_parts": sum(n for k, n in ctl4.items() if k[1] != "TP"),
+                      "control_3W_ICs": {k[0]: n for k, n in ctl3.items() if k[0]}, "port_added": {f"{k[0] or k[1]}": n for k, n in port_add.items()},
+                      "stretch_per_channel": sum(stretch.values()), "negdet_per_channel": sum(negdet.values())}}
+    return out
+
+
+def bom_rows(D, rc, rd, re_, PL):
     """every costed line: (block, function, qty, part, maker, unit cat, unit 5k, cat basis, 5k basis, evidence_5k?) - three-wire; the
     four-wire increment separately.  5k basis: 'EVIDENCE' = an LCSC volume break / maker 1 ku list / marketplace quote; else ASSUMED."""
     n_dev = sum(n for p_, (part, n) in D["devs"].items()) * 3
@@ -1875,9 +1995,14 @@ def bom_rows(D, rc, rd, re_):
          lg["damper_parts"] / 4 * (2 * 0.625 + 6 * 0.110), lg["damper_parts"] / 4 * (2 * 0.531 + 6 * 0.093), "PV BOM class prices", "ASSUMED x0.85", False),
         ("GATE DRIVE", "Isolated SiC gate driver, DESAT + soft turn-off + Miller clamp, one per switch position", 6, "NSI6651ASC-Q1SWR", "NOVOSENSE (CN)",
          2.978, 1.544, "prices.csv LCSC C33959952 @1", "LCSC tier slope 0.52 (CA-IS3062W) - EVIDENCE-derived", True),
-        ("GATE DRIVE", "Channel discretes (gdrv.channel rev 6 incl. booster, per-gate clamp FET, R_G, R_KS) for 6 gates + NPN/PNP buffer", 6,
-         "class (per channel)", "Nexperia / Diodes / TSC / Yageo", 2.60 + 4 * 0.25 + 0.30, (2.60 + 4 * 0.25 + 0.30) * 0.85,
-         "PV row 2.60 USD (2 gates) + 0.25 USD per extra gate (ESTIMATE) + 0.30 buffer", "ASSUMED x0.85", False),
+        ("GATE DRIVE", "Channel discretes (gdrv.channel: booster, per-gate clamp FET, R_G, R_KS, DESAT string) for 6 gates + NPN/PNP buffer; "
+         "stretch and negative-rail detector on the next line", 6, "class (per channel)", "Nexperia / Diodes / TSC / Yageo",
+         2.60 - PL["stretch_per_ch"][0] + 4 * 0.25 + 0.30, (2.60 - PL["stretch_per_ch"][0] + 4 * 0.25 + 0.30) * 0.85,
+         "PV row 2.60 USD (2 gates, contains the stretch) less the stretch + 0.25 USD per extra gate (ESTIMATE) + 0.30 buffer", "ASSUMED x0.85", False),
+        ("GATE DRIVE", f"D-050 per channel: RC dead-time stretch ({PL['counts']['stretch_per_channel']} parts, SN74LVC1G17 Schmitt) + "
+         f"negative-rail detector ({PL['counts']['negdet_per_channel']} parts, MMBT3904) - gen/gdrv.py stretch=True, neg_det=True", 6,
+         "per gdrv.channel()", "TI / Nexperia + passives", PL["stretch_per_ch"][0] + PL["negdet_per_ch"][0],
+         PL["stretch_per_ch"][1] + PL["negdet_per_ch"][1], "bom/PV-P75_costed_BOM.csv unit prices", "PV costed BOM 5k column (REAL for the ICs)", True),
         ("GATE DRIVE", "Gate bias per phase: SN6505B + custom transformer (2 secondaries) + 2 regulators", 3, "SN6505BDBVR + GDB-T1 + 2 x reg",
          "TI + CUSTOM", 0.926 + 1.50 + 2 * 0.30, 0.926 + 1.20 + 2 * 0.255, "TI 1ku + ESTIMATE", "MIXED: TI 1ku list, rest ASSUMED x0.80/0.85", False),
         ("LCL FILTER", f"L1 {l1*1e6:.0f} uH, 216 A rms / {I_2MIN*math.sqrt(2)*(1+RIPPLE_PP/2):.0f} A pk ({e1:.1f} J), amorphous C-core + Cu strip",
@@ -1894,7 +2019,7 @@ def bom_rows(D, rc, rd, re_):
         ("SENSING", "DC shunt 2 x 200 uOhm + zero-drift amplifier", 1, "3920 strip x2 + SGM8552 class", "class", 2.2, 1.87, "ESTIMATE (PV)", "ASSUMED x0.85", False),
         ("SENSING", "HV dividers 1 M 0.1 % (grid L1-3 at terminals and C_f, V_DC, V_mid, terminal, PE)", 60, "ARHV06BTC1004A", "Viking Tech (TW)",
          0.25, 0.21, "ESTIMATE (PV)", "ASSUMED x0.85", False),
-        ("SENSING", "Divider buffers and filters (no discrete trip comparators: CMPSS / ADC limits, D-049)", 1, "class", "3PEAK / SGMICRO class",
+        ("SENSING", "Divider buffers and filters (the trip comparators are the control-board and DC-port lines below)", 1, "class", "3PEAK / SGMICRO class",
          1.5, 1.28, "ESTIMATE", "ASSUMED x0.85", False),
         ("SENSING", "Residual-current sensor type B (fluxgate), 3 conductors", 1, "type-B RCM class", "CN fluxgate class", 10.0, 8.0,
          "ESTIMATE: no data sheet on file (R-10)", "ASSUMED x0.80", False),
@@ -1904,8 +2029,15 @@ def bom_rows(D, rc, rd, re_):
          "marketplace volume quote 32.47 USD @30 (prices.csv) - EVIDENCE", True),
         ("DC PORT", "DC fuse aR 400 A 1000 V DC, one per pole", 2, "aR 400 A (Hongfa HPE / Sinofuse RS306 class, RFQ)", "Hongfa / Sinofuse (CN)",
          25.0, 17.0, "ESTIMATE: no public price", "ASSUMED x0.68 (RFQ)", False),
-        ("DC PORT", "Precharge relay + 220 ohm + coil drivers (PV), hold-off comparator (discrete, D-049)", 1, "G7L-2A-X + RXLG 220R + drivers",
-         "Omron / CN", 18.6, 15.0, "PV rows + 0.5 USD comparator", "ASSUMED x0.80", False),
+        ("DC PORT", "Precharge relay + 220 ohm + coil drivers (PV)", 1, "G7L-2A-X + RXLG 220R + drivers",
+         "Omron / CN", 18.11, 14.6, "PV costfirst_bom rows", "ASSUMED x0.80", False),
+        ("DC PORT", "Hold-off comparator (discrete; keeps the contactor closed above its breaking capacity)", 1, "TLV3502AIDCNR", "Texas Instruments",
+         PL["port_holdoff"][0], PL["port_holdoff"][1], "bom/PV-P75_costed_BOM.csv", "REAL (PV costed BOM 5k column)", True),
+        ("DC PORT", "D-050 port protection: polarity + precharge-dV interlock comparators and the port over-current window with their logic "
+         "(gen/port.py lean_port interlocks='full', oc_trip=True, battery port) - "
+         + ", ".join(f"{n} x {k}" for k, n in PL["counts"]["port_added"].items() if not k[0].isdigit()), 1, "lean-port parts (gen/port.py)",
+         "TI + passives", PL["port_interlocks_oc"][0], PL["port_interlocks_oc"][1], "bom/PV-P75_costed_BOM.csv unit prices",
+         f"PV costed BOM 5k column (REAL {PL['port_interlocks_oc'][2]:.2f} USD)", PL["port_interlocks_oc"][2] / max(PL["port_interlocks_oc"][1], 1e-9) > 0.5),
         ("DC PORT", "DC varistor network + X/Y caps + CM core (PV rev-6 network)", 1, "3 x TVT25751 + 2 x 002637115 + CNY65B ...", "Thinking / ETI / Vishay",
          29.4, 24.6, "PV costfirst_bom rows", "ASSUMED x0.85", False),
         ("DC PORT", "DC terminals M8 + busbars", 1, "2 x terminal + 3 x busbar (CUSTOM)", "CUSTOM", 31.0, 24.8, "cost_estimates.csv basis", "ASSUMED x0.80", False),
@@ -1919,8 +2051,16 @@ def bom_rows(D, rc, rd, re_):
         ("AC PORT", "AC terminals (L1-L3 + PE) + busbars", 1, "4 x terminal + 3 x busbar", "CUSTOM", 39.0, 31.2, "ESTIMATE (architect)", "ASSUMED x0.80", False),
         ("AUX SUPPLY", "75 W flyback (PV AUX) on the DC link + 6-diode AC tap", 1, "AUX block (PV) + 6 x 1600 V diode", "TI / InventChip / CUSTOM",
          37.3, 31.0, "PV costfirst_bom + 3.0 estimate", "MIXED: TI 1ku list, rest ASSUMED", False),
-        ("CONTROL", "PV control board, PCS assembly variant (F280039C, no discrete latch/comparators per D-049, extra 2 x 8 header)", 1,
-         "PV control board (F280039CSPZR)", "TI + class", 9.7, 8.6, "PV costfirst_bom CONTROL 9.19 + header 0.5", "MIXED: TI 1ku list, rest x0.85", False),
+        ("CONTROL", "PV control board, PCS assembly variant: F280039C, clock, EEPROM, supervisor, front end, board connector, extra 2 x 8 header "
+         "(the discrete protection layer is the next line)", 1, "PV control board (F280039CSPZR)", "TI + class", 9.19 - 1.80 - 0.163 + 0.5,
+         (9.19 - 1.80 - 0.163 + 0.5) * 0.92, "PV costfirst_bom CONTROL 9.19 less its 1.80 protection estimate and the 0.163 heartbeat share, "
+         "+ header 0.5", "MIXED: TI 1ku list, rest x0.85", False),
+        ("CONTROL", f"D-050 discrete protection layer as drawn on PV-CTL (sheets 04 trip / 05 latch, PV-P75 variant): "
+         f"{PL['counts']['control_3W_parts']} parts - "
+         + ", ".join(f"{n} x {k}" for k, n in sorted(PL['counts']['control_3W_ICs'].items(), key=lambda kv: -kv[1]))
+         + " + ladders, pull-ups, decoupling", 1, "PV-CTL sheets 04/05 (gen/pv_ctrl.py)", "TI / Nexperia + passives",
+         PL["control_3W"][0], PL["control_3W"][1], "bom/PV-P75_costed_BOM.csv unit prices (TLV9024PWR: pv_ctrl PRICE estimate)",
+         f"PV costed BOM 5k column (REAL {PL['control_3W'][2]:.2f} USD of it)", PL["control_3W"][2] / max(PL["control_3W"][1], 1e-9) > 0.5),
         ("INTERFACE", "Reinforced barrier + SELV zone (CAN, RS-485, stop, status, fans) - PV design", 1, "CA-IS3062W + CA-IS3082WNX + 3 x CA-IS3821 + SELV",
          "Chipanalog + class", 8.09, 7.5, "PV costfirst_bom INTERFACE rows", "MIXED: LCSC highest break - EVIDENCE for the isolators", False),
         ("THERMAL", "Extruded heatsink, one 150 x 400 mm section per leg (4.0 kg each), earthed", 3, "Al extrusion (CUSTOM)", "CUSTOM",
@@ -1935,8 +2075,13 @@ def bom_rows(D, rc, rd, re_):
         ("4-WIRE OPTION", "Neutral leg: two-level half-bridge, 12 x SG2M040170HJ + pads + local decoupling + damper", 1, f"{part} x{n_leg}", "Sichain (CN)",
          n_leg * (pr[1] + 0.40) + 9 * 0.45 + (2 * 0.625 + 6 * 0.110) * 3, n_leg * (pr[1000] + 0.30) + 9 * 0.383 + (2 * 0.531 + 6 * 0.093) * 3,
          "rows above", "rows above", False),
-        ("4-WIRE OPTION", "Gate drive 2 channels + bias", 1, "2 x NSI6651 channel + buffer + 1 x bias", "NOVOSENSE + CUSTOM",
-         2 * (2.978 + 3.90) + 3.03, 2 * (1.544 + 3.32) + 2.64, "rows above", "rows above", False),
+        ("4-WIRE OPTION", "Gate drive 2 channels (incl. D-050 stretch + negative-rail detector) + bias", 1,
+         "2 x NSI6651 channel + buffer + 1 x bias", "NOVOSENSE + CUSTOM",
+         2 * (2.978 + 3.90 + PL["negdet_per_ch"][0]) + 3.03,
+         2 * (1.544 + 3.32 + PL["negdet_per_ch"][1]) + 2.64, "rows above", "rows above", False),
+        ("4-WIRE OPTION", "D-050 control-board phase-4 comparators (PV-CTL PV-P100/110 assembly: N-leg current window, its NTC)", 1,
+         "2 x TLV9024PWR + passives", "TI + passives", PL["control_4W"][0] - PL["control_3W"][0], PL["control_4W"][1] - PL["control_3W"][1],
+         "bom/PV-CTL_BOM.csv minus PV-CTL-P75", "PV costed BOM / pv_ctrl estimate", False),
         ("4-WIRE OPTION", f"Neutral inductor L_N {l1*1e6:.0f} uH (as L1: the neutral leg's ripple is that of a phase leg) + TMR sensor", 1,
          "L1 class + STK class", "CUSTOM + Sinomags", L1_COST[0] + L1_COST[1] * e1 + 6.0, (L1_COST[0] + L1_COST[1] * e1) * 0.8 + 4.8, "rows above", "rows above", False),
         ("4-WIRE OPTION", "Heatsink section + fan for the fourth leg", 1, "as THERMAL rows", "CUSTOM + Delta",
@@ -1949,7 +2094,8 @@ def bom_rows(D, rc, rd, re_):
 
 
 def step_g(D, rc, rd, re_):
-    R, W = bom_rows(D, rc, rd, re_)
+    PL = protection_layer()
+    R, W = bom_rows(D, rc, rd, re_, PL)
     tot = {"cat": sum(r[2] * r[5] for r in R), "5k": sum(r[2] * r[6] for r in R)}
     ev5 = sum(r[2] * r[6] for r in R if r[9])
     w = {"cat": sum(r[2] * r[5] for r in W), "5k": sum(r[2] * r[6] for r in W)}
@@ -1965,7 +2111,11 @@ def step_g(D, rc, rd, re_):
            "rows": [{"block": r[0], "function": r[1], "qty": r[2], "part": r[3], "maker": r[4], "unit_cat_usd": round(r[5], 3),
                      "unit_5k_usd": round(r[6], 3), "ext_cat_usd": round(r[2] * r[5], 2), "ext_5k_usd": round(r[2] * r[6], 2),
                      "basis_cat": r[7], "basis_5k": r[8]} for r in R + W],
-           "basis": "catalogue = LCSC @1 / maker list / estimate as named per row; 5,000 units = the row's 5k basis; nothing quoted or bought"}
+           "basis": "catalogue = LCSC @1 / maker list / estimate as named per row; 5,000 units = the row's 5k basis; nothing quoted or bought",
+           "protection_D050": {"control_3W": PL["control_3W"][:2], "control_4W": PL["control_4W"][:2], "port_holdoff": PL["port_holdoff"][:2],
+                               "port_interlocks_oc": PL["port_interlocks_oc"][:2], "per_channel_stretch_negdet": (PL["stretch_per_ch"][0] + PL["negdet_per_ch"][0],
+                                                                                                                 PL["stretch_per_ch"][1] + PL["negdet_per_ch"][1]),
+                               "counts": PL["counts"]}}
     # the architecture's own T-type corrected: the IGBT count of step a and the three-level midpoint bank of step d (C3D2K117 110 uF,
     # 80 V pp allowed for the 800 V class -> the same 3.5 mF per half scaled by 60/80)
     arch = next(c for c in SPEC["topology_screen"]["candidates"] if c["name"] == "TT-IGBT (architect)")
@@ -1992,6 +2142,23 @@ def report_g(r):
     wr("|---|---|---|")
     for k, v in r["blocks"].items():
         wr(f"| {k} | {v['catalogue']:.0f} | {v['5k']:.0f} |")
+    pl = r["protection_D050"]
+    per_ch = pl["per_channel_stretch_negdet"]
+    wr(f"\n**Discrete protection layer (D-050, as on the PV module; counts from the PV boards, prices from bom/PV-P75_costed_BOM.csv):** "
+       f"control board {pl['control_3W'][0]:.2f} / {pl['control_3W'][1]:.2f} USD (PV-CTL sheets 04 / 05, {pl['counts']['control_3W_parts']} parts; "
+       f"four-wire = the PV-P100/110 assembly with the fourth window, +{pl['control_4W'][0]-pl['control_3W'][0]:.2f} USD); DC port: hold-off "
+       f"comparator {pl['port_holdoff'][0]:.2f} USD (replaces a 0.5 USD guess), polarity + precharge-dV interlocks and the over-current window "
+       f"{pl['port_interlocks_oc'][0]:.2f} / {pl['port_interlocks_oc'][1]:.2f} USD; per gate-drive channel stretch + negative-rail detector "
+       f"{per_ch[0]:.2f} / {per_ch[1]:.2f} USD ({pl['counts']['stretch_per_channel']} + {pl['counts']['negdet_per_channel']} parts; the stretch "
+       f"was already inside the PV channel estimate and is now its own line).  Firmware duplicates each trip as the second layer.")
+    wr("\n**Where the PV discrete layer does not carry over unchanged:** (1) the phase-current windows keep their TLV9024 comparators but "
+       "move to +-450 A on +-500 A TMR sensors: the sensor gain and the ladder values change, and the trip path (sensor response + comparator "
+       "+ latch + driver) must stay within about 1.5 us at di/dt = V_dc/L1 = 9.8 A/us - with the PV's 73 A / 224 uH it was 4.5 A/us; the "
+       "sensor's step response is the open data item; (2) the dead-time stretch needs a new gen/gdrv.py preset for six gates behind a buffer "
+       "(step e); (3) the AC side has no counterpart of the DC-port interlocks: no hold-off (the converter current is zero after a trip; a "
+       "short behind the contactors is grid-fed) and no hardware synchronism check (firmware; an unsynchronised close is a stressed unit, not "
+       "a hazard); (4) grid over / under voltage and frequency, anti-islanding and the residual-current trips are firmware-only by nature "
+       "(slow, code-dependent), with the RCMU self-test; (5) the second DC port of the PV board does not exist here - one port's interlocks.")
     t3, t4, a3, a4 = r["three_wire"], r["four_wire"], r["architect"]["three_wire"], r["architect"]["four_wire"]
     wr(f"| **three-wire total** | **{t3['catalogue']:.0f} ({t3['per_kW_cat']:.1f} USD/kW)** | **{t3['5k']:.0f} ({t3['per_kW_5k']:.1f} USD/kW)** |")
     wr(f"| four-wire increment | {r['four_wire_increment']['cat']:.0f} | {r['four_wire_increment']['5k']:.0f} |")
@@ -2086,8 +2253,9 @@ def handover(D, rb, rc, rd, re_, rf, rg_):
         "pll": "on the C_f (or terminal) voltages, 400 V +-15 %, 50/60 Hz, SCR 5..stiff, unbalance and LVRT/HVRT (EN 50549-1 / GB/T 34120)",
         "modulation": "two-level, sinusoidal where m <= 0.98, min-max zero sequence above (V_dc < ~680 V at 400 V, < ~780 V at 460 V)",
         "midpoint": "no control (two-level); firmware plausibility of the half voltages; C_f-star 150 Hz current <= 8 A rms, ripple <= 18 V pp",
-        "grid_forming": "voltage control on C_f (L1-C_f with the damping branch), current limit 1.2 x 216 A for 200 ms (Tj 141 C at that "
-                        "corner, step b), 120 % for 2 min, transitions grid <-> off-grid < 20 ms (Megarevo)",
+        "grid_forming": f"voltage control on C_f (L1-C_f with the damping branch), current limit 1.2 x 216 A for 200 ms (Tj "
+                        f"{max(o['tj_200ms_C'] for o in rb['overload']):.0f} C at the worst corner, step b), 120 % for 2 min, transitions grid "
+                        f"<-> off-grid < 20 ms (Megarevo)",
         "four_wire": f"neutral leg two-level with L_N = {F['L1']*1e6:.0f} uH, reference = -sum of the phase currents' zero sequence; "
                      "100 Hz battery current of single-phase load (~39 A rms at 750 V) is an installation item",
         "limits": {"I_phase_trip_A": OC_TRIP, "I_dc_trip_A": 400.0, "V_dc_trip_V": V_OV_TRIP}}
@@ -2097,29 +2265,38 @@ def handover(D, rb, rc, rd, re_, rf, rg_):
                        "6 x 15 ohm 2512); DC link 5 + 5 x C3D1U147 in two series halves, midpoint to the C_f star",
         "gate_drive": f"6 channels (8 four-wire): NSI6651ASC + NPN/PNP buffer per channel driving 6 gates, R_G,on {re_['chosen']['R_G_on_ext_ohm_per_device']:.2f} / "
                       f"R_G,off {re_['chosen']['R_G_off_ext_ohm_per_device']:.1f} ohm per device, R_KS 0.5 ohm, per-gate clamp FET, DESAT 100 ohm + 3 x US1MH, "
-                      "booster, rails +18 / -3.5 V; bias: one SN6505B transformer per phase (2 secondaries); default-off pull-downs; EN from "
-                      "the external stop (wired-AND); FLT/RDY to trip-zone pins (D-049)",
+                      "booster, RC dead-time stretch and negative-rail detector (stretch=True, neg_det=True - new '6 x SG2M040170HJ' "
+                      "preset needed), rails +18 / -3.5 V; bias: one SN6505B transformer per phase (2 secondaries); default-off pull-downs; "
+                      "EN from the external stop (wired-AND); FLT/RDY to the latch and the trip zone (D-050)",
+        "control_board": "PV-CTL as drawn (gen/pv_ctrl.py), PV-P75 assembly for three-wire, PV-P100/110 assembly for four-wire: discrete "
+                         "window comparators for each phase current (ladders re-valued for +-450 A on +-500 A TMR), DC over-voltage 1050 V, "
+                         "over-temperature and open probe, the set-dominant latch, heartbeat watchdog, AND gating of 6 (8) PWM, EN, K_DC, "
+                         "K_PRE, K_AC1 and K_AC2 (a spare LVC08 gate); the controller's CMPSS / ADC limits / trip zone as the second layer",
         "sensing": {"phase_current": "3 (4) open-loop TMR +-500 A on the C_f side of L1, bandwidth >= 100 kHz for the CMPSS window at +-450 A",
                     "grid_voltage": "terminal and C_f nodes, L1-L3 (+N), dividers to DC-: signal V_dc/2 +-375 V peak + 20 % surge headroom",
                     "dc": "V_DC+ - V_DC-, V_mid, terminal (bipolar, polarity), shunt 2 x 200 uOhm (25 mV at 250 A), ADC limit trips 400 A / 1050 V",
                     "residual_current": "type-B fluxgate over L1-L3 (+N), 30 mA resolution, 1.25 A continuous range",
                     "temperatures": "NTC: 3 (4) heatsink sections, 3 (4) L1, DC link, inlet"},
-        "ports": "DC: HFE82V-300C/1000, 2 x aR 400 A, precharge 220 ohm, hold-off comparator (discrete); AC: 2 x 3-pole contactor in series "
-                 "(4-pole four-wire), coil drivers with economiser, type II SPD, CM choke >= 150 uH (3 nanocrystalline cores)"}
-    fw = ["trip thresholds and timing: CMPSS phase window +-450 A (digital filter <= 0.5 us), ADC limits I_dc 400 A and V_dc 1050 V, trip "
-          "zone latches all PWM low; clear only with no source active",
-          "start-up self-test of every trip path (CMPSS, ADC limit, trip-zone, FLT/RDY inputs) and read-back / lock of the PWM, dead-band "
-          "(300 ns) and trip configuration; windowed watchdog",
-          "DC precharge: polarity check, close the DC contactor only with |V_bank - V_bat| <= 10 V; discharge through the precharge path on stop",
-          "insulation test (IMD) before every connection, contactors open",
-          "synchronise (|dV| <= 5 %, 5 deg), relay test (each contactor alone, voltage across the open one), close; open only at zero current",
+        "ports": "DC: HFE82V-300C/1000, 2 x aR 400 A, precharge 220 ohm, gen/port.py lean_port interlocks='full', oc_trip=True (hold-off, "
+                 "polarity and precharge-dV interlocks, over-current window, all discrete); AC: 2 x 3-pole contactor in series (4-pole "
+                 "four-wire), coil drivers with economiser gated by the latch, type II SPD, CM choke >= 150 uH (3 nanocrystalline cores)"}
+    fw = ["second layer of every discrete trip (D-050): CMPSS phase windows +-450 A (digital filter <= 0.5 us), ADC limits I_dc 400 A and "
+          "V_dc 1050 V, heatsink / L1 over-temperature from the NTCs, the DC-port polarity and precharge-dV conditions re-checked before any "
+          "coil command, trip zone forcing all PWM low; the hardware latch is cleared by firmware only with no source active",
+          "start-up self-test of every trip path, hardware and controller (inject through the ladders / DACs, read the latch and FLT/RDY), "
+          "heartbeat to the discrete watchdog, read-back and lock of PWM, dead-band (300 ns, the gate-drive stretch is the floor) and trip "
+          "configuration",
+          "sequencing: DC precharge (polarity, |V_bank - V_bat| <= 10 V - also enforced in hardware), discharge through the precharge path on "
+          "stop; insulation test (IMD) before every connection with the contactors open; inverter forms the grid voltage on C_f, synchronises "
+          "(|dV| <= 5 %, 5 deg), runs the relay test (each contactor alone, voltage across the open one), closes; opens only at zero current",
           "grid protection EN 50549-1 / GB/T 34120: U/f windows and times, ROCOF / vector shift, active anti-islanding where IEC 62116 applies, "
           "LVRT / HVRT with reactive current, P(f), Q(U), cos phi(P) (settings by country)",
-          "residual current: 30 / 60 / 150 mA step trips within 0.3 / 0.15 / 0.04 s, continuous limit per code (from memory - verify)",
-          "current limit 1.2 x 216 A for <= 200 ms then trip; 120 % for <= 2 min; device thermal model + heatsink NTC; inlet-temperature "
-          "derating (fan limit 60 C); fan speed control; open / shorted NTC detection",
-          "dead-time compensation and the modulation policy (sinusoidal where m <= 0.98); half-voltage plausibility",
-          "contactor coil economiser timing (discrete RC today, firmware PWM later option)"]
+          "residual current (type-B sensor): 30 / 60 / 150 mA step trips within 0.3 / 0.15 / 0.04 s and the continuous limit per code (from "
+          "memory - verify), sensor self-test",
+          "current limit 1.2 x 216 A for <= 200 ms then trip; 120 % for <= 2 min; device thermal model; inlet-temperature derating (fan "
+          "limit 60 C); fan speed control; open / shorted NTC plausibility",
+          "monitoring and non-hazard edge cases: dead-time compensation, the modulation policy (sinusoidal where m <= 0.98), half-voltage "
+          "plausibility, varistor and contactor feedback, unsynchronised-close prevention (a stressed unit, not a hazard: no extra hardware)"]
     SPEC["handover"] = {"control_engineer": ctrl, "board_designers": boards, "firmware_requirements": fw}
     wr("\n## Hand-over\n")
     wr("**Control engineer (plant and limits; pcs_spec.json 'handover'):**")
@@ -2132,10 +2309,12 @@ def handover(D, rb, rc, rd, re_, rf, rg_):
     wr("\n**Board designers:**")
     wr(f"- power stage: {boards['power_stage']}")
     wr(f"- gate drive: {boards['gate_drive']}")
+    wr(f"- control board: {boards['control_board']}")
     for k, v in boards["sensing"].items():
         wr(f"- sensing, {k.replace('_', ' ')}: {v}")
     wr(f"- ports: {boards['ports']}")
-    wr("\n**Firmware requirements this design relies on (D-049 allocation):**")
+    wr("\n**Firmware requirements this design relies on (D-050: firmware duplicates every hardware trip and takes sequencing, monitoring "
+       "and non-hazard edge cases):**")
     for x in fw:
         wr(f"- {x}")
 

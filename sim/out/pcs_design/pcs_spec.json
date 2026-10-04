@@ -576,7 +576,7 @@
     "FIT_950V_Tj_minus30C": 503.936
    },
    {
-    "design": "chosen T-type, 1700/1200 V SiC",
+    "design": "chosen: 2L-SiC 1700(40m) (two-level)",
     "FIT_850V": 0.027,
     "FIT_900V": 0.027,
     "FIT_950V": 0.157,
@@ -1217,8 +1217,8 @@
      "200 ms": 405
     }
    },
-   "ripple_frequency": "carrier groups at 32 kHz (sidebands +-2, +-4 x f0) and 64 kHz; switch-node steps of V_dc/2 (<= 475 V) at up to 30 V/ns",
-   "volt_seconds": "max per half carrier period (V_dc/2) / (4 f_sw) = 3.71 mVs at 950 V",
+   "ripple_frequency": "carrier groups at 32 kHz (sidebands +-2, +-4 x f0) and 64 kHz; switch-node steps of V_dc (<= 1050 V) at up to 60 V/ns (step e)",
+   "volt_seconds": "max per half carrier period (V_dc/2)/(2 f_sw) = 7.42 mVs at 950 V",
    "loss_budget_W": {
     "copper_at_180A": 35.0,
     "copper_model": "P_cu = R_eq(50 Hz) I^2 + HF part, R_eq <= 1.08 mOhm",
@@ -1226,7 +1226,7 @@
     "core_scaling": "~(V_dc / 750 V)^2 at the same f_sw (ripple flux ~ V_dc)",
     "total_at_125kW_750V": 57.0
    },
-   "insulation": "winding to core/PE: basic, DC-side system (1000 V DC, OVC II: 6 kV impulse / 2.2 kV rms test as ARCHITECTURE-PCS section 3), partial-discharge free at 1.5 x 800 V peak working voltage; turn-to-turn for 475 V steps at 30 V/ns",
+   "insulation": "winding to core/PE: basic, DC-side system (1000 V DC, OVC II: 6 kV impulse / 2.2 kV rms test as ARCHITECTURE-PCS section 3), partial-discharge free at 1.5 x the 1.0 kV peak working voltage (switch node vs PE: V_dc/2 + overshoot); turn-to-turn and first-turn stress for 1050 V steps at 60 V/ns",
    "thermal": "class F (155 C) system; hot spot <= 140 C at 60 C inlet air (ASSUMED limit); placed downstream of the heatsink",
    "core_suggestion": "amorphous C-core (AT&M 1K107 class) with distributed gaps, Cu strip - the magnetics engineer decides"
   },
@@ -1995,18 +1995,18 @@
  },
  "cost_usd": {
   "three_wire": {
-   "catalogue": 1078.139688401485,
-   "5k": 861.337950721188,
-   "per_kW_cat": 8.62511750721188,
-   "per_kW_5k": 6.890703605769504
+   "catalogue": 1085.781488401485,
+   "5k": 869.3166407211879,
+   "per_kW_cat": 8.68625190721188,
+   "per_kW_5k": 6.954533125769504
   },
   "four_wire": {
-   "catalogue": 1280.7281978686467,
-   "5k": 1023.7589582949173
+   "catalogue": 1288.9355978686465,
+   "5k": 1032.2114482949173
   },
   "four_wire_increment": {
-   "cat": 202.58850946716166,
-   "5k": 162.42100757372933
+   "cat": 203.15410946716165,
+   "5k": 162.8948075737293
   },
   "blocks": {
    "POWER": {
@@ -2014,8 +2014,8 @@
     "5k": 201.98
    },
    "GATE DRIVE": {
-    "catalogue": 50.35,
-    "5k": 37.06
+    "catalogue": 50.54,
+    "5k": 37.25
    },
    "LCL FILTER": {
     "catalogue": 207.09,
@@ -2026,8 +2026,8 @@
     "5k": 48.83
    },
    "DC PORT": {
-    "catalogue": 184.0,
-    "5k": 136.4
+    "catalogue": 189.73,
+    "5k": 142.21
    },
    "AC PORT": {
     "catalogue": 158.6,
@@ -2038,8 +2038,8 @@
     "5k": 31.0
    },
    "CONTROL": {
-    "catalogue": 9.7,
-    "5k": 8.6
+    "catalogue": 11.42,
+    "5k": 10.58
    },
    "INTERFACE": {
     "catalogue": 8.09,
@@ -2054,7 +2054,7 @@
     "5k": 10.7
    }
   },
-  "evidence_share_5k": 0.05487277085658006,
+  "evidence_share_5k": 0.06624778280123902,
   "architect": {
    "three_wire": [
     1037.04,
@@ -2146,16 +2146,29 @@
    },
    {
     "block": "GATE DRIVE",
-    "function": "Channel discretes (gdrv.channel rev 6 incl. booster, per-gate clamp FET, R_G, R_KS) for 6 gates + NPN/PNP buffer",
+    "function": "Channel discretes (gdrv.channel: booster, per-gate clamp FET, R_G, R_KS, DESAT string) for 6 gates + NPN/PNP buffer; stretch and negative-rail detector on the next line",
     "qty": 6,
     "part": "class (per channel)",
     "maker": "Nexperia / Diodes / TSC / Yageo",
-    "unit_cat_usd": 3.9,
-    "unit_5k_usd": 3.315,
-    "ext_cat_usd": 23.4,
-    "ext_5k_usd": 19.89,
-    "basis_cat": "PV row 2.60 USD (2 gates) + 0.25 USD per extra gate (ESTIMATE) + 0.30 buffer",
+    "unit_cat_usd": 3.81,
+    "unit_5k_usd": 3.239,
+    "ext_cat_usd": 22.86,
+    "ext_5k_usd": 19.43,
+    "basis_cat": "PV row 2.60 USD (2 gates, contains the stretch) less the stretch + 0.25 USD per extra gate (ESTIMATE) + 0.30 buffer",
     "basis_5k": "ASSUMED x0.85"
+   },
+   {
+    "block": "GATE DRIVE",
+    "function": "D-050 per channel: RC dead-time stretch (7 parts, SN74LVC1G17 Schmitt) + negative-rail detector (4 parts, MMBT3904) - gen/gdrv.py stretch=True, neg_det=True",
+    "qty": 6,
+    "part": "per gdrv.channel()",
+    "maker": "TI / Nexperia + passives",
+    "unit_cat_usd": 0.122,
+    "unit_5k_usd": 0.107,
+    "ext_cat_usd": 0.73,
+    "ext_5k_usd": 0.64,
+    "basis_cat": "bom/PV-P75_costed_BOM.csv unit prices",
+    "basis_5k": "PV costed BOM 5k column (REAL for the ICs)"
    },
    {
     "block": "GATE DRIVE",
@@ -2263,7 +2276,7 @@
    },
    {
     "block": "SENSING",
-    "function": "Divider buffers and filters (no discrete trip comparators: CMPSS / ADC limits, D-049)",
+    "function": "Divider buffers and filters (the trip comparators are the control-board and DC-port lines below)",
     "qty": 1,
     "part": "class",
     "maker": "3PEAK / SGMICRO class",
@@ -2341,16 +2354,42 @@
    },
    {
     "block": "DC PORT",
-    "function": "Precharge relay + 220 ohm + coil drivers (PV), hold-off comparator (discrete, D-049)",
+    "function": "Precharge relay + 220 ohm + coil drivers (PV)",
     "qty": 1,
     "part": "G7L-2A-X + RXLG 220R + drivers",
     "maker": "Omron / CN",
-    "unit_cat_usd": 18.6,
-    "unit_5k_usd": 15.0,
-    "ext_cat_usd": 18.6,
-    "ext_5k_usd": 15.0,
-    "basis_cat": "PV rows + 0.5 USD comparator",
+    "unit_cat_usd": 18.11,
+    "unit_5k_usd": 14.6,
+    "ext_cat_usd": 18.11,
+    "ext_5k_usd": 14.6,
+    "basis_cat": "PV costfirst_bom rows",
     "basis_5k": "ASSUMED x0.80"
+   },
+   {
+    "block": "DC PORT",
+    "function": "Hold-off comparator (discrete; keeps the contactor closed above its breaking capacity)",
+    "qty": 1,
+    "part": "TLV3502AIDCNR",
+    "maker": "Texas Instruments",
+    "unit_cat_usd": 1.448,
+    "unit_5k_usd": 1.448,
+    "ext_cat_usd": 1.45,
+    "ext_5k_usd": 1.45,
+    "basis_cat": "bom/PV-P75_costed_BOM.csv",
+    "basis_5k": "REAL (PV costed BOM 5k column)"
+   },
+   {
+    "block": "DC PORT",
+    "function": "D-050 port protection: polarity + precharge-dV interlock comparators and the port over-current window with their logic (gen/port.py lean_port interlocks='full', oc_trip=True, battery port) - 3 x TLV3502AIDCNR, 3 x SN74LVC1G11DBVR, 1 x SN74LVC1G32DBVR",
+    "qty": 1,
+    "part": "lean-port parts (gen/port.py)",
+    "maker": "TI + passives",
+    "unit_cat_usd": 4.77,
+    "unit_5k_usd": 4.766,
+    "ext_cat_usd": 4.77,
+    "ext_5k_usd": 4.77,
+    "basis_cat": "bom/PV-P75_costed_BOM.csv unit prices",
+    "basis_5k": "PV costed BOM 5k column (REAL 4.77 USD)"
    },
    {
     "block": "DC PORT",
@@ -2458,16 +2497,29 @@
    },
    {
     "block": "CONTROL",
-    "function": "PV control board, PCS assembly variant (F280039C, no discrete latch/comparators per D-049, extra 2 x 8 header)",
+    "function": "PV control board, PCS assembly variant: F280039C, clock, EEPROM, supervisor, front end, board connector, extra 2 x 8 header (the discrete protection layer is the next line)",
     "qty": 1,
     "part": "PV control board (F280039CSPZR)",
     "maker": "TI + class",
-    "unit_cat_usd": 9.7,
-    "unit_5k_usd": 8.6,
-    "ext_cat_usd": 9.7,
-    "ext_5k_usd": 8.6,
-    "basis_cat": "PV costfirst_bom CONTROL 9.19 + header 0.5",
+    "unit_cat_usd": 7.727,
+    "unit_5k_usd": 7.109,
+    "ext_cat_usd": 7.73,
+    "ext_5k_usd": 7.11,
+    "basis_cat": "PV costfirst_bom CONTROL 9.19 less its 1.80 protection estimate and the 0.163 heartbeat share, + header 0.5",
     "basis_5k": "MIXED: TI 1ku list, rest x0.85"
+   },
+   {
+    "block": "CONTROL",
+    "function": "D-050 discrete protection layer as drawn on PV-CTL (sheets 04 trip / 05 latch, PV-P75 variant): 62 parts - 6 x SN74LVC08APWR, 5 x TLV9024PWR, 1 x 150060RS75000, 1 x SN74LVC07APWR, 1 x SN74LVC1G74DCUR, 1 x SN74LVC1G123DCUR, 1 x SN74LVC1G32DBVR + ladders, pull-ups, decoupling",
+    "qty": 1,
+    "part": "PV-CTL sheets 04/05 (gen/pv_ctrl.py)",
+    "maker": "TI / Nexperia + passives",
+    "unit_cat_usd": 3.69,
+    "unit_5k_usd": 3.472,
+    "ext_cat_usd": 3.69,
+    "ext_5k_usd": 3.47,
+    "basis_cat": "bom/PV-P75_costed_BOM.csv unit prices (TLV9024PWR: pv_ctrl PRICE estimate)",
+    "basis_5k": "PV costed BOM 5k column (REAL 2.36 USD of it)"
    },
    {
     "block": "INTERFACE",
@@ -2536,16 +2588,29 @@
    },
    {
     "block": "4-WIRE OPTION",
-    "function": "Gate drive 2 channels + bias",
+    "function": "Gate drive 2 channels (incl. D-050 stretch + negative-rail detector) + bias",
     "qty": 1,
     "part": "2 x NSI6651 channel + buffer + 1 x bias",
     "maker": "NOVOSENSE + CUSTOM",
-    "unit_cat_usd": 16.786,
-    "unit_5k_usd": 12.368,
-    "ext_cat_usd": 16.79,
-    "ext_5k_usd": 12.37,
+    "unit_cat_usd": 16.852,
+    "unit_5k_usd": 12.417,
+    "ext_cat_usd": 16.85,
+    "ext_5k_usd": 12.42,
     "basis_cat": "rows above",
     "basis_5k": "rows above"
+   },
+   {
+    "block": "4-WIRE OPTION",
+    "function": "D-050 control-board phase-4 comparators (PV-CTL PV-P100/110 assembly: N-leg current window, its NTC)",
+    "qty": 1,
+    "part": "2 x TLV9024PWR + passives",
+    "maker": "TI + passives",
+    "unit_cat_usd": 0.5,
+    "unit_5k_usd": 0.425,
+    "ext_cat_usd": 0.5,
+    "ext_5k_usd": 0.42,
+    "basis_cat": "bom/PV-CTL_BOM.csv minus PV-CTL-P75",
+    "basis_5k": "PV costed BOM / pv_ctrl estimate"
    },
    {
     "block": "4-WIRE OPTION",
@@ -2588,6 +2653,52 @@
    }
   ],
   "basis": "catalogue = LCSC @1 / maker list / estimate as named per row; 5,000 units = the row's 5k basis; nothing quoted or bought",
+  "protection_D050": {
+   "control_3W": [
+    3.690099999999998,
+    3.4719999999999978
+   ],
+   "control_4W": [
+    4.1900999999999975,
+    3.8969999999999976
+   ],
+   "port_holdoff": [
+    1.448,
+    1.448
+   ],
+   "port_interlocks_oc": [
+    4.769899999999999,
+    4.766099999999999
+   ],
+   "per_channel_stretch_negdet": [
+    0.12229999999999999,
+    0.10669999999999999
+   ],
+   "counts": {
+    "control_3W_parts": 62,
+    "control_4W_parts": 64,
+    "control_3W_ICs": {
+     "150060RS75000": 1,
+     "TLV9024PWR": 5,
+     "SN74LVC07APWR": 1,
+     "SN74LVC1G74DCUR": 1,
+     "SN74LVC1G123DCUR": 1,
+     "SN74LVC1G32DBVR": 1,
+     "SN74LVC08APWR": 6
+    },
+    "port_added": {
+     "100k": 1,
+     "TLV3502AIDCNR": 3,
+     "100n 50V": 7,
+     "20.0k": 2,
+     "SN74LVC1G11DBVR": 3,
+     "1.00k": 2,
+     "SN74LVC1G32DBVR": 1
+    },
+    "stretch_per_channel": 7,
+    "negdet_per_channel": 4
+   }
+  },
   "arch_corr": {
    "devices_5k": 55.2342,
    "dc_link_5k": 158.46,
@@ -2625,7 +2736,7 @@
    "pll": "on the C_f (or terminal) voltages, 400 V +-15 %, 50/60 Hz, SCR 5..stiff, unbalance and LVRT/HVRT (EN 50549-1 / GB/T 34120)",
    "modulation": "two-level, sinusoidal where m <= 0.98, min-max zero sequence above (V_dc < ~680 V at 400 V, < ~780 V at 460 V)",
    "midpoint": "no control (two-level); firmware plausibility of the half voltages; C_f-star 150 Hz current <= 8 A rms, ripple <= 18 V pp",
-   "grid_forming": "voltage control on C_f (L1-C_f with the damping branch), current limit 1.2 x 216 A for 200 ms (Tj 141 C at that corner, step b), 120 % for 2 min, transitions grid <-> off-grid < 20 ms (Megarevo)",
+   "grid_forming": "voltage control on C_f (L1-C_f with the damping branch), current limit 1.2 x 216 A for 200 ms (Tj 151 C at the worst corner, step b), 120 % for 2 min, transitions grid <-> off-grid < 20 ms (Megarevo)",
    "four_wire": "neutral leg two-level with L_N = 97 uH, reference = -sum of the phase currents' zero sequence; 100 Hz battery current of single-phase load (~39 A rms at 750 V) is an installation item",
    "limits": {
     "I_phase_trip_A": 450.0,
@@ -2635,7 +2746,8 @@
   },
   "board_designers": {
    "power_stage": "3 two-level legs (4 for four-wire): 6 x SG2M040170HJ per switch (TO-247-4L, Kelvin source), Al2O3 pads on one earthed section per leg; per device pair 3 x 2.2 uF / 1300 V film at the pins + RC damper (2 x 4.7 nF 2 kV C0G, 6 x 15 ohm 2512); DC link 5 + 5 x C3D1U147 in two series halves, midpoint to the C_f star",
-   "gate_drive": "6 channels (8 four-wire): NSI6651ASC + NPN/PNP buffer per channel driving 6 gates, R_G,on 8.75 / R_G,off 7.5 ohm per device, R_KS 0.5 ohm, per-gate clamp FET, DESAT 100 ohm + 3 x US1MH, booster, rails +18 / -3.5 V; bias: one SN6505B transformer per phase (2 secondaries); default-off pull-downs; EN from the external stop (wired-AND); FLT/RDY to trip-zone pins (D-049)",
+   "gate_drive": "6 channels (8 four-wire): NSI6651ASC + NPN/PNP buffer per channel driving 6 gates, R_G,on 8.75 / R_G,off 7.5 ohm per device, R_KS 0.5 ohm, per-gate clamp FET, DESAT 100 ohm + 3 x US1MH, booster, RC dead-time stretch and negative-rail detector (stretch=True, neg_det=True - new '6 x SG2M040170HJ' preset needed), rails +18 / -3.5 V; bias: one SN6505B transformer per phase (2 secondaries); default-off pull-downs; EN from the external stop (wired-AND); FLT/RDY to the latch and the trip zone (D-050)",
+   "control_board": "PV-CTL as drawn (gen/pv_ctrl.py), PV-P75 assembly for three-wire, PV-P100/110 assembly for four-wire: discrete window comparators for each phase current (ladders re-valued for +-450 A on +-500 A TMR), DC over-voltage 1050 V, over-temperature and open probe, the set-dominant latch, heartbeat watchdog, AND gating of 6 (8) PWM, EN, K_DC, K_PRE, K_AC1 and K_AC2 (a spare LVC08 gate); the controller's CMPSS / ADC limits / trip zone as the second layer",
    "sensing": {
     "phase_current": "3 (4) open-loop TMR +-500 A on the C_f side of L1, bandwidth >= 100 kHz for the CMPSS window at +-450 A",
     "grid_voltage": "terminal and C_f nodes, L1-L3 (+N), dividers to DC-: signal V_dc/2 +-375 V peak + 20 % surge headroom",
@@ -2643,19 +2755,16 @@
     "residual_current": "type-B fluxgate over L1-L3 (+N), 30 mA resolution, 1.25 A continuous range",
     "temperatures": "NTC: 3 (4) heatsink sections, 3 (4) L1, DC link, inlet"
    },
-   "ports": "DC: HFE82V-300C/1000, 2 x aR 400 A, precharge 220 ohm, hold-off comparator (discrete); AC: 2 x 3-pole contactor in series (4-pole four-wire), coil drivers with economiser, type II SPD, CM choke >= 150 uH (3 nanocrystalline cores)"
+   "ports": "DC: HFE82V-300C/1000, 2 x aR 400 A, precharge 220 ohm, gen/port.py lean_port interlocks='full', oc_trip=True (hold-off, polarity and precharge-dV interlocks, over-current window, all discrete); AC: 2 x 3-pole contactor in series (4-pole four-wire), coil drivers with economiser gated by the latch, type II SPD, CM choke >= 150 uH (3 nanocrystalline cores)"
   },
   "firmware_requirements": [
-   "trip thresholds and timing: CMPSS phase window +-450 A (digital filter <= 0.5 us), ADC limits I_dc 400 A and V_dc 1050 V, trip zone latches all PWM low; clear only with no source active",
-   "start-up self-test of every trip path (CMPSS, ADC limit, trip-zone, FLT/RDY inputs) and read-back / lock of the PWM, dead-band (300 ns) and trip configuration; windowed watchdog",
-   "DC precharge: polarity check, close the DC contactor only with |V_bank - V_bat| <= 10 V; discharge through the precharge path on stop",
-   "insulation test (IMD) before every connection, contactors open",
-   "synchronise (|dV| <= 5 %, 5 deg), relay test (each contactor alone, voltage across the open one), close; open only at zero current",
+   "second layer of every discrete trip (D-050): CMPSS phase windows +-450 A (digital filter <= 0.5 us), ADC limits I_dc 400 A and V_dc 1050 V, heatsink / L1 over-temperature from the NTCs, the DC-port polarity and precharge-dV conditions re-checked before any coil command, trip zone forcing all PWM low; the hardware latch is cleared by firmware only with no source active",
+   "start-up self-test of every trip path, hardware and controller (inject through the ladders / DACs, read the latch and FLT/RDY), heartbeat to the discrete watchdog, read-back and lock of PWM, dead-band (300 ns, the gate-drive stretch is the floor) and trip configuration",
+   "sequencing: DC precharge (polarity, |V_bank - V_bat| <= 10 V - also enforced in hardware), discharge through the precharge path on stop; insulation test (IMD) before every connection with the contactors open; inverter forms the grid voltage on C_f, synchronises (|dV| <= 5 %, 5 deg), runs the relay test (each contactor alone, voltage across the open one), closes; opens only at zero current",
    "grid protection EN 50549-1 / GB/T 34120: U/f windows and times, ROCOF / vector shift, active anti-islanding where IEC 62116 applies, LVRT / HVRT with reactive current, P(f), Q(U), cos phi(P) (settings by country)",
-   "residual current: 30 / 60 / 150 mA step trips within 0.3 / 0.15 / 0.04 s, continuous limit per code (from memory - verify)",
-   "current limit 1.2 x 216 A for <= 200 ms then trip; 120 % for <= 2 min; device thermal model + heatsink NTC; inlet-temperature derating (fan limit 60 C); fan speed control; open / shorted NTC detection",
-   "dead-time compensation and the modulation policy (sinusoidal where m <= 0.98); half-voltage plausibility",
-   "contactor coil economiser timing (discrete RC today, firmware PWM later option)"
+   "residual current (type-B sensor): 30 / 60 / 150 mA step trips within 0.3 / 0.15 / 0.04 s and the continuous limit per code (from memory - verify), sensor self-test",
+   "current limit 1.2 x 216 A for <= 200 ms then trip; 120 % for <= 2 min; device thermal model; inlet-temperature derating (fan limit 60 C); fan speed control; open / shorted NTC plausibility",
+   "monitoring and non-hazard edge cases: dead-time compensation, the modulation policy (sinusoidal where m <= 0.98), half-voltage plausibility, varistor and contactor feedback, unsynchronised-close prevention (a stressed unit, not a hazard: no extra hardware)"
   ]
  }
 }

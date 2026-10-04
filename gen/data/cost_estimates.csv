@@ -69,8 +69,8 @@ DC terminal + (CUSTOM),8,ESTIMATE: M8 copper stud feed-through 200 A with insula
 DC terminal - (CUSTOM),8,ESTIMATE: as DC terminal +,low
 DC terminal + (CUSTOM)@PV-P100-110,11,ESTIMATE: M10 stud feed-through 250 A with cover (PV-PORT-180); no quote,low
 DC terminal - (CUSTOM)@PV-P100-110,11,"ESTIMATE: as DC terminal + (M10, 250 A)",low
-L_CELL 224uH (CUSTOM),44.6,"ESTIMATE (sim/magnetics.py design_pv_inductor.json rev M2, EDGEWISE flat-wire option 'cost_usd' 44.6, decision D-048): 2 x POCO NPC290026 toroids 16 + edgewise enamelled Cu 2.8 x 3.2 mm (about 0.54 kg at 18 USD/kg, 14.4 of it LME copper) + insulation 4 + winding/test 7, +10 %; round-wire variant 40.5 (hot spot 145 C) not used; no quote",low
-L_CELL*,44.6,"ESTIMATE: pattern fallback for a future L_CELL variant, taken as the rev M2 edgewise estimate (D-048)",low
+L_CELL 224uH (CUSTOM),40.5,"ESTIMATE (sim/magnetics.py design_pv_inductor.json rev M2, design to cost D-044 / D-048): 2 x POCO NPC290026 16 + 0.54 kg solid round enamelled Cu 3.15 mm grade 2 at 18.0 USD/kg + insulation 4.0 + winding/test 7, +10 %; no quote",low
+L_CELL*,40.5,"ESTIMATE: pattern fallback for a future L_CELL variant, taken as the 224 uH rev M2 estimate",low
 AUX-HV-T1 rev M1,5.9,"ESTIMATE (sim/magnetics.py design_aux_hv_transformer.json rev M1): DMEGC EC34A DMR95 0.40 + ETD34 former 0.35 + TIW-litz 1.20 + wire/foil/tape 0.40 + case and vacuum potting 1.20 + winding 1.20 + PD/hipot test 0.60, +10 %; replaces the rev A0 row; no quote",low
 2.12 uH series L (CUSTOM),86,"ESTIMATE (sim/magnetics.py design_dab_series_inductor.json rev M1; the value becomes 5.56 uH): 4 x DMEGC EE80 DMR95 + gapped centre-leg segments 38 + litz 0.05 mm 0.33 kg + housing/potting 16 + labour/test 14, +10 %; no quote",low
 Transformer 11:12 (CUSTOM),186,"ESTIMATE (sim/magnetics.py design_dab_transformer.json rev M1): pair of potted units, 4 x DMEGC EE80 DMR95 (2.96 kg at 6.0 USD/kg) + litz 0.05 mm 1.39 kg at 60.0 USD/kg + housings/potting/former 32 + labour and test 36, +10 %; no quote",low
@@ -160,7 +160,7 @@ HPE501/000B100-250,18,"ESTIMATE: Hongfa HPE501 size-000 aR 250 A 1000 V DC squar
 220R RFQ,4,"ESTIMATE: lean-port precharge resistor, aluminium-housed 200 W wirewound class 220 ohm (cost-first BOM row RXLG class); pulse rating to be confirmed by the RFQ; no quote",low
 HFE82V-300C/1000-24-H-C5-1,57.5,"ESTIMATE: no price for the 1000 V / 24 V variant; the same HFE82V-300C is 57.50 USD at 10 in a made-in-china.com listing (indicative, prices.csv) and the 750 V / 12 V variant 63 EUR single at Melchioni; no quote",low
 class:res_1210_1pct,0.05,"GENERIC class rule: 1210 1 % high-voltage thick-film chip (bleeder strings, >= 200 V working); Asian HV chip class price as in gen/data/costfirst_bom.csv (no LCSC break read for this value)",low
-AUX-T1 75 W (CUSTOM),8.5,ESTIMATE (sim/magnetics.py design_aux75_transformer.json rev M1): DMEGC EC39A DMR95 + TIW-litz SELV + litz P/live + potted case + PD test; no quote,low
+AUX-T1 75 W (CUSTOM),8.8,"ESTIMATE (sim/magnetics.py design_aux75_transformer.json rev M1): DMEGC EC39A DMR95 + TIW-litz SELV + litz P/live + potted case + PD test; no quote",low
 Gate-bias transformer*,2.18,"ESTIMATE (sim/magnetics.py design_gdrv_bias_transformer.json rev M1, D-048): DMEGC EP17 DMR44 + custom 5-section bobbin + 4 x 24 t TIW, catalogue/1k 2.18 per phase (one part with 4 secondaries); bobbin tooling about 4000 USD once; no quote",low
 NTC 10k lug probe (CUSTOM),0.5,"ESTIMATE: Chinese lug-type 10 k NTC probe with double PTFE leads, made to order (EXSENSE / Shiheng class); architect's list gen/data/costfirst_bom.csv 0.50 USD (Chinese lug NTC class price); no quote",low
 PAD AlN 1 mm (CUSTOM),1,"ESTIMATE: AlN ceramic insulator 15.9 x 20.9 mm + overhang, 1.0 mm: sim/out/pv_design/cell_spec.json cost_usd insulators 8.0 USD per cell for 8 pads = 1.00 USD each (Innovacera class); Al2O3 0.635 mm option about 0.25 USD; no quote",low

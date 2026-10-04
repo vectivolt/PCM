@@ -3626,6 +3626,8 @@ def pv_m2_row(cell, mat, cond, size, core_mult=1.0, core_usd=8.0, label=""):
         ns = int(round(a_cu / (math.pi * d * d / 4)))
         wl = litz_loss(harm, ns, d, n, mlt, k_toroid(c) * ramp_h2(0, n, 2 * math.pi * r_in), 110.0, math.sqrt(hc * w / math.pi))
         p_cu, r_dc, scrap, desc = wl["total"], wl["R_dc"], 1.15, f"profiled {'litz' if cond == 'litz' else 'bunched'} {ns} x {d*1e3:.2f} mm"
+        r_of = lambda fh: litz_loss([(fh, 1.0)], ns, d, n, mlt, k_toroid(c) * ramp_h2(0, n, 2 * math.pi * r_in), 110.0,  # noqa: E731
+                                    math.sqrt(hc * w / math.pi))["total"]
         dt_int = p_cu / (mlt * n * hc * w) * w ** 2 / (2 * 0.6) * 0.5
     elif cond == "round":
         d = size
@@ -3634,6 +3636,7 @@ def pv_m2_row(cell, mat, cond, size, core_mult=1.0, core_usd=8.0, label=""):
         mlt = 2 * (ht + 2e-3) + 2 * ((c["od"] - c["id"]) / 2 + 2e-3) + math.pi * w
         wl = litz_loss(harm, 1, d, n, mlt, 0.75 * k_toroid(c) * ramp_h2(0, n, 2 * math.pi * r_in), 110.0, 1.0)
         p_cu, r_dc, scrap, desc, dt_int = wl["total"], wl["R_dc"], 1.05, f"solid round enamelled Cu {d*1e3:.2f} mm grade 2, 1 layer", 0.0
+        r_of = lambda fh: litz_loss([(fh, 1.0)], 1, d, n, mlt, 0.75 * k_toroid(c) * ramp_h2(0, n, 2 * math.pi * r_in), 110.0, 1.0)["total"]  # noqa: E731
     else:
         tc, hr = size
         a_cu, w = tc * hr, hr + ENAMEL
@@ -3644,6 +3647,7 @@ def pv_m2_row(cell, mat, cond, size, core_mult=1.0, core_usd=8.0, label=""):
         p_cu = r_dc * idc ** 2 + k_toroid(c) * sum(r_dc * dowell_fr(hr / math.sqrt(rho_cu(110.0) / (math.pi * fh * MU0)) * math.sqrt(eta)) * i ** 2
                                      for fh, i in harm[1:])
         scrap, desc, dt_int = 1.05, f"edgewise rectangular enamelled Cu {tc*1e3:.1f} x {hr*1e3:.1f} mm, 1 layer", 0.0
+        r_of = lambda fh: r_dc * k_toroid(c) * dowell_fr(hr / math.sqrt(rho_cu(110.0) / (math.pi * fh * MU0)) * math.sqrt(eta))  # noqa: E731
     surf = math.pi * (c["od"] + 2 * w) * (ht + 2 * w) + 2 * math.pi / 4 * ((c["od"] + 2 * w) ** 2 - (c["id"] - 2 * w) ** 2) \
         + math.pi * (c["id"] - 2 * w) * ht
     ptot = t["P_core"] + p_cu
@@ -3651,7 +3655,8 @@ def pv_m2_row(cell, mat, cond, size, core_mult=1.0, core_usd=8.0, label=""):
     cost = dict(core_usd=2 * core_usd, copper_usd=COND_USD_KG[cond] * m_cu, insulation_usd=INS_LEAN,
                 labour_usd=WIND_USD[cond] + 2.0)
     cost["total_usd"] = round(sum(cost.values()) * 1.10, 1)
-    return dict(label=label or f"{mat}, {desc}", material=mat, cond=cond, size=size, N=n, conductor=desc, a_cu=a_cu, build=w,
+    r_h = [[0.0, r_dc]] + [[h * f, r_of(h * f)] for h in range(1, 16, 2)]
+    return dict(label=label or f"{mat}, {desc}", material=mat, cond=cond, size=size, N=n, conductor=desc, a_cu=a_cu, build=w, R_h=r_h,
                 fits=bool(fits), MLT=mlt, R_dc110=r_dc, P_core=t["P_core"], P_core_catalogue=t["P_core_catalogue"], P_cu=p_cu,
                 P_dc=r_dc * idc ** 2, P_total=ptot, L_min_Idc=t["L_min_Idc"], L_Idc=t["L_Idc"], L0=t["L0"], L_trip_frac=t["L_trip_frac"],
                 ripple=t["ripple"], dB=t["dB"], dT=temp_rise_surface(ptot, surf) + dt_int, dT_internal=dt_int, surface=surf,
@@ -3664,7 +3669,13 @@ def om_pv_m2(cell, row, om_mat=None):
         f = cell["switching"]["f_sw_kHz"] * 1e3
         idc, rp, v = cell["ratings"]["I_max_A_low_voltage_port"], row["ripple"], cell["ratings"]["V_ports_V"][1] / 2
         core_fd = {"type": "toroidal", "material": om_mat or row["material"], "shape": "T 74/45/35", "gapping": [], "numberStacks": 2}
-        wire = _om_round(row["size"]) if row["cond"] == "round" else _om_litz(
+        tc, hr = row["size"] if row["cond"] == "rect" else (0, 0)
+        rect = {"type": "rectangular", "name": f"Rectangular {hr*1e3:.2f}x{tc*1e3:.2f} - Grade 2 (custom)", "material": "copper",
+                "numberConductors": 1, "standard": "IEC 60317", "conductingWidth": {"nominal": hr}, "conductingHeight": {"nominal": tc},
+                "conductingArea": {"nominal": tc * hr - (4 - math.pi) * 0.5e-3 ** 2}, "edgeRadius": {"nominal": 0.5e-3},
+                "outerWidth": {"nominal": hr + ENAMEL}, "outerHeight": {"nominal": tc + ENAMEL},
+                "coating": {"type": "enamelled", "grade": 2, "breakdownVoltage": 1000.0}}
+        wire = rect if row["cond"] == "rect" else _om_round(row["size"]) if row["cond"] == "round" else _om_litz(
             int(round(row["a_cu"] / (math.pi * row["size"][1] ** 2 / 4))), row["size"][1], math.sqrt(row["a_cu"] / LITZ_PACK["round"] * 4 / math.pi))
         wnd = [{"name": "L", "numberTurns": row["N"], "numberParallels": 1, "isolationSide": "primary", "wire": wire}]
         exc = [{"current": _om_wave([0, 0.5 / f, 1 / f], [idc - rp / 2, idc + rp / 2, idc - rp / 2]),
@@ -3688,7 +3699,7 @@ PV_M2_OPTIONS = [("NPC 26", "litz", (15.1e-6, 0.1e-3), "M1 construction"),
                  ("NPC 26", "round", 3.15e-3, "solid round wire"),
                  ("NPC 40", "round", 3.55e-3, "solid round wire, 40u core, fewer turns"),
                  ("NPC 26", "rect", (2.8e-3, 3.2e-3), "edgewise flat wire")]
-PV_M2_CHOICE = 2
+PV_M2_CHOICE = 2          # D-054: solid round wire; with the real rectangular wire in the MAS check edgewise is no better and 4 USD dearer
 
 
 def design_pv_m2(cell):
@@ -3713,10 +3724,12 @@ def write_design_pv_m2(specs, d1, rows, ch):
     rth = ch["dT"] / ch["P_total"]
     om = ch["om"]
     p_m1 = max(r_["P_total_W"] for r_ in d1["loss_table"])
-    rf = k_toroid(c) * 0.75
-    hh = [[0.0, ch["R_dc110"]]] + [[h * f, litz_loss([(h * f, 1.0)], 1, ch["size"], ch["N"], ch["MLT"],
-                                                         rf * ramp_h2(0, ch["N"], 2 * math.pi * (c["id"] / 2 - 1e-3)), 110.0, 1.0)["total"]]
-                                   for h in range(1, 16, 2)]
+    hh = ch["R_h"]
+    cd = ch["cond"]
+    wire_txt = {"round": "wire class 200 (polyesterimide + polyamide-imide), grade 2",
+                "rect": "edgewise: 2.8 mm along the circumference, 3.2 mm radial; near-square size outside the IEC 60317-0-2 "
+                        "ratio range (>= 1.4) - drawn to order (common for Chinese flat-wire inductor makers); class 200 enamel, grade 2",
+                "litz": "profiled litz, served", "bunch": "profiled bunched wire, served"}[cd]
     d.update(revision="M2", status="proposed construction - calculated, not built or measured (design to cost, D-044)",
              construction=f"2 x POCO NPC290026 (NPC 26, 74/45/35 mm) stacked toroid (as M1), {ch['N']} turns of {ch['conductor']}, "
                           "core wrapped 2 x 0.13 mm Nomex 410 + polyimide, VPI class H, NTC at the bore-side winding centre in a "
@@ -3732,15 +3745,15 @@ def write_design_pv_m2(specs, d1, rows, ch):
                                      f"{4 * (p_tot - p_m1):.0f} W per PV-P100/110; loss_limit_W = hot-spot-limited value")
     d["windings"] = [dict(name="L", turns=ch["N"], conductor=ch["conductor"], copper_area_m2=ch["a_cu"], MLT_m=ch["MLT"],
                           R_dc_110C_ohm=ch["R_dc110"], arrangement="single layer, close-wound at the bore; first and last turn >= 10 mm "
-                          "apart with an insulating separator (up to 1000 V between them); wire class 200 (polyesterimide + "
-                          "polyamide-imide), grade 2")]
+                          "apart with an insulating separator (up to 1000 V between them); " + wire_txt)]
     d["fit"] = dict(build_m=c["id"] - 2e-3 - 2 * ch["build"], available_m=None, fits=ch["fits"],
                     note="build_m = centre hole left (>= 16 mm for clamp and air); single layer fits at the bore")
     d["insulation"]["system"] = d["insulation"]["system"].replace("litz served + polyimide-wrapped (1.1 kV)",
                                                                   "grade-2 enamel (not counted as insulation)")
     d["loss_model"]["winding"] = {"R_ac_per_harmonic": hh, "referred_to": "the winding", "temperature_C": 110.0,
-                                  "formula": "P_cu = R_dc I_dc^2 + sum_h R(h) I_h,rms^2; R(h) Bessel skin + proximity in the "
-                                             "single-layer field N I / (2 b), weighted along the turn"}
+                                  "formula": "P_cu = R_dc I_dc^2 + sum_h R(h) I_h,rms^2; " + ("R(h) Dowell m = 1 on the radial "
+                                             "height with the circumferential porosity" if cd == "rect" else "R(h) Bessel skin + proximity "
+                                             "in the single-layer field N I / (2 b)") + ", weighted along the turn (bore field N I / (2 pi r))"}
     p_dc = ch["P_dc"]
     rows_t = []
     for i_ in (25.0, 35.0, idc):
@@ -3755,15 +3768,16 @@ def write_design_pv_m2(specs, d1, rows, ch):
                               "no internal winding gradient; core gradient < 1 K")
     d["mass_kg"] = ch["mass"]
     co = ch["cost"]
-    d["cost"] = dict(co, basis=f"ESTIMATES, no quote: core 2 x 8.0 USD (13.3 USD/kg Asian powder, as M1); enamelled round Cu "
-                               f"{COND_USD_KG['round']} USD/kg (LME 14.4 + 3.6 drawing/enamel); insulation {INS_LEAN} (Nomex wrap, VPI batch, base); "
-                               f"winding {WIND_USD['round']} + test 2.0; +10 %",
-                     cost_estimates_row=f"L_CELL 224uH (CUSTOM),{co['total_usd']:.0f},\"ESTIMATE (sim/magnetics.py design_pv_inductor.json rev M2, "
-                                        f"design to cost D-044): 2 x POCO NPC290026 16 + {ch['mass_cu']:.2f} kg enamelled Cu 3.15 mm at "
-                                        f"{COND_USD_KG['round']} USD/kg + insulation {INS_LEAN} + winding/test {WIND_USD['round'] + 2:.0f}, +10 %; no quote\",low")
+    d["cost"] = dict(co, basis=f"ESTIMATES, no quote: core 2 x 8.0 USD (13.3 USD/kg Asian powder, as M1); {ch['conductor'].split(',')[0]} "
+                               f"{COND_USD_KG[cd]} USD/kg (LME 14.4 + drawing/enamel premium); insulation {INS_LEAN} (Nomex wrap, VPI batch, base); "
+                               f"winding {WIND_USD[cd]} + test 2.0; +10 %",
+                     cost_estimates_row=f"L_CELL 224uH (CUSTOM),{co['total_usd']:.1f},\"ESTIMATE (sim/magnetics.py design_pv_inductor.json rev M2, "
+                                        f"design to cost D-044 / D-048): 2 x POCO NPC290026 16 + {ch['mass_cu']:.2f} kg {ch['conductor'].split(',')[0]} at "
+                                        f"{COND_USD_KG[cd]} USD/kg + insulation {INS_LEAN} + winding/test {WIND_USD[cd] + 2:.0f}, +10 %; no quote\",low")
     d["verification"] = dict(own=dict(P_core_W=ch["P_core"], P_core_catalogue_W=ch["P_core_catalogue"], P_cu_W=ch["P_cu"],
                                       P_cu_design_W=p_cu_design, L_at_45A_H=ch["L_Idc"], dT_hotspot_K=rth * p_tot),
-                             openmagnetics=dict(om, note="MAS T 74/45/35 x2, NPC 26, Round 3.15 - Grade 2, 1 mm former wall"),
+                             openmagnetics=dict(om, note="MAS T 74/45/35 x2, NPC 26, same conductor (custom rectangular wire for the edgewise "
+                                                         "option: OM's orientation of the rectangle on a toroid is its own), 1 mm former wall"),
                              previous_designer=d1["verification"]["previous_designer"])
     d["reference_M1"] = dict(construction=d1["construction"], P_total_W=p_m1, T_hotspot_C=d1["thermal"]["T_hotspot_C"],
                              mass_kg=d1["mass_kg"], cost_usd=d1["cost"]["total_usd"], cost=d1["cost"])
@@ -4197,7 +4211,7 @@ def dab_cost_first(D, xd):
 EC39A = dict(maker="DMEGC", pn="EC39A", mat="DMR95", src=MAG + "DMEGC-EC39A.pdf p.1", Ae=133e-6, Amin=128.7e-6, le=103e-3,
              Ve=13699e-9, mass=0.070, d_leg=13.0e-3, win_h=29.2e-3, win_w=8.8e-3, mu_i=3300.0,
              note="window and post from the ETD 39/20/13 class (MAS); the EC39A drawing is image-only - confirm the bobbin")
-AUX75_CHOICE = dict(setback=0.5e-3, p_wire=("litz", 30, 0.10e-3), s_wire=("litz", 150, 0.10e-3), a_wire=("litz", 100, 0.10e-3),
+AUX75_CHOICE = dict(setback=0.5e-3, p_wire=("litz", 30, 0.10e-3), s_wire=("litz", 200, 0.10e-3), a_wire=("litz", 100, 0.10e-3),
                     t_p1sh=6, t_shs=4, t_sa=4, t_ap2=1, t_out=2)   # litz P and live: solid 0.6 / 1.0 mm lose 1.8-3.0 W in the gap fringing
 
 
@@ -4221,7 +4235,7 @@ def design_aux75(spec):
     r["L_leak_live_selv"] = MU0 * A["na"] ** 2 * 0.5 * (r["mlt"]["S"] + r["mlt"]["AUX"]) / b * (tt("S") / 3 + AUX75_CHOICE["t_sa"] * AUX_RULES["tape"] + tt("AUX") / 3)
     r["B_lim_Amin"] = A["lp"] * (1 + A["lp_tol"]) * A["ilim"] / (A["np"] * EC39A["Amin"])
     r["A"], r["q"] = A, q
-    r["mass_cu_est"] = 8900.0 * (A["np"] * r["mlt"]["P1"] * math.pi * 0.6e-3 ** 2 / 4 + A["ns"] * r["mlt"]["S"] * 150 * math.pi * 0.1e-3 ** 2 / 4
+    r["mass_cu_est"] = 8900.0 * (A["np"] * r["mlt"]["P1"] * math.pi * 0.6e-3 ** 2 / 4 + A["ns"] * r["mlt"]["S"] * AUX75_CHOICE["s_wire"][1] * math.pi * 0.1e-3 ** 2 / 4
                                  + A["na"] * r["mlt"]["AUX"] * math.pi * 1.0e-3 ** 2 / 4)
     return r
 
@@ -4232,9 +4246,9 @@ def write_design_aux75(spec, r, om, ins):
     ii = q["insulation"]["primary + live + shield - SELV"]
     t_min = r["pos"]["S"][0] - r["pos"]["SH"][1] + TIW_INS
     p_worst = max(p["P_cu"] for p in r["points"].values())
-    cost = dict(core_usd=0.85, copper_usd=1.6 + 0.6 + 0.2, insulation_usd=0.45 + 1.6, labour_usd=1.6 + 0.8)
+    cost = dict(core_usd=0.85, copper_usd=1.9 + 0.6 + 0.2, insulation_usd=0.45 + 1.6, labour_usd=1.6 + 0.8)
     cost["total_usd"] = round(sum(cost.values()) * 1.10, 1)
-    cost["build_5k_usd"] = round((0.60 + 1.1 + 0.4 + 0.15 + 0.3 + 1.1 + 1.0 + 0.5) * 1.10, 1)
+    cost["build_5k_usd"] = round((0.60 + 1.3 + 0.4 + 0.15 + 0.3 + 1.1 + 1.0 + 0.5) * 1.10, 1)
     cost["catalogue_1k_usd"] = cost["total_usd"]
     d = dict(part="aux75_transformer", revision="M1", status="proposed construction - calculated, not built or measured",
              basis={"spec": "sim/out/aux_hv_design/aux75_spec.json", "spec_mtime": _mtime("sim/out/aux_hv_design/aux75_spec.json"),
@@ -4266,7 +4280,7 @@ def write_design_aux75(spec, r, om, ins):
                        asian_alternative="this is the Asian part (DMEGC lists no ETD39)", western_reference="TDK ETD 39/20/13 N97"),
              windings=[dict(order=1, name="P1", turns=A["np"] // 2, spec="litz 30 x 0.10 mm (grade 2 strands), 1 layer, start = DRAIN"),
                        dict(order=2, name="SH", turns=1, spec="copper foil 0.05 mm, open overlap, -> BUS-"),
-                       dict(order=3, name="SELV", turns=A["ns"], spec="TIW-litz 150 x 0.10 mm (three-layer extruded, certified reinforced), 1 layer"),
+                       dict(order=3, name="SELV", turns=A["ns"], spec=f"TIW-litz {AUX75_CHOICE['s_wire'][1]} x 0.10 mm (three-layer extruded, certified reinforced), 1 layer"),
                        dict(order=4, name="LIVE", turns=A["na"], spec="litz 100 x 0.10 mm, 1 layer, -> live 24 V rectifier"),
                        dict(order=5, name="P2", turns=A["np"] - A["np"] // 2, spec="litz 30 x 0.10 mm, 1 layer, finish = bulk")],
              fit=dict(build_m=r["build"], available_m=c["win_w"] - AUX_RULES["outer_clear"], fits=bool(r["fits"] and r["fits_breadth"]),
@@ -4290,7 +4304,7 @@ def write_design_aux75(spec, r, om, ins):
              thermal=dict(T_rise_K=(p_worst + max(p["P_core"] for p in r["points"].values())) * 12.0,
                           basis="potted ETD39-class case ~45 x 40 x 35 mm, ~12 K/W natural convection (estimate)", interface="board-mounted"),
              mass_kg=c["mass"] + r["mass_cu_est"] + 0.05,
-             cost=dict(cost, basis="ESTIMATES, no quote: EC39A 70 g 0.85; former 0.45; TIW-litz 150 x 0.1 ~1.0 m 1.6; litz P + live 0.6, foil/tape 0.2; "
+             cost=dict(cost, basis="ESTIMATES, no quote: EC39A 70 g 0.85; former 0.45; TIW-litz 200 x 0.1 ~1.0 m 1.9; litz P + live 0.6, foil/tape 0.2; "
                                    "case + vacuum potting 1.6; winding 1.6; PD routine test 0.8; +10 %",
                        cost_estimates_row=f"AUX-T1 75 W (CUSTOM),{cost['total_usd']:.1f},\"ESTIMATE (sim/magnetics.py design_aux75_transformer.json rev M1): "
                                           "DMEGC EC39A DMR95 + TIW-litz SELV + litz P/live + potted case + PD test; no quote\",low"),
@@ -4337,8 +4351,9 @@ def design_checks_aux75(d):
 def om_aux75(spec, r):
     A = dict(r["A"], gap=r["gap"])
     try:
-        od = math.sqrt(150) * 1.15 * (0.1e-3 + AUX_RULES["enamel"] / 2)
-        o = om_aux_transformer(r, {"_A": A}, shape="ETD 39/20/13", material="DMR95", gap=r["gap"], s_wire=("litz", 150, 0.1e-3, od),
+        ns_ = AUX75_CHOICE["s_wire"][1]
+        od = math.sqrt(ns_) * 1.15 * (0.1e-3 + AUX_RULES["enamel"] / 2)
+        o = om_aux_transformer(r, {"_A": A}, shape="ETD 39/20/13", material="DMR95", gap=r["gap"], s_wire=("litz", ns_, 0.1e-3, od),
                                wall=AUX_RULES["wall"] + AUX75_CHOICE["setback"],
                                p_litz=(30, 0.1e-3, math.sqrt(30) * 1.15 * (0.1e-3 + AUX_RULES["enamel"] / 2)))
         return {"L_p_H": _num(o.get("L"), "magnetizingInductance"), "P_core_W": _num(o.get("core"), "coreLosses"),

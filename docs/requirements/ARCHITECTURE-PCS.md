@@ -4,6 +4,15 @@
 `ARCHITECTURE-COSTFIRST.md` (D-045) · **Costed parts list:** `gen/data/costfirst_pcs_bom.csv` (catalogue and 5,000-unit
 columns; totals in §12)
 
+> [!IMPORTANT]
+> **Power stage superseded by D-053 (2026-10-05).** The design study (`sim/pcs_design.py`,
+> `sim/out/pcs_design/report.md`, `pcs_spec.json`) replaced the three-level T-type described in §0 and §1 with a
+> **two-level stage on 1700 V SiC** (6 × Sichain SG2M040170HJ per switch, 32 kHz): this document's 42 IGBTs overheat
+> (66 would be needed) and its 660 µF per DC-link half cannot hold the midpoint at power factor 0. Where this
+> document and the study disagree on the power stage, the filter, the DC link or the cost, the study governs. The
+> rest — the ports, the one reinforced barrier, the control-board variant — remains the basis; the hardware /
+> firmware allocation is the one of D-050, not D-049.
+
 **Honesty boundary.** Nothing is built, bought, simulated in time domain or measured. The topology screen in §1 is a
 first-order loss calculation (scratch script, formulas and device data stated); every design value below is to be
 confirmed by the simulations of §9. Standard clauses are named as the Megarevo documents cite them; their text was

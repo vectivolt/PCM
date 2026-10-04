@@ -183,7 +183,7 @@
    ],
    "referred_to": "the winding",
    "temperature_C": 110.0,
-   "formula": "P_cu = R_dc I_dc^2 + sum_h R(h) I_h,rms^2; R(h) Bessel skin + proximity in the single-layer field N I / (2 b), weighted along the turn"
+   "formula": "P_cu = R_dc I_dc^2 + sum_h R(h) I_h,rms^2; R(h) Bessel skin + proximity in the single-layer field N I / (2 b), weighted along the turn (bore field N I / (2 pi r))"
   }
  },
  "loss_table": [
@@ -258,8 +258,8 @@
   "insulation_usd": 4.0,
   "labour_usd": 7.0,
   "total_usd": 40.5,
-  "basis": "ESTIMATES, no quote: core 2 x 8.0 USD (13.3 USD/kg Asian powder, as M1); enamelled round Cu 18.0 USD/kg (LME 14.4 + 3.6 drawing/enamel); insulation 4.0 (Nomex wrap, VPI batch, base); winding 5.0 + test 2.0; +10 %",
-  "cost_estimates_row": "L_CELL 224uH (CUSTOM),40,\"ESTIMATE (sim/magnetics.py design_pv_inductor.json rev M2, design to cost D-044): 2 x POCO NPC290026 16 + 0.54 kg enamelled Cu 3.15 mm at 18.0 USD/kg + insulation 4.0 + winding/test 7, +10 %; no quote\",low"
+  "basis": "ESTIMATES, no quote: core 2 x 8.0 USD (13.3 USD/kg Asian powder, as M1); solid round enamelled Cu 3.15 mm grade 2 18.0 USD/kg (LME 14.4 + drawing/enamel premium); insulation 4.0 (Nomex wrap, VPI batch, base); winding 5.0 + test 2.0; +10 %",
+  "cost_estimates_row": "L_CELL 224uH (CUSTOM),40.5,\"ESTIMATE (sim/magnetics.py design_pv_inductor.json rev M2, design to cost D-044 / D-048): 2 x POCO NPC290026 16 + 0.54 kg solid round enamelled Cu 3.15 mm grade 2 at 18.0 USD/kg + insulation 4.0 + winding/test 7, +10 %; no quote\",low"
  },
  "verification": {
   "own": {
@@ -275,7 +275,7 @@
    "L_H": 0.0002267585038218188,
    "P_core_W": 25.43082138509842,
    "P_cu_W": 50.53361207859598,
-   "note": "MAS T 74/45/35 x2, NPC 26, Round 3.15 - Grade 2, 1 mm former wall"
+   "note": "MAS T 74/45/35 x2, NPC 26, same conductor (custom rectangular wire for the edgewise option: OM's orientation of the rectangle on a toroid is its own), 1 mm former wall"
   },
   "previous_designer": {
    "design": "NPC290026 x 2 (stacked, 0.5 mm spacer)",
@@ -366,9 +366,9 @@
    "conductor": "edgewise rectangular enamelled Cu 2.8 x 3.2 mm, 1 layer",
    "fits": true,
    "P_core_W": 25.4,
-   "P_cu_W": 47.5,
-   "P_total_W": 73.0,
-   "T_hotspot_C": 133.0,
+   "P_cu_W": 60.2,
+   "P_total_W": 85.6,
+   "T_hotspot_C": 147.0,
    "mass_kg": 1.83,
    "cost_usd": 44.6,
    "L_trip_over_L0": 0.81

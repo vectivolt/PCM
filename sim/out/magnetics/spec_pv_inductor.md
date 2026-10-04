@@ -88,7 +88,7 @@ Interpolation: `loss_model` (Steinmetz set + R_ac per harmonic) and `loss_grid` 
 | item | value |
 |---|---|
 | own | P_core_W 25.43; P_core_catalogue_W 18.42; P_cu_W 58.33; P_cu_design_W 58.33; L_at_45A_H 0.0002259; dT_hotspot_K 89.84 |
-| openmagnetics | material NPC 26; L_H 0.0002268; P_core_W 25.43; P_cu_W 50.53; note MAS T 74/45/35 x2, NPC 26, Round 3.15 - Grade 2, 1 mm former wall |
+| openmagnetics | material NPC 26; L_H 0.0002268; P_core_W 25.43; P_cu_W 50.53; note MAS T 74/45/35 x2, NPC 26, same conductor (custom rectangular wire for the edgewise option: OM's orientation of the rectangle on a toroid is its own), 1 mm former wall |
 | previous_designer | design NPC290026 x 2 (stacked, 0.5 mm spacer); conductor profiled litz 1923 x 0.10 mm, 3.07 x 8.06 mm, 1 layer; P_total_W 51.22; L_at_45A_H 0.0002259; dT_hotspot_K_own 74.51; cost_usd 66 |
 
 ## 9. Mass and cost basis (estimate, no quote)
@@ -101,8 +101,8 @@ Mass 1.745 kg.
 | insulation_usd | 4 |
 | labour_usd | 7 |
 | total_usd | 40.5 |
-| basis | ESTIMATES, no quote: core 2 x 8.0 USD (13.3 USD/kg Asian powder, as M1); enamelled round Cu 18.0 USD/kg (LME 14.4 + 3.6 drawing/enamel); insulation 4.0 (Nomex wrap, VPI batch, base); winding 5.0 + test 2.0; +10 % |
-| cost_estimates_row | L_CELL 224uH (CUSTOM),40,"ESTIMATE (sim/magnetics.py design_pv_inductor.json rev M2, design to cost D-044): 2 x POCO NPC290026 16 + 0.54 kg enamelled Cu 3.15 mm at 18.0 USD/kg + insulation 4.0 + winding/test 7, +10 %; no quote",low |
+| basis | ESTIMATES, no quote: core 2 x 8.0 USD (13.3 USD/kg Asian powder, as M1); solid round enamelled Cu 3.15 mm grade 2 18.0 USD/kg (LME 14.4 + drawing/enamel premium); insulation 4.0 (Nomex wrap, VPI batch, base); winding 5.0 + test 2.0; +10 % |
+| cost_estimates_row | L_CELL 224uH (CUSTOM),40.5,"ESTIMATE (sim/magnetics.py design_pv_inductor.json rev M2, design to cost D-044 / D-048): 2 x POCO NPC290026 16 + 0.54 kg solid round enamelled Cu 3.15 mm grade 2 at 18.0 USD/kg + insulation 4.0 + winding/test 7, +10 %; no quote",low |
 
 ## Constructions compared (design loss = higher of own and OpenMagnetics; same core stack)
 | option | core | turns | conductor | fits | P_core_W | P_cu_W | P_total_W | T_hotspot_C | mass_kg | cost_usd | L_trip_over_L0 |
@@ -111,7 +111,7 @@ Mass 1.745 kg.
 | coarse bunched litz | 2 x NPC290026 (NPC 26) | 37 | profiled bunched 61 x 0.50 mm | yes | 25.4 | 40.8 | 66.2 | 123 | 2.17 | 57.2 | 0.81 |
 | solid round wire | 2 x NPC290026 (NPC 26) | 37 | solid round enamelled Cu 3.15 mm grade 2, 1 layer | yes | 25.4 | 58.3 | 83.8 | 145 | 1.74 | 40.5 | 0.81 |
 | solid round wire, 40u core, fewer turns | 2 x NPC290040 (NPC 40) | 32 | solid round enamelled Cu 3.55 mm grade 2, 1 layer | yes | 40.6 | 39.9 | 80.5 | 140 | 1.8 | 41.7 | 0.68 |
-| edgewise flat wire | 2 x NPC290026 (NPC 26) | 37 | edgewise rectangular enamelled Cu 2.8 x 3.2 mm, 1 layer | yes | 25.4 | 47.5 | 73 | 133 | 1.83 | 44.6 | 0.81 |
+| edgewise flat wire | 2 x NPC290026 (NPC 26) | 37 | edgewise rectangular enamelled Cu 2.8 x 3.2 mm, 1 layer | yes | 25.4 | 60.2 | 85.6 | 147 | 1.83 | 44.6 | 0.81 |
 
 Rejected: POCO NPF 26 (FeSi, cheapest star class): catalogue loss ~4 x NPC at 32 kHz / 0.1 T -> ~70 W core; KDM KS 26 (standard sendust, MAS data; KDM brochure is image-only): DC bias needs 42 turns (does not fit one layer), MAS core loss 51 W; POCO GPC 26 (lower loss, same cost class): no 74 mm toroid in the 2026 catalogue; single toroid (55 turns, two layers): same core loss, surface halves -> hot spot > 170 C; POCO NPX / NPA (lowest loss): 1.6-1.8 x core price.
 

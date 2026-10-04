@@ -6,12 +6,13 @@ distilled from is `docs/requirements/00-roadmap-source.md` (do not edit). Decisi
 
 ## Hard rules
 
-- **Scope:** PV-P75/100/110 (non-isolated buck-boost MPPT), DAB-D60 (isolated), and their shared ecosystem
-  boards. Not the AC-side PCS, not STS, not the Vienna modules.
+- **Scope:** PV-P75/100/110 (non-isolated buck-boost MPPT), DAB-D60 (isolated), the DC-to-AC PCS-P125
+  (REQUIREMENTS.md §8, decisions D-046 / D-053), and their shared ecosystem boards. Not STS, not the Vienna modules.
 - **Schematic + BOM only.** No PCB layout, footprints, Gerbers or mechanics.
 - **Python is the source of truth.** `hardware/` and `bom/` are generated; never hand-edit them.
 - **Docs layout:** `docs/reference-designs/<vendor>/<design>/`, `docs/datasheets/<category>/`,
-  manifest `docs/SOURCES.csv`.
+  manifest `docs/SOURCES.csv`. Third-party files are not kept in git: `docs/fetch.py` downloads them again from
+  the manifest. The written documentation is `README.md` + `docs/guide/`, to the style in `docs/assets/STYLE.md`.
 - **Agents:** Fable 5.1 orchestrates; Opus 5.5 / Sonnet 5.5 subagents do the work.
 - **Honesty:** nothing is bench-validated. Label simulated/calculated values; list unknowns.
 - A task that does not trace to REQUIREMENTS.md is a diversion — ask first.

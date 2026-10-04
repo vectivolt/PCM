@@ -25,8 +25,8 @@
 |---|---|---:|---:|---:|---:|---:|---|---:|
 | **PV-P75** | BOM of drawn boards (PV-PWR + PV-CTL) | 75 | **947** | 12.6 | **792** | 10.6 | 78 % of catalogue on estimates · 16 % of 5k on published breaks | 1.9× (≈ 410 USD) |
 | **PV-P100/110** | BOM of drawn boards (PV-PWR-4 + PV-CTL) | 100 / 110 | 1,136 | 11.4 / 10.3 | 950 | 9.5 / 8.6 | 77 % of catalogue on estimates · 15 % of 5k on published breaks | 1.7× / 1.7× |
-| **PCS-P125** | design study, 3-wire (two-level), no boards | 125 | 1,086 | 8.7 | 869 | 7.0 | 7 % of 5k on published prices | see note |
-| **PCS-P125** | design study, 4-wire (two-level), no boards | 125 | 1,289 | 10.3 | 1,032 | 8.3 | not stated for 4-wire | see note |
+| **PCS-P125** | design study, 3-wire (two-level), no boards · provisional, see D-057 | 125 | 1,086 | 8.7 | 869 | 7.0 | 7 % of 5k on published prices | see note |
+| **PCS-P125** | design study, 4-wire (two-level), no boards · provisional, see D-057 | 125 | 1,289 | 10.3 | 1,032 | 8.3 | not stated for 4-wire | see note |
 | PV-P75 earlier platform | BOM of drawn boards (8 boards) | 75 | 2,812 | 37.5 | 2,254 | 30.1 | 55 % of catalogue on estimates · 17 % of 5k on published breaks | 5.5× |
 | DAB-D60 earlier platform | BOM of drawn boards (5 boards) | 60 | 3,615 | 60.2 | 2,927 | 48.8 | 48 % of catalogue on estimates · 12 % of 5k on published breaks | 7.5× |
 | PCS-P125 | three-level T-type estimate, **withdrawn by D-053** | 125 | 1,037 | 8.3 | 801 | 6.4 | — | — |

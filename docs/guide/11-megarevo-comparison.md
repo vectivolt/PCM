@@ -134,7 +134,7 @@ The table above describes the cost-first design. This is what changed when the e
 | PCS-P125 (DC/AC, design study, no boards) | BOM per kW in [the cost table](07-sourcing-and-cost.md#-the-costs-in-one-table), read from `pcs_spec.json` | roughly 1.25 × the ≈ 690 USD current-adjusted benchmark BOM at 5,000 units (our arithmetic) | [D-053](../requirements/DECISIONS.md), [ARCHITECTURE-PCS §12](../requirements/ARCHITECTURE-PCS.md#12-cost--both-products-catalogue-and-5000-units-against-the-benchmark) |
 | DAB-D60 (isolated DC/DC) | earlier platform only; the cost-first outline estimates ≈ 1,140 USD (≈ 19 USD/kW) | well above, as expected for an isolated converter with a liquid cold plate | [ARCHITECTURE-COSTFIRST §16](../requirements/ARCHITECTURE-COSTFIRST.md#16-dab-d60-on-the-same-principles) |
 
-The PCS-P125 design study also sits next to its own competitor: a calculated peak efficiency of 99.20 % against the
+The PCS-P125 design study also sits next to its own competitor: a calculated peak efficiency of about 98.9–99.1 % (the study's 99.20 %, corrected by [D-057](../requirements/DECISIONS.md)) against the
 98.5 % that the PMA0125 publishes (AC-02) — a calculation against a published figure, not a measurement
 ([pcs_design/report.md](../../sim/out/pcs_design/report.md)).
 

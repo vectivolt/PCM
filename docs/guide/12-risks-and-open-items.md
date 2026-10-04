@@ -117,7 +117,8 @@ quadrantChart
 |---|:---:|---|---|---|---|
 | F1 | 2 | **Three-wire version on an earthed-neutral grid**: the battery's capacitance to earth (assumed 1–20 µF) limits operation below about 680 V | an installation limit or a transformer | the battery data; the common-mode study | [D-053](../requirements/DECISIONS.md) |
 | F2 | 2 | **Grid-code and safety clauses** (EN 50549-1, IEC 62109-2, GB/T 34120, IEC 62116) are quoted from memory | relay redundancy, residual-current monitoring and anti-islanding details may change | buy the standards | D-053, ARCHITECTURE-PCS R-07 |
-| F3 | — | **Cross-check against Wolfspeed's 25 kW T-type reference design** (design files supplied by the owner on 2026-10-05) is in progress and can overturn D-053 | — | the cross-check result | [D-053](../requirements/DECISIONS.md), [CRD-25BDA6512N-K](../reference-designs/wolfspeed/crd-25bda6512n-k/README.md) |
+| F3 | 2 | **Inverter cost and efficiency are provisional.** The cross-check against Wolfspeed's reference designs confirmed the two-level stage but found the filter inductors priced at about half their material cost and the turn-on loss understated | about 979–1,028 USD at 5,000 units instead of 869 USD; peak efficiency about 98.9–99.1 % instead of 99.20 % | the filter-inductor design and the study re-run | [D-057](../requirements/DECISIONS.md), [cross-check report](../../sim/out/pcs_design/crosscheck_wolfspeed.md) |
+| F4 | 2 | **Threshold-voltage spread** of the SiC device (2.5–4.0 V) across six paralleled parts | at a 1.30 current share the hottest junction reaches 163 °C at 60 °C inlet, over the limit | threshold binning or one lot per switch, a Kelvin-source resistor per device, derating re-run | [D-057](../requirements/DECISIONS.md) |
 
 ---
 

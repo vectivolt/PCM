@@ -103,8 +103,8 @@ flowchart LR
 |---|---|---:|---:|---:|---:|---:|---|---:|
 | **PV-P75** | BOM of drawn boards (PV-PWR + PV-CTL) | 75 | **947** | 12.6 | **792** | 10.6 | 78 % of catalogue on estimates · 16 % of 5k on published breaks | 1.9× (≈ 410 USD) |
 | **PV-P100/110** | BOM of drawn boards (PV-PWR-4 + PV-CTL) | 100 / 110 | 1,136 | 11.4 / 10.3 | 950 | 9.5 / 8.6 | 77 % of catalogue on estimates · 15 % of 5k on published breaks | 1.7× / 1.7× |
-| **PCS-P125** | design study, 3-wire (two-level), no boards | 125 | 1,086 | 8.7 | 869 | 7.0 | 7 % of 5k on published prices | see note |
-| **PCS-P125** | design study, 4-wire (two-level), no boards | 125 | 1,289 | 10.3 | 1,032 | 8.3 | not stated for 4-wire | see note |
+| **PCS-P125** | design study, 3-wire (two-level), no boards · provisional, see D-057 | 125 | 1,086 | 8.7 | 869 | 7.0 | 7 % of 5k on published prices | see note |
+| **PCS-P125** | design study, 4-wire (two-level), no boards · provisional, see D-057 | 125 | 1,289 | 10.3 | 1,032 | 8.3 | not stated for 4-wire | see note |
 | PV-P75 earlier platform | BOM of drawn boards (8 boards) | 75 | 2,812 | 37.5 | 2,254 | 30.1 | 55 % of catalogue on estimates · 17 % of 5k on published breaks | 5.5× |
 | DAB-D60 earlier platform | BOM of drawn boards (5 boards) | 60 | 3,615 | 60.2 | 2,927 | 48.8 | 48 % of catalogue on estimates · 12 % of 5k on published breaks | 7.5× |
 | PCS-P125 | three-level T-type estimate, **withdrawn by D-053** | 125 | 1,037 | 8.3 | 801 | 6.4 | — | — |
@@ -228,7 +228,7 @@ Tools: KiCad 10 (`kicad-cli`; on macOS `/Applications/KiCad/KiCad.app/Contents/M
 ## 🗺️ What comes next
 
 - **PV-P75 board revisions** ([D-056](docs/requirements/DECISIONS.md)): a seventh battery-side film capacitor and a narrower over-current window; then the independent review, pin audit and insulation re-audit of the two boards — and supplier quotations for the largest estimates.
-- **PCS-P125:** control simulation, magnetics and then the boards; the cross-check against Wolfspeed's 25 kW T-type reference design is in progress ([D-053](docs/requirements/DECISIONS.md)).
+- **PCS-P125:** an independent cross-check against Wolfspeed's T-type and two-level reference designs confirmed the two-level stage and corrected its cost and efficiency ([D-057](docs/requirements/DECISIONS.md)); next: the filter inductors, the study re-run, the control simulation and then the boards.
 - **DAB-D60:** redraw the board cost-first ([ARCHITECTURE-COSTFIRST §16](docs/requirements/ARCHITECTURE-COSTFIRST.md#16-dab-d60-on-the-same-principles)).
 - **Comparison with Megarevo:** close the four rows that are below the published table — cold limit, altitude, standby and load rejection ([Comparison](docs/guide/11-megarevo-comparison.md#the-four-rows-below-megarevo)).
 - **Before any hardware release** (outside this repository): double-pulse test of the gate drive, a wound inductor sample, the purchased standards checked against the values used.

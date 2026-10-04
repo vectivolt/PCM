@@ -2,7 +2,7 @@
 
 # 📐 Decisions
 
-> A readable digest of the decision register, D-001 to D-056, grouped by theme — what was decided, why, and whether it still holds.
+> A readable digest of the decision register, D-001 to D-057, grouped by theme — what was decided, why, and whether it still holds.
 
 ![range](https://img.shields.io/badge/register-D--001%E2%80%A6D--055-0B1F33?style=flat-square)
 ![as of](https://img.shields.io/badge/as%20of-2026--10--05-5B6B7A?style=flat-square)
@@ -124,7 +124,8 @@
 | ID | Decision · why | Today |
 |---|---|---|
 | D-047 | **PCS-P125 architecture:** three-level T-type with discrete Chinese IGBTs at 16 kHz.<br/><sub>Withdrawn by D-053: its devices overheat and its DC link cannot hold the midpoint at power factor 0.</sub> | ![superseded](https://img.shields.io/badge/-withdrawn%20by%20D--053-8FA3B5?style=flat-square) |
-| D-053 | **PCS-P125 power stage: two-level on 1700 V SiC,** 6 × Sichain SG2M040170HJ per switch, 32 kHz, LCL filter.<br/><sub>Every device at ≤ 0.56 of its rating; a cross-check against Wolfspeed's 25 kW T-type reference design is in progress and can overturn it.</sub> | ![baseline](https://img.shields.io/badge/-baseline-00A99D?style=flat-square) |
+| D-053 | **PCS-P125 power stage: two-level on 1700 V SiC,** 6 × Sichain SG2M040170HJ per switch, 32 kHz, LCL filter.<br/><sub>Every device at ≤ 0.56 of its rating; confirmed by the cross-check of D-057, which corrected its cost and efficiency.</sub> | ![baseline](https://img.shields.io/badge/-baseline-00A99D?style=flat-square) |
+| D-057 | **Two-level stands after an independent cross-check** against Wolfspeed's T-type and two-level reference designs - on robustness and simplicity, not on cost.<br/><sub>Inductors were priced at half their material cost (about 979–1,028 USD at 5,000 units, not 869); peak efficiency about 98.9–99.1 %, not 99.20 %; threshold binning is required for six paralleled devices; AC-02 now states full current at any power factor.</sub> | ![frozen](https://img.shields.io/badge/-topology%20frozen-00A99D?style=flat-square) |
 
 ## 🔬 Reviews
 

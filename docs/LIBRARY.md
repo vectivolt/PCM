@@ -31,8 +31,8 @@ Counts from `docs/SOURCES.csv` (regenerate with `python docs/fetch.py --summary`
 |  | rows | on disk | to fetch by hand | MB on disk |
 |---|---:|---:|---:|---:|
 | reference designs | 107 | 92 | 15 | 348 |
-| datasheets | 437 | 421 | 16 | 764 |
-| **total** | **544** | **513** | **31** | **1112** |
+| datasheets | 438 | 422 | 16 | 766 |
+| **total** | **545** | **514** | **31** | **1113** |
 
 ### Reference designs
 
@@ -84,7 +84,7 @@ Counts from `docs/SOURCES.csv` (regenerate with `python docs/fetch.py --summary`
 | isolation-interface | 39 | 39 | 0 | 70 |
 | magnetics | 34 | 34 | 0 | 61 |
 | passives-capacitors | 27 | 27 | 0 | 33 |
-| power-semiconductors | 123 | 120 | 3 | 172 |
+| power-semiconductors | 124 | 121 | 3 | 173 |
 | power-supply | 28 | 28 | 0 | 79 |
 | protection | 83 | 73 | 10 | 102 |
 | sensing | 41 | 41 | 0 | 86 |

@@ -1108,29 +1108,35 @@ def lean_imd(B, pole_pos, pole_neg, pe_t, pe_d, r, cmd_p, cmd_n, v5, gnd, vdd, a
 
 def lean_port(B, t, source, sheet_no, term_pos, term_neg, bank_pos, bus_neg, cmd, cmd_pre=None, pe_t="PE_T", v24="+24V",
               v5="+5V", vdd="+3V3", gnd="GND", agnd="AGND", dom=None, xing=None, economiser=True, interlocks="full",
-              oc_trip=True, refs=None, contactor=None):
+              oc_trip=True, refs=None, contactor=None, fuse="HPE501", bleeder=True):
     """One lean port on three sheets (power path; sensing + interlocks; coil drives), source 'pv' (contactor only) or 'battery'
-    (aR fuse per pole, precharge, dV interlock). Returns the nets the controller needs."""
+    (aR fuse per pole, precharge, dV interlock). Returns the nets the controller needs. fuse: catalog key of the aR link
+    (HPE501 = the coordinated 250 A part of port_spec lean; another key = the caller coordinates it); bleeder=False when the
+    bank has its own bleeders (PCS split DC link)."""
     batt = source == "battery"
     dom = {} if dom is None else dom
     xing = set() if xing is None else xing
     lp = S["lean"]
     B.new_sheet("%02d_lean%s_power" % (sheet_no, t), "Port %s power path (%s)" % (t, source),
                 "Varistor Y + monitor%s" % (", aR fuses" if batt else ""))
+    hpe = fuse == "HPE501"
     B.block("Port %s (%s source), D-044 lean port" % (t, source),
-            "Terminal side %s / %s, bank %s. %s\nContactor opens <= 0.97 kA, held above (port_spec lean). Installation: upstream "
-            "clears %d-%d A within %.2f s." % (term_pos, term_neg, bank_pos,
-                                               "HPE501 250 A aR in both poles (breaks 1.25-50 kA only)." if batt else
-                                               "No fuse, no precharge: array Isc <= 1.25 x rating.",
-                                               lp["installation"]["band_A"][0], lp["installation"]["band_A"][1],
-                                               lp["installation"]["clear_within_s"]))
+            "Terminal side %s / %s, bank %s. %s\nContactor opens <= 0.97 kA, held above (port_spec lean). %s" %
+            (term_pos, term_neg, bank_pos, ("HPE501 250 A aR in both poles (breaks 1.25-50 kA only)." if hpe else
+                                            "%s aR in both poles." % B.catalog[fuse]["mpn"]) if batt else
+             "No fuse, no precharge: array Isc <= 1.25 x rating.",
+             "Installation: upstream clears %d-%d A within %.2f s." % (lp["installation"]["band_A"][0],
+                                                                       lp["installation"]["band_A"][1],
+                                                                       lp["installation"]["clear_within_s"])
+             if hpe or not batt else "Fuse / contactor coordination: the board's design check."))
     spdn = varistor_y(B, t, term_pos, term_neg, pe_t, vdd, agnd, "LIVE", dom, set(), xing)
     tp, tn = (t + "_T+", t + "_T-") if batt else (term_pos, term_neg)
     if batt:
-        B.block("aR fuses (battery-type port)", "HPE501/000B100-250 in both poles: breaks 1.25-50 kA only (partial range);\n"
-                                               "the port OC trip and the contactor keep it out of 250 A-1.25 kA.")
-        B.part("HPE501", {"1": term_pos, "2": tp})
-        B.part("HPE501", {"1": term_neg, "2": tn})
+        B.block("aR fuses (battery-type port)", ("HPE501/000B100-250 in both poles: breaks 1.25-50 kA only (partial range);\n"
+                                                "the port OC trip and the contactor keep it out of 250 A-1.25 kA.") if hpe else
+                "%s in both poles (aR, partial range): see the board's design check." % B.catalog[fuse]["mpn"])
+        B.part(fuse, {"1": term_pos, "2": tp})
+        B.part(fuse, {"1": term_neg, "2": tn})
     B.new_sheet("%02d_lean%s_ctrl" % (sheet_no + 1, t), "Port %s sensing and interlocks" % t,
                 "References, BUS- shunt amplifier + hold-off / OC windows, dividers, dV amplifier,\n"
                 "polarity and dV interlocks")
@@ -1146,7 +1152,8 @@ def lean_port(B, t, source, sheet_no, term_pos, term_neg, bank_pos, bus_neg, cmd
                 (" + precharge relay" if batt else ""))
     k = lean_contactor(B, t, tp, bank_pos, cmd, il["pol"], il["dv"], sh["hold"], v24, gnd, vdd, agnd, economiser=economiser,
                        part=contactor or S["lean"]["contactor_per_source"][source])
-    lean_bleeder(B, t, bank_pos, bus_neg)
+    if bleeder:
+        lean_bleeder(B, t, bank_pos, bus_neg)
     pg = lean_precharge(B, t, tp, bank_pos, cmd_pre, il["pol"], v24, gnd, vdd, agnd) if batt else None
     return dict(spd_n=spdn, vx=d["vx"], vb=d["vb"], im=sh["im"], oc=sh["oc"], hold=sh["hold"], pol_ok=il["pol"],
                 dv_ok=il["dv"], k_g=k, p_g=pg, vmid=r["VMID"], refs=r, dom=dom, xing=xing)

@@ -159,3 +159,27 @@ def pins(table, prefix="", rename=None):
     """{pin number: net}. `rename` maps a contract name to the board's own net name (e.g. {"5V": "+5V"})."""
     rename = rename or {}
     return {str(i): rename.get(n, n if n in SHARED else prefix + n) for i, n in enumerate(table, 1)}
+
+# ---------------------------------------------------------------------------------------------------------------
+# PCS-P125 inverter (D-053, D-057, D-060; docs/requirements/ARCHITECTURE-PCS.md section 6): POWER board PCS-PWR <->
+# the PV control board PV-CTL as an assembly variant. PCS_PC = PC pin for pin (same 2x32 header, same levels, so PV-CTL
+# plugs in); only the meaning of some lines changes. PCS_X = the extra 2x8 header of ARCHITECTURE-PCS section 6.
+# Both boards live: GND = AGND = DC- (the controller's reference).
+#   PWM1/2, PWM3/4, PWM5/6  phase a, b, c: high / low switch (6 x SG2M040170HJ each); PWM7/8 neutral leg (four-wire
+#              only); PWM9-16 not connected on PCS-PWR
+#   K_A = K_AC1 (AC contactor 1), K_B = K_DC (DC contactor), K_PRE (DC precharge relay); K_AC2 on PCS_X
+#   IL1-IL3 (IL4 four-wire): phase currents (open-loop sensor on the C_f side of L1), ILnR the sensor's reference
+#   IB / IB_H: DC-port current (shunt in DC-, as PV port B); IA / IA_H / VAX: not used, held at VMID by PCS-PWR
+#   VB: V(DC+ - DC-), VA: midpoint V(M - DC-), VBX: DC terminal side (bipolar), VPE: PE against DC-
+#   NTC1-3 (NTC4): heatsink sections a, b, c (N); NTC5-7 (NTC8): L1 windings a, b, c (N); NTC9 (PCS_X): DC link
+#   EN, FLT_N (driver faults + DC-port over-current), RDY, BIAS_EN, HOLD, MOV_OK, IMD_SW1/2, +3V3: as PC
+#   PCS_X: VG1-3 grid voltages at the AC terminals, VC1-3 at the C_f nodes (VGN four-wire), all VMID + V/1203 like VA;
+#              RCM residual current (analog), RCM_TST its test input, K_AC2 (AC contactor 2), NTC9
+# What the control board (PV-CTL, PCS assembly) must provide: IL window ladders re-valued for +/-450 A on the PCS
+# sensor's gain and reference; OV comparators on VB (1050 V) and VA (560 V, lower half); the OT ladders for heatsink and
+# L1; the latch gating PWM1-8, EN, K_DC, K_PRE, K_AC1 and K_AC2 (a spare LVC08 gate); the PCS_X header into the ADC
+# (6 grid voltages, RCM, NTC9) and two GPIOs (K_AC2, RCM_TST). Firmware differs (ARCHITECTURE-PCS section 6).
+PCS_PC = list(PC)
+PCS_X = ["VG1", "VG2", "VG3", "AGND", "VC1", "VC2", "VC3", "AGND", "RCM", "RCM_TST", "NTC9", "AGND", "K_AC2", "VGN",
+         "GND", "GND"]
+assert len(PCS_PC) == 64 and len(PCS_X) == 16

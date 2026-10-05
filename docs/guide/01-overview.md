@@ -123,6 +123,7 @@ timeline
 | `SYS-IO-AUX` | earlier platform | E0 | 12 | 566 | 351 | pass (5/5) | [PDF](../../hardware/SYS-IO-AUX/outputs/SYS-IO-AUX_schematic.pdf) |
 | `DAB60` | frozen: rev B outputs kept | B0 | 16 | 1,264 | 683 | pass (5/5) | [PDF](../../hardware/DAB60/outputs/DAB60_schematic.pdf) |
 | `GDRV-HB` | verification / reference board | J0 | 3 | 128 | 68 | pass (6/6) | [PDF](../../hardware/GDRV-HB/outputs/GDRV-HB_schematic.pdf) |
+| `PCS-PWR` | verification / reference board | A0 | 26 | 1,692 | 763 | pass (6/6) | [PDF](../../hardware/PCS-PWR/outputs/PCS-PWR_schematic.pdf) |
 | `PORT-LEAN` | verification / reference board | F0 | 8 | 272 | 200 | pass (6/6) | [PDF](../../hardware/PORT-LEAN/outputs/PORT-LEAN_schematic.pdf) |
 | `PORT-LEAN-HOLD` | verification / reference board | F0 | 8 | 245 | 186 | pass (6/6) | [PDF](../../hardware/PORT-LEAN-HOLD/outputs/PORT-LEAN-HOLD_schematic.pdf) |
 

@@ -161,6 +161,11 @@ PARTS = {
     "ZXTP25040DFH": dict(mfr="Diodes Incorporated", mpn="ZXTP25040DFHTA", prefix="Q", pkg="SOT-23",
                          stock=("Transistor_BJT", "BC807"), ds=DS + "power-semiconductors/ZXTP25040DFH.pdf",
                          desc="PNP 40 V 3 A (9 A pulse) low VCEsat: local Miller-hold follower at each gate"),
+    # Diodes Inc ZXTN25040DFH (DS33697 Rev. 3-2, Oct 2025): p1 pin-out as ZXTP (1 B, 2 E, 3 C = KiCad BC817), complement of
+    # ZXTP25040DFH; p2 VCEO 40 V, IC 4 A, ICM 10 A; p4 hFE >= 300 at 1 A (p1), >= 30 at 4 A / 2 V, ~10 typ at 10 A
+    "ZXTN25040DFH": dict(mfr="Diodes Incorporated", mpn="ZXTN25040DFHTA", prefix="Q", pkg="SOT-23",
+                         stock=("Transistor_BJT", "BC817"), ds=DS + "power-semiconductors/ZXTN25040DFH.pdf",
+                         desc="NPN 40 V 4 A (10 A pulse), hFE >= 300 at 1 A: Miller-clamp release of a 6-gate channel"),
     # Samtec TSW through-hole headers (DS_SAMTEC): board-to-board / solder pins.
     "J_LOGIC": dict(mfr="Samtec", mpn="TSW-108-07-G-D", prefix="J", pkg="2x8 2.54 mm THT", ds=DS_SAMTEC,
                     stock=("Connector_Generic", "Conn_02x08_Odd_Even"), desc="Header 2x8 2.54 mm, logic side to power board"),
@@ -228,7 +233,8 @@ def farad(v):
 def channel(B, tag, pwm, en, flt_n, rdy, gate, source, drain, vdd, vee, interlock=None, ntc=None, apwm=None,
             vin="+24V", vcc="3V3", gnd="GND", gate_v=(15, 4), r_on=R_GATE[0], r_off=R_GATE[1], desat=None, deadtime=None,
             dnp=("apwm_rc",), r_ks=R_KS, vclass=None, r_sb=None, booster=True, v_peak=None, bias="ucc14241",
-            lean=True, neg_det=True, stretch=True):
+            lean=True, neg_det=True, stretch=True, sink_buffer=0, inv=("MMBT3906,215", "330R"),
+            rel=("MMBT3904,215", "1.5k"), c_gs=None):
     """One isolated NSI6651ASC channel (D-035), added to Builder B's current sheet as four blocks.
 
     pwm        logic command (1 = on), 3.3 V CMOS; pulled down here
@@ -269,6 +275,11 @@ def channel(B, tag, pwm, en, flt_n, rdy, gate, source, drain, vdd, vee, interloc
                UCC14241-Q1 (IC-06). None = not checked here (design_check() checks the PV and DAB values)
     dnp        optional parts fitted DNP: "gclamp" (gate Zeners), "desat" (string DNP, 0R from DESAT to COM fitted:
                DESAT off). "apwm_rc" is accepted and ignored.
+    sink_buffer paralleled devices (rev 10, PCS preset SC40X6): k PNP emitter followers (ZXTP25040DFH, B-E 1k, collector
+               VEE, base on OUTL) carry the turn-off current, the gates split evenly over them (Roff from SK<i>); 0 = Roff
+               straight from OUTL. The turn-on stays on OUTH (no V_BE loss on the on-state gate voltage).
+    inv, rel   (part key, base resistor) of the Miller-clamp inverter and of its release switch; defaults = rev 5 parts
+    c_gs       gate-source capacitor per device at its pins (Wolfspeed CRD-25BDA6512N-K pattern), None = not fitted
 
     Miller hold with paralleled devices (rev 5): per gate an AO3400A N-MOSFET from the gate pin to a local VEE node
     (C_VL on that device's own Kelvin pin, R_VL from VEE), so the Miller current closes gate -> FET -> C_VL -> Kelvin
@@ -328,6 +339,9 @@ def channel(B, tag, pwm, en, flt_n, rdy, gate, source, drain, vdd, vee, interloc
     sec |= {n("P1")} | ({n("CG"), n("QIB"), n("QID"), n("QRB"), n("QRZ"), n("VCG"), n("QIZ")} if par else set()) | ({n("BTZ"), n("BTB"), n("BTC"), n("BHB"),
             n("BHC"), n("BG"), n("SB")} | {n("SB%d" % i) for i in range(1, len(gates) + 1)} if booster else set())
     sec |= {n("NDB"), n("NDX")} if bias == "ext" and neg_det else set()
+    sks = [n("SK%d" % i) for i in range(1, sink_buffer + 1)]
+    assert not (sks and (not par or len(gates) % sink_buffer)), "channel %s: sink buffers need paralleled gates, split evenly" % tag
+    sec |= set(sks)
     xing = []
 
     B.block("%s: logic side" % tag, "IN+ = own PWM; IN- = complementary switch, falling edge stretched %s/%s\n"
@@ -410,10 +424,13 @@ def channel(B, tag, pwm, en, flt_n, rdy, gate, source, drain, vdd, vee, interloc
     for _ in range(gv["c3"] - (1 if lean and bias == "ext" else 0)):   # ext + lean: 2 x 22u (ripple: design_check)
         B.C("22u", com, vee, pkg="1210", volt="25V")
     B.C("100n", com, vee)
-    for g, ks, zm, vl in zip(gates, kelv, zms, vls):
+    for i_g, (g, ks, zm, vl) in enumerate(zip(gates, kelv, zms, vls)):
+        sink = sks[i_g * len(sks) // len(gates)] if sks else n("OUTL")
         B.R(ohm(r_on), n("OUTH"), g, pkg="2512", note="Ron, pulse-rated thick film 1 W")
-        B.R(ohm(r_off), n("OUTL"), g, pkg="2512", note="Roff, pulse-rated thick film 1 W")
+        B.R(ohm(r_off), sink, g, pkg="2512", note="Roff, pulse-rated thick film 1 W")
         B.R("10k", g, ks)
+        if c_gs:
+            B.C(farad(c_gs), g, ks, diel="C0G", tol="5%")
         B.part(zp, {"1": zm, "2": None, "3": g}, dnp="gclamp" in dnp)
         B.part(zn, {"1": zm, "2": None, "3": ks}, dnp="gclamp" in dnp)
         if par:
@@ -429,6 +446,13 @@ def channel(B, tag, pwm, en, flt_n, rdy, gate, source, drain, vdd, vee, interloc
             B.R(ohm(r_sb), sbn, g, pkg="1206", note="SC booster: sets two-level gate and turn-off di/dt")
     if booster and lean:
         B.part("AO3400A", {"1": n("BG"), "2": vee, "3": n("SB")})          # one booster FET per channel (rev 8)
+    if sks:
+        B.block("%s: turn-off buffer" % tag, "%d x ZXTP25040DFH emitter followers on OUTL (B-E 1k, C to VEE): each sinks the "
+                "Roff current of %d gates;\nthe NSI6651 supplies base current only. Turn-on stays on OUTH." %
+                (len(sks), len(gates) // len(sks)))
+        for sk in sks:
+            B.part("ZXTP25040DFH", {"1": n("OUTL"), "2": sk, "3": vee})     # 1 B, 2 E, 3 C (BC807)
+            B.R("1k", n("OUTL"), sk, note="B-E: buffer off while OUTL is high-Z")
     if par:
         B.R(ohm(R_PU), n("OUTH"), clmp, note="lifts the CLAMP node at turn-on")
         B.block("%s: Miller clamp control" % tag, "MMBT3906 inverter (E COM, base BAT54+2.2k on CLAMP) drives CG to COM once "
@@ -437,15 +461,15 @@ def channel(B, tag, pwm, en, flt_n, rdy, gate, source, drain, vdd, vee, interloc
         B.R("10k", vdd, n("VCG"), note="clamp-FET gate supply")
         B.part("BZX84-B3V3,215", {"1": com, "2": None, "3": n("VCG")})       # VCG = COM + 3.3 V
         B.C("100n", n("VCG"), com)
-        B.part("MMBT3906,215", {"1": n("QIB"), "2": n("VCG"), "3": n("CG")})   # 1 B, 2 E, 3 C
+        B.part(inv[0], {"1": n("QIB"), "2": n("VCG"), "3": n("CG")})   # 1 B, 2 E, 3 C
         B.R("10k", n("VCG"), n("QIB"))
-        B.R("330R", n("QIB"), n("QID"))
+        B.R(inv[1], n("QIB"), n("QID"))
         B.part("BZX84-B3V3,215", {"1": n("QIZ"), "2": None, "3": n("QID")})  # trigger shift: K base side, A to the BAT54
         B.part("BAT54", {"1": n("QIZ"), "2": None, "3": clmp})          # A, K CLAMP node
         B.R("10k", n("CG"), vee)
-        B.part("MMBT3904,215", {"1": n("QRB"), "2": vee, "3": n("CG")})     # release switch
+        B.part(rel[0], {"1": n("QRB"), "2": vee, "3": n("CG")})     # release switch
         B.R("10k", n("QRB"), vee)
-        B.R("1.5k", n("QRZ"), n("QRB"))
+        B.R(rel[1], n("QRZ"), n("QRB"))
         B.C("47p", n("QRZ"), n("QRB"), diel="C0G", tol="5%")
         B.part("BZX84-B5V6", {"1": n("QRZ"), "2": None, "3": n("OUTH")})
     if booster:
@@ -499,20 +523,22 @@ P_CH = {(18, 3.5): 0.42, (20, 4): 0.47}   # W regulated per channel (cost review
 VREF431 = (2.475, 2.525)                  # ATL431B, p4
 
 
-def ext_bias_numbers(gate_v):
-    """bias_phase() rails and budget for one rail set: (VDD-VEE, COM-VEE, VGS on, raw min/max, PNP loss, input current)."""
+def ext_bias_numbers(gate_v, p_ch=None, n_ch=None):
+    """bias_phase() rails and budget for one rail set: (VDD-VEE, COM-VEE, VGS on, raw min/max, PNP loss, input current).
+    p_ch / n_ch: regulated load per channel and channels per phase (None = the PV values P_CH and 4)."""
     dv = EXT_DIV[gate_v]
     rat = lambda r, k: r[0] * k / r[1]
     vt = (VREF431[0] * (1 + rat(dv["vdd"], 0.999 / 1.001)), VREF431[1] * (1 + rat(dv["vdd"], 1.001 / 0.999)))
     v3 = (VREF431[0] * (1 + rat(dv["vee"], 0.999 / 1.001)), VREF431[1] * (1 + rat(dv["vee"], 1.001 / 0.999)))
-    i_ld = P_CH[gate_v] / vt[0] + (vt[1] - v3[0]) / 4.7e3                  # gate load + COM bias resistor
-    i_pri = BIAS_XF["n_sec"] * 30.0 * i_ld / V5_RANGE[0] / 0.9            # per phase, raw ~30 V worst, 90 % transformer
+    n_ch = BIAS_XF["n_sec"] if n_ch is None else n_ch
+    i_ld = (P_CH[gate_v] if p_ch is None else p_ch) / vt[0] + (vt[1] - v3[0]) / 4.7e3   # gate load + COM bias resistor
+    i_pri = n_ch * 30.0 * i_ld / V5_RANGE[0] / 0.9                        # per phase, raw ~30 V worst, 90 % transformer
     raw_lo = BIAS_XF["n"] * (V5_RANGE[0] - i_pri * (BIAS_XF["r_on"] + 0.2)) - 2 * VF_BRIDGE[1]   # 0.2 ohm windings ASSUMED
     raw_hi = BIAS_XF["n"] * V5_RANGE[1] - 2 * VF_BRIDGE[0]
     raw_fl = BIAS_XF["n"] * (V5_RANGE[1] - i_pri * BIAS_XF["r_on"]) - 2 * VF_BRIDGE[1]           # max raw at full load
     p_pnp = (raw_fl - vt[0]) * i_ld
     return dict(vt=vt, v3=v3, von=(vt[0] - v3[1], vt[1] - v3[0]), i_ld=i_ld, i_pri=i_pri, raw=(raw_lo, raw_hi), p_pnp=p_pnp,
-                p_in=BIAS_XF["n_sec"] * raw_fl * i_ld / 0.9)
+                p_in=n_ch * raw_fl * i_ld / 0.9)
 
 
 def bias_transformer_req():
@@ -721,7 +747,19 @@ for _d, _x in ((GM4, dict(vth_typ=2.5, i_sc=2 * 400.0, v_rated=1200.0, v_bus_sc=
                (MSC, dict(vth_typ=3.2, i_sc=2 * 200.0, v_rated=1700.0, v_bus_sc=1100.0, l_loop=20e-9, qg_swing=25.0,
                           t_resp=1.0e-6, r_sb=22.0, deadtime=DEADTIME_PV, vgs_dc=(-10.0, 23.0)))):   # IDM 200 A, VGS(th) 3.2 typ
     _d.update(_x)
-DEVICES = (GM4, C3M16, SC40, MSC, IV3Q, SC14)   # MSC = qualified fallback of the PV cell (assembly variant, +20/-4 V)
+# PCS-P125 inverter (D-053, D-060; sim/out/pcs_design/pcs_spec.json commutation_and_gate_drive): one channel drives 6 x
+# SG2M040170HJ, R_G,on 8.75 / R_G,off 7.5 ohm per device ('chosen'), +18 / -3.5 V from the per-phase transformer (bias
+# 'ext': not part of the UCC14241 rail sizing above). Turn-off: 6 x 2.2 A is above the NSI6651's 10 A, so 2 PNP followers
+# (ZXTP25040DFH, 3 gates each; V_EB 1.2 V at ~6.6 A ASSUMED from VBE(sat) <= 1.0 V at 3 A, hFE >= 15 at 6.6 A ASSUMED from
+# >= 30 at 3 A) sink it; turn-on stays on OUTH (7 A). Six clamp-FET gates (33 nC): inverter ZXTP25040DFH (hFE >= 200 at
+# 1 A) and release ZXTN25040DFH (>= 300 at 1 A), 1 A each ASSUMED (base currents 5.5 / 10 mA allow more). t_off scaled
+# from SC40 by (R_off + R_G,int) / (2.5 + 1.4) ohm (ESTIMATE, no switching data at 7.5 ohm). DESAT margin to the on-state
+# voltage is the board's check (v_on None here: the inverter's overload peak sits near the trip, PCS-PWR design check).
+SC40X6 = dict(SC40, name="6 x SG2M040170HJ", n=6, r_gate=(8.75, 7.5), t_off=SC40["t_off"] * (7.5 + 1.4) / (2.5 + 1.4),
+              v_on=None, v_bus_sc=1050.0, bias="ext", sink_buffer=2, buf=dict(veb=1.2, icm=9.0, hfe=15.0), i_inv=1.0,
+              i_rel=1.0, inv=("ZXTP25040DFH", "330R"), rel=("ZXTN25040DFH", "1.5k"), deadtime=(3.65e3, 100e-12),
+              fw_dt=300e-9, c_gs=1e-9)
+DEVICES = (GM4, C3M16, SC40, MSC, IV3Q, SC14, SC40X6)   # MSC = qualified fallback of the PV cell (+20/-4 V); SC40X6 = PCS
 # ngspice Miller hold (sim/gdrv_miller.py: PV engineer's physical-leg V_DS(t) at 1100 V / 72.4 A, calibrated VDMOS with the
 # datasheet C(V), victim with the rev-5 clamp; die = pin + I_gate x R_G,int). die_l1 = clamp loop 1 nH (layout rule), l0 = 0.
 MILLER_SIM = {"2 x SG2M040170HJ": dict(die_l1=1.41, die_l0=0.95, pin_l1=-2.47, i_m=3.22, rev4=2.14, dvdt=115.0),
@@ -813,8 +851,8 @@ def design_check():
     for gate_v, gv in GATE_V.items():
         k = "%g/%g" % gate_v
         vt, v3, v2 = rails(gate_v)
-        own = [d for d in DEVICES if d["gate_v"] == gate_v]       # device presets on this rail (may be none)
-        devs = own or list(DEVICES)                                   # RLIM sizing: worst gate charge of any preset
+        own = [d for d in DEVICES if d["gate_v"] == gate_v and d.get("bias") != "ext"]   # UCC14241-biased presets
+        devs = own or [d for d in DEVICES if d.get("bias") != "ext"]  # RLIM sizing: worst gate charge of any preset
         lim = (max(d["vgs_max"][0] for d in own), min(d["vgs_max"][1] for d in own)) if own else (-8.0, 22.0)
         say("rails" + k, "+%g/-%g V rail (UCC14241, 0.1%% dividers %s/%s and %s/%s): VDD-VEE %.2f-%.2f V (limit 15-25 V), "
             "COM-VEE %.2f-%.2f V -> VGS on %.2f-%.2f V, off -%.2f..-%.2f V", gate_v[0], gate_v[1], ohm(gv["fbvdd"][0]),
@@ -870,9 +908,16 @@ def design_check():
         rks = R_KS if dev["per_dev"] else 0.0                  # paralleled devices: Kelvin R in every gate loop
         r_on_t = ROH_EFF + ((ron + rks + dev["rg"]) / n if dev["per_dev"] else ron + dev["rg"] / n)
         r_off_t = NSI["rol"] + ((roff + rks + dev["rg"]) / n if dev["per_dev"] else roff + dev["rg"] / n)
+        kb = dev.get("sink_buffer", 0)
+        if kb:                                                  # PNP followers: the gate loop sees no ROL, minus V_EB
+            r_off_t = (roff + rks + dev["rg"]) / n
         share = 1.0 / n ** 2 if dev["per_dev"] else 1.0             # one external resistor's share of the path loss
         n_rgs = n if dev["per_dev"] else 1
         i_src, i_snk = vtm / r_on_t + (vtm / R_PU if dev["per_dev"] else 0.0), vtm / r_off_t   # + OUTH-R_PU-gates
+        if kb:
+            i_buf = (vtm - dev["buf"]["veb"]) / r_off_t / kb                # per follower
+            i_snk = kb * i_buf / dev["buf"]["hfe"]                          # the driver sinks base current only
+            assert i_buf <= dev["buf"]["icm"], "sink buffer above its pulse rating"
         rec = num[k] = dict(p_bias={}, ipk=(i_src, i_snk))
         for f in dev["fsw"]:
             e_sw = dev["qg"] * n * vtm * f                          # gate power drawn from the bias, W
@@ -894,7 +939,10 @@ def design_check():
             if dev is not C3M16:
                 assert UCC14241["p_105c"] / p_bias >= 1.25, "bias margin below 1.25 at 105 C"
         extra = ""
-        if dev["per_dev"]:
+        if kb:
+            extra = ("; turn-off through %d x ZXTP25040DFH, %.1f A each (ICM %.0f A), driver sinks %.2f A of base current"
+                     % (kb, i_buf, dev["buf"]["icm"], i_snk))
+        elif dev["per_dev"]:
             i_bare = vtm / ((roff + rks + dev["rg"]) / n)
             extra = ("; with ROL not credited sink %.1f A - Roff >= %.2f ohm per device keeps that <= 10 A too"
                      % (i_bare, vtm / NSI["i_pk"] * n - dev["rg"] - rks))
@@ -948,13 +996,16 @@ def design_check():
             # (E COM, base BAT54 + 2.2k on the CLAMP node = lowest gate + PMEG VF) conducts once the gates are below about
             # -1.2 V; it then charges n x Ciss(AO3400A) to COM at >= 100 mA (hFE >= 100 at ~1 mA base). Gate fall: QG over its
             # test swing as one capacitance through Roff + R_KS + ESR + n x ROL.
-            tau_off = (roff * 1.01 + rks * 1.01 + dev["rg"] + n * NSI["rol"]) * dev["qg"] / dev.get("qg_swing", 25.0)
+            r_drv = 0.0 if kb else n * NSI["rol"]
+            tau_off = (roff * 1.01 + rks * 1.01 + dev["rg"] + r_drv) * dev["qg"] / dev.get("qg_swing", 25.0)
             vgs_cl = VZ["BZX84-B3V3,215"][0] + v3[0] - 0.2                      # CG high = VCG = COM + 3.3 V
-            t_eng = tau_off * math.log(vt[1] / (v3[0] - 1.2)) + n * AO["q_on"] / 0.2   # MMBT3906 ~200 mA (330R base)
-            t_rel = 20e-9 + n * AO["q_on"] / 0.2                               # release MMBT3904 (1.5k base) ~200 mA
+            v_end = v3[0] - (dev["buf"]["veb"] if kb else 0.0)                   # a follower stops V_EB above VEE
+            t_eng = tau_off * math.log(vt[1] / (v_end - 1.2)) + n * AO["q_on"] / dev.get("i_inv", 0.2)   # MMBT3906 ~200 mA
+            t_rel = 20e-9 + n * AO["q_on"] / dev.get("i_rel", 0.2)              # release MMBT3904 (1.5k base) ~200 mA
             vds_st, vds_tr = v2[1] + v3[1], VZ[gv["zener"][0]][1] + VF_Z + v3[1]
             sim = MILLER_SIM.get(k)
-            say("mclamp" + k, "   Miller hold (rev 5, %d x AO3400A at the gate-Kelvin pins, MMBT3906 inverter on CLAMP, MMBT3904 "
+            say("mclamp" + k, "   Miller hold (rev 5, %d x AO3400A at the gate-Kelvin pins, " + dev.get("inv", ("MMBT3906",))[0].split(",")[0]
+                + " inverter on CLAMP, " + dev.get("rel", ("MMBT3904",))[0].split(",")[0] + " "
                 "release): clamps on <= %.0f ns after the turn-off command vs earliest complementary turn-on %.0f ns; released "
                 "<= %.0f ns after OUTH rises; clamp FET (PMV30ENEA, key AO3400A) VGS %.2f V (RDS(on) <= 40 mOhm at 4.5 V), "
                 "VDS %.1f V static / %.1f V at the Zener clamp (40 V). %s", n, t_eng * 1e9, g_min * 1e9, t_rel * 1e9, vgs_cl,

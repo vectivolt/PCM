@@ -466,16 +466,16 @@ def pin_numbers(entry):
             for x in side if x}
 
 
-def sheets_supplies(B, n_ph, st):
+def sheets_supplies(B, n_ph, st, no=None, taps=("A_IN+", "B_T+", "BUS-"), gd_what=None):
     """Live rails from the aux block's live 24 V: +5V and +5V_GD (LMR38020, 2 A each), +3V3 (TPS62130 from +5V_GD with a
     controlled ramp-up and a discharge stage), the +5V_GD supervisor and the SELV connector; then gen/aux_hv.py
     aux75_block (4 sheets) through aux_block()."""
-    no = 2 + 3 * n_ph + 5
+    no = 2 + 3 * n_ph + 5 if no is None else no
     B.new_sheet("%02d_supplies" % no, "Live 5 V / 3.3 V, SELV connector",
                 "+24V (aux live) -> +5V and +5V_GD (LMR38020), +3V3 (TPS62130 from +5V_GD,\n"
                 "ramp-up and discharge), +5V_GD supervisor, SELV connector to the control board")
     for rail, t, what in (("+5V", "5V", "NSI6651 inputs, AHCT, sensors, references, PC +5V, gate bias of phases 1-2"),
-                          ("+5V_GD", "5VG", "gate bias of phases 3%s" % ("-4" if n_ph == 4 else " only"))):
+                          ("+5V_GD", "5VG", gd_what or "gate bias of phases 3%s" % ("-4" if n_ph == 4 else " only"))):
         B.block("24 V -> %s (LMR38020, 400 kHz, 2 A)" % rail,
                 "%s. ctrl_c2000 circuit (SNVSC40E table 9-1, 400 kHz / 5 V / 2 A): 15 uH, 3 x 22 uF, RT 64.9k,\n"
                 "FB 100k / 24.9k 0.1 %% -> %.2f-%.2f V. Load in design_check (<= 80 %% of 2 A)." % (what, V5[0], V5[1]))
@@ -531,7 +531,7 @@ def sheets_supplies(B, n_ph, st):
             % (S75["regulation"]["selv_V_all"][0], S75["regulation"]["selv_V_all"][1],
                S75["regulation"]["fan_full_speed_needs_V"], FAN_RULE))
     B.part("J_SELV", {"1": "SELV_24V", "2": "SELV_0V"})
-    st["aux"] = aux_block(B, no + 1)
+    st["aux"] = aux_block(B, no + 1, taps)
     st["iso"] |= set(st["aux"]["isolators"])
     st["selv"] = set(st["aux"]["selv_nets"])
 
@@ -540,7 +540,7 @@ FAN_RULE = "Full fan speed is only guaranteed while the converter is switching"
 AUX_SWAP = {}    # catalogue keys defined by this board AND aux_hv with a different entry: {key: (board MPN, aux MPN)}
 
 
-def aux_block(B, sheet_no):
+def aux_block(B, sheet_no, taps=("A_IN+", "B_T+", "BUS-")):
     """gen/aux_hv.py aux75_block(). Keys that both catalogues define (aux_hv vs gdrv / port / pvcell, e.g. 'BAT54' =
     'BAT54' here and 'BAT54,215' there - the same Nexperia part with its packing suffix) are swapped to the aux entry for
     the call only, so the aux block's own MPN self-check holds, then restored. Checked: equal pin numbers, every shared
@@ -553,7 +553,7 @@ def aux_block(B, sheet_no):
         assert pin_numbers(swap[k]) == pin_numbers(aux_hv.CATALOG[k]), "catalogue key %s: aux and board symbols differ" % k
         B.catalog[k] = aux_hv.CATALOG[k]
     try:
-        aux = aux_hv.aux75_block(B, a_tap="A_IN+", b_tap="B_T+", bus_n="BUS-", live="+24V", selv_p="SELV_24V",
+        aux = aux_hv.aux75_block(B, a_tap=taps[0], b_tap=taps[1], bus_n=taps[2], live="+24V", selv_p="SELV_24V",
                                  selv_n="SELV_0V", status="RDY", prefix="AUX_", sheet_no=sheet_no)
     finally:
         B.catalog.update(swap)

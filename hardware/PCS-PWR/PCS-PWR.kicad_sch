@@ -1,0 +1,1586 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "e78e18d1-aa0f-5e79-9283-dd22b813bb9f")
+	(paper "A3")
+	(title_block
+		(title "PCS-P125 power - Cover / Hierarchy")
+		(date "2026-10-05")
+		(rev "A0")
+		(comment 1 "Live board referenced to DC-; gate islands functional; HV-PE basic")
+		(comment 2 "Schematics authored by Chinmoy Bhuyan")
+		(comment 3 "Sheet 1")
+		(comment 4 "Not bench-validated. Values read from sim/out/pcs_design/pcs_spec.json; checks: design_check()")
+	)
+	(lib_symbols)
+	(text "DC terminals 250 A, X / Y capacitors, board entries, removable PE link,\nport status to PCS_PC, insulation monitor (port.lean_imd)"
+		(exclude_from_sim no)
+		(at 214.5 230 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "0b7e35e3-3356-5c66-a3b8-37b80f5f6e46")
+	)
+	(text "PCS_PC (= PC pin for pin, 2x32) and PCS_X (2x8) to PV-CTL (PCS assembly);\ncommand pull-downs, RDY pull-up, DC- star points"
+		(exclude_from_sim no)
+		(at 22.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "10d656e0-a1e7-58aa-a98d-8a005a1eb9e4")
+	)
+	(text "gdrv.channel() 6 x SG2M040170HJ: NSI6651ASC-Q1 +18/-3.5 V, 8.75/7.5 ohm per device;\nPNP turn-off buffers, Miller clamps, booster, DESAT; bias SN6505B + T_BIAS4"
+		(exclude_from_sim no)
+		(at 214.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "127d2825-1735-5380-92c3-09caf80be1d1")
+	)
+	(text "Stages 1-6 drawn (gen/pcs_power.py header); OPEN items listed there and in the design check."
+		(exclude_from_sim no)
+		(at 20 240 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "1cd3d3e5-a373-5378-956e-016fe8d76e00")
+	)
+	(text "gdrv.channel() 6 x SG2M040170HJ: NSI6651ASC-Q1 +18/-3.5 V, 8.75/7.5 ohm per device;\nPNP turn-off buffers, Miller clamps, booster, DESAT"
+		(exclude_from_sim no)
+		(at 310.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "1ead411c-92ff-51d4-b7b7-37d7a383519a")
+	)
+	(text "Rev A0  |  2026-10-05  |  Schematics authored by Chinmoy Bhuyan  |  PCS-P125: two-level SiC bridge (6 x SG2M040170HJ per switch), split DC link, LCL, ports"
+		(exclude_from_sim no)
+		(at 20 36 0)
+		(effects
+			(font
+				(size 2 2)
+			)
+			(justify left bottom)
+		)
+		(uuid "21f0db96-6f7f-5c87-9232-de8c3b7bdb42")
+	)
+	(text "5 + 5 x C3D1U147 in two series halves, midpoint M (to the C_f star);\nbleeder per half; VB = V(DC+), VA = V(M) around VMID (REF3030E)"
+		(exclude_from_sim no)
+		(at 118.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "2269b214-e66a-53ce-a2dc-f1eb97d087fa")
+	)
+	(text "Switch node -> L1 (chassis) -> sensor -> C_f node F_A: C_f 2 x 25 uF + R_d-C_d\nto the star M (DC midpoint) -> L2 (chassis) -> AC port"
+		(exclude_from_sim no)
+		(at 310.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "23a95af0-466a-5f40-b48f-89ea60cd0b6b")
+	)
+	(text "gdrv.channel() 6 x SG2M040170HJ: NSI6651ASC-Q1 +18/-3.5 V, 8.75/7.5 ohm per device;\nPNP turn-off buffers, Miller clamps, booster, DESAT"
+		(exclude_from_sim no)
+		(at 118.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "2df4cb30-a691-529e-adc2-23382b06dcba")
+	)
+	(text "6 x (6 x 1 M ARHV06 + 4.99 k to VMID, 4.7 nF): VC1-3 at the C_f nodes,\nVG1-3 at the AC terminal taps; OPA2388 followers to PCS_X"
+		(exclude_from_sim no)
+		(at 214.5 186 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "320fea1b-3a18-5a65-ade1-f836bc94c9c5")
+	)
+	(text "+24V (aux live) -> +5V and +5V_GD (LMR38020), +3V3 (TPS62130 from +5V_GD,\nramp-up and discharge), +5V_GD supervisor, SELV connector to the control board"
+		(exclude_from_sim no)
+		(at 118.5 274 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "485c1636-d4d4-5e36-8067-1f8c9712475d")
+	)
+	(text "L2 out -> K1 -> K2 -> CM choke -> AC terminals; coil drivers (fail-safe high side);\n3 x TVT25751 + 3 x Y1 to PE_T; type-B RCM sensor"
+		(exclude_from_sim no)
+		(at 310.5 230 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "49f11c96-2243-5b4e-a9b6-7da820e73c5c")
+	)
+	(text "Switch node -> L1 (chassis) -> sensor -> C_f node F_C: C_f 2 x 25 uF + R_d-C_d\nto the star M (DC midpoint) -> L2 (chassis) -> AC port"
+		(exclude_from_sim no)
+		(at 118.5 186 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "5ad99fa6-aebc-5910-b32b-de2e3c4e59d0")
+	)
+	(text "References, BUS- shunt amplifier + hold-off / OC windows, dividers, dV amplifier,\npolarity and dV interlocks"
+		(exclude_from_sim no)
+		(at 22.5 230 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "5b3366c3-08f7-5fad-8fc2-22412b0eb556")
+	)
+	(text "gdrv.channel() 6 x SG2M040170HJ: NSI6651ASC-Q1 +18/-3.5 V, 8.75/7.5 ohm per device;\nPNP turn-off buffers, Miller clamps, booster, DESAT; bias SN6505B + T_BIAS4"
+		(exclude_from_sim no)
+		(at 214.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "5e40a693-eaee-54ba-8860-ca2ba4685f80")
+	)
+	(text "Varistor Y + monitor, aR fuses"
+		(exclude_from_sim no)
+		(at 310.5 186 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "68ce3388-67d5-571f-a70a-d8b1662c5190")
+	)
+	(text "Domains: LIVE (DC- = GND = AGND, the AC side included), GD_<leg><H/L> gate islands (functional: NSI6651, T_BIAS4), PE (pads, heatsink, NTC lugs, Y / varistor / IMD crossings), SELV (AUX-T1)."
+		(exclude_from_sim no)
+		(at 20 236 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "7d9eb531-e6d8-531e-8dff-4259518ac0f3")
+	)
+	(text "As AUX-HV rev C1 sheet 02: 3 x BSS126 cascode, TPS3710 brown-in 206-215 V,\nTLV3202 OV lockout 1107-1162 V and overload timer 35-80 ms"
+		(exclude_from_sim no)
+		(at 310.5 274 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "7e327134-f920-53da-907b-87fe0236e11f")
+	)
+	(text "Switch node -> L1 (chassis) -> sensor -> C_f node F_B: C_f 2 x 25 uF + R_d-C_d\nto the star M (DC midpoint) -> L2 (chassis) -> AC port"
+		(exclude_from_sim no)
+		(at 22.5 186 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "8006160e-bbf9-5ca0-9c05-d01627ce26d2")
+	)
+	(text "Live 23.62-24.68 V (FB); SELV 20.3-29.8 V over the load table,\ngates off 20.3-28.2 V; hold-up 52 ms at 11 W;\nstatus = TPS3700 OUTA (UV); OUTB (OV) pulls SS low"
+		(exclude_from_sim no)
+		(at 118.5 318 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "8c78e8c0-9ed5-5bfb-a033-e9a78c7ed706")
+	)
+	(text "Board PE bond, heatsink sections (earthed), heatsink NTC lug probes,\nL1 winding NTC leads, NTC filters (biased on the control board)"
+		(exclude_from_sim no)
+		(at 22.5 274 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "926c961a-666f-539b-a392-32479ae79de8")
+	)
+	(text "Contactor + precharge relay: interlock logic, fail-safe high side, economiser;\npassive bank bleeder"
+		(exclude_from_sim no)
+		(at 118.5 230 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "b11f6441-7cc7-52f5-ab1c-ef8153c14c83")
+	)
+	(text "PCS-P125 power"
+		(exclude_from_sim no)
+		(at 20 28 0)
+		(effects
+			(font
+				(size 5 5)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "c86bffdf-7d3f-58b9-ab1a-439cfe39ca75")
+	)
+	(text "UCC28C59-Q1 64.9 kHz, IV2Q171R0D7Z, Lp 0.485 mH, Np:Nlive:Nselv 48:8:9;\nlive 24 V regulated by the FB divider (no opto); VDD from the live 24 V\nthrough the BC817 follower; foldback detector on the live winding"
+		(exclude_from_sim no)
+		(at 22.5 318 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "d487220f-c53d-5d4d-9b4d-c4adb5d59d64")
+	)
+	(text "gdrv.channel() 6 x SG2M040170HJ: NSI6651ASC-Q1 +18/-3.5 V, 8.75/7.5 ohm per device;\nPNP turn-off buffers, Miller clamps, booster, DESAT"
+		(exclude_from_sim no)
+		(at 118.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "e0987a45-beaa-59ed-acf9-ef9bed9e8469")
+	)
+	(text "2 x 6 x SG2M040170HJ on Al2O3 pads (earthed section b); 10 k + 1 nF per gate;\n3 sub-cells: 3 x 2.2 uF film + RC damper each"
+		(exclude_from_sim no)
+		(at 310.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "e1ef1661-4bac-5686-80f0-485ccb755003")
+	)
+	(text "2 x 6 x SG2M040170HJ on Al2O3 pads (earthed section c); 10 k + 1 nF per gate;\n3 sub-cells: 3 x 2.2 uF film + RC damper each"
+		(exclude_from_sim no)
+		(at 22.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "e1fc4641-95f3-5722-b447-c121efcab8ae")
+	)
+	(text "CALCULATED, not measured: design_check() asserts every number on each build (outputs/PCS-PWR_design_check.txt); values are read from sim/out/pcs_design/pcs_spec.json at build time."
+		(exclude_from_sim no)
+		(at 20 232 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "eca81423-89e8-56ec-85b8-53b9408561c5")
+	)
+	(text "2 x 6 x SG2M040170HJ on Al2O3 pads (earthed section a); 10 k + 1 nF per gate;\n3 sub-cells: 3 x 2.2 uF film + RC damper each"
+		(exclude_from_sim no)
+		(at 214.5 54 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "fbe70c09-cd7c-561d-8a3b-ba9d78356443")
+	)
+	(text "One tap per port (+ pole, terminal side), return = DC-:\n2 x 20R R pulse-rated ahead of the 1 A / 1000 VDC fuse, BYG10Y OR;\n2 x 3.3 uF / 1300 V film = surge absorber (AUX-HV rev C1 input block)"
+		(exclude_from_sim no)
+		(at 214.5 274 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "fcf3c48a-4492-515b-898e-0dd4a602fa68")
+	)
+	(text "gdrv.channel() 6 x SG2M040170HJ: NSI6651ASC-Q1 +18/-3.5 V, 8.75/7.5 ohm per device;\nPNP turn-off buffers, Miller clamps, booster, DESAT; bias SN6505B + T_BIAS4"
+		(exclude_from_sim no)
+		(at 22.5 142 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "fe2934d7-89fd-5fa8-ab0e-1767f9dbaac7")
+	)
+	(sheet
+		(at 116 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "0192ff75-7a76-53a5-bdc0-0389b2fa0696")
+		(property "Sheetname" "02 DC link, bleeders, sensing"
+			(at 116 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/02_dclink.kicad_sch"
+			(at 116 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 182)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "06b6fc65-2e41-5a2e-acfc-9c559d15c1fd")
+		(property "Sheetname" "14 Phase c LCL filter, current sensor"
+			(at 116 181.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/14_filtc.kicad_sch"
+			(at 116 208.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "15")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "0a3a9456-8db4-57c9-b3d1-0de096986fee")
+		(property "Sheetname" "07 Leg a low-side gate drive"
+			(at 212 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/07_gdal.kicad_sch"
+			(at 212 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "8")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "0fdd3e75-4131-5ac3-92c1-244322a9c7a1")
+		(property "Sheetname" "04 Phase leg b, power stage"
+			(at 308 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/04_legb.kicad_sch"
+			(at 308 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "12a6cfe6-22ff-551c-b19b-aa4bb4171ce2")
+		(property "Sheetname" "01 Control connectors, defaults"
+			(at 20 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/01_pc.kicad_sch"
+			(at 20 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 50)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "14cf035a-9631-5ec4-a044-0414f1dc5d16")
+		(property "Sheetname" "03 Phase leg a, power stage"
+			(at 212 49.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/03_lega.kicad_sch"
+			(at 212 76.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 226)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "206f151f-e2ee-5713-9f70-ef8b94e1ff22")
+		(property "Sheetname" "19 DC terminals, insulation test"
+			(at 212 225.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/19_dcterm.kicad_sch"
+			(at 212 252.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "20")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "323aa001-c2c5-584e-b586-12da60bbeb88")
+		(property "Sheetname" "05 Phase leg c, power stage"
+			(at 20 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/05_legc.kicad_sch"
+			(at 20 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "6")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 226)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "46730c5b-f4fa-5960-a2d6-8f0fc7e856b6")
+		(property "Sheetname" "20 AC port: contactors, SPD, RCM"
+			(at 308 225.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/20_acport.kicad_sch"
+			(at 308 252.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "21")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 270)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "536ee4f4-d558-5089-a2bd-0144248b23c6")
+		(property "Sheetname" "22 Live 5 V / 3.3 V, SELV connector"
+			(at 116 269.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/22_supplies.kicad_sch"
+			(at 116 296.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "23")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 182)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "6274e5a0-e8f3-5e90-bb45-d91a8cf1a09d")
+		(property "Sheetname" "16 Port B power path (battery)"
+			(at 308 181.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/16_leanB_power.kicad_sch"
+			(at 308 208.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "17")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "6c5f2695-1f68-5f66-ad86-424b41f9d1c7")
+		(property "Sheetname" "10 Leg c high-side gate drive"
+			(at 116 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/10_gdch.kicad_sch"
+			(at 116 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "11")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "92e4b28f-0e02-5df8-a5b4-67e366c5e4a1")
+		(property "Sheetname" "08 Leg b high-side gate drive"
+			(at 308 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/08_gdbh.kicad_sch"
+			(at 308 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "9")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "95aa57a6-e8c6-5786-8662-2a96bdf8bbd0")
+		(property "Sheetname" "12 Phase a LCL filter, current sensor"
+			(at 308 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/12_filta.kicad_sch"
+			(at 308 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "13")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 270)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "a23c03b2-934d-534e-8d0b-dcfcd0bdefa5")
+		(property "Sheetname" "21 PE bonds, heatsink, NTC inputs"
+			(at 20 269.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/21_pe.kicad_sch"
+			(at 20 296.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "22")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 314)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "ae310a86-37a8-53e0-bde1-acbd92e42a63")
+		(property "Sheetname" "26 AUX75 live 24 V, SELV 24 V, status"
+			(at 116 313.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/26_aux75_outputs.kicad_sch"
+			(at 116 340.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "27")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 226)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "c45a7ad9-1e2e-51f4-8588-447d6bd6c4ea")
+		(property "Sheetname" "17 Port B sensing and interlocks"
+			(at 20 225.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/17_leanB_ctrl.kicad_sch"
+			(at 20 252.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "18")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "cd813a57-e679-53bc-a1d0-069441b33c52")
+		(property "Sheetname" "06 Leg a high-side gate drive"
+			(at 116 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/06_gdah.kicad_sch"
+			(at 116 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "7")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 116 226)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "d2c3b94f-d9ce-5e65-adb4-89de0dd59612")
+		(property "Sheetname" "18 Port B coil drives"
+			(at 116 225.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/18_leanB_drive.kicad_sch"
+			(at 116 252.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "19")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "d9ec4b86-b1e9-5c1d-8855-0e122179f399")
+		(property "Sheetname" "11 Leg c low-side gate drive"
+			(at 212 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/11_gdcl.kicad_sch"
+			(at 212 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "12")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 138)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "dd6b1a2f-dc23-5bba-b2dc-a5686bffefd5")
+		(property "Sheetname" "09 Leg b low-side gate drive"
+			(at 20 137.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/09_gdbl.kicad_sch"
+			(at 20 164.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "10")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 182)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "df88dd15-5aa7-5565-ac62-5021b17f62dc")
+		(property "Sheetname" "13 Phase b LCL filter, current sensor"
+			(at 20 181.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/13_filtb.kicad_sch"
+			(at 20 208.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "14")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 270)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "eb1c544d-17a7-53e4-b4e0-b0b2de2906f4")
+		(property "Sheetname" "23 AUX75 input taps, OR, film"
+			(at 212 269.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/23_aux75_input.kicad_sch"
+			(at 212 296.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "24")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 182)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "f4d5b6ce-25de-54c3-85d1-ecb677a1d69e")
+		(property "Sheetname" "15 AC voltage sensing"
+			(at 212 181.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/15_acsense.kicad_sch"
+			(at 212 208.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "16")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 308 270)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "f5e7640d-f249-510d-b668-153bedbdc8d5")
+		(property "Sheetname" "24 AUX75 start-up, brown-in, OV, timer"
+			(at 308 269.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/24_aux75_startup.kicad_sch"
+			(at 308 296.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "25")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 20 314)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "f735f6d8-86e9-5f7f-bac1-578b6fc9ff1d")
+		(property "Sheetname" "25 AUX75 PWM, SiC, clamp, AUX-T1"
+			(at 20 313.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/25_aux75_power.kicad_sch"
+			(at 20 340.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "26")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+)

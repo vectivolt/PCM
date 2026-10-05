@@ -5,7 +5,7 @@
 	(uuid "f4d5bea7-eda1-596b-b587-ca2e91b25840")
 	(paper "A2")
 	(title_block
-		(title "PV-CTL control board - Trip latch, watchdog, gating")
+		(title "PCS-CTL control board - Trip latch, watchdog, gating")
 		(date "2026-10-05")
 		(rev "A0")
 		(comment 1 "LIVE zone = BUS- (hazardous live); SELV zone behind reinforced barrier B1")
@@ -2172,19 +2172,6 @@
 		(uuid "618c1969-753f-5c44-ab9e-8e48083e9743")
 	)
 	(rectangle
-		(start 12 74.4)
-		(end 428.66 161.78)
-		(stroke
-			(width 0.254)
-			(type dash)
-			(color 72 72 160 1)
-		)
-		(fill
-			(type none)
-		)
-		(uuid "8f9acea7-4f69-5d18-88ec-f0a6948f1fbb")
-	)
-	(rectangle
 		(start 135.22 14)
 		(end 275.58 66.2)
 		(stroke
@@ -2211,6 +2198,19 @@
 		(uuid "bd84d110-076e-5f20-9cc0-142bbb35a484")
 	)
 	(rectangle
+		(start 12 74.4)
+		(end 428.66 167.78)
+		(stroke
+			(width 0.254)
+			(type dash)
+			(color 72 72 160 1)
+		)
+		(fill
+			(type none)
+		)
+		(uuid "c37e0d05-9db0-500c-aab2-9a889f497014")
+	)
+	(rectangle
 		(start 12 14)
 		(end 130.22 69.4)
 		(stroke
@@ -2222,17 +2222,6 @@
 			(type none)
 		)
 		(uuid "dd12c733-0ba9-54d8-bbe7-067b71dcef3d")
-	)
-	(text "PWMn = PWMn_M AND HEALTHY (16), EN = EN_M AND HEALTHY, K_PRE = K_PRE_M AND HEALTHY, K_A/K_B = K_x_M AND\nKGATE, STATUS_L = STATUS_M AND HEALTHY, FAN_PWM_L = FAN_PWM_M AND BIAS_EN (PV-PWR rule: fans only while the\ngate bias loads the aux supply). The power board pulls every PC input low (10k / 100k)."
-		(exclude_from_sim no)
-		(at 14 159.28 0)
-		(effects
-			(font
-				(size 1.1 1.1)
-			)
-			(justify left bottom)
-		)
-		(uuid "0aeb2eac-d74d-55be-93b3-ed64a78fd198")
 	)
 	(text "74LVC07 (Ioff, 5 V tolerant): OC_N, OVT_N, FLT_N (driver DESAT/UVLO + port OC of PV-PWR), RDY (gate supplies,\n+5V, live 24 V on PV-PWR), STOP_OK (ENABLE), WD_OK (heartbeat and MCU reset). Any low -> PRE_N low ->\nlatch set asynchronously (Q = TRIP = 1)."
 		(exclude_from_sim no)
@@ -2303,6 +2292,18 @@
 		)
 		(uuid "51c45760-7a41-562d-987f-5e899dc1cafc")
 	)
+	(text "GATING: 6 X 74LVC08 (23 GATES USED, 1 SPARE WITH INPUTS GROUNDED)"
+		(exclude_from_sim no)
+		(at 14 79.4 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "5a4d523c-c6a8-5f69-acf3-4751a01c5a75")
+	)
 	(text "TRIP SOURCES -> PRE_N (OPEN-DRAIN WIRED-AND, 4.7K TO +3V3)"
 		(exclude_from_sim no)
 		(at 14 19 0)
@@ -2349,17 +2350,16 @@
 		)
 		(uuid "9f9c5f43-189d-5807-8b55-3fab957eff72")
 	)
-	(text "GATING: 6 X 74LVC08 (22 GATES USED, 2 SPARE WITH INPUTS GROUNDED)"
+	(text "PWMn = PWMn_M AND HEALTHY (16), EN = EN_M AND HEALTHY, K_PRE = K_PRE_M AND HEALTHY, K_A/K_B = K_x_M AND\nKGATE, STATUS_L = STATUS_M AND HEALTHY, FAN_PWM_L = FAN_PWM_M AND BIAS_EN (PV-PWR rule: fans only while the\ngate bias loads the aux supply). The power board pulls every PC input low (10k / 100k).\nPCS-CTL: K_A (AC contactor 1) and K_AC2 (AC contactor 2) = K_x_M AND HEALTHY; only K_B (DC contactor)\nkeeps KGATE (HEALTHY OR HOLD)."
 		(exclude_from_sim no)
-		(at 14 79.4 0)
+		(at 14 165.28 0)
 		(effects
 			(font
-				(size 1.8 1.8)
-				(bold yes)
+				(size 1.1 1.1)
 			)
 			(justify left bottom)
 		)
-		(uuid "e067547b-ee6c-57d3-90a2-27033a599bd7")
+		(uuid "ce0efca4-ec55-5a6e-8aa3-eff8ce18ba24")
 	)
 	(junction
 		(at 55.88 30.48)
@@ -2374,12 +2374,6 @@
 		(uuid "8d37de4c-09a9-5318-a531-cfb779401f0f")
 	)
 	(junction
-		(at 368.3 106.68)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "bfc78f3d-8178-5a9d-b967-e80b865bec65")
-	)
-	(junction
 		(at 55.88 38.1)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -2390,16 +2384,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "c9c80b93-1b8d-50be-94c3-a9bca841cc4b")
-	)
-	(junction
-		(at 368.3 104.14)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "e9a3e2ba-4605-5c0a-acc8-2242bb3c5777")
-	)
-	(no_connect
-		(at 396.24 101.6)
-		(uuid "08b9dc3c-6df9-549e-9ca8-0a7bec906121")
 	)
 	(no_connect
 		(at 396.24 106.68)
@@ -3197,16 +3181,6 @@
 	)
 	(wire
 		(pts
-			(xy 368.3 104.14) (xy 368.3 106.68)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "856da1ce-cc02-5bc7-8a49-f8e303c5bcd7")
-	)
-	(wire
-		(pts
 			(xy 198.12 39.37) (xy 198.12 41.91)
 		)
 		(stroke
@@ -3334,16 +3308,6 @@
 			(type default)
 		)
 		(uuid "915eafb1-9bad-5b20-bdfd-d09f99858972")
-	)
-	(wire
-		(pts
-			(xy 368.3 101.6) (xy 368.3 104.14)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "92f749f2-c01d-5df5-adf9-140bddfc7a39")
 	)
 	(wire
 		(pts
@@ -3887,6 +3851,16 @@
 	)
 	(wire
 		(pts
+			(xy 396.24 101.6) (xy 398.78 101.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "deebaeff-9e60-5db7-afa5-413f152298a6")
+	)
+	(wire
+		(pts
 			(xy 439.42 119.38) (xy 439.42 121.92)
 		)
 		(stroke
@@ -4394,6 +4368,16 @@
 			(justify right bottom)
 		)
 		(uuid "91d7a5d8-662e-5ee0-8efe-afbb28106db9")
+	)
+	(label "HEALTHY"
+		(at 368.3 104.14 180)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right bottom)
+		)
+		(uuid "a2c96c40-4042-55b5-a04b-551501cfb40f")
 	)
 	(label "WD_OK"
 		(at 335.28 27.94 0)
@@ -5550,6 +5534,29 @@
 			)
 		)
 	)
+	(global_label "K_AC2_M"
+		(shape bidirectional)
+		(at 368.3 101.6 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "8d813a57-48e6-5be1-a2bb-2d80814a3479")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 368.3 101.6 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
 	(global_label "STOP_OK"
 		(shape bidirectional)
 		(at 25.4 38.1 180)
@@ -5563,6 +5570,29 @@
 		(uuid "8e5bcf4b-2529-522a-9bcb-86cb65056761")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 25.4 38.1 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "K_AC2"
+		(shape bidirectional)
+		(at 398.78 101.6 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "9260ba8b-d355-5985-90dd-bd9e4bef7f02")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 398.78 101.6 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11360,7 +11390,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_GND")
-		(at 368.3 101.6 270)
+		(at 368.3 106.68 270)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -11370,7 +11400,7 @@
 		(dnp no)
 		(uuid "95c4c024-7376-5f82-9c4e-62be01e6fed9")
 		(property "Reference" "#PWR05045"
-			(at 368.3 101.6 90)
+			(at 368.3 106.68 90)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11381,7 +11411,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 363.14 101.6 90)
+			(at 363.14 106.68 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -11391,7 +11421,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 368.3 101.6 0)
+			(at 368.3 106.68 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11402,7 +11432,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 368.3 101.6 0)
+			(at 368.3 106.68 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -11412,7 +11442,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 368.3 101.6 0)
+			(at 368.3 106.68 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects

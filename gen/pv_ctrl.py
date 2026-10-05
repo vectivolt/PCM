@@ -437,6 +437,16 @@ def check_plan(P, pins):
 RAILS = ["+3V3", "+3V3A", "VDD12", "VREF", "S_24V", "S_5V"]
 RETURNS = ["GND", "S_GND", "PE"]
 PH4 = "PV-P100/110 only"          # value tag of the phase-4 comparators (not fitted on PV-P75: bom/PV-CTL-P75_BOM.csv)
+# assembly-variant knobs (gen/pcs_ctrl.py re-values them; these defaults leave PV-CTL unchanged)
+PC_NC = ()                        # PC pins left open on this board
+AFE_PC = ("VA", "VB", "VAX", "VBX", "VPE", "IA", "IB", "IA_H", "IB_H")   # power-board analog signals into the ADC
+EXTRA_SHEETS = []                 # sheet functions drawn after 07_selv
+GATE_NOTE = ""                    # appended to the gating block text
+ADC_SKIP, ADC_MUXED, ADC_NOTE, VREF_XTRA = (), (), "", 0.0   # PC analog not read / read through a mux; extra VREF load
+TITLE = "PV-CTL control board"
+SUBTITLE = "Cost-first PV-P75/100/110 controller: F280039C on BUS-, one trip latch, one SELV barrier"
+ROOT_NOTES = None                 # None = the PV-CTL cover notes (build_design)
+BUILDS, P75_DNP = ("PV-P100/110", "PV-P75"), "DNP (PV-P75)"   # names: all phases fitted / phase 4 not fitted
 
 
 def mcu_pins(pins, P):
@@ -459,7 +469,7 @@ def sheet_supply(B):
             "LIVE: GND = AGND = BUS-; nothing on this connector leaves the enclosure. Only +3V3 comes across (the former\n"
             "+24V / +5V pins carry the sensor references IL1R-IL4R since PV-PWR rev A2). +3V3 feeds the MCU, so the\n"
             "power board's 3.3 V signals and VDDIO share one rail and one power-up order (no back-powering).")
-    pc = IF.pins(IF.PC, rename={"AGND": "GND"})
+    pc = {k: (None if v in PC_NC else v) for k, v in IF.pins(IF.PC, rename={"AGND": "GND"}).items()}
     B.part("J_PC", pc)
     for net in ("+3V3", "GND"):
         B.flag(net)
@@ -519,13 +529,17 @@ def sheet_mcu(B, mcu):
                            "LATCH_CLR (GPIO24) and CAN_TX (GPIO32, also recessive while the MCU is in reset).")
     B.R("10k", "+3V3", "LATCH_CLR")
     B.R("10k", "+3V3", "CAN_TX")
-    B.block("Command pull-downs (6 x 4 x 10k arrays)",
-            "Every MCU output that ends in an AND gate here is low while the MCU is in reset or unprogrammed (GPIOs\n"
-            "high impedance): 16 PWM, EN, K_A, K_B, K_PRE, STATUS, FAN_PWM, HEARTBEAT (23 lines, 1 spare element).\n"
-            "BIAS_EN, IMD_SW1/2 go straight to PC: pulled down on the power board (10k / 100k, PV-PWR).")
     pd = ["PWM%d_M" % k for k in range(1, 17)] + ["EN_M", "K_A_M", "K_B_M", "K_PRE_M", "STATUS_M", "FAN_PWM_M",
                                                   "HEARTBEAT"]
+    xtra = [g[0] for g in GATES if g[0] not in pd]                  # assembly variants (PCS-CTL: K_AC2_M)
+    pd += xtra
+    n_pd = len(pd)
     pd += ["GND"] * (-len(pd) % 4)
+    B.block("Command pull-downs (%d x 4 x 10k arrays)" % (len(pd) // 4),
+            "Every MCU output that ends in an AND gate here is low while the MCU is in reset or unprogrammed (GPIOs\n"
+            "high impedance): 16 PWM, EN, K_A, K_B, K_PRE, STATUS, FAN_PWM, HEARTBEAT%s (%d lines, %d spare element%s).\n"
+            "BIAS_EN, IMD_SW1/2 go straight to PC: pulled down on the power board (10k / 100k, PV-PWR)." %
+            ("".join(", " + x[:-2] for x in xtra), n_pd, len(pd) - n_pd, "" if len(pd) - n_pd == 1 else "s"))
     for i in range(0, len(pd), 4):
         n = pd[i:i + 4]
         B.part("RPACK10K", {"1": n[0], "2": n[1], "3": n[2], "4": n[3], "8": "GND", "7": "GND", "6": "GND", "5": "GND"},
@@ -580,7 +594,7 @@ def sheet_afe(B):
             "VA/VB/VAX/VBX/VPE = VMID + V/1203; IA/IB = VMID + 3.0 mV/A (+/-478 A); IA_H/IB_H = VMID + 1.0 mV/A.\n"
             "Anti-alias poles are on the power board; here 100 R / 1 nF C0G as the ADC charge bucket. The trip\n"
             "comparators take the PC net itself (no ADC kick-back on them).")
-    for net in ("VA", "VB", "VAX", "VBX", "VPE", "IA", "IB", "IA_H", "IB_H"):
+    for net in AFE_PC:
         B.R(ADC_RC[0], net, net + "_ADC")
         B.C(ADC_RC[1], net + "_ADC", "GND", diel="C0G", tol="5%")
     B.block("NTC inputs (10 k B25/100 3988 K to AGND + 100 nF on PV-PWR, biased here from VREF)",
@@ -716,10 +730,11 @@ def sheet_latch(B):
             "interlock enforces the same. Closing still needs the MCU command AND (HEALTHY OR HOLD).")
     B.part("LVC1G32", {"1": "HEALTHY", "2": "HOLD", "5": "+3V3", "4": "KGATE", "3": "GND"})
     B.C("100n", "+3V3", "GND")
-    B.block("Gating: 6 x 74LVC08 (22 gates used, 2 spare with inputs grounded)",
+    B.block("Gating: %d x 74LVC08 (%d gates used, %d spare with inputs grounded)" %
+            (-(-len(GATES) // 4), len(GATES), -len(GATES) % 4),
             "PWMn = PWMn_M AND HEALTHY (16), EN = EN_M AND HEALTHY, K_PRE = K_PRE_M AND HEALTHY, K_A/K_B = K_x_M AND\n"
             "KGATE, STATUS_L = STATUS_M AND HEALTHY, FAN_PWM_L = FAN_PWM_M AND BIAS_EN (PV-PWR rule: fans only while the\n"
-            "gate bias loads the aux supply). The power board pulls every PC input low (10k / 100k).")
+            "gate bias loads the aux supply). The power board pulls every PC input low (10k / 100k)." + GATE_NOTE)
     pins_ = (("1", "2", "3"), ("4", "5", "6"), ("9", "10", "8"), ("12", "13", "11"))
     g = GATES + [("GND", "GND", None)] * (-len(GATES) % 4)
     for i in range(0, len(g), 4):
@@ -896,15 +911,15 @@ def build_design():
     P = plan()
     check_plan(P, pins)
     PARTS["F280039C"] = mcu_entry(pins)
-    B = L.Builder(PROJECT, "PV-CTL control board", REV, DATE, PARTS, rails=RAILS, returns=RETURNS,
-                  subtitle="Cost-first PV-P75/100/110 controller: F280039C on BUS-, one trip latch, one SELV barrier",
+    B = L.Builder(PROJECT, TITLE, REV, DATE, PARTS, rails=RAILS, returns=RETURNS, subtitle=SUBTITLE,
                   comment1="LIVE zone = BUS- (hazardous live); SELV zone behind reinforced barrier B1",
                   comment4="Not bench-validated. All bands and budgets calculated in design_check().",
-                  root_notes=["ARCHITECTURE-COSTFIRST sections 6.1 (trip sources -> one latch), 10 (two zones); PC "
-                              "levels as built on PV-PWR (hardware/PV-PWR/outputs/PV-PWR_design_check.txt).",
-                              "Assembly option: the two TLV9024 marked '%s' are not fitted on PV-P75 "
-                              "(bom/PV-CTL-P75_BOM.csv)." % PH4,
-                              "Pin plan: gen/data/pv_ctrl_pin_plan.csv (from SPRSP61C, checked every build)."])
+                  root_notes=ROOT_NOTES or [
+                      "ARCHITECTURE-COSTFIRST sections 6.1 (trip sources -> one latch), 10 (two zones); PC "
+                      "levels as built on PV-PWR (hardware/PV-PWR/outputs/PV-PWR_design_check.txt).",
+                      "Assembly option: the two TLV9024 marked '%s' are not fitted on PV-P75 "
+                      "(bom/PV-CTL-P75_BOM.csv)." % PH4,
+                      "Pin plan: gen/data/pv_ctrl_pin_plan.csv (from SPRSP61C, checked every build)."])
     iso, xing = set(), set()
     sheet_supply(B)
     sheet_mcu(B, mcu_pins(pins, P))
@@ -913,6 +928,8 @@ def build_design():
     sheet_latch(B)
     sheet_iso(B, iso, xing)
     sheet_selv(B, iso, xing)
+    for f in EXTRA_SHEETS:
+        f(B)
     return B, pins, P, iso, xing
 
 
@@ -1420,13 +1437,12 @@ def check_latch(B, pw):
     base.update({"VA": vm + LATCH_VA * pw["k_div"], "VB": vm + 800 * pw["k_div"]})
     base.update({"NTC%d" % k: ntc_v(60 if k in HS_NTC else 100, NTC_BIAS["hs" if k in HS_NTC else "ind"])
                  for k in range(1, 9)})
-    outs = ["PWM%d" % k for k in range(1, 17)] + ["EN", "K_PRE", "K_A", "K_B", "STATUS_L"]
-    fw = {"PWM%d_M" % k: 1 for k in range(1, 17)}
-    fw.update({"EN_M": 1, "K_A_M": 1, "K_B_M": 1, "K_PRE_M": 1, "STATUS_M": 1, "FAN_PWM_M": 1, "BIAS_EN": 1})
+    outs = [g[2] for g in GATES if g[2] != "FAN_PWM_L"]            # every gated output except the fan (BIAS_EN)
+    fw = dict({g[0]: 1 for g in GATES}, BIAS_EN=1)
     healthy = dict(fw, RDY=1, HOLD=0, heartbeat=1, enable_closed=1)
     ph4 = {r for r, p in B.D.parts.items() if PH4 in str(p.value)}
     errs, n_cases = [], 0
-    for build, excl, phases in (("PV-P100/110", (), 4), ("PV-P75", ph4, 3)):
+    for build, excl, phases in ((BUILDS[0], (), 4), (BUILDS[1], ph4, 3)):
         an = dict(base)
         if phases == 3:
             an.update({"IL4": 0.0, "IL4R": 0.0, "NTC4": 3.0, "NTC8": 3.0})
@@ -1478,8 +1494,9 @@ def check_latch(B, pw):
                "shorted, FLT_N, RDY, "
                "ENABLE open, heartbeat stop, 3.3 V supervisor, MCU reset: all 16 PWM, EN, K_PRE, K_A, K_B, STATUS low with "
                "firmware still commanding them; a CLK edge while active is ignored; held after the source clears; "
-               "released only by the next CLK edge; with HOLD a trip keeps K_A/K_B; power-up always tripped; PV-P75 "
-               "(%s not fitted) runs with IL4 = IL4R = 0 V and NTC4/NTC8 open; fans need BIAS_EN" % ", ".join(sorted(ph4)))
+               "released only by the next CLK edge; with HOLD a trip keeps %s; power-up always tripped; %s "
+               "(%s not fitted) runs with IL4 = IL4R = 0 V and NTC4/NTC8 open; fans need BIAS_EN" %
+               ("/".join(HOLD_KEEPS), BUILDS[1], ", ".join(sorted(ph4))))
 
 
 BARRIER = {"CA-IS3050W": dict(viosm=12800, vimp=9846, viotm=7070, viso=5000, viowm_dc=1414, clr=8.0, cpg=8.0,
@@ -1592,7 +1609,7 @@ def check_budget(B, pw):
     vref = (3 * 130e-6 + 4 * 3.0 / 6e3 + sum(3.0 / (val(NTC_BIAS["hs" if k in HS_NTC else "ind"]) + r_ntc(150))
                                              for k in range(1, 9)) + 3.0 / val(NTC_BIAS["inlet"]) +
             sum(3.0 / sum(val(x) for x in v) for v in LADDER.values()) + 4 * (3.0 - 1.9) / val(IL_FB[0]) +
-            4 * 3.0 / val(ILR_PU))
+            4 * 3.0 / val(ILR_PU)) + VREF_XTRA
     ok &= say(vref <= 10e-3, "Budget VREF (REF3030E, +/-10 mA)", "%.1f mA: VREFHI 3 x 130 uA, VDAC 4 CMPSS x 6 kOhm min, "
               "NTC biases at 150 C, ladders, IL offset resistors" % (vref * 1e3))
     i33 = (106e-3 + 2.5e-3 + vref + 37e-6 + 4 * 0.75e-3 + 7 * 4 * 35e-6 + 3 * 2 * 2.5e-3 + 7.6e-3 + 3.6e-3 + 2.2e-3 +
@@ -1697,13 +1714,14 @@ def check_resources(pins, P):
     ana = [(net, plan_[net][0], plan_[net][1]) for net, key, fn, d, r in P if d == "ain"]
     chans = {net: sorted(nm for nm in pins[p]["ana"] if re.match(r"^[ABC]\d+$", nm)) for net, p, fn in ana}
     analog_pins = [p for p, d in pins.items() if d["type"] == "i" and d["names"][0][0] in "ABC"]
-    pc_an = [nm for nm in IF.PC if re.match(r"^(IL\d|IA|IB|IA_H|IB_H|VA|VB|VAX|VBX|VPE|NTC\d)$", nm)]
-    covered = all(any(net in (a, a + "_ADC") for net, p, fn in ana) for a in pc_an)
+    pc_an = [nm for nm in IF.PC if re.match(r"^(IL\d|IA|IB|IA_H|IB_H|VA|VB|VAX|VBX|VPE|NTC\d)$", nm) and
+             nm not in ADC_SKIP]
+    covered = all(a in ADC_MUXED or any(net in (a, a + "_ADC") for net, p, fn in ana) for a in pc_an)
     ok &= say(covered and all(chans.values()) and len({p for _, p, _ in ana}) == len(ana) <= len(analog_pins),
               "F280039C ADC channels", "%d of the %d analog pins of the PZ package: all %d PC analog signals, the inlet "
-              "NTC and VDAC, each on its own pin with an ADC channel (e.g. %s)" %
+              "NTC and VDAC, each on its own pin with an ADC channel (e.g. %s)%s" %
               (len(ana), len(analog_pins), len(pc_an), ", ".join("%s=%s" % (k, "/".join(c)) for k, c in
-                                                                 list(chans.items())[:4])))
+                                                                 list(chans.items())[:4]), ADC_NOTE))
     cm = {}
     for net, p, fn in ana:
         for h in [x for x in fn.split("+") if "_HP" in x]:
@@ -1811,9 +1829,10 @@ def check_cost(B):
         tot += p
     n = sum(1 for r in B.bom if not r.startswith("#"))
     big = sorted(lines.items(), key=lambda kv: -kv[1])[:6]
-    info("Board cost (1 ku, catalogue / estimate)", "PV-P100/110 %.2f USD, PV-P75 %.2f USD for %d parts (%.2f USD of it "
-         "estimated); architecture CONTROL + INTERFACE 17.29 USD; largest: %s" % (tot, tot - ph4, n, est,
-                                                                                 ", ".join("%s %.2f" % kv for kv in big)))
+    info("Board cost (1 ku, catalogue / estimate)", "%s %.2f USD, %s %.2f USD for %d parts (%.2f USD of it "
+         "estimated); architecture CONTROL + INTERFACE 17.29 USD; largest: %s" % (BUILDS[0], tot, BUILDS[1], tot - ph4, n,
+                                                                                 est, ", ".join("%s %.2f" % kv for kv in
+                                                                                               big)))
     return tot
 
 
@@ -1824,7 +1843,7 @@ def write_p75_bom(B):
     out = [rows[0]]
     for r in rows[1:]:
         if PH4 in r[3]:
-            r = r[:10] + ["DNP (PV-P75)"]
+            r = r[:10] + [P75_DNP]
         out.append(r)
     with open(os.path.join(L.REPO, "bom", PROJECT + P75_SUFFIX + "_BOM.csv"), "w", newline="") as f:
         csv.writer(f).writerows(out)

@@ -5,7 +5,7 @@
 	(uuid "969ce551-8da8-5133-b4bb-c4a73e83bab8")
 	(paper "A2")
 	(title_block
-		(title "PV-CTL control board - F280039C, clock, debug, EEPROM")
+		(title "PCS-CTL control board - F280039C, clock, debug, EEPROM")
 		(date "2026-10-05")
 		(rev "A0")
 		(comment 1 "LIVE zone = BUS- (hazardous live); SELV zone behind reinforced barrier B1")
@@ -4836,7 +4836,7 @@
 	)
 	(rectangle
 		(start 472.87 106.96)
-		(end 573.37 162.56)
+		(end 579.99 162.56)
 		(stroke
 			(width 0.254)
 			(type dash)
@@ -4924,7 +4924,7 @@
 		)
 		(uuid "17a76900-3ddd-58f1-9c44-f7de7e74a705")
 	)
-	(text "Every MCU output that ends in an AND gate here is low while the MCU is in reset or unprogrammed (GPIOs\nhigh impedance): 16 PWM, EN, K_A, K_B, K_PRE, STATUS, FAN_PWM, HEARTBEAT (23 lines, 1 spare element).\nBIAS_EN, IMD_SW1/2 go straight to PC: pulled down on the power board (10k / 100k, PV-PWR)."
+	(text "Every MCU output that ends in an AND gate here is low while the MCU is in reset or unprogrammed (GPIOs\nhigh impedance): 16 PWM, EN, K_A, K_B, K_PRE, STATUS, FAN_PWM, HEARTBEAT, K_AC2 (24 lines, 0 spare elements).\nBIAS_EN, IMD_SW1/2 go straight to PC: pulled down on the power board (10k / 100k, PV-PWR)."
 		(exclude_from_sim no)
 		(at 474.874 160.06 0)
 		(effects
@@ -5231,28 +5231,16 @@
 		(uuid "2f01d6d7-09ee-5a9a-8e21-51d6dfc46dc6")
 	)
 	(no_connect
-		(at 261.62 58.42)
-		(uuid "39fcd69c-b075-54de-adf7-6eafe323f271")
-	)
-	(no_connect
-		(at 261.62 53.34)
-		(uuid "71ebe194-dbf7-58dd-be06-efaaf9ef02bc")
-	)
-	(no_connect
-		(at 261.62 55.88)
-		(uuid "80b71cd2-5024-5dca-a710-e732d8c12556")
+		(at 83.82 50.8)
+		(uuid "3b02f75b-e17c-5ed8-a62e-9b1d0c189279")
 	)
 	(no_connect
 		(at 195.58 40.64)
 		(uuid "db663acb-1fee-5ab6-8aae-a380b1af4f1f")
 	)
 	(no_connect
-		(at 261.62 60.96)
-		(uuid "f8422c2c-4dfc-571f-a68b-e9aecfeb36c0")
-	)
-	(no_connect
-		(at 195.58 48.26)
-		(uuid "ffe8e9c2-2d87-536b-baa4-915139c7ea2b")
+		(at 83.82 45.72)
+		(uuid "f809d6ef-a342-5ca4-aac4-91a96230fc91")
 	)
 	(wire
 		(pts
@@ -5353,16 +5341,6 @@
 			(type default)
 		)
 		(uuid "07f0b012-db87-58ca-a645-7dc299aee5c4")
-	)
-	(wire
-		(pts
-			(xy 83.82 45.72) (xy 81.28 45.72)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "081711f7-128a-50b8-af3f-2190901d8c85")
 	)
 	(wire
 		(pts
@@ -5623,16 +5601,6 @@
 			(type default)
 		)
 		(uuid "26f0920d-59d3-562a-9f31-b727131acc10")
-	)
-	(wire
-		(pts
-			(xy 83.82 50.8) (xy 81.28 50.8)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "28471cc7-9e7a-5964-8669-7d2be827acb4")
 	)
 	(wire
 		(pts
@@ -5996,6 +5964,16 @@
 	)
 	(wire
 		(pts
+			(xy 195.58 48.26) (xy 198.12 48.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "50f97d08-ce3b-5be6-9fc9-e42a6206acbd")
+	)
+	(wire
+		(pts
 			(xy 515.62 124.46) (xy 515.62 121.92)
 		)
 		(stroke
@@ -6326,6 +6304,16 @@
 	)
 	(wire
 		(pts
+			(xy 261.62 53.34) (xy 264.16 53.34)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6cf8eb71-1f76-5504-a23f-01dc9a4c6ecb")
+	)
+	(wire
+		(pts
 			(xy 287.02 39.37) (xy 287.02 41.91)
 		)
 		(stroke
@@ -6353,6 +6341,16 @@
 			(type default)
 		)
 		(uuid "6f53aef6-4e64-5351-96f5-74dd8f1de1b6")
+	)
+	(wire
+		(pts
+			(xy 261.62 60.96) (xy 264.16 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6f8130ba-8069-52eb-8920-419983216cea")
 	)
 	(wire
 		(pts
@@ -6846,6 +6844,16 @@
 	)
 	(wire
 		(pts
+			(xy 261.62 58.42) (xy 264.16 58.42)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a2a588e4-9b05-53a5-9808-27413536c14f")
+	)
+	(wire
+		(pts
 			(xy 396.24 123.19) (xy 396.24 120.65)
 		)
 		(stroke
@@ -7003,6 +7011,16 @@
 			(type default)
 		)
 		(uuid "b1273009-1926-50f5-9eb5-41abf5013e5d")
+	)
+	(wire
+		(pts
+			(xy 261.62 55.88) (xy 264.16 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b53db22a-146d-5be8-b9a0-889b63f0154f")
 	)
 	(wire
 		(pts
@@ -8130,7 +8148,7 @@
 			)
 		)
 	)
-	(global_label "NTC5"
+	(global_label "NTC_MUX"
 		(shape bidirectional)
 		(at 81.28 68.58 180)
 		(fields_autoplaced yes)
@@ -8245,7 +8263,7 @@
 			)
 		)
 	)
-	(global_label "NTC8"
+	(global_label "VC3_ADC"
 		(shape bidirectional)
 		(at 81.28 81.28 180)
 		(fields_autoplaced yes)
@@ -8406,7 +8424,7 @@
 			)
 		)
 	)
-	(global_label "NTC6"
+	(global_label "RCM_ADC"
 		(shape bidirectional)
 		(at 81.28 71.12 180)
 		(fields_autoplaced yes)
@@ -8419,6 +8437,29 @@
 		(uuid "1f84c631-a234-50a4-b8a4-e22d1c1f5d4b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 81.28 71.12 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "RCM_TST"
+		(shape bidirectional)
+		(at 198.12 48.26 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "20750bc0-89df-565b-8079-09e072fb7cc1")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 198.12 48.26 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8682,6 +8723,29 @@
 			)
 		)
 	)
+	(global_label "K_AC2_M"
+		(shape bidirectional)
+		(at 561.34 137.16 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "3f5a46cc-882d-5356-8f1e-f0183379d776")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 561.34 137.16 270)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
 	(global_label "TACH2"
 		(shape bidirectional)
 		(at 264.16 45.72 0)
@@ -8935,7 +8999,7 @@
 			)
 		)
 	)
-	(global_label "NTC3"
+	(global_label "VC2_ADC"
 		(shape bidirectional)
 		(at 81.28 63.5 180)
 		(fields_autoplaced yes)
@@ -8948,6 +9012,29 @@
 		(uuid "5760bc73-1540-5666-b609-32616ab88f12")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 81.28 63.5 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "K_AC2_M"
+		(shape bidirectional)
+		(at 264.16 60.96 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "581a52bb-d7cd-5261-884c-5fc2c4926d1a")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 264.16 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9211,7 +9298,7 @@
 			)
 		)
 	)
-	(global_label "NTC4"
+	(global_label "VC1_ADC"
 		(shape bidirectional)
 		(at 81.28 66.04 180)
 		(fields_autoplaced yes)
@@ -9372,7 +9459,7 @@
 			)
 		)
 	)
-	(global_label "NTC2"
+	(global_label "VG2_ADC"
 		(shape bidirectional)
 		(at 81.28 58.42 180)
 		(fields_autoplaced yes)
@@ -9487,7 +9574,53 @@
 			)
 		)
 	)
-	(global_label "NTC7"
+	(global_label "MUX_A0"
+		(shape bidirectional)
+		(at 264.16 53.34 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "868eb008-c14d-55bf-b13b-4a94fadae29d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 264.16 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "MUX_A2"
+		(shape bidirectional)
+		(at 264.16 58.42 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "87179f7e-7221-5e4c-bce7-b754e514d98c")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 264.16 58.42 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "NTC9"
 		(shape bidirectional)
 		(at 81.28 73.66 180)
 		(fields_autoplaced yes)
@@ -9809,29 +9942,6 @@
 			)
 		)
 	)
-	(global_label "IA_H_ADC"
-		(shape bidirectional)
-		(at 81.28 45.72 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1 1)
-			)
-			(justify right)
-		)
-		(uuid "c1aad1be-b9a2-563d-8c2d-afc2728f489f")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 81.28 45.72 180)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1 1)
-				)
-			)
-		)
-	)
 	(global_label "PWM5_M"
 		(shape bidirectional)
 		(at 157.48 40.64 180)
@@ -9878,7 +9988,7 @@
 			)
 		)
 	)
-	(global_label "NTC1"
+	(global_label "VG3_ADC"
 		(shape bidirectional)
 		(at 81.28 55.88 180)
 		(fields_autoplaced yes)
@@ -9960,6 +10070,29 @@
 		(uuid "d095daa0-d10b-5c3f-bc82-80f320eaa55f")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 198.12 53.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "MUX_A1"
+		(shape bidirectional)
+		(at 264.16 55.88 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "d3ddfb0e-c318-52f7-90a6-99100f6a72d7")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 264.16 55.88 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10085,29 +10218,6 @@
 			)
 		)
 	)
-	(global_label "IA_ADC"
-		(shape bidirectional)
-		(at 81.28 50.8 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1 1)
-			)
-			(justify right)
-		)
-		(uuid "edcfb78d-5ff8-5d8e-94db-97f712f52472")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 81.28 50.8 180)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1 1)
-				)
-			)
-		)
-	)
 	(global_label "CAN_RX"
 		(shape bidirectional)
 		(at 223.52 43.18 180)
@@ -10131,7 +10241,7 @@
 			)
 		)
 	)
-	(global_label "VAX_ADC"
+	(global_label "VG1_ADC"
 		(shape bidirectional)
 		(at 81.28 30.48 180)
 		(fields_autoplaced yes)
@@ -12218,81 +12328,6 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_+3V3")
-		(at 17.78 181.61 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "33bb9d98-f9c4-5027-8563-559ad710316a")
-		(property "Reference" "#PWR02065"
-			(at 17.78 181.61 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1 1)
-				)
-			)
-		)
-		(property "Value" "+3V3"
-			(at 17.78 177.41 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1 1)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 17.78 181.61 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 17.78 181.61 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" ""
-			(at 17.78 181.61 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "3185bf68-dc39-53da-a92e-6b36b494d629")
-		)
-		(instances
-			(project "PCS-CTL"
-				(path "/9d123413-a32c-540d-9d61-a4e959a05ac4/969ce551-8da8-5133-b4bb-c4a73e83bab8"
-					(reference "#PWR02065")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "dcdc:PWR_+3V3")
 		(at 73.66 120.65 0)
 		(unit 1)
 		(body_style 1)
@@ -14059,8 +14094,8 @@
 		)
 	)
 	(symbol
-		(lib_id "dcdc:PWR_GND")
-		(at 561.34 137.16 0)
+		(lib_id "dcdc:PWR_+3V3")
+		(at 17.78 181.61 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -14070,7 +14105,7 @@
 		(dnp no)
 		(uuid "60a60d17-0aad-5cdc-b7f2-4384fb39b4f0")
 		(property "Reference" "#PWR02064"
-			(at 561.34 137.16 0)
+			(at 17.78 181.61 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14080,8 +14115,8 @@
 				)
 			)
 		)
-		(property "Value" "GND"
-			(at 561.34 141.56 0)
+		(property "Value" "+3V3"
+			(at 17.78 177.41 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -14091,7 +14126,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 561.34 137.16 0)
+			(at 17.78 181.61 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -14102,7 +14137,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 561.34 137.16 0)
+			(at 17.78 181.61 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -14112,7 +14147,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 561.34 137.16 0)
+			(at 17.78 181.61 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects

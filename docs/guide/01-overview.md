@@ -117,13 +117,14 @@ timeline
 | `AUX-HV` | earlier platform | C1 | 4 | 150 | 70 | pass (6/6) | [PDF](../../hardware/AUX-HV/outputs/AUX-HV_schematic.pdf) |
 | `BMU-GW` | earlier platform | B0 | 1 | 32 | 23 | pass (6/6) | [PDF](../../hardware/BMU-GW/outputs/BMU-GW_schematic.pdf) |
 | `CTRL-C2000` | earlier platform | E0 | 14 | 599 | 468 | pass (4/4) | [PDF](../../hardware/CTRL-C2000/outputs/CTRL-C2000_schematic.pdf) |
+| `PCS-PWR` | earlier platform | A0 | 26 | 1,692 | 763 | pass (6/6) | [PDF](../../hardware/PCS-PWR/outputs/PCS-PWR_schematic.pdf) |
 | `PV-PORT` | earlier platform | F0 | 6 | 563 | 345 | pass (6/6) | [PDF](../../hardware/PV-PORT/outputs/PV-PORT_schematic.pdf) |
 | `PV-PORT-180` | earlier platform | F0 | 6 | 563 | 345 | pass (6/6) | [PDF](../../hardware/PV-PORT-180/outputs/PV-PORT-180_schematic.pdf) |
 | `PVCELL-25` | earlier platform | C0 | 9 | 587 | 284 | pass (6/6) | [PDF](../../hardware/PVCELL-25/outputs/PVCELL-25_schematic.pdf) |
 | `SYS-IO-AUX` | earlier platform | E0 | 12 | 566 | 351 | pass (5/5) | [PDF](../../hardware/SYS-IO-AUX/outputs/SYS-IO-AUX_schematic.pdf) |
 | `DAB60` | frozen: rev B outputs kept | B0 | 16 | 1,264 | 683 | pass (5/5) | [PDF](../../hardware/DAB60/outputs/DAB60_schematic.pdf) |
 | `GDRV-HB` | verification / reference board | J0 | 3 | 128 | 68 | pass (6/6) | [PDF](../../hardware/GDRV-HB/outputs/GDRV-HB_schematic.pdf) |
-| `PCS-PWR` | verification / reference board | A0 | 26 | 1,692 | 763 | pass (6/6) | [PDF](../../hardware/PCS-PWR/outputs/PCS-PWR_schematic.pdf) |
+| `PCS-CTL` | verification / reference board | A0 | 8 | 305 | 209 | pass (6/6) | [PDF](../../hardware/PCS-CTL/outputs/PCS-CTL_schematic.pdf) |
 | `PORT-LEAN` | verification / reference board | F0 | 8 | 272 | 200 | pass (6/6) | [PDF](../../hardware/PORT-LEAN/outputs/PORT-LEAN_schematic.pdf) |
 | `PORT-LEAN-HOLD` | verification / reference board | F0 | 8 | 245 | 186 | pass (6/6) | [PDF](../../hardware/PORT-LEAN-HOLD/outputs/PORT-LEAN-HOLD_schematic.pdf) |
 

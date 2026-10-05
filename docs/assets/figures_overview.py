@@ -389,13 +389,13 @@ def block_board_status(page_dir, reps):
     role = {}
     for m, boards in BA.MODULES.items():
         for b in boards:
-            b = {"PV-CTL-P75": "PV-CTL", "AUX-HV_DAB": "AUX-HV"}.get(b, b)
-            role.setdefault(b, "cost-first module" if m in BA.PHASES else "earlier platform")
+            b = {"PV-CTL-P75": "PV-CTL", "PCS-CTL-3W": "PCS-CTL", "AUX-HV_DAB": "AUX-HV"}.get(b, b)
+            role.setdefault(b, "inverter (PCS-P125)" if m.startswith("PCS") else "cost-first module" if m in BA.PHASES else "earlier platform")
     for b in BA.VARIANTS.get("PV-PORT", []):
         role.setdefault(b, "earlier platform")
     for b in BA.FROZEN:
         role[b] = "frozen: rev B outputs kept"
-    order = {"cost-first module": 0, "earlier platform": 1}
+    order = {"cost-first module": 0, "inverter (PCS-P125)": 0.5, "earlier platform": 1}
     lines = ["| Board | Role | Rev | Sheets | Drawn symbols | Nets | Build checks | Schematic |", "|---|---|---|---:|---:|---:|---|---|"]
     for p, r in sorted(reps.items(), key=lambda kv: (order.get(role.get(kv[0], ""), 2 if kv[0] in BA.FROZEN else 3), kv[0])):
         checks = r["checks"]

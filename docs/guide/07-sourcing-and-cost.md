@@ -43,8 +43,11 @@ by line, is [`bom/COST.md`](../../bom/COST.md).
 
 **Note on the PCS ratio.** `gen/cost.py` adjusts the benchmark for current only for the DC/DC modules. For PCS-P125 the
 current adjustment is in [ARCHITECTURE-PCS.md §12](../requirements/ARCHITECTURE-PCS.md#12-cost--both-products-catalogue-and-5000-units-against-the-benchmark):
-the benchmark corresponds to a BOM of about 690 USD for a 125 kW / 400 V unit. The 5,000-unit figure of the design point
-in the table (three-wire, [D-060](../requirements/DECISIONS.md)) is about 1.6 × that (our arithmetic on the two records).
+the benchmark corresponds to a BOM of about 690 USD for a 125 kW / 400 V unit. The PCS rows of the table are the design
+study's (three-wire, [D-060](../requirements/DECISIONS.md): 1,131 USD at 5,000 units, about 1.6 × that). The module BOM
+of the drawn boards, which `gen/cost.py` prices ([`bom/COST.md`](../../bom/COST.md), [D-063](../requirements/DECISIONS.md)),
+is higher: 1,521 USD at catalogue prices and 1,292 USD at 5,000 units (10.3 USD/kW), about 1.9 × that (our arithmetic on
+the two records).
 
 ---
 
@@ -178,8 +181,9 @@ prices of mostly isolated storage modules, none a non-isolated PV tracker ([bom/
 
 | Lever | Expected effect | Cost in function | Record |
 |---|---|---|---|
-| Supplier quotations for SiC devices, inductors, contactors, film capacitors | turns the largest estimates into numbers | none | [D-052](../requirements/DECISIONS.md) |
+| Supplier quotations for SiC devices, inductors, contactors, film capacitors, the inverter's current sensors | turns the largest estimates into numbers | none | [D-052](../requirements/DECISIONS.md) |
 | Powder-core inductors for the inverter's filter | the filter is 443 USD of the 1,131 USD (39 %); powder cores saturate softly and could be sized for the overload peak instead of the trip point | a magnetics search that does not exist yet; L1 already runs at its 140 °C hot-spot limit | [D-060](../requirements/DECISIONS.md) |
+| Fewer press-fit studs on the inverter's power board | 48 studs cost +39 USD against the study, which allowed 13 USD for studs, harness and standoffs together | a fastening concept with fewer studs | [D-063](../requirements/DECISIONS.md) |
 | The PV-P100/110 inductor | the four-phase build is derated (full power to 35 °C inlet): its inductor hot spot is 5.3 K over the 155 °C limit at 114 m³/h per phase and 45 °C inlet (calculated) | a litz-wound inductor (about +17 USD per phase) or more airflow | [D-056](../requirements/DECISIONS.md), MG-17 |
 | AlN → Al₂O₃ 0.635 mm device pads | about −18 USD (architect's list) | junction +2–3 K; partial-discharge test again | [ARCHITECTURE-COSTFIRST §14](../requirements/ARCHITECTURE-COSTFIRST.md#14-cost-summary-from-gendatacostfirst_bomcsv) |
 | Standard panel terminals instead of custom stud feed-throughs | about −16 USD | none if creepage is kept | §14 |
@@ -189,10 +193,13 @@ prices of mostly isolated storage modules, none a non-isolated PV tracker ([bom/
 
 ## Where the records disagree
 
-- [`bom/COST.md`](../../bom/COST.md) still prints the PCS-P125 three-level T-type estimate of the architect's list
-  (`gen/data/costfirst_pcs_bom.csv`), which [D-053](../requirements/DECISIONS.md) withdrew. The current PCS figure is the
-  design point of [D-060](../requirements/DECISIONS.md) ([`pcs_spec.json`](../../sim/out/pcs_design/pcs_spec.json)); the
-  table above shows both and labels them.
+- The inverter has three cost figures. The table above shows the design study at the design point of
+  [D-060](../requirements/DECISIONS.md) (from [`pcs_spec.json`](../../sim/out/pcs_design/pcs_spec.json)) and the
+  three-level T-type estimate that [D-053](../requirements/DECISIONS.md) withdrew (from
+  `gen/data/costfirst_pcs_bom.csv`), and labels both. The BOM of the drawn boards, priced by `gen/cost.py`, is higher:
+  1,521 / 1,292 USD ([`bom/COST.md`](../../bom/COST.md), module PCS-P125; [D-063](../requirements/DECISIONS.md) explains
+  the difference). `bom/COST.md`'s own section "DC-to-AC PCS next to the PV module (design study)" still says the PCS
+  has no boards.
 - The PV-P75 5,000-unit figure differs between the architect's list (731 USD, [ARCHITECTURE-PCS.md §12](../requirements/ARCHITECTURE-PCS.md#12-cost--both-products-catalogue-and-5000-units-against-the-benchmark))
   and the drawn boards ([bom/COST.md](../../bom/COST.md)): the list set a volume price per row, the BOM uses published
   breaks and class factors. `bom/COST.md` reconciles the two line by line.

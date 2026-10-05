@@ -70,7 +70,7 @@ flowchart LR
 | 12 | [Risks and open items](guide/12-risks-and-open-items.md) | every open risk, ranked, with its consequence and what would close it |
 | 13 | [Repository guide](guide/13-repository-guide.md) | build a board, run a simulation, re-roll the cost; conventions for parts and boards |
 | | [Glossary](guide/glossary.md) | abbreviations and project terms |
-| | [Decisions](guide/decisions.md) | the decision register D-001…D-060, grouped by theme, with today's status |
+| | [Decisions](guide/decisions.md) | the decision register D-001…D-064, grouped by theme, with today's status |
 
 ---
 

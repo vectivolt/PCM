@@ -561,7 +561,7 @@ def pcs_section(results):
     real = ["%.0f" % (100 * sum(l["ext5"] for l in results[m]["lines"] if l["ext5"] and l["real5"]) / total(results[m]["lines"], "ext5")) for m in mods] \
         + ["%.0f" % (100 * c["evidence_share_5k"]), "not stated"]
     md = ["## DC-to-AC PCS next to the PV module (design study)", "",
-          "The PCS (AC-01...AC-03, PCS-P125, %g kW) has a power-stage design study and no boards: its figures are the study's costed list "
+          "The PCS (AC-01...AC-03, PCS-P125, %g kW) has a design study and, since D-061 to D-064, drawn three-wire boards costed above as module PCS-P125 (D-063 explains why the boards cost more). This section keeps the study's own figures: they are the study's costed list "
           "`sim/out/pcs_design/pcs_costed_bom.csv` (two-level stage on 1700 V SiC, decision D-053; catalogue and %d-unit columns), **not a BOM of drawn "
           "boards** and not priced line by line by this script. The PV modules are the BOMs of the drawn power and control boards priced by this "
           "script. The earlier three-level estimate (`gen/data/costfirst_pcs_bom.csv`) is withdrawn by D-053." % (kw, BUILD_UNITS), "",

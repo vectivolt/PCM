@@ -9,7 +9,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 COLD, HOT = -30, 85
 
 parts = {}    # (manufacturer, mpn) -> [modules, boards]; a BOM line with no MPN is keyed on its Value
-for module in ("PV-P75", "PV-P100-110", "PV-P75-FULL", "PV-P100-110-FULL", "DAB-D60-FULL"):
+for module in ("PV-P75", "PV-P100-110", "PCS-P125", "PV-P75-FULL", "PV-P100-110-FULL", "DAB-D60-FULL"):
     for r in csv.DictReader(open(os.path.join(HERE, "..", "bom", module + "_module_BOM.csv"), newline="")):
         if r["Sourcing"] in ("ORDERABLE", "RFQ") and r["Datasheet"].strip():
             use = parts.setdefault((r["Manufacturer"], r["MPN"] or r["Value"]), [set(), set()])

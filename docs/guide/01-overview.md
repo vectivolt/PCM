@@ -39,7 +39,7 @@ flowchart LR
 |---|---|---|---|---|
 | **PV-P75** | DC-coupled solar: tracks the array's maximum power point and moves power in either direction between the PV port and a battery or DC bus | 75 kW, 82.5 kW max · both ports 250–1000 V, 135 A | three interleaved two-level four-switch buck-boost phases, 2 × 1700 V SiC per switch, 32 kHz | power board PV-PWR rev A2 and control board PV-CTL rev A1 drawn; all build checks pass |
 | **PV-P100/110** | the same for larger hybrid and microgrid systems | 100 / 110 kW · 180 A | the same with four phases | PV-PWR-4 and PV-CTL drawn; checks pass; own thermal run open |
-| **PCS-P125** | battery inverter: a battery or DC bus to three-phase AC, grid-following and off-grid | 125 kW, 150 kVA max · DC 590–950 V · 400/230 V AC, 180 A | two-level, 6 × 1700 V SiC per switch (36 devices), 32 kHz, LCL filter ([D-053](../requirements/DECISIONS.md), design point of [D-060](../requirements/DECISIONS.md)) | design point set by a trade study with real inductor designs: 1,131 USD at 5,000 units (calculated); topology confirmed by a cross-check against Wolfspeed's reference designs ([D-057](../requirements/DECISIONS.md)); control not simulated; no boards |
+| **PCS-P125** | battery inverter: a battery or DC bus to three-phase AC, grid-following and off-grid | 125 kW, 150 kVA max · DC 590–950 V · 400/230 V AC, 180 A | two-level, 6 × 1700 V SiC per switch (36 devices), 32 kHz, LCL filter ([D-053](../requirements/DECISIONS.md), design point of [D-060](../requirements/DECISIONS.md)) | three-wire boards drawn: power board PCS-PWR rev A0 and control board PCS-CTL rev A0, every build check passes ([D-061](../requirements/DECISIONS.md) to [D-064](../requirements/DECISIONS.md)); module BOM 1,292 USD at 5,000 units, above the design study's 1,131 USD ([D-063](../requirements/DECISIONS.md)); topology confirmed by a cross-check against Wolfspeed's reference designs ([D-057](../requirements/DECISIONS.md)); control not simulated; not independently reviewed; the four-wire build is not drawn |
 | **DAB-D60** | isolation and voltage adaptation between a DC bus and a battery; one to four branches in parallel | 60 kW · port 1 590–950 V, port 2 400–900 V | dual active bridge, 2 × 1200 V SiC per switch, 100 kHz, custom transformer, liquid cold plate | design and control re-run with Chinese devices; board DAB60 rev B frozen, to be redrawn cost-first |
 | *Earlier platform* | the roadmap's full-featured implementation: protected low-voltage control, eight boards per PV module | — | as PV-P75, with a reinforced barrier at every driver and sensor | kept as the reference implementation; not developed further ([D-044](../requirements/DECISIONS.md)) |
 
@@ -77,7 +77,7 @@ hardware and a bench. PCB layout, mechanics, firmware and certification are out 
 
 ## 🗺️ How the design got here
 
-Sixty decisions in three days, each a row of the [decision register](../requirements/DECISIONS.md)
+Sixty-four decisions in three days, each a row of the [decision register](../requirements/DECISIONS.md)
 (digest: [Decisions](decisions.md)):
 
 ```mermaid
@@ -95,7 +95,7 @@ timeline
     section 5 October
         Protection : D-050 discrete protections stay
         Status : D-052 cost of the drawn boards
-        Revisions : D-053 PCS goes two-level SiC : D-054 inductor back to round wire : D-055 modules stay RFQ alternates : D-056 PV module re-run, board revisions : D-057 inverter cross-check, two-level confirmed : D-058 board revisions drawn : D-059 inverter design point, 24 kHz : D-060 inverter corrected to 32 kHz
+        Revisions : D-053 PCS goes two-level SiC : D-054 inductor back to round wire : D-055 modules stay RFQ alternates : D-056 PV module re-run, board revisions : D-057 inverter cross-check, two-level confirmed : D-058 board revisions drawn : D-059 inverter design point, 24 kHz : D-060 inverter corrected to 32 kHz : D-061 to D-064 inverter boards drawn and costed
 ```
 
 ---
@@ -114,17 +114,17 @@ timeline
 | `PV-CTL` | cost-first module | A1 | 7 | 285 | 192 | pass (6/6) | [PDF](../../hardware/PV-CTL/outputs/PV-CTL_schematic.pdf) |
 | `PV-PWR` | cost-first module | A2 | 22 | 1,874 | 939 | pass (6/6) | [PDF](../../hardware/PV-PWR/outputs/PV-PWR_schematic.pdf) |
 | `PV-PWR-4` | cost-first module | A2 | 25 | 2,322 | 1,150 | pass (6/6) | [PDF](../../hardware/PV-PWR-4/outputs/PV-PWR-4_schematic.pdf) |
+| `PCS-CTL` | inverter (PCS-P125) | A0 | 8 | 305 | 209 | pass (6/6) | [PDF](../../hardware/PCS-CTL/outputs/PCS-CTL_schematic.pdf) |
+| `PCS-PWR` | inverter (PCS-P125) | A0 | 26 | 1,692 | 763 | pass (6/6) | [PDF](../../hardware/PCS-PWR/outputs/PCS-PWR_schematic.pdf) |
 | `AUX-HV` | earlier platform | C1 | 4 | 150 | 70 | pass (6/6) | [PDF](../../hardware/AUX-HV/outputs/AUX-HV_schematic.pdf) |
 | `BMU-GW` | earlier platform | B0 | 1 | 32 | 23 | pass (6/6) | [PDF](../../hardware/BMU-GW/outputs/BMU-GW_schematic.pdf) |
 | `CTRL-C2000` | earlier platform | E0 | 14 | 599 | 468 | pass (4/4) | [PDF](../../hardware/CTRL-C2000/outputs/CTRL-C2000_schematic.pdf) |
-| `PCS-PWR` | earlier platform | A0 | 26 | 1,692 | 763 | pass (6/6) | [PDF](../../hardware/PCS-PWR/outputs/PCS-PWR_schematic.pdf) |
 | `PV-PORT` | earlier platform | F0 | 6 | 563 | 345 | pass (6/6) | [PDF](../../hardware/PV-PORT/outputs/PV-PORT_schematic.pdf) |
 | `PV-PORT-180` | earlier platform | F0 | 6 | 563 | 345 | pass (6/6) | [PDF](../../hardware/PV-PORT-180/outputs/PV-PORT-180_schematic.pdf) |
 | `PVCELL-25` | earlier platform | C0 | 9 | 587 | 284 | pass (6/6) | [PDF](../../hardware/PVCELL-25/outputs/PVCELL-25_schematic.pdf) |
 | `SYS-IO-AUX` | earlier platform | E0 | 12 | 566 | 351 | pass (5/5) | [PDF](../../hardware/SYS-IO-AUX/outputs/SYS-IO-AUX_schematic.pdf) |
 | `DAB60` | frozen: rev B outputs kept | B0 | 16 | 1,264 | 683 | pass (5/5) | [PDF](../../hardware/DAB60/outputs/DAB60_schematic.pdf) |
 | `GDRV-HB` | verification / reference board | J0 | 3 | 128 | 68 | pass (6/6) | [PDF](../../hardware/GDRV-HB/outputs/GDRV-HB_schematic.pdf) |
-| `PCS-CTL` | verification / reference board | A0 | 8 | 305 | 209 | pass (6/6) | [PDF](../../hardware/PCS-CTL/outputs/PCS-CTL_schematic.pdf) |
 | `PORT-LEAN` | verification / reference board | F0 | 8 | 272 | 200 | pass (6/6) | [PDF](../../hardware/PORT-LEAN/outputs/PORT-LEAN_schematic.pdf) |
 | `PORT-LEAN-HOLD` | verification / reference board | F0 | 8 | 245 | 186 | pass (6/6) | [PDF](../../hardware/PORT-LEAN-HOLD/outputs/PORT-LEAN-HOLD_schematic.pdf) |
 

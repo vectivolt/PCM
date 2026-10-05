@@ -783,7 +783,7 @@ The rows ending in -FULL are the roadmap's earlier platform. Current ratings are
 
 ## DC-to-AC PCS next to the PV module (design study)
 
-The PCS (AC-01...AC-03, PCS-P125, 125 kW) has a power-stage design study and no boards: its figures are the study's costed list `sim/out/pcs_design/pcs_costed_bom.csv` (two-level stage on 1700 V SiC, decision D-053; catalogue and 5000-unit columns), **not a BOM of drawn boards** and not priced line by line by this script. The PV modules are the BOMs of the drawn power and control boards priced by this script. The earlier three-level estimate (`gen/data/costfirst_pcs_bom.csv`) is withdrawn by D-053.
+The PCS (AC-01...AC-03, PCS-P125, 125 kW) has a design study and, since D-061 to D-064, drawn three-wire boards costed above as module PCS-P125 (D-063 explains why the boards cost more). This section keeps the study's own figures: they are the study's costed list `sim/out/pcs_design/pcs_costed_bom.csv` (two-level stage on 1700 V SiC, decision D-053; catalogue and 5000-unit columns), **not a BOM of drawn boards** and not priced line by line by this script. The PV modules are the BOMs of the drawn power and control boards priced by this script. The earlier three-level estimate (`gen/data/costfirst_pcs_bom.csv`) is withdrawn by D-053.
 
 | | PV-P75 | PV-P100-110 | PCS-P125 3-wire | PCS-P125 4-wire |
 |---|---|---|---|---|

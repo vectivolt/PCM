@@ -5,9 +5,9 @@
 
 > What "verified" means in a project with no hardware: the build pipeline and its checks, the board design checks, the pin, temperature and insulation audits, the independent design reviews, the simulation self-checks and the three-way magnetics check — with the result for every board, and an honest list of what has not been verified.
 
-![boards](https://img.shields.io/badge/boards%20built-14%20of%2014%20passing-00A99D?style=flat-square)
+![boards](https://img.shields.io/badge/boards%20built-16%20of%2016%20passing-00A99D?style=flat-square)
 ![reviews](https://img.shields.io/badge/review%20findings-113%20recorded-0B1F33?style=flat-square)
-![cost-first review](https://img.shields.io/badge/independent%20review%20of%20PV--PWR%20%2F%20PV--CTL-not%20yet-F2A007?style=flat-square)
+![cost-first review](https://img.shields.io/badge/independent%20review%20of%20the%20PV%20and%20PCS%20boards-not%20yet-F2A007?style=flat-square)
 ![bench](https://img.shields.io/badge/bench%20tests-none-E4572E?style=flat-square)
 ![date](https://img.shields.io/badge/as%20of-2026--10--05-5B6B7A?style=flat-square)
 
@@ -58,6 +58,8 @@ flowchart TD
 | **PV-PWR** | A2 | cost-first power board, PV-P75 | 22 | 1,874 | 939 | 6 / 6 pass | 12 |
 | **PV-PWR-4** | A2 | cost-first power board, PV-P100/110 | 25 | 2,322 | 1,150 | 6 / 6 pass | 16 |
 | **PV-CTL** | A1 | cost-first control board | 7 | 285 | 192 | 6 / 6 pass | 0 |
+| **PCS-PWR** | A0 | inverter power board, three-wire | 26 | 1,692 | 763 | 6 / 6 pass | 6 |
+| **PCS-CTL** | A0 | inverter control board, three-wire (re-valued PV-CTL) | 8 | 305 | 209 | 6 / 6 pass | 0 |
 | PORT-LEAN | F0 | stand-alone build of the lean port functions | 8 | 272 | 200 | 6 / 6 pass | 0 |
 | PORT-LEAN-HOLD | F0 | the lighter interlock option kept by D-050 | 8 | 245 | 186 | 6 / 6 pass | 0 |
 | GDRV-HB | J0 | gate-drive card, one half-bridge | 3 | 128 | 68 | 6 / 6 pass | 2 |
@@ -72,8 +74,9 @@ flowchart TD
 
 <sub>Source: `hardware/<board>/outputs/<board>_report.json` for each board, e.g.
 [PV-PWR](../../hardware/PV-PWR/outputs/PV-PWR_report.json), [PV-CTL](../../hardware/PV-CTL/outputs/PV-CTL_report.json),
-[DAB60](../../hardware/DAB60/outputs/DAB60_report.json). The PV-PWR waiver is a single warning type: the NSI6651's pin 3
-is named GND2 in the datasheet but is the floating Kelvin reference of the gate island.</sub>
+[PCS-PWR](../../hardware/PCS-PWR/outputs/PCS-PWR_report.json), [PCS-CTL](../../hardware/PCS-CTL/outputs/PCS-CTL_report.json),
+[DAB60](../../hardware/DAB60/outputs/DAB60_report.json). The PV-PWR and PCS-PWR waiver is a single warning type: the
+NSI6651's pin 3 is named GND2 in the datasheet but is the floating Kelvin reference of the gate island.</sub>
 
 **Board design checks of the cost-first boards.** The [PV-PWR design check](../../hardware/PV-PWR/outputs/PV-PWR_design_check.txt)
 asserts its values on every build (a failed assertion stops the build): devices, shared heatsink, inductor, banks,
@@ -85,6 +88,13 @@ interface check that reads the power board's design check *as built*. The design
 then implemented: the heatsink trip lowered to ≤ 89.9 °C, the inductor trip raised above the 145 °C full-load hot spot,
 and the IA / IB filter changed to reach 10 kHz.
 
+The inverter's two boards have the same pair of checks. The [PCS-PWR design check](../../hardware/PCS-PWR/outputs/PCS-PWR_design_check.txt)
+asserts the DC link, bleeders, power stage, gate drive and dead time, desaturation, LCL filter, sensing, DC and AC
+ports, supplies, trip sources and thermal inputs, and prints its open items; the
+[PCS-CTL design check](../../hardware/PCS-CTL/outputs/PCS-CTL_design_check.txt) reports **40 PASS, 5 INFO and no FAIL**
+and reads the power board's check *as built*. PCS-PWR's build checks passed on an independent rebuild
+([D-061](../requirements/DECISIONS.md)); all of them are calculations on the drawn netlists, not tests.
+
 ## 🔬 Audits
 
 <img src="../assets/img/design_audits.png" width="820" alt="Pin audit, temperature audit and insulation barrier audit results">
@@ -94,9 +104,9 @@ a run of [gen/temp_audit.py](../../gen/temp_audit.py) and [barrier_audit.csv](..
 
 | Audit | What it compares | Result | Coverage gap |
 |---|---|---|---|
-| **Pin audit** ([gen/pin_audit.py](../../gen/pin_audit.py)) | every drawn symbol's pin numbers and names against a ledger transcribed from the datasheet by someone who had not seen the symbol | 176 parts, 1,766 pins: 146 parts pass, 30 not auditable (no local PDF, or the datasheet prints no pin numbers), no mismatch | covers the earlier platform's boards only; the parts new on PV-PWR and PV-CTL are not in the ledger. The F280039C pin table is read from its datasheet on every PV-CTL build. [D-023](../requirements/DECISIONS.md) cites 1,348 pins — the audit has grown since |
-| **Temperature audit** ([gen/temp_audit.py](../../gen/temp_audit.py)) | every orderable part in the module BOMs against −30 °C (PV-20) and +85 °C (enclosure air) | 236 parts: 154 ok, 1 cold-limited, 2 hot-limited, 5 unknown, **75 not audited** | the 75 are mostly new cost-first parts — among them the SiC MOSFET SG2M040170HJ, the driver NSI6651ASC-Q1, the F280039C and the fan AFB1224SHE-F00 (known to be rated only to −10 °C, R-05) |
-| **Insulation barrier audit** ([sim/insulation.py](../../sim/out/insulation/report.md)) | 132 barrier rows on the earlier platform's 9 boards against coordinated requirements at 2000 / 3000 / 4000 m | 2000 m: 40 pass, 70 pass with a condition, 22 fail; 4000 m: 46 fail. "Altitude that can be claimed today: none" | not re-run for the cost-first boards; only B1's five isolators are checked, in the PV-CTL design check |
+| **Pin audit** ([gen/pin_audit.py](../../gen/pin_audit.py)) | every drawn symbol's pin numbers and names against a ledger transcribed from the datasheet by someone who had not seen the symbol | 176 parts, 1,766 pins: 146 parts pass, 30 not auditable (no local PDF, or the datasheet prints no pin numbers), no mismatch | covers the earlier platform's boards only; the parts new on PV-PWR, PV-CTL, PCS-PWR and PCS-CTL are not in the ledger. The F280039C pin table is read from its datasheet on every PV-CTL build. [D-023](../requirements/DECISIONS.md) cites 1,348 pins — the audit has grown since |
+| **Temperature audit** ([gen/temp_audit.py](../../gen/temp_audit.py)) | every orderable part in the module BOMs against −30 °C (PV-20) and +85 °C (enclosure air) | 242 parts (the inverter module included): 155 ok, 1 cold-limited, 2 hot-limited, 5 unknown, **80 not audited** | the 80 are mostly new cost-first parts — among them the SiC MOSFET SG2M040170HJ, the driver NSI6651ASC-Q1, the F280039C and the fan AFB1224SHE-F00 (known to be rated only to −10 °C, R-05); the script's module list does not include the PCS-P125 module BOM |
+| **Insulation barrier audit** ([sim/insulation.py](../../sim/out/insulation/report.md)) | 132 barrier rows on the earlier platform's 9 boards against coordinated requirements at 2000 / 3000 / 4000 m | 2000 m: 40 pass, 70 pass with a condition, 22 fail; 4000 m: 46 fail. "Altitude that can be claimed today: none" | not re-run for the cost-first or inverter boards; only B1's five isolators are checked, in the PV-CTL and PCS-CTL design checks |
 
 <sub>The temperature-audit numbers come from running the script on the current BOMs (2026-10-05); cold-limited is a
 SIKA flow switch on DAB60 (−25 °C), hot-limited a RECOM DC/DC on PVCELL-25 (71 °C) and the same SIKA part (70 °C);
@@ -125,8 +135,8 @@ minor) found **after** every board had passed its own checks — the reason the 
 file carries a status column; for the others the status is taken from the decision register.
 
 > [!WARNING]
-> The cost-first boards PV-PWR and PV-CTL have **not yet had an independent review round**. Their reviews so far are
-> their own design checks and the cross-board interface check. On the earlier platform the review round found 58 defects
+> The cost-first boards PV-PWR and PV-CTL and the inverter boards PCS-PWR and PCS-CTL have **not yet had an
+> independent review round**. Their reviews so far are their own design checks and the cross-board interface check. On the earlier platform the review round found 58 defects
 > in boards that passed every automated check.
 
 ## 🔬 Simulation self-checks
@@ -159,12 +169,14 @@ The three-way magnetics verification (designer / OpenMagnetics / own calculation
   99.47 % peak, junction 109.5 °C at 45 °C inlet, [module_report.md](../../sim/out/pv_design/module_report.md)) — a
   calculation, not a measurement; the control loops and the MPPT have not been re-simulated with the TMR sensors and the
   divider / shunt chain; the F280039C timing at 120 MHz is an estimate (R-14).
-- **No independent review, pin audit or full temperature audit of PV-PWR and PV-CTL** (above).
+- **No independent review, pin audit or full temperature audit of PV-PWR, PV-CTL, PCS-PWR and PCS-CTL** (above).
 - **Insulation:** the barrier audit has not been re-run for the cost-first barrier list; all standard values are
   transcribed from memory; the arrester credit is not verified against the standard text ([D-032](../requirements/DECISIONS.md)).
 - **Makers' data that do not exist or were not obtained:** Sichain's qualification, short-circuit withstand and price;
   cosmic-ray FIT curves for the 1700 V devices; the TMR sensors' dv/dt immunity; the contactor's making current at
-  1000 V and coil-to-mounting insulation; the aR fuse's L/R; the fans below −10 °C.
+  1000 V and coil-to-mounting insulation; the aR fuse's L/R; the fans below −10 °C; for the inverter, a ±500 A, ≥ 100 kHz
+  open-loop phase-current sensor and a type-B residual-current sensor with a data sheet (both are quotation items with
+  assumed data on the drawn boards).
 - **Magnetics:** all calculated; the DAB transformer and series inductor fail three of their own checks, and the
   PV-P100/110 inductor's hot spot is 5.3 K over its limit (MG-17).
 - **Firmware:** not written (out of scope); the safety-requirement list on [05 · Control and firmware](05-control-and-firmware.md#firmware-requirements)

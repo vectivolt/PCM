@@ -44,6 +44,8 @@ One generator per board. A run writes the KiCad project, runs every check and wr
 |---|---|---|
 | `gen/pv_power.py` | PV-PWR, PV-PWR-4 | cost-first power board, 3 and 4 phases |
 | `gen/pv_ctrl.py` | PV-CTL (BOM variant PV-CTL-P75) | cost-first control board |
+| `gen/pcs_power.py` | PCS-PWR | inverter power board, three-wire: three two-level legs, split DC link, lean DC port at 250 A, AC contactors, LCL chassis parts; reads `sim/out/pcs_design/pcs_spec.json` and the magnetics design files at build time |
+| `gen/pcs_ctrl.py` | PCS-CTL (BOM variant PCS-CTL-3W) | inverter control board: a re-valued variant of PV-CTL with its own pin plan, `gen/data/pcs_ctrl_pin_plan.csv` |
 | `gen/pvcell.py` | PVCELL-25 | earlier platform: one 25 kW cell |
 | `gen/port.py` | PV-PORT, PV-PORT-180; with `lean`: PORT-LEAN, PORT-LEAN-HOLD | earlier platform port board; verification boards of the lean port |
 | `gen/ctrl_c2000.py` · `gen/sys_io_aux.py` | CTRL-C2000 · SYS-IO-AUX | earlier platform controller card and system I/O |
@@ -115,7 +117,7 @@ listed as UNPRICED and never counted as zero. The script exits with code 1 if it
 |---|---|
 | `.venv/bin/python gen/pin_audit.py` | every drawn pin table equals a ledger transcribed from the datasheet by someone who had not seen the drawing (`list` writes the parts list) |
 | `.venv/bin/python gen/temp_audit.py` | every orderable part against the −30…+60 °C ambient requirement (hot limit 85 °C inside the enclosure) |
-| `.venv/bin/python gen/check_interfaces.py` | the cables of the earlier platform's modules: pin map, driver direction, power. The cost-first board-to-board contract (`PC`) is checked inside the PV-PWR and PV-CTL design checks |
+| `.venv/bin/python gen/check_interfaces.py` | the cables of the earlier platform's modules: pin map, driver direction, power. The cost-first board-to-board contract (`PC`) is checked inside the PV-PWR and PV-CTL design checks, and the inverter's `PCS_PC` and `PCS_X` inside the PCS-PWR and PCS-CTL design checks |
 | `.venv/bin/python sim/insulation.py` | every barrier part against the insulation requirements |
 | `.venv/bin/python sim/magnetics.py` | every magnetic part three ways; exits 1 if a check fails |
 

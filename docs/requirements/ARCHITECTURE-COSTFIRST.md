@@ -591,10 +591,13 @@ Steps 1-4 reach ≈ 766 USD at catalogue (≈ 580-600 USD at volume).
 
 ## 16. DAB-D60 on the same principles
 
-Today (`sim/out/dab_design/report.md` §0, `dab_spec.json`, `bom/COST.md`): 60 kW isolated DAB, 2 full bridges with
-2 paralleled 1200 V discretes per switch (8 × IV3Q12013T4Z / SG2M014120LJ per bridge, 7.31 USD), 100 kHz, two-unit
-transformer (186 USD est.) + series inductor (86 USD est.), liquid cold plate; **BOM 3,606 USD** (60 USD/kW) with
-DD600N16K clamps 785, NH fuses 494, HVC43 contactors 163, flow switch 131, thermostat 69, HF MLCCs 100-317.
+Today (`sim/out/dab_design/report.md` §0, `dab_spec.json`, `bom/COST.md`; corrected 2026-10-05, D-068): 60 kW
+isolated DAB, 2 full bridges, 100 kHz, two-unit transformer (186 USD est.) + series inductor (86 USD est.), liquid cold
+plate. The **drawn DAB60 rev B0 has one CBB011M12GM4T per bridge** (UCC21710, +15 / −4 V): **BOM 3,615 USD** (60 USD/kW,
+`bom/COST.md` DAB-D60-FULL, catalogue) with DD600N16K clamps 785, NH fuses 494, CBB011M12GM4T modules 403, HVC43
+contactors 163, flow switch 131, thermostat 69, HF capacitors 100. The **device study (not drawn)** proposes 2 paralleled
+1200 V discretes per switch, **8 × IV3Q12013T4Z / SG2M014120LJ per bridge** (7.31 USD each; switches + insulators
+145 USD per module against the modules' 403, report §0.3).
 
 **What changes with the same principles:** the controller sits on **port 2's negative** (battery side); bridge-2
 drivers and sensing are functional, as in the PV module. **Port 1 is a second DC system**: the transformer and every
@@ -617,7 +620,7 @@ instead of 20 × 47 nF C0G MLCCs per bridge.
 | sensing (port-2 dividers/shunt, isolated V1, TMR I1 and transformer current), IMD | 35 |
 | aux supply (port 2 tap; port 1 tap would need a basic barrier), control board (same F280039C board), interface | 75 |
 | cold plate (estimate, unchanged), 2 coolant NTCs, busbars, harness | 160 |
-| **total** | **≈ 1,140 USD ≈ 19 USD/kW** (−68 % vs 3,606; +20 % vs its 950 USD working budget) |
+| **total** | **≈ 1,140 USD ≈ 19 USD/kW** (−68 % vs 3,615; +20 % vs its 950 USD working budget) |
 
 The DAB stays well above the PV module per kW, as COST-REVIEW §6 expected: its 272 USD of custom magnetics and the
 120 USD cold plate have no equivalent in the non-isolated module, and two stiff-source ports cost twice the protection.

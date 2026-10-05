@@ -6,7 +6,7 @@
 > How the PV module is controlled — loops, modulation and mode transitions, interleaving and current sharing, MPPT — with the plant numbers, the simulated stability margins and transients, the controller's resource use, and the list of firmware requirements the hardware relies on.
 
 ![loops](https://img.shields.io/badge/stability-640%20cases%2C%200%20unstable-00A99D?style=flat-square)
-![mppt](https://img.shields.io/badge/MPPT%20static-%E2%89%A5%2099.93%20%25%20simulated-00A99D?style=flat-square)
+![mppt](https://img.shields.io/badge/MPPT%20static-%E2%89%A5%2099.95%20%25%20simulated-00A99D?style=flat-square)
 ![mcu](https://img.shields.io/badge/controller-TI%20F280039C-0B1F33?style=flat-square)
 ![timing](https://img.shields.io/badge/ISR%20timing%20at%20120%20MHz-open%20%28R--14%29-F2A007?style=flat-square)
 ![firmware](https://img.shields.io/badge/firmware-out%20of%20scope-5B6B7A?style=flat-square)
@@ -17,10 +17,12 @@
 > Firmware itself is out of scope ([REQUIREMENTS.md §1](../requirements/REQUIREMENTS.md)); the controller's pin plan is
 > in scope. The control design is **simulated** with switched, averaged and small-signal models plus an ngspice
 > cross-check ([sim/out/pv_control/report.md](../../sim/out/pv_control/report.md),
-> [control_spec.json](../../sim/out/pv_control/control_spec.json)). It was run against the earlier platform's sensing
-> chain (closed-loop LEM sensor, isolated amplifiers, F28388D at 200 MHz); the cost-first board meets the measurement
-> requirements derived from it (below), but the loops have **not** been re-simulated with the open-loop TMR sensor and
-> the F280039C.
+> [control_spec.json](../../sim/out/pv_control/control_spec.json)). Since the review ([D-065](../requirements/DECISIONS.md),
+> PCM-02) the model is the drawn build: port banks 289.8 / 334.8 µF (386.4 µF per port with four phases), the
+> STK-HO/A 75 sensor with the PV-CTL front end (0.81 µs, 0.0722 A per count, 2.3 A pp noise), V/1203 dividers behind a
+> 6.8 kHz pole, the 11.3 kHz shunt amplifiers, 17 conversions per 31.25 µs and the trips as drawn; the earlier
+> platform's LEM sensor, isolated amplifiers and 274.4 µF example are no longer used. The F280039C timing is still an
+> estimate (R-14), and the MPPT study keeps the earlier noise model (below).
 
 ## 🎛️ Control structure
 
@@ -30,23 +32,23 @@ flowchart LR
     MPPT["MPPT, perturb and observe<br/>20 Hz"] -->|"V_A reference"| VA["V_A loop PI<br/>32 kHz, 300 Hz crossover"]
     VB["V_B maximum limit PI<br/>or V_B loop when forming a bus"] --> SEL["Minimum select<br/>with anti-windup"]
     VA --> SEL
-    SEL --> LIM["Per-phase limits<br/>45 A, 27.5 kW, port currents"]
+    SEL --> LIM["Per-phase limits<br/>45 A or 47.7 A, 27.5 kW, port currents"]
     LIM -->|"same current reference<br/>for every phase"| CL["Current loop PI per phase<br/>64 kHz, 2.5 kHz crossover"]
     CL --> DTC["Dead-time feed-forward<br/>375 ns midpoint estimate"]
     DTC --> MOD["Modulator<br/>buck, band, boost"]
     MOD --> PWM["ePWM 32 kHz<br/>120° or 90° carriers"]
     PWM --> GATE["Latch gating<br/>and gate drivers"]
-    SENS["Inductor current sampled at<br/>carrier zero and peak + 0.87 µs"] --> CL
+    SENS["Inductor current sampled at<br/>carrier zero and peak + 0.81 µs"] --> CL
 ```
 
 | Element | Design (calculated) | Source |
 |---|---|---|
 | Inner loop | average inductor-current PI per phase, 64 kHz (double update), port-voltage feed-forward inside the modulator | `loop_structure`, `sampling` |
-| Outer loops | 32 kHz, one per module: V<sub>A</sub> loop (MPPT reference or DC bus on A) or V<sub>B</sub> loop (bus forming on B), plus a port-B over-voltage limit loop at 1,010 V; minimum select | `loop_structure`, `limits` |
-| Load-current feed-forward | 1 on a DC-bus port (an inverter is a constant-power load), 0 on a PV or battery port; without it 4 of 16 constant-power corners are unstable | `loop_structure.feed_forward`, report §5 |
+| Outer loops | 32 kHz, one per module: V<sub>A</sub> loop (MPPT reference or DC bus on A) or V<sub>B</sub> loop (bus forming on B), plus a port-B over-voltage limit loop at 1,010 V; minimum select; gains scaled with each port's own bank | `loop_structure`, `limits` |
+| Load-current feed-forward | 1 on a DC-bus port (an inverter is a constant-power load), 0 on a PV or battery port; without it 4 of 16 constant-power corners are unstable (3 of 16 with four phases) | `loop_structure.feed_forward`, report §5 |
 | Interleaving | 120° (3 phases), 90° (4 phases); each phase samples at its own carrier zero and peak | `sampling.interleave_deg` |
 | Sharing | equal current references; each phase closes its own loop on its own sensor | report §6 |
-| Timing | one-sample computation delay (15.6 µs); mode changes only at a carrier zero; ISR budget 14.2 µs on the F28388D | `sampling` |
+| Timing | one-sample computation delay (15.6 µs) — a **requirement**: with two samples the current loop keeps only 42.6–46.0°; mode changes only at a carrier zero; budget per loop execution 14.5 µs after the conversion (architecture estimate about 1.7 µs per current-loop execution on the 120 MHz CLA) | `sampling` |
 
 <sub>Field names refer to [control_spec.json](../../sim/out/pv_control/control_spec.json); "report" is
 [pv_control/report.md](../../sim/out/pv_control/report.md).</sub>
@@ -58,17 +60,30 @@ flowchart LR
 | Inductance used for the current-loop gain (µH) | 225.9 | 225.9 |
 | Current loop k<sub>p</sub> (V/A) / k<sub>i</sub> (V/(A·s)) | 3.548 / 11,147 | 3.548 / 11,147 |
 | Current loop design crossover / PI zero (Hz) | 2,500 / 500 | 2,500 / 500 |
-| Port capacitance used for the outer loops (µF) | 274 | 364 |
-| Outer loop k<sub>p</sub> (A/V) / k<sub>i</sub> (A/(V·s)) | 0.517 / 162.5 | 0.687 / 215.8 |
+| Port capacitance used for the outer loops, port A / port B (µF) | 289.8 / 334.8 | 386.4 / 386.4 |
+| Outer loop k<sub>p</sub> (A/V) / k<sub>i</sub> (A/(V·s)), port A; port B | 0.546 / 171.6; 0.631 / 198.3 | 0.728 / 228.8 on both |
 | Outer loop design crossover / PI zero (Hz) | 300 / 50 | 300 / 50 |
-| Limits: current and power per phase | 45 A, 27.5 kW | 45 A, 27.5 kW |
-| Limits: port current, module power | 135 A, 82.5 kW | 180 A, 110 kW |
-| Port-B limit loop / firmware over-voltage / undervoltage stop (V) | 1,010 / 1,050 / 240 | same |
+| Limits: inductor current per phase, buck / boost and band | 45 A and 47.70 A | 45 A and 47.70 A |
+| Limits: power per phase (at the port-A node) | 27.5 kW | 27.5 kW |
+| Limits: PV port / battery port current, module power | 135 / 135 A, 82.5 kW | 180 / 145 A, 110 kW |
+| Port-B limit loop / firmware over-voltage / undervoltage stop (V) | 1,010 / 1,034 / 240 | same |
 | MPPT tracking floor (V) | 255 | 255 |
 | Duty limits D<sub>min</sub> / D<sub>max</sub>, minimum pulse | 0.057 / 0.943, 1.77 µs | same |
 
 <sub>Source: [control_spec.json](../../sim/out/pv_control/control_spec.json) `current_loop`, `outer_loops`, `limits`,
 `modulator`.</sub>
+
+**Limits and the delivered-power envelope** ([D-065](../requirements/DECISIONS.md), PCM-01 / PCM-13). The 45 A of the
+earlier model was the low-voltage port's rating applied to the inductor in every mode; in the band it held PV-P75 to
+70.0 kW at 550 / 550 V. The inductor limit is now the inductor's own rating — 45 A in buck / boost, 47.70 A in the band —
+and the port limits are separate. Calculated result: 73.3 kW delivered at 550 / 550 V; PV-P75 reaches 75 kW from 562 V
+at equal port voltages (both directions, 35 and 45 °C inlet); PV-P100 from 690 / 697 V (A→B / B→A); PV-P110 delivers
+108.8 kW A→B (110 kW is a PV-input rating) and 110 kW B→A from 765 V at 35 °C only; at 60 °C no product reaches its
+rating. The table and the 1 % requirement inconsistency at 550 V (75 kW needs 136.4 A against 135 A) are on
+[03 · Power stage](03-power-stage.md#delivered-power-envelope). The hardware trips the loops sit inside — the inductor
+window 67.9–80.5 A with gates off in 1.52 µs, which misses the 1.10 × normal-peak floor by 0.58 A (risk C9), and the
+port over-voltage band 1,039–1,110 V, with the firmware stop derived 5 V below it at 1,034 V — are on
+[04 · Protection and safety](04-protection-and-safety.md#-every-trip).
 
 ## 🎛️ Modulation and mode transitions
 
@@ -90,11 +105,12 @@ stateDiagram-v2
 - The hardware dead time is 211–554 ns at the gates and its exact value is **not** known to the firmware. The firmware
   compensates the midpoint (375 ns) with the sign taken from the slew-limited current reference; the residual is
   ≤ 225 ns, i.e. 4.0 V at 550 V and 7.2 V at 1000 V per leg.
-- Simulated over 36 sweeps of V<sub>A</sub> through V<sub>B</sub> with three sets of per-edge dead times: every phase
-  enters and leaves the band exactly once (no chatter); worst sampled-current error 2.23 A (1.61 A at full current);
-  highest instantaneous current 50.6 A, below the trip band.
-- Band edges seen in the sweeps (V<sub>B</sub>/V<sub>A</sub>): boost → band 1.032–1.092, band → buck 0.895–0.957,
-  buck → band 0.916–0.967, band → boost 1.046–1.120.
+- Simulated over 36 sweeps of V<sub>A</sub> through V<sub>B</sub> with three sets of per-edge dead times and the drawn
+  sensor's noise: every phase enters and leaves the band exactly once (no chatter); worst sampled-current error 3.26 A
+  (2.63 A at full current); highest instantaneous current 50.8 A, below the 67.9 A trip band. The phase limit steps
+  45 → 47.70 → 45 A with each phase's own mode and is slewed.
+- Band edges seen in the sweeps (V<sub>B</sub>/V<sub>A</sub>): boost → band 1.034–1.098, band → buck 0.892–0.957,
+  buck → band 0.914–0.965, band → boost 1.044–1.121.
 
 <img src="../../sim/out/pv_control/transitions.png" width="820" alt="Mode transitions with unknown dead time, three phases">
 
@@ -105,27 +121,33 @@ stateDiagram-v2
 | Loop | 3 phases | 4 phases | Worst case |
 |---|---:|---:|---|
 | Cases evaluated / unstable | 320 / 0 | 320 / 0 | V<sub>A</sub>, V<sub>B</sub> at 250 / 550 / 950 / 1000 V, 5 % and 100 % load, both directions, PV, battery and constant-power loads |
-| Current loop phase margin (°) | 57.5 | 57.4 | boost 250 → 550 V (3 phases) |
-| Current loop gain margin (dB) | 11.6 | 11.6 | band at 250 / 250 V, MPPT on the left of the MPP |
-| Outer loop phase margin (°) | 43.7 | 43.6 | constant-power load on B at 250 / 250 V, full load |
-| Outer loop modulus margin min \|1 + L\| | 0.68 | 0.67 | constant-power load on B, 250 → 550 V |
-| Outer loop gain margin (dB) | 5.7 | 5.7 | same corner |
-| Current loop with L at its extremes (×0.9…1.1, 0 A to the trip) | PM 54.9–59.5°, GM 9.6–13.3 dB | — | a fixed gain copes with the soft saturation |
+| Current loop phase margin (°) | 57.6 | 57.5 | current loop B → A at 250 / 250 V, band (3 phases); 250 / 550 V, boost (4 phases) |
+| Current loop gain margin (dB) | 11.6 | 11.7 | constant-power source on B at 250 / 250 V (3 phases); battery on B, 250 / 550 V (4 phases) |
+| Current loop crossover (Hz) | 2,282–2,750 | — | design 2,500 Hz at L(45 A), fixed gain |
+| Outer loop phase margin (°) | **44.3** | **45.0** | constant-power load on A, B → A, 250 / 250 V band (3 phases) or 250 / 550 V boost (4 phases), full load |
+| Outer loop modulus margin min \|1 + L\| | 0.67 | 0.66 | constant-power load, 250 V on the low port |
+| Outer loop gain margin (dB) | 6.0 | 6.0 | same corners |
+| Current loop with L at its extremes (×0.9…1.1, 0 A to the trip), one sample of delay | PM 55.1–59.6°, GM 9.6–13.4 dB | — | a fixed gain copes with the soft saturation |
+| Same with two samples of delay | PM 39.1–47.7°, GM 4.8–8.8 dB | — | why the one-sample delay is a requirement |
 
-<sub>Source: [control_spec.json](../../sim/out/pv_control/control_spec.json) `stability`; [report §5](../../sim/out/pv_control/report.md).
-The 43.7° at the 250 V constant-power corner is below the 45° rule of thumb; the report calls it adequate.</sub>
+<sub>Source: [control_spec.json](../../sim/out/pv_control/control_spec.json) `stability`; [report §5](../../sim/out/pv_control/report.md)
+(the drawn build, [D-065](../requirements/DECISIONS.md)). The 44.3° at the 250 V constant-power corner of PV-P75 is just
+below the 45° rule of thumb; the report calls it adequate, and the inverter's own DC link raises it. The review's
+reduced model (1/(sL + R) with an exact zero-order hold) gives 56.8–58.8° with one sample and 40.9–45.1° with two,
+against 56.9–58.9° and 42.6–46.0° here.</sub>
 
 <img src="../../sim/out/pv_control/margins_map.png" width="820" alt="Stability margins over the operating envelope">
 
 | Transient (simulated) | Result |
 |---|---|
-| Load rejection at 82.5 kW, bus at 1000 V opens | V<sub>B</sub> peaks at 1,027.4 V and settles at 1,010 V; firmware OV (1,050 V) not reached |
-| Power reversal +75 → −75 kW in 2 ms, bus forming on B at 750 V | V<sub>B</sub> stays within 746.1–757.6 V; peak inductor current 41.1 A |
-| Start-up with MPPT (17s × 8p array, 300 W/m²) | first-period phase current 0.36 A; 99.89 % of P<sub>mpp</sub> after 0.45 s |
-| One phase faults at full load | the others hold their 27.5 kW limit (peak 42.3 A, no trip); module power 82.6 → 54.3 kW |
-| Loss of the PV source at 82.5 kW | V<sub>A</sub> minimum 543 V; no reverse power into port A |
-| Current sharing, calibrated sensors (gain 0.83 %, offset 0.3 A) | every phase within 1.7 % of 45 A; 4.4 % uncalibrated |
-| Model agreement | switched, averaged and small-signal overshoot within ~3 %; energy balance residual 0.007 %; ngspice band check −16.281 A against −16.288 A drift |
+| Load rejection at 82.5 kW, bus at 1000 V opens | V<sub>B</sub> peaks at 1,023.8 V and settles at 1,010 V; firmware OV (1,034 V) not reached |
+| Power reversal +75 → −75 kW in 2 ms, bus forming on B at 750 V | V<sub>B</sub> stays within 746.8–757.2 V; peak inductor current 41.6 A |
+| Start-up with MPPT (17s × 8p array, 300 W/m²) | first-period phase current 0.32 A; 99.97 % of P<sub>mpp</sub> after 0.45 s |
+| One phase faults at full load | the others hold their 27.5 kW limit (peak 42.1 A, no trip); module power 82.7 → 55.0 kW |
+| Loss of the PV source at 82.5 kW | V<sub>A</sub> minimum 554 V; no reverse power into port A |
+| Current sharing, calibrated sensors (gain 1.00 %, offset 0.4 A) | every phase within 2.2 % of 45 A; 4.6 % uncalibrated (2 %, 1 A) |
+| Load-rejection bank | the port-B bank needs 243 µF in this model; 334.8 µF are drawn (the seventh capacitor stays as a cost lever, [D-065](../requirements/DECISIONS.md)) |
+| Model agreement | switched and averaged models within 4.8 % and 2.8 % of the step (RMS deviation from the small-signal model); energy balance residual 0.005 %; ngspice band check −16.376 A against −16.383 A drift |
 
 <sub>Source: [pv_control report §3, §6–§9](../../sim/out/pv_control/report.md).</sub>
 
@@ -155,14 +177,14 @@ The 43.7° at the 250 V constant-power corner is below the 45° rule of thumb; t
 |---|---|
 | Algorithm | dP-P&O (perturb and observe with a mid-period power sample), step adapted to the measured slope, 0.6–3 % of V<sub>A</sub>; global scan every 300 s for partial shading |
 | Measurement | V<sub>A</sub> and I<sub>A</sub> oversampled at 500 kS/s, 20 ms averaging windows |
-| Static efficiency, MPP inside 255–1000 V | ≥ 99.932 % (requirement PV-C1: ≥ 99.9 %) |
+| Static efficiency, MPP inside 255–1000 V | ≥ 99.950 % (requirement PV-C1: ≥ 99.9 %) |
 | Static efficiency, overall minimum | 99.854 % (8s × 8p at 50 W/m², 70 °C: the MPP is below the 255 V floor) |
-| EU-weighted static / dynamic overall | 99.974 % / 99.957 % |
-| Without the oversampling (32 kHz samples only) | 99.69 % at 50 W/m² — PV-C1 not met |
+| EU-weighted static / dynamic overall | 99.976 % / 99.957 % |
+| Without the oversampling (32 kHz samples only) | 99.83 % at 50 W/m² — PV-C1 not met |
 
-<sub>Source: [pv_mppt report](../../sim/out/pv_mppt/report.md), [control_spec.json](../../sim/out/pv_control/control_spec.json) `mppt`.
-The measurement noise in that study is the earlier platform's isolated-amplifier chain; the cost-first divider and shunt
-chain meets the resolution needed (below) but the MPPT has not been re-run with it.</sub>
+<sub>Source: [pv_mppt report](../../sim/out/pv_mppt/report.md), [control_spec.json](../../sim/out/pv_control/control_spec.json) `mppt`
+(re-run 2026-10-05). The measurement noise in that study is still the earlier platform's isolated-amplifier chain; the
+cost-first divider and shunt chain meets the resolution needed (below) but is not yet the noise model of the MPPT study.</sub>
 
 <img src="../../sim/out/pv_mppt/mppt.png" width="820" alt="MPPT static and dynamic tracking results">
 
@@ -189,10 +211,10 @@ three ADCs = 10 %.</sub>
 
 | Measurement the control design needs | Requirement ([control_spec.json](../../sim/out/pv_control/control_spec.json)) | As built on PV-CTL / PV-PWR |
 |---|---|---|
-| Inductor current: resolution, bandwidth, delay | ≤ 0.0759 A/LSB, ≥ 200 kHz, ≤ 4.14 µs | 0.0722 A/LSB, 331 kHz, 0.81 µs |
+| Inductor current: resolution, bandwidth, delay to the comparator input | ≤ 0.0759 A/LSB, ≥ 200 kHz, ≤ 3.08 µs | 0.0722 A/LSB, 331 kHz, 0.81 µs |
 | Port voltage V<sub>A</sub>, V<sub>B</sub> resolution | ≤ 0.638 V/LSB | 0.881 V/LSB raw, 0.223 V/LSB with the 500 kS/s oversampling |
 | Port current I<sub>A</sub>, I<sub>B</sub> resolution, bandwidth | ≤ 0.258 A/LSB, ≥ 10 kHz | 0.244 A/LSB, 11.3 kHz |
-| Inductor-current gain after calibration, for sharing | ≤ 2 % | 1.83 % at 45 A (0.83 % from control_spec met at 25 °C only) |
+| Inductor-current gain after calibration, for sharing | ≤ 2 % | 1.83 % at 45 A; the sharing study uses the drawn sensor's 1.00 % gain and 0.38 A after calibration |
 
 <sub>Sources: [PV-CTL design check](../../hardware/PV-CTL/outputs/PV-CTL_design_check.txt) ADC checks;
 [PV-PWR design check](../../hardware/PV-PWR/outputs/PV-PWR_design_check.txt) "Inductor current", "IA / IB bandwidth".
@@ -200,10 +222,11 @@ PV-CTL rev A1 reads the IA / IB bandwidth from the PV-PWR check: 11.3 kHz with t
 5.3 kHz item.</sub>
 
 > [!WARNING]
-> **Timing at 120 MHz is open (risk R-14).** The ISR budget of 14.2 µs was set for a 200 MHz F28388D. The architecture's
-> estimate for the F280039C is about 10 µs of each 31.25 µs period on the CLA for three phases (32 %) and 13.3 µs for
-> four (43 %) ([ARCHITECTURE-COSTFIRST.md §7](../requirements/ARCHITECTURE-COSTFIRST.md)). No firmware timing has been
-> measured or simulated on the target.
+> **Timing at 120 MHz is open (risk R-14).** The control model allows 14.5 µs per loop execution after the conversion;
+> the architecture estimates about 200 cycles = 1.7 µs per current-loop execution on the 120 MHz CLA, six or eight per
+> 31.25 µs, and about 10 µs of each period for three phases (32 %), 13.3 µs for four (43 %)
+> ([ARCHITECTURE-COSTFIRST.md §7](../requirements/ARCHITECTURE-COSTFIRST.md)). No firmware timing has been measured or
+> simulated on the target.
 
 <a id="firmware-requirements"></a>
 
@@ -218,19 +241,47 @@ from the [PV-CTL design check](../../hardware/PV-CTL/outputs/PV-CTL_design_check
 
 | Area | What firmware must do | Number it must hold |
 |---|---|---|
-| Second-layer trips | CMPSS windows on IL1–4 (DAC set from the idle zero), ADC limits on IA / IB and VA / VB, all to a one-shot trip on every ePWM | 81.1–101.9 A in 1.21 µs; 373–427 A; 1,084–1,116 V in 33.9 µs, V<sub>A</sub> / V<sub>B</sub> converted every ≤ 10 µs |
+| Second-layer trips | CMPSS windows on IL1–4 (DAC set from the idle zero), ADC limits on IA / IB and VA / VB, all to a one-shot trip on every ePWM; soft over-voltage stop derived from the drawn hardware band ([D-072](../requirements/DECISIONS.md)) | 81.1–101.9 A in 1.21 µs; 373–427 A; 1,084–1,116 V in 33.9 µs, V<sub>A</sub> / V<sub>B</sub> converted every ≤ 10 µs; controlled stop at 1,034 V = the comparator band's bottom 1,039 V − 5 V (was a fixed 1,050 V the latch could pre-empt) |
 | Start-up self-test | exercise every trip path before PWM: CMPSS and ADC limits by moving the DAC / limit across the idle reading, BIAS_EN low must pull RDY low, stopping the heartbeat for 10 ms must set TRIP | each path's flag must set |
 | Latch handling | read and log FLT_N, RDY, STOP_OK, OC_N, OVT_N before any clear; clear only with every source inactive, flags cleared and PWM commands low; the power-up TRIP = 1 must be read first | no automatic clear after a watchdog reset, an over-current or an over-voltage trip |
 | Watchdogs and clocks | toggle the heartbeat in the control ISR; on-chip watchdog from boot, NMI watchdog on; missing-clock and DCC checks force a trip; keep the I/O brown-out reset enabled | edge period ≤ 2 ms; timeout ≤ 10 ms; < 6 ms from clock loss to the latch |
 | Configuration integrity | lock GPIO mux and X-BAR where possible; never enable a pull-up on a command pin; read back CMPSS, ADC limits, trip zone and dead band every 10 ms and trip on a mismatch | a 19–54 kΩ internal pull-up against 10 kΩ would give 1.14 V, above the 0.8 V V<sub>IL</sub> of the gating |
-| Contactor sequencing | close K_A / K_B only above the polarity enable; K_B only after precharge inside the ΔV window, then open K_PRE; port over-current trip from the ADC limit; open normally only below 300 A held for 20 ms; weld check after opening; insulation ≥ 33 kΩ before K_A; three precharge attempts, then lock out | 187–213 V; 3.5–16.5 V; 387–413 A within 0.50 s (0.76 s to 0.95 kA); the hold-off stays in hardware |
+| Contactor sequencing | close K_A / K_B only above the polarity enable; K_B only after precharge inside the ΔV window, then open K_PRE; port over-current trip from the ADC limit; open normally only below 300 A held for 20 ms; weld check after opening; insulation ≥ 33 kΩ before K_A; three precharge attempts, then lock out; a pull-in that does not close is retried at most 3 times, ≥ 10 s apart, then the contactor stays open for 30 s and the fault is latched | 187–213 V; 3.5–16.5 V; 387–413 A within 0.50 s (0.76 s to 0.95 kA); the hold-off stays in hardware |
+| Port A declaration ([D-072](../requirements/DECISIONS.md)) | treat port A as a PV array only: hold I<sub>A</sub> ≥ 0 (no reverse power into the array); with port B live, precharge bank A to within 20 V before K_A closes | array I<sub>sc</sub> ≤ 168.8 A (225 A four-phase), V<sub>oc</sub> ≤ 1000 V |
 | Calibration and plausibility | re-zero the inductor-current sensors at every idle; trim the CMPSS DACs at idle; two-point end-of-line calibration; reject a null above the limit; treat out-of-range readings (open sensor or divider) as sensor faults with no automatic restart | uncalibrated zero ±3.9 A; gain ≤ 1 %, offset ≤ 0.3 A after calibration for sharing |
 | Dead time and modulation | dead band 200 ns (the hardware stretch is the floor); compensate with the 375 ns midpoint, sign from the slew-limited reference; band-exit hysteresis 0.02 on the filtered integrator; mode changes at a carrier zero | residual ≤ 225 ns per edge |
-| Supervision and limits | per-phase limit = min(45 A, 27.5 kW / V<sub>A</sub>, port limits), slewed; feed-forward set by port type (needs to know whether a BMS is present); slew-limit external commands; MPPT oversampling | feed-forward 1 on a bus port, 0 on PV or battery |
-| Thermal and fans | over-temperature derating below the hardware bands; NTC plausibility at a cold start; fans only with BIAS_EN, duty 0 or ≥ 0.34; full speed is available only while switching; below −10 °C inlet either the low-temperature fan option or a rule that holds the fans off (R-05, not decided) | heatsink ≤ 85 °C, inductor ≤ 145 °C; every NTC within 10 K of the inlet NTC at a cold start |
+| Supervision and limits | inductor-current limit by mode — 45 A in buck / boost, 47.70 A in the band — plus 27.5 kW at the port-A node and the port limits converted through each phase's actual duty with a slow trim on the measured port current, all slewed; feed-forward set by port type (needs to know whether a BMS is present); slew-limit external commands; MPPT oversampling; one-sample computation delay | feed-forward 1 on a bus port, 0 on PV or battery; port limits PV 135 / 180 A, battery 135 / 145 A |
+| Thermal and fans | over-temperature derating below the hardware bands; NTC plausibility at a cold start; fans only with BIAS_EN, duty 0 or ≥ 0.34; full speed is available only while switching; the cold-start rule below | heatsink ≤ 85 °C, inductor ≤ 145 °C; every NTC within 10 K of the inlet NTC at a cold start; one fan-supply contract: S_24V ≥ 24.50 V, the fan buck passes ≥ 23.59 V (PV-P75: airflow × 0.983) |
 | Variant handling | PV-P75 build: phase 4 held off by a forced one-shot, IL4 / NTC4 / NTC8 ignored, CMPSS4 used for the IB backup | build code from the EEPROM |
+| Practice adopted from the Wolfspeed firmware cross-check (R-WS-1…9, [REFERENCE-LESSONS §6](../requirements/REFERENCE-LESSONS.md), [D-071](../requirements/DECISIONS.md)) | range-check every bus or service input (switching frequency and dead time not writable in operation); ramp to zero and stop on communication loss; lock out after the third hazard trip of a class and at once on an over-voltage seen by both the hardware and the firmware; explicit recovery threshold, dwell and restart-rate limit per non-latched limit; every exception path forces the one-shot trip and stops the heartbeat; no bus-reachable mode disables a protection; the self-test fires each fault line alone and the read-back covers the trip routing; calibration stored redundantly and range-checked | communication loss 1 s on CAN, third trip within 10 min (both assumed) |
 
-None of these is implemented or tested; they are requirements on future firmware.
+None of these is implemented or tested; they are requirements on future firmware. The same practice is written into the
+inverter's and the DAB's firmware lists ([09 · PCS-P125](09-pcs-p125.md), [10 · DAB-D60](10-dab-d60.md), with the DAB
+rules FW-DAB-1…11). The Wolfspeed packages themselves are open-loop starting points with almost no protection in
+firmware; their notes are in `docs/reference-designs/wolfspeed/<design>/FIRMWARE-NOTES.md`.
+
+<a id="cold-start"></a>
+
+**Cold start below the fans' rating** (PCM-17, [D-072](../requirements/DECISIONS.md)). Below −10 °C inlet the fans stay
+off and the module power is limited to a passive-cooling table; the fans start once the inlet NTC reads above −10 °C,
+and at once at a heatsink NTC ≥ 80 °C or an inductor NTC ≥ 135 °C whatever the inlet reads:
+
+| Inlet (°C) | −30 | −20 | −10 |
+|---|---:|---:|---:|
+| PV-P75, passive power (kW) | 19.2 | 17.5 | 15.5 |
+| PV-P75, pessimistic model (kW) | 6.8 | 0 | 0 |
+| PV-P100/110, passive power (kW) | 19.9 | 14.9 | 5.0 |
+
+<sub>ESTIMATES ±50 % ([module_spec.json](../../sim/out/pv_design/module_spec.json), `sim/pv_module.py` passive model:
+natural-convection heatsink and inductors, 2.4 W/K enclosure, 24 kJ/K structure); the inlet warms from −30 to −10 °C in
+about 45–48 min; at 611 / 611 V there is no passive power. PV-20's −30 °C therefore holds at reduced power only. Fans
+rated for −30 °C were priced and not taken (+225–300 USD per module).</sub>
+
+**Short-circuit timing in the gate drive.** The NSI6651 times its DESAT-to-output delay (≤ 360 ns) from the threshold
+crossing, with its deglitch filter inside it (NSI66x1A Fig. 8.10); the shared chain of `gen/gdrv.py` added the deglitch
+on top until the review (PCM-10). Each preset now prints a short-circuit acceptance rule — twice the energy-equivalent
+full-current time and fault energy of its chain, to be confirmed by the maker: PV t<sub>SC</sub> ≥ 2.10 µs / E<sub>SC</sub>
+≥ 0.87 J at 1100 V, PCS 2.07 µs / 0.82 J at 1050 V, DAB study 2.22 µs / 2.18 J at 1000 V (release blocks, risk C2).
 
 ---
 

@@ -28,6 +28,11 @@ II, AC SPD type II; DC OVC II / AC OVC III; PD3 outside / PD2 inside; "DC shorte
 "AC shorted protection: current control", residual-current monitoring, insulation-resistance detection and "AC relay
 automatic checking" integrated.
 
+> **Note 2026-10-05 (D-067, review PCM-05; `sim/out/pcs_design/report.md` (f), calculated):** "full load 600–900 V"
+> over 400 V ±15 % is not reachable with a 5 % loop headroom and the dead-time compensation: rated current needs
+> 605–643 V DC at a 400 V grid (624 V to connect) and 698–737 V at 460 V, so 590–600 V DC serves grids up to about
+> 360 V only. An open requirement decision for the owner; REQUIREMENTS.md is unchanged.
+
 ---
 
 ## 0. The design in one page
@@ -130,6 +135,14 @@ requirement on the battery and its cabling.
 | surge | DC: the PV rev-6 varistor network (Up,eff 3.79 kV); AC: type II on board — 3 thermally protected varistors L-PE (Thinking TVT25 300 V AC class) + GDT N-PE (4-wire), monitored like the DC network; OVC III at the terminals |
 | aux supply | the PV 75 W flyback on the DC link (590-950 V) + a 6-diode tap from the AC side (start from the grid when the battery is empty or disconnected) |
 
+> **Note 2026-10-05 (D-067, review PCM-03 / PCM-15; PCS-PWR design check, `sim/out/port_design/report.md` §14, calculated):**
+> the precharge and bleeder figures above are superseded. The bus carries 409.4 µF (bank + leg films): 185 J at 950 V,
+> within 10 V after 0.41 s; the shared precharge-resistor rating is 280 J at 105 ms / 900 J in 0.15 s; the bleeders are
+> 4 × 93.1 kΩ per half, 60 V after 14.7 min worst case under a "wait 15 min" label. The 400 A fuse (HIITIO
+> HCHVF1000-400A-38R) is coordinated with the HFE82V-300C: the port window opens the contactor up to its 967–1,033 A
+> hold-off band, 0.97–2.01 kA must be interrupted on the battery side within 2.5 s, the links clear 2.0–7.4 kA, and above
+> 7.5 kA prospective the battery side must limit or interrupt the current (R-05 below).
+
 ---
 
 ## 3. Insulation concept
@@ -171,6 +184,10 @@ basic as in PV (R-04 of the PV document).
 | insulation resistance (battery side, contactors open) | PV IMD (2 × CA-IS3417WT strings + PE divider) | as PV | — |
 | temperatures | NTC: heatsink 3, L1 3, DC link 1, inlet 1 (heatsink probes basic-insulated) | ±2 K | — |
 
+> **Note 2026-10-05 (D-067, review PCM-20):** the inverter-current sensor is frozen to the Sinomags STK-250HO/4 —
+> ±625 A linear, 3.2 mV/A on its own 2.5 V reference, 200 kHz, 2 µs maximum step response — not a ±400 A, 1 MHz TMR
+> part; the residual-current sensor is still a request for quotation.
+
 ---
 
 ## 5. Protection and safety
@@ -187,6 +204,13 @@ EN low, MCU trip zone, status output; cleared by firmware only when no source is
 | midpoint deviation | V(M − DC-) vs V_dc/2 | ±10 % | latch | ms |
 | over-temperature, aux loss (RDY), watchdog, external stop | as PV | as PV | latch | as PV |
 | grid out of window / loss of mains / RCMU step / insulation fault | firmware on the sensed values | EN 50549-1 settings | firmware stops PWM, then opens the AC contactors at zero current | ≤ 200 ms (EN 50549 / GB/T settings) |
+
+> **Note 2026-10-05 (D-062, D-067; PCS-CTL and PCS-PWR design checks, calculated):** as drawn, the phase window is
+> ±455 A nominal (426–486 A worst case, gates off 3.47 µs) with the CMPSS backup at 493–571 A (2.86 µs); the DC
+> over-voltage comparator is 978–1,048 V on the bus and 508–569 V on the lower half; the upper half and the midpoint
+> are firmware limits (V<sub>B</sub> − V<sub>A</sub> ≥ 540 V within ≤ 72 µs; \|V<sub>A</sub> − V<sub>B</sub>/2\| > 0.07
+> V<sub>B</sub> for 1 s, controlled stop) instead of a ±10 % latch; desaturation of the SiC switches trips at
+> 6.41–9.37 V (2 × US1MH).
 
 **AC short circuit (terminal or grid fault):** the inverter limits its current (≤ 1.2 × I_max for 200 ms, then
 trips) — no AC fuse, as Megarevo; the upstream AC breaker protects the cable. **DC side:** fuses + contactor + hold-off
@@ -307,6 +331,9 @@ power stage, LCL magnetics, AC port (contactors, AC SPD, RCMU, CM cores), grid s
 | R-09 | F280039C: 23-24 of 25 ADC channels, 16 of 16 PWM (4-wire); CPU load for 4-wire grid-forming not timed; F28P550 pin compatibility unknown | firmware budget; data-sheet check |
 | R-10 | Type-B RCM sensor: no Chinese data sheet on file | file one |
 | R-11 | 83 % of the 5,000-unit figure is an assumed factor | quotes at 5 k |
+
+> **Note 2026-10-05 (D-067):** R-05's coordination is computed (see the note under §2); the fuse chart's high-current
+> tail does not match its tabulated I²t, which stays a quotation or test item.
 
 ---
 

@@ -2472,7 +2472,7 @@ def report_f(r, rc):
     wr(f"\n**DC port = the lean battery port scaled to 250 A:** {d['contactor']}; {d['fuse']}; hold-off threshold {d['hold_off_threshold_A']:.0f} A "
        f"(the contactor stays closed above it and lets the fuse clear - discrete comparator, D-050) and hardware polarity / precharge-dV interlocks in the coil drives; {d['shunt']}; port over-current "
        f"{d['oc_trip_A']:.0f} A and over-voltage {d['ov_trip_V']:.0f} V as ADC limit trips.  The 400 A fuse's slow region (1.5-3 kA, seconds) "
-       f"leaves the upstream requirement on the battery's own breaker (R-05: re-run the port_design coordination with the chosen fuse).")
+       f"leaves the upstream requirement on the battery's own breaker (R-05 closed on 2026-10-05: sim/port_design.py section 14 computes the coordination with the 400 A fuse and the HFE82V-300C - bands and installation requirements in the PCS-PWR design check, review PCM-15).")
 
 
 # ------------------------------------------------------------------------------------------------ (g) cost

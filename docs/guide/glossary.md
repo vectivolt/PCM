@@ -22,6 +22,7 @@
 | **Catalogue price** | The price break at the highest quantity up to 1,000 pieces from the best documented source, LCSC first. |
 | **CM / DM** | Common mode / differential mode (noise, chokes, filters). |
 | **CMPSS** | Comparator subsystem of the TI C2000 controller, used for fast hardware trips. |
+| **CMRR** | Common-mode rejection ratio of a comparator or amplifier; at a trip node away from 0 V it adds an offset to the comparator band ([risk C9](12-risks-and-open-items.md)). |
 | **CMTI** | Common-mode transient immunity of an isolator or gate driver, in V/ns. |
 | **Contactor** | Electromechanical switch for the DC port; it must never be asked to open a current above its breaking capacity. |
 | **Cost-first architecture** | The re-architecture of 2026-10-04 ([D-044](../requirements/DECISIONS.md)): one power board and one control board, control on the negative rail, one reinforced barrier, lean port protection. |
@@ -39,11 +40,13 @@
 | **FSBB** | Four-switch buck-boost: a non-inverting converter that steps up or down, with a half bridge on each port. |
 | **Gate 0** | The roadmap's first development gate, architecture closure: specifications, topology trade-off, source review. |
 | **gBat / gPV** | Fuse classes for battery and photovoltaic circuits (full-range breaking). |
+| **GFL / GFM** | Grid-following / grid-forming control of an inverter: injecting a current in step with the grid's voltage, or forming the voltage itself (off grid or islanded). |
 | **IGBT / SiC MOSFET** | Silicon insulated-gate bipolar transistor / silicon-carbide MOSFET, the two power-switch technologies compared in this project. |
 | **IMD** | Insulation monitoring device: measures the insulation resistance of the floating DC system to earth. |
 | **Interleaving** | Running parallel phases with shifted switching instants (120° for three, 90° for four) so their ripple currents partly cancel. |
 | **LCL filter** | Inverter-side inductor, capacitor, grid-side inductor: the grid filter of PCS-P125. |
 | **LCSC** | Chinese electronic-component distributor, the first price source of the cost model. |
+| **LUT** | Look-up table; here the DAB's offline table of phase shifts per operating point. |
 | **Miller clamp / false turn-on** | A fast voltage rise on a switch's drain couples charge into the gate of the off device through its Miller capacitance; a clamp holds the gate low. |
 | **Module** | In this documentation, a product such as PV-P75. A *power module* is a semiconductor package with several switches inside. |
 | **MOV / varistor** | Metal-oxide varistor: the surge-protection element of the port network. |
@@ -55,10 +58,14 @@
 | **PD** | Pollution degree (insulation coordination) — or partial discharge in transformer testing; the text says which. |
 | **PE** | Protective earth. |
 | **PELV / SELV** | Protective / safety extra-low voltage: circuits a person may touch. The earlier platform put the controller on a PELV island; the cost-first design keeps only communication and fans on the SELV side. |
+| **PLL** | Phase-locked loop: tracks the angle and frequency of the grid voltage. |
+| **PR controller** | Proportional-resonant current controller in the stationary frame, with resonant terms at the fundamental and selected harmonics (PCS-P125: h5, h7). |
 | **Precharge** | Charging the DC-link capacitors through a resistor before the main contactor closes. |
 | **REAL (5,000-unit basis)** | A volume price taken from a published break of at least 1,000 pieces. |
+| **SCR** | Short-circuit ratio of the grid at the connection point: "stiff" is very large, SCR 5 is a weak grid. |
 | **SOA** | Safe operating area of a power device. |
 | **SPS / TPS** | Single / triple phase-shift modulation of a DAB. |
+| **t<sub>SC</sub> / E<sub>SC</sub>** | Short-circuit withstand time / energy of a device. No Chinese SiC maker publishes them; each gate-drive preset prints the values a maker must confirm before release. |
 | **THDi** | Total harmonic distortion of the current. |
 | **TMR sensor** | Tunnel-magnetoresistance current sensor: an open-loop, low-cost alternative to closed-loop transducers. |
 | **Trip latch** | The single hardware latch of the cost-first control board: any trip source turns all gates off until it is cleared. |

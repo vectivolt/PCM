@@ -76,14 +76,45 @@ flowchart LR
 | Rating | Per phase | PV-P75 (3 phases) | PV-P100/110 (4 phases) |
 |---|---:|---:|---:|
 | Rated / maximum power (kW) | 25 / 27.5 | 75 / 82.5 | 100 / 110 |
-| Current on the lower-voltage port (A) | 45 | 135 | 180 |
+| Port current limits, PV port A / battery port B (A) | 45 (share) | 135 / 135 | 180 / 145 |
 | Port voltage range (V) | 250–1000 | 250–1000 | 250–1000 |
-| Full-power window (V) | 550–950 | 550–950 | 550–950 |
-| Power limit rule | min(27.5 kW, 45 A × min(V<sub>A</sub>, V<sub>B</sub>)) | 82.5 kW from 611 V | 110 kW from 611 V |
+| Full-power window (V), as required | 550–950 | 550–950 | 550–950 |
+| Phase limits | 45 A inductor current in buck / boost, 47.70 A in the band; 27.5 kW at the port-A node | 82.5 kW at the source from 611 V | see the envelope below |
 | Switching frequency, carrier | 32 kHz, centre-aligned | 120° interleave | 90° interleave |
 
 <sub>Sources: [REQUIREMENTS.md §2](../requirements/REQUIREMENTS.md), [cell_spec.json](../../sim/out/pv_design/cell_spec.json)
-`ratings`, `switching`; [control_spec.json](../../sim/out/pv_control/control_spec.json) `sampling.interleave_deg`.</sub>
+`ratings`, `switching`; [control_spec.json](../../sim/out/pv_control/control_spec.json) `limits`, `sampling.interleave_deg`.</sub>
+
+### Delivered-power envelope
+
+The limits are separate since the review ([D-065](../requirements/DECISIONS.md), PCM-01 / PCM-13): the inductor
+(phase) current is held at **45 A in buck and boost** (one leg switching, the inductor's DC design current) and at
+**47.70 A in the band** (both legs near D<sub>max</sub>, the inductor's rms design value); the 27.5 kW per phase is
+held at the port-A node; the port currents (PV 135 / 180 A, battery 135 / 145 A) are converted through each phase's
+actual duty. Before, the 45 A port rating clamped the inductor in every mode, which held PV-P75 to 70.0 kW at
+550 / 550 V. At the band limit every hardware value stays inside its design point (peak 52.3 A against 62.3 A, device
+46.3 A rms, hottest junction 109.5 °C). D<sub>max</sub> = 0.94333 cannot rise: the 1.771 µs minimum pulse is the
+0.6 µs on-time plus twice the 586 ns dead-time stretch, which stays ([D-050](../requirements/DECISIONS.md)).
+
+| Product, rating | Direction | Lowest V<sub>A</sub> = V<sub>B</sub> for the rating at 35 / 45 / 60 °C inlet | Note (calculated) |
+|---|---|---|---|
+| PV-P75, 75 kW | A→B and B→A | 562 V / 562 V / not reached | 73.3 kW delivered at 550 / 550 V |
+| PV-P100, 100 kW | A→B | 690 V / 690 V / not reached | the 145 A battery port binds below about 690 V |
+| PV-P100, 100 kW | B→A | 696 V / 697 V / not reached | the battery is the source, so the delivered power also carries the module loss |
+| PV-P110, 110 kW | A→B | not reached | at most 108.75–108.99 kW delivered at 750–950 V (35 °C): 110 kW is drawn at the PV port |
+| PV-P110, 110 kW | B→A | 765 V / not reached / not reached | full power only at 35 °C inlet |
+
+<sub>Source: [pv_control report §12](../../sim/out/pv_control/report.md) and [envelope.csv](../../sim/out/pv_control/envelope.csv)
+(steady state; thermal derating of [module_spec.json](../../sim/out/pv_design/module_spec.json) applied on the delivered
+power; calculated). At 60 °C inlet no product reaches its rating (PV-P75 0.754, PV-P100/110 0.720 of P<sub>max</sub>).</sub>
+
+Two requirement questions follow, published as they are (owner's decisions, [risk group G](12-risks-and-open-items.md#requirements-contradicted)):
+**75 kW at exactly 550 V needs 136.4 A** at the port before loss (138.1 A at the source with the module loss) against the
+135 A of PV-05 / PV-08 — the requirement set (PV-04 / PV-07 against PV-05 / PV-08) is inconsistent by 1 % at that
+corner, and the module reaches its rating from 562 V. **PV-P110's 110 kW is an input-side rating**: the per-phase limit is
+held at the PV node, so A→B the module delivers 108.8 kW ([D-065](../requirements/DECISIONS.md)); referencing the limit
+to the delivered side would put +1.0 % on the phases at the unity points ≥ 750 V, which the thermal derating then has to
+hold.
 
 ## 🔬 Trade study: why two-level
 
@@ -125,7 +156,7 @@ phase at 30 K more junction temperature.
 
 | Role | Part | Per module | Evidence on file | Price (USD) |
 |---|---|---:|---|---:|
-| **Primary** | Sichain SG2M040170HJ, 1700 V, 40 mΩ, TO-247-4L, 2 per switch | 24 (32) | datasheet only; **no qualification statement** (p1: halogen-free / RoHS; p14: consult Sichain for high-reliability use); no short-circuit rating; no cosmic-ray FIT curve | 4.07 — **estimate** (scaled from the LCSC price of the 20 mΩ part) |
+| **Primary** | Sichain SG2M040170HJ, 1700 V, 40 mΩ, TO-247-4L, 2 per switch | 24 (32) | datasheet only; **no qualification statement** (p1: halogen-free / RoHS; p14: consult Sichain for high-reliability use); no short-circuit rating; no cosmic-ray FIT curve | 5.07 at 90+ (6.73 at 1): LCSC C42456100, 418 in stock, read 2026-10-05 — a catalogue reading, not a quotation ([D-069](../requirements/DECISIONS.md)) |
 | Qualified fallback | Microchip MSC035SMA170B4, 2 per switch at +20 / −4 V, assembly variant of the same board | 24 (32) | qualified; 3.1 µs typical short-circuit withstand at 1200 V | 39.44 (RS HK) |
 | Rejected | InventChip IV2Q17020T4Z / IV2Q17040T4Z | — | fail the false-turn-on check: +4.0 / +4.41 V at the die even with an ideal clamp ([D-043](../requirements/DECISIONS.md)) | RFQ |
 | Module option | none | — | no 1700 V SiC module in the 20–60 mΩ class at any maker that could be read; a module would have to beat 16.5 USD per half-bridge ([D-055](../requirements/DECISIONS.md), [asia_modules.md](../../sim/data/asia_modules.md)) | — |
@@ -134,7 +165,8 @@ Calculated device stress (PV-PWR design check, worst case of the envelope):
 
 | Quantity | Value | Rule or rating | Ratio |
 |---|---:|---:|---:|
-| Peak V<sub>DS</sub> at the 1100 V trip and 72.4 A, with turn-on ringing (V) | 1,401 | 0.85 × 1,700 | 0.82 |
+| Peak V<sub>DS</sub> at the 1100 V trip and 72.4 A, with turn-on ringing — lumped 20 nH deck without a capacitor model (V) | 1,401 | 0.85 × 1,700 | 0.82 |
+| Peak V<sub>DS</sub> at 1100 V and 72.5 A — leg deck with the drawn Jianghai capacitors (V) | 1,374 | 0.85 × 1,700 | 0.81 |
 | Continuous V<sub>DS</sub> (V) | 1,000 | 0.67 × 1,700 | 0.59 |
 | RMS current per device (A) | 23.2 | I<sub>D</sub> at 100 °C: 47 | 0.49 |
 | Turn-off current per device (A) | 36.2 | I<sub>DM</sub>: 188 | 0.19 |
@@ -142,8 +174,10 @@ Calculated device stress (PV-PWR design check, worst case of the envelope):
 
 > [!WARNING]
 > The primary device carries the design without a qualification statement, a short-circuit rating or a price
-> quotation. Sichain's reliability data and a quote are a release condition ([D-043](../requirements/DECISIONS.md), risk
-> R-02); the short-circuit protection timing below assumes a 2.0 µs withstand.
+> quotation (its LCSC catalogue price is now read, [D-069](../requirements/DECISIONS.md)). Sichain's reliability data and a
+> quote are a release condition ([D-043](../requirements/DECISIONS.md), risk R-02); the short-circuit protection timing
+> below assumes a 2.0 µs withstand, and the release needs the maker to confirm t<sub>SC</sub> ≥ 2.10 µs and
+> E<sub>SC</sub> ≥ 0.87 J per device at 1100 V / 150 °C (risk C2).
 
 ## 🛡️ Gate-drive channel
 
@@ -156,14 +190,15 @@ longer carries a reinforced claim ([02 · Architecture](02-architecture.md)).
 | NOVOSENSE NSI6651ASC-Q1 isolated driver, 10 A, DESAT, soft turn-off | one per switch position; V<sub>CC2</sub> UVLO drives RDY | — |
 | Gate bias: per phase one SN6505B push-pull + transformer T_BIAS4 (1 : 6, 4 secondaries); per channel a regulator for V<sub>DD</sub>–V<sub>EE</sub> 21.29–21.80 V and a shunt for COM–V<sub>EE</sub> 3.47–3.54 V | V<sub>GS</sub> on 17.75–18.33 V (window 17.5–18.5 V), off −3.47…−3.54 V; 3.11 W per phase from 5 V; winding capacitance ≤ 3.43 pF | too low a gate voltage (UVLO → RDY → latch) |
 | Split gate resistors per device: 3.75 Ω on, 2.5 Ω off, plus 0.5 Ω Kelvin-source resistor | — | turn-on ringing beyond 0.85 × V<sub>DSS</sub>; current sharing between the paralleled devices |
-| Miller clamp: one clamp MOSFET per gate at the gate–Kelvin pins (clamp loop ≤ 1 nH, a layout rule) | die +1.38 V against a 1.94 V minimum threshold at 175 °C (1100 V, 72.4 A); +2.32 V at the pin without the clamp | false turn-on of the off device at 124 V/ns |
-| DESAT: string of 3 × US1MH to the drain | trips at V<sub>DS</sub> 5.43–8.27 V (1.7 × the 3.13 V on-state at the trip current, 175 °C); blanking 263–810 ns | shoot-through, short circuit |
-| Short-circuit booster: fires above the driver's 9.8 V maximum DESAT trip | gates off 0.62 µs after detection; 1.03 µs typical / 1.08 µs worst from fault to off, against an **assumed** 2.0 µs withstand | the driver's slow soft turn-off (1.96 µs alone) |
+| Miller clamp: one clamp MOSFET per gate at the gate–Kelvin pins (clamp loop ≤ 1 nH, a layout rule) | die +1.21…+1.40 V against a 1.94 V minimum threshold at 175 °C on the leg deck with the drawn capacitors (margin 0.54 V, design margin 0.5 V); pin −2.51…−2.47 V | false turn-on of the off device at 124 V/ns |
+| DESAT: string of 3 × US1MH to the drain | trips at V<sub>DS</sub> 5.43–8.47 V (1.7 × the 3.13 V on-state at the trip current, 175 °C); blanking 263–821 ns | shoot-through, short circuit |
+| Short-circuit booster: fires above the driver's 10.0 V maximum DESAT trip | gates off 0.42 µs after detection: the driver's DESAT-to-output delay (≤ 360 ns, its deglitch filter inside it), then the booster; from the fault 1.17 µs typical / 1.51 µs worst in the control model, which adds the deglitch after the blanking once more (conservative) — against an **assumed** 2.0 µs withstand; energy-equivalent full-current time 1.05 µs | the driver's slow soft turn-off (1.96 µs alone) |
 | Dead-time stretch: RC (4.02 kΩ / 100 pF C0G) + Schmitt on IN−, driver interlock | 211–554 ns at the gates; firmware dead band 200 ns | a firmware dead time of zero: about 85 ns of overlap and 59 mJ per edge, ending before the DESAT blanking — the switches would fail within milliseconds ([D-050](../requirements/DECISIONS.md)) |
 | Negative-rail detector | a lost COM–V<sub>EE</sub> trips DESAT at the next turn-on | +5.1 V at the die, 1.57 mJ per event, about 50 W at 32 kHz that DESAT would never see |
 | Default-off pull-downs and EN gating | every PWM line 10 k + AND with EN; all RST/EN pulled down | gates turning on while the controller is in reset or unprogrammed |
 
-<sub>Sources: [PV-PWR design check](../../hardware/PV-PWR/outputs/PV-PWR_design_check.txt) ("Gate drive", "Dead time"),
+<sub>Sources: [PV-PWR design check](../../hardware/PV-PWR/outputs/PV-PWR_design_check.txt) ("Gate drive", "Dead time",
+"Leg commutation"), the `2 × SG2M040170HJ` preset of the [GDRV-HB design check](../../hardware/GDRV-HB/outputs/GDRV-HB_design_check.txt),
 [pv_design report §4](../../sim/out/pv_design/report.md), [pv_control report §9.3](../../sim/out/pv_control/report.md),
 [ARCHITECTURE-COSTFIRST.md §6.5](../requirements/ARCHITECTURE-COSTFIRST.md).</sub>
 
@@ -176,14 +211,27 @@ alternates of the driver are compared in [GDRV-ALTERNATES.md](../requirements/GD
 | Position | Part and quantity | Calculated duty | Rating | Note |
 |---|---|---|---|---|
 | Port banks | FCSA3DS456 (45 µF PP film): port A 6 (2 per phase) = 270 µF; port B 7 = 315 µF; PV-P100/110: 8 per port = 360 µF | 1,100 V max; OV overshoot 1,144 V; 11.8 A rms per capacitor (worst phase, no interleaving credit) | 1,100 V at 85 °C hot spot (≤ 1.15 × after IEC 61071); 22.1 A at 85 °C | ripple at 53 % of rating; port B is sized by full-power load rejection (278.5 µF needed, [D-058](../requirements/DECISIONS.md)) |
-| Leg decoupling | 3 × FCSA3DS225 per leg | 62.5 A peak (with recovery), 3.04 A rms, 0.21 W | 176 A peak, 3.9 A rms | ESL 8.3 nH per leg against the 8.5 nH basis |
-| RC damper per leg | 2 × (3 × 15 Ω 2512) + 2 × 4.7 nF 2 kV C0G | 5.68 W at the trip corner, 235 V per resistor | 7.4 W at 85 °C board, 500 V | C0G at 687 V per element (≤ 50 %) |
+| Leg decoupling | 3 × FCSA3DS225 per leg | 61.5 A peak (with recovery), 3.56 A rms, 0.29 W | 176 A peak, 3.9 A rms (85 °C) | ESL 8.3 nH per leg against the 8.5 nH basis |
+| RC damper per leg | 2 × (3 × 15 Ω 2512) + 2 × 4.7 nF 2 kV C0G | 5.71 W at the trip corner, 235 V per resistor | 7.4 W at 85 °C board, 500 V | C0G at 687 V per element (≤ 50 %) |
 | X capacitor per port | 2.2 µF / 1300 V (RFQ) | surge network | impulse ≥ 4.5 kV | |
 | Y1 per port | 2 × 4.7 nF to PE | 1,144 V pole–PE | 1,500 V DC | 76 % |
 
-<sub>Source: [PV-PWR design check](../../hardware/PV-PWR/outputs/PV-PWR_design_check.txt). **Open (R-08):** the Chinese
-film capacitors' ESL (35 nH bank / 25 nH decoupling) differs from the KEMET parts in the leg deck
-(`sim/spice/pv_dpt_leg_dec.cir`), which has to be re-run.</sub>
+<sub>Source: [PV-PWR design check](../../hardware/PV-PWR/outputs/PV-PWR_design_check.txt).</sub>
+
+**Leg commutation with the capacitors as drawn** (PCM-18, [D-072](../requirements/DECISIONS.md); ngspice, calculated).
+The leg decks now carry the Jianghai FCSA3DS456 bank share and 3 × FCSA3DS225 per leg with their datasheet ESL / ESR,
+and the generator asserts that the deck parts equal the drawn parts and that the two decks agree within 1 V:
+
+| Corner | V<sub>DS</sub> peak (V) | Limit 0.85 × 1,700 V |
+|---|---:|---:|
+| 1000 V, 62.3 A (normal peak) / 72.5 A (hardware trip) | 1,274.8 / 1,281.0 | 1,445 |
+| 1100 V, 62.3 A / 72.5 A (gates-off corner) | 1,367.0 / **1,374.4** | 1,445 |
+
+<sub>The earlier deck with the previous capacitor values gave 1,373.8 V (+0.6 V now). The held-off gate stays at
++1.21…+1.40 V at the die against 1.94 V at 175 °C; each FCSA3DS225 sees 34–38 A peak (61.5 A with the reverse-recovery
+surrogate) against 176 A and 3.1–3.6 A rms against 3.9 A at 85 °C. Neither capacitor datasheet gives a reversal allowance
+(−104 V inside the bank in the bolted-short study) — open. Source: [PV-PWR design check](../../hardware/PV-PWR/outputs/PV-PWR_design_check.txt)
+"Leg commutation", [review_pcm.csv](../../gen/data/review_pcm.csv) PCM-18.</sub>
 
 ## 🔬 Losses, efficiency and temperature
 
@@ -209,7 +257,7 @@ exclude fans, controller and port parts.
 parts and the round-wire inductor of [D-054](../requirements/DECISIONS.md)) give, calculated, for PV-P75: peak
 efficiency 99.47 % at 900 → 1000 V and 49.5 kW (25 °C inlet; phases, ports, auxiliary supply, contactor coils and fans
 all counted) and 98.77–99.07 % at the full-power corners at 45 °C inlet. At full power and 45 °C inlet the junction is
-109.5 °C, the heatsink 82.2 °C and the inductor hot spot 144.7 °C (the power-board check below gives 107.3 °C for the
+109.5 °C, the heatsink 82.2 °C and the inductor hot spot 144.7 °C (the power-board check below gives 107.5 °C for the
 junction). Full power holds to 45 °C inlet and 75 % of it at 60 °C; at 3,000 m and 45 °C inlet 79 %. PV-P100/110 peaks
 at 99.46 % but is a derated build on these boards: its inductors limit it to full power up to 35 °C inlet (92 % at
 45 °C), and the 145 A battery port needs at least 690 V for 100 kW.
@@ -218,17 +266,22 @@ at 99.46 % but is a derated build on these boards: its inductors limit it to ful
 |---|---:|---:|
 | Shared heatsink, R<sub>sa</sub> incl. air rise (K/W) | ≤ 0.060 at ~402 m³/h | ≤ 0.049 at ~456 m³/h |
 | Device losses (W) | 536 | 715 |
-| Heatsink (°C) | 77.2 | 80.0 |
-| Hottest junction (°C), design limit 125 °C | 107.3 | 110.1 |
+| Heatsink (°C) | 77.4 | 80.0 |
+| Hottest junction (°C), design limit 125 °C | 107.5 | 110.1 |
 | Inductor hot spot at 55 °C local air (°C), limit 155 °C | 145 | 145 |
 
 <sub>Source: power-board design checks ([PV-PWR](../../hardware/PV-PWR/outputs/PV-PWR_design_check.txt),
 [PV-PWR-4](../../hardware/PV-PWR-4/outputs/PV-PWR-4_design_check.txt)). The per-phase heatsinks of the earlier platform
-gave 78–80 °C.</sub>
+gave 78–80 °C. **One fan-supply contract** (PCM-26, [D-072](../requirements/DECISIONS.md)): the SELV winding gives
+S_24V ≥ 24.50 V at the worst cross-regulation point, the fan buck then runs in dropout and passes 23.59 V at 1.50 A on
+PV-P75 — the fans run at 23.6 V instead of the 24.0 V of the thermal model, airflow × 0.983 (395 instead of 402 m³/h),
+which the PV-P75 column already carries; PV-P100/110 23.27 V at 2.21 A, airflow × 1.000. Fan speed proportional to
+voltage is assumed. The 25.6 V the control board used to state is retired.</sub>
 
 The check also raised a finding the control board then implemented: to keep a 5 K margin on the junction, the heatsink
-over-temperature trip must be ≤ 89.9 °C, not the architecture's 95 °C — PV-CTL trips at 86.3–89.5 °C. The three fans
-(Delta AFB1224SHE-F00) are rated only to −10 °C against the −30 °C of PV-20 (risk R-05).
+over-temperature trip must be ≤ 89.9 °C, not the architecture's 95 °C — PV-CTL trips at 86.2–89.6 °C. The three fans
+(Delta AFB1224SHE-F00) are rated only to −10 °C against the −30 °C of PV-20 (risk R-05): below −10 °C inlet the
+firmware keeps them off and limits the power to a passive-cooling table ([05 · Control and firmware](05-control-and-firmware.md#cold-start)).
 
 <details>
 <summary>Existing simulation plots of the cell design (efficiency maps, load curves, ngspice against analytic)</summary>
@@ -271,6 +324,7 @@ flowchart LR
 
 | Function | Port A (PV) | Port B (battery or DC bus) |
 |---|---|---|
+| Admitted source (port A declaration, [D-072](../requirements/DECISIONS.md)) | a current-limited PV array only: I<sub>sc</sub> ≤ 168.8 A at the terminals (225 A for PV-P100/110), V<sub>oc</sub> ≤ 1000 V, string fuses and a load-break isolator in the combiner, ≤ 1.1 µF terminal to terminal behind ≥ 11 µH; **not** a stiff DC source (about 7.4 kA peak onto the empty bank) and **no** reverse power into the array (firmware holds I<sub>A</sub> ≥ 0) | a battery or DC bus |
 | Contactor | HFE82V-300C/1000 in A+ (300 A at 85 °C; 200 openings at 300 A / 1000 V; no auxiliary contact) | same in B+ |
 | Fuses | none: the array cannot exceed 169 A | Hongfa HPE501/000B100-250 aR in both poles; breaks only 1.25–50 kA |
 | Precharge | none; with a battery present the converter precharges bank A from bank B | relay + 220 Ω: τ 69 ms, ΔV ≤ 10 V after 0.32 s, 158 J per attempt |
@@ -289,7 +343,9 @@ flowchart LR
 
 What the published data do **not** support, stated by the port report itself: Hongfa's "1.5 kA once" is a no-fire test,
 not a rated interruption; the 1.0 kA hold-off rule rests on an interpolation (2.3 openings) at L/R ≤ 1 ms; closing K_A
-onto an empty bank at 1000 V makes about 499 A (estimate) against a published make rating of 140 A at 20 V only. The
+onto an empty bank at 1000 V makes about 499 A (estimate) against a published make rating of 140 A at 20 V only — so
+with port B live the converter first precharges bank A to within 20 V, and the PV-only start stays an open item for
+Hongfa (R-04). The
 coordination with the upstream protection is on [04 · Protection and safety](04-protection-and-safety.md). The
 capacitance to PE puts about 11 mA into the protective conductor: the product needs PE ≥ 10 mm² Cu and a
 high-touch-current label ([D-048](../requirements/DECISIONS.md)).

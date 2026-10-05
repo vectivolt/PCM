@@ -54,7 +54,7 @@ ASSUME = {
     "sensor": ({"part": "Sinomags STK-250HO/4", "G_mV_per_A": 3.2, "Vref_V": 2.5, "linear_A": 625.0, "bw_kHz": 200.0,
                 "t_step_us": 2.0},
                "phase-current sensor being frozen in sim/pcs_design.py by a parallel task (orchestrator brief 2026-10-05; "
-               "not in pcs_spec at run time); the drawn PCS-CTL still assumes G 4.0 mV/A and a 1.0 us response. Loop: the "
+               "read from pcs_spec phase_current_sensor at run time when that block exists, else this entry); PCS-CTL rev A0 re-valued its ladders for the 3.2 mV/A part (PCM-20). Loop: the "
                "design check's chain delay with its sensor term replaced by t_step, as one lag (conservative: 200 kHz alone "
                "is a 0.8 us lag)"),
     "slow_sensor": (2.0, "robustness corner: current-chain delay x this (a sensor or AFE slower than its data-sheet "

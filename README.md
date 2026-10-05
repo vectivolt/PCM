@@ -31,12 +31,12 @@ bench-validated: every figure is calculated, simulated or estimated, and is labe
 
 | Product | What it is | Rating | Ports | Status as of 2026-10-05 |
 |---|---|---|---|---|
-| **PV-P75** | non-isolated bidirectional buck-boost DC/DC with MPPT | 75 kW · 82.5 kW max | both 250–1000 V · 135 A | power board **PV-PWR rev A2** + control board **PV-CTL rev A1** drawn; every build check passes |
-| **PV-P100/110** | four-phase build of the same design | 100 / 110 kW | both 250–1000 V · 145 A on the battery port | PV-PWR-4 + PV-CTL drawn; checks pass; a derated build today (100 kW from 690 V, full power to 35 °C inlet) |
-| **PCS-P125** | three-phase bidirectional DC-to-AC battery inverter | 125 kW · 150 kVA max | DC 590–950 V · 400/230 V AC, 180 A | power board **PCS-PWR rev A0** + control board **PCS-CTL rev A0** drawn for the three-wire build, every build check passes ([D-064](docs/requirements/DECISIONS.md)); control simulation and independent review to do |
-| **DAB-D60** | isolated dual-active-bridge DC/DC | 60 kW | 590–950 V · 400–900 V | design and control re-run with Chinese devices; board DAB60 rev B frozen, to be redrawn cost-first |
+| **PV-P75** | non-isolated bidirectional buck-boost DC/DC with MPPT | 75 kW · 82.5 kW max | both 250–1000 V · 135 A | power board **PV-PWR rev A2** + control board **PV-CTL rev A1** drawn; every build check passes; independent review answered ([D-065](docs/requirements/DECISIONS.md), [D-072](docs/requirements/DECISIONS.md)); rated power from 562 V at equal port voltages (calculated); BOM 976 / 817 USD |
+| **PV-P100/110** | four-phase build of the same design | 100 / 110 kW | both 250–1000 V · 145 A on the battery port | PV-PWR-4 + PV-CTL drawn; checks pass; a derated build today (100 kW from 690 V, full power to 35 °C inlet); PV-P110's 110 kW is a PV-input rating (108.8 kW delivered A→B); BOM 1,167 / 977 USD |
+| **PCS-P125** | three-phase bidirectional DC-to-AC battery inverter | 125 kW · 150 kVA max | DC 590–950 V · 400/230 V AC, 180 A | power board **PCS-PWR rev A0** + control board **PCS-CTL rev A0** drawn for the three-wire build, every build check passes; control studied by calculation ([D-066](docs/requirements/DECISIONS.md)); independent review answered ([D-067](docs/requirements/DECISIONS.md)); BOM 1,557 / 1,322 USD; four-wire not drawn |
+| **DAB-D60** | isolated dual-active-bridge DC/DC | 60 kW | 590–950 V · 400–900 V | device study with Chinese discretes (not drawn), corrected after the review ([D-068](docs/requirements/DECISIONS.md)); board DAB60 rev B (Wolfspeed modules) frozen, to be redrawn cost-first |
 
-<sub>Ratings: <a href="docs/requirements/REQUIREMENTS.md">REQUIREMENTS.md</a> (PV-01…08, AC-02, DAB-01, DAB-10/11). The earlier full-featured eight-board platform is kept as the roadmap's reference implementation and is not developed further.</sub>
+<sub>Ratings: <a href="docs/requirements/REQUIREMENTS.md">REQUIREMENTS.md</a> (PV-01…08, AC-02, DAB-01, DAB-10/11). BOM figures are catalogue / 5,000 units in USD, estimates where no price exists (<a href="bom/COST.md">bom/COST.md</a>, as of 2026-10-05). The earlier full-featured eight-board platform is kept as the roadmap's reference implementation and is not developed further.</sub>
 
 ## 🔬 Status dashboard
 
@@ -44,10 +44,10 @@ bench-validated: every figure is calculated, simulated or estimated, and is labe
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | **PV-P75** | ![done](https://img.shields.io/badge/-done-00A99D?style=flat-square) | ![done](https://img.shields.io/badge/-done-00A99D?style=flat-square) | ![done](https://img.shields.io/badge/-done-00A99D?style=flat-square) | ![drawn](https://img.shields.io/badge/-2%20boards-00A99D?style=flat-square) | ![pass](https://img.shields.io/badge/-pass-00A99D?style=flat-square) | ![estimate](https://img.shields.io/badge/-mostly%20estimate-F2A007?style=flat-square) | — |
 | **PV-P100/110** | ![done](https://img.shields.io/badge/-done-00A99D?style=flat-square) | ![done](https://img.shields.io/badge/-done-00A99D?style=flat-square) | ![open](https://img.shields.io/badge/-thermal%20open-F2A007?style=flat-square) | ![drawn](https://img.shields.io/badge/-2%20boards-00A99D?style=flat-square) | ![pass](https://img.shields.io/badge/-pass-00A99D?style=flat-square) | ![estimate](https://img.shields.io/badge/-mostly%20estimate-F2A007?style=flat-square) | — |
-| **PCS-P125** | ![done](https://img.shields.io/badge/-done-00A99D?style=flat-square) | ![revised](https://img.shields.io/badge/-revised%20D--053-F2A007?style=flat-square) | ![in study](https://img.shields.io/badge/-power%20stage%20only-F2A007?style=flat-square) | ![drawn](https://img.shields.io/badge/-2%20boards-00A99D?style=flat-square) | ![pass](https://img.shields.io/badge/-pass-00A99D?style=flat-square) | ![estimate](https://img.shields.io/badge/-estimate-F2A007?style=flat-square) | — |
-| **DAB-D60** | ![done](https://img.shields.io/badge/-done-00A99D?style=flat-square) | ![outline](https://img.shields.io/badge/-outline-F2A007?style=flat-square) | ![done](https://img.shields.io/badge/-re--run-00A99D?style=flat-square) | ![frozen](https://img.shields.io/badge/-rev%20B%20frozen-F2A007?style=flat-square) | ![pass](https://img.shields.io/badge/-pass%20%28rev%20B%29-00A99D?style=flat-square) | ![old](https://img.shields.io/badge/-earlier%20platform-F2A007?style=flat-square) | — |
+| **PCS-P125** | ![done](https://img.shields.io/badge/-done-00A99D?style=flat-square) | ![revised](https://img.shields.io/badge/-revised%20D--053-F2A007?style=flat-square) | ![in study](https://img.shields.io/badge/-power%20stage%20%2B%20control-00A99D?style=flat-square) | ![drawn](https://img.shields.io/badge/-2%20boards-00A99D?style=flat-square) | ![pass](https://img.shields.io/badge/-pass-00A99D?style=flat-square) | ![estimate](https://img.shields.io/badge/-estimate-F2A007?style=flat-square) | — |
+| **DAB-D60** | ![done](https://img.shields.io/badge/-done-00A99D?style=flat-square) | ![outline](https://img.shields.io/badge/-outline-F2A007?style=flat-square) | ![done](https://img.shields.io/badge/-study%2C%20not%20drawn-F2A007?style=flat-square) | ![frozen](https://img.shields.io/badge/-rev%20B%20frozen-F2A007?style=flat-square) | ![pass](https://img.shields.io/badge/-pass%20%28rev%20B%29-00A99D?style=flat-square) | ![old](https://img.shields.io/badge/-earlier%20platform-F2A007?style=flat-square) | — |
 
-<sub>Teal = done · amber = partial, in study or frozen · — = not started. Bench tests and PCB layout are outside this repository's scope. Generated detail: <a href="docs/guide/01-overview.md#-status">Overview › Status</a>.</sub>
+<sub>Teal = done · amber = partial, in study or frozen · — = not started. Bench tests and PCB layout are outside this repository's scope. Generated detail: <a href="docs/guide/01-overview.md#-status">Overview › Status</a>. Pin audit: 240 parts drawn, 185 pass (1,892 pins), 0 fail, 55 not auditable with a written reason (<a href="gen/data/pin_audit_report.csv">pin_audit_report.csv</a>). Review register: the independent review of commit <code>033d8d8</code> — 27 findings, 20 closed, 7 open — is <a href="gen/data/review_pcm.csv">gen/data/review_pcm.csv</a>, summarised in <a href="docs/guide/08-verification.md#-independent-design-reviews">Verification</a>.</sub>
 
 ---
 
@@ -101,11 +101,11 @@ flowchart LR
 
 | Product | What the figure is | kW | Catalogue USD | USD/kW | 5,000 units USD | USD/kW | Evidence | 5k ÷ benchmark-equivalent BOM |
 |---|---|---:|---:|---:|---:|---:|---|---:|
-| **PV-P75** | BOM of drawn boards (PV-PWR + PV-CTL) | 75 | **952** | 12.7 | **796** | 10.6 | 78 % of catalogue on estimates · 16 % of 5k on published breaks | 1.9× (≈ 410 USD) |
-| **PV-P100/110** | BOM of drawn boards (PV-PWR-4 + PV-CTL) | 100 / 110 | 1,135 | 11.4 / 10.3 | 949 | 9.5 / 8.6 | 77 % of catalogue on estimates · 15 % of 5k on published breaks | 1.7× / 1.7× |
+| **PV-P75** | BOM of drawn boards (PV-PWR + PV-CTL) | 75 | **976** | 13.0 | **817** | 10.9 | 66 % of catalogue on estimates · 15 % of 5k on published breaks | 2.0× (≈ 410 USD) |
+| **PV-P100/110** | BOM of drawn boards (PV-PWR-4 + PV-CTL) | 100 / 110 | 1,167 | 11.7 / 10.6 | 977 | 9.8 / 8.9 | 64 % of catalogue on estimates · 15 % of 5k on published breaks | 1.8× / 1.7× |
 | **PCS-P125** | design study, 3-wire (two-level), design point D-060; the three-wire boards are drawn and cost more, see D-063 | 125 | 1,409 | 11.3 | 1,131 | 9.0 | 5 % of 5k on published prices | see note |
 | **PCS-P125** | design study, 4-wire (two-level), design point D-060; the three-wire boards are drawn and cost more, see D-063 | 125 | 1,694 | 13.6 | 1,361 | 10.9 | not stated for 4-wire | see note |
-| PV-P75 earlier platform | BOM of drawn boards (8 boards) | 75 | 2,812 | 37.5 | 2,254 | 30.1 | 55 % of catalogue on estimates · 17 % of 5k on published breaks | 5.5× |
+| PV-P75 earlier platform | BOM of drawn boards (8 boards) | 75 | 2,836 | 37.8 | 2,275 | 30.3 | 51 % of catalogue on estimates · 17 % of 5k on published breaks | 5.5× |
 | DAB-D60 earlier platform | BOM of drawn boards (5 boards) | 60 | 3,615 | 60.2 | 2,927 | 48.8 | 48 % of catalogue on estimates · 12 % of 5k on published breaks | 7.5× |
 | PCS-P125 | three-level T-type estimate, **withdrawn by D-053** | 125 | 1,037 | 8.3 | 801 | 6.4 | — | — |
 
@@ -213,23 +213,25 @@ Tools: KiCad 10 (`kicad-cli`; on macOS `/Applications/KiCad/KiCad.app/Contents/M
 
 > [!IMPORTANT]
 > **Honesty boundary.** Nothing in this repository has been built, bought, quoted or measured. Efficiencies,
-> temperatures and margins are *calculated* or *simulated*; prices are catalogue readings or *estimates*; competitor
-> figures are *published* and unverified by us. Several standard values are transcribed from memory and still have to
-> be checked against the purchased standards. Scope is schematic + BOM + simulation — no PCB layout, mechanics or firmware.
+> temperatures and margins are *calculated* or *simulated*; prices are catalogue readings (the LCSC readings are a
+> snapshot of 2026-10-05) or *estimates*; competitor figures are *published* and unverified by us. A review finding
+> marked closed is a corrected calculation, not a test. Several standard values are transcribed from memory and still
+> have to be checked against the purchased standards. Scope is schematic + BOM + simulation — no PCB layout, mechanics
+> or firmware.
 
 > [!WARNING]
 > **Top open risks** — the full ranked register is in [Risks and open items](docs/guide/12-risks-and-open-items.md).
-> 1. **No supplier quotations.** About three quarters of the PV-P75 BOM is engineering estimate, and the 800 USD budget is not met ([D-052](docs/requirements/DECISIONS.md)).
-> 2. **The Chinese 1700 V SiC device** (Sichain SG2M040170HJ) publishes no qualification, short-circuit or cosmic-ray data, and its price is an estimate; PV-P75 uses 24, PCS-P125 36 ([D-043](docs/requirements/DECISIONS.md), [D-053](docs/requirements/DECISIONS.md)).
+> 1. **No supplier quotations.** About two thirds of the PV-P75 BOM (66 % of the catalogue total) is engineering estimate, and the 800 USD budget is not met ([D-052](docs/requirements/DECISIONS.md)).
+> 2. **The Chinese 1700 V SiC device** (Sichain SG2M040170HJ) publishes no qualification, short-circuit or cosmic-ray data; its LCSC price is now read (5.07 USD at 90+, [D-069](docs/requirements/DECISIONS.md)) but not quoted; PV-P75 uses 24, PCS-P125 36 ([D-043](docs/requirements/DECISIONS.md), [D-053](docs/requirements/DECISIONS.md)).
 > 3. **Insulation** rests on standard values from memory and an unverified surge-arrester credit; the gate driver's impulse rating needs that credit ([D-032](docs/requirements/DECISIONS.md), [D-043](docs/requirements/DECISIONS.md)).
 > 4. **Gate-drive margins** for false turn-on and short-circuit turn-off rest on estimated loop inductances and assumed device withstand times — the double-pulse test is the first bench item ([D-028](docs/requirements/DECISIONS.md)).
-> 5. **The fan is rated to −10 °C** against the −30 °C requirement ([ARCHITECTURE-COSTFIRST R-05](docs/requirements/ARCHITECTURE-COSTFIRST.md#13-open-risks)).
+> 5. **Requirements the calculations contradict:** PCS-P125's full load from 600 V at 400 V ±15 % (AC-02) is not reachable, PV-P75's 75 kW at 550 V needs 136.4 A against 135 A, and PV-P110's 110 kW is a PV-input rating — owner's decisions ([Risks, group G](docs/guide/12-risks-and-open-items.md#requirements-contradicted)).
 
 ## 🗺️ What comes next
 
-- **PV-P75 boards:** the revisions of [D-056](docs/requirements/DECISIONS.md) are drawn (PV-PWR rev A2, PV-CTL rev A1, [D-058](docs/requirements/DECISIONS.md)); next, the comparator offset and the sensor's reference output (both open), then the independent review, pin audit and insulation re-audit of the two boards — and supplier quotations for the largest estimates.
-- **PCS-P125:** both boards of the three-wire build are drawn and costed - 1,521 USD at catalogue prices, 1,292 USD at 5,000 units ([D-064](docs/requirements/DECISIONS.md)); next: powder-core inductors and the stud count as cost levers, the control simulation, an independent review, the four-wire build.
-- **DAB-D60:** redraw the board cost-first ([ARCHITECTURE-COSTFIRST §16](docs/requirements/ARCHITECTURE-COSTFIRST.md#16-dab-d60-on-the-same-principles)).
+- **PV-P75 boards:** drawn (PV-PWR rev A2, PV-CTL rev A1), reviewed and corrected ([D-065](docs/requirements/DECISIONS.md), [D-072](docs/requirements/DECISIONS.md)); BOM 976 USD at catalogue prices, 817 USD at 5,000 units with the live LCSC switch price ([D-069](docs/requirements/DECISIONS.md)). Next: the TLV9024's rejection measured at 3.3 V and 10 ppm/K ladder resistors (risk C9), the insulation audit extended to the cost-first boards, supplier quotations for the largest estimates.
+- **PCS-P125:** both boards of the three-wire build are drawn, reviewed and corrected ([D-067](docs/requirements/DECISIONS.md)), the control studied by calculation ([D-066](docs/requirements/DECISIONS.md)); 1,557 USD at catalogue prices, 1,322 USD at 5,000 units. Next: the owner's decision on AC-02, the AC contactor coil data (auxiliary split or a ≤ 13.1 W coil), Sichain's answer on device matching, the 0.1 pu grid-dip decision, powder-core inductors and the stud count as cost levers, the four-wire build.
+- **DAB-D60:** the device study is corrected ([D-068](docs/requirements/DECISIONS.md)); drawing a board for it is the owner's decision (DAB-12); otherwise redraw the board cost-first ([ARCHITECTURE-COSTFIRST §16](docs/requirements/ARCHITECTURE-COSTFIRST.md#16-dab-d60-on-the-same-principles)).
 - **Comparison with Megarevo:** close the three rows that are below the published table — cold limit, altitude and standby ([Comparison](docs/guide/11-megarevo-comparison.md#the-three-rows-below-megarevo)).
 - **Before any hardware release** (outside this repository): double-pulse test of the gate drive, a wound inductor sample, the purchased standards checked against the values used.
 

@@ -3,9 +3,9 @@
 
 # 🛡️ Protection and safety
 
-> Every trip of the cost-first PV module — where it is detected, its threshold band and response time against the requirement — the latch, the split between hardware and firmware and the numbers behind it, the contactor rules and the installation requirement, the start-up, shutdown and fault sequences, the insulation coordination, and what the design does not protect against.
+> Every trip of the cost-first PV module — where it is detected, its threshold band and response time against the requirement — the latch, the split between hardware and firmware and the numbers behind it, the contactor rules, the port A declaration and the installation requirement, what differs on the inverter, the start-up, shutdown and fault sequences, the insulation coordination, and what the design does not protect against.
 
-![trips](https://img.shields.io/badge/hardware%20trips-all%20inside%20requirement-00A99D?style=flat-square)
+![trips](https://img.shields.io/badge/hardware%20trips-hard%20limits%20met%2C%20one%20margin%20open-F2A007?style=flat-square)
 ![latch](https://img.shields.io/badge/latch-86%20fault%20cases%20evaluated-00A99D?style=flat-square)
 ![allocation](https://img.shields.io/badge/HW%2FFW%20split-D--050-0B1F33?style=flat-square)
 ![sil](https://img.shields.io/badge/rated%20safety%20function-none-E4572E?style=flat-square)
@@ -29,7 +29,7 @@ ADC limits are a second, independent layer; firmware is a third layer and owns s
 %%{init: {"theme": "base", "themeVariables": {"primaryColor": "#EEF3F7", "primaryBorderColor": "#0B1F33", "primaryTextColor": "#0B1F33", "lineColor": "#5B6B7A", "secondaryColor": "#D9F2EF", "tertiaryColor": "#FFF4D6", "fontFamily": "Inter, Helvetica, Arial, sans-serif"}}}%%
 flowchart LR
     OC["Inductor over-current<br/>window ±74 A"]:::live
-    OV["Port over-voltage<br/>1084 V"]:::live
+    OV["Port over-voltage<br/>1075 V"]:::live
     OT["Heatsink and inductor<br/>over-temperature, open probe"]:::live
     FLT["FLT_N: DESAT, driver UVLO,<br/>port over-current 387–413 A"]:::live
     RDY["RDY: gate supplies,<br/>+5 V, live 24 V"]:::live
@@ -60,16 +60,16 @@ gate-drive sheets.</sub>
 
 | Trip | Source and sensor | Detected in | Threshold (worst-case band) | Response | Requirement |
 |---|---|---|---|---|---|
-| Inductor over-current, primary | TMR sensor → TLV9024 window, thresholds derived from each sensor's own reference output | discrete, PV-CTL | +74.2 / −74.4 A (68.9–79.9 A) | 1.95 µs to gates off | ≥ 68.5 A (1.10 × normal peak) and below the backup band; ≤ 8.92 µs after 76 A, before 50 % inductance at 129 A |
-| Inductor over-current, backup | same sensor → CMPSS1–4 | controller hardware | ±91.5 A (81.1–101.9 A) | 1.21 µs | ≤ 4.87 µs |
-| Short circuit, shoot-through | DESAT on each driver + booster | driver | V<sub>DS</sub> 5.43–8.27 V; blanking 263–810 ns | gates off 0.62 µs after detection, 1.03–1.08 µs from the fault | within the **assumed** 2.0 µs withstand |
+| Inductor over-current, primary | TMR sensor → TLV9024 window, thresholds derived from each sensor's own reference output | discrete, PV-CTL | +74.2 / −74.4 A (67.9–80.5 A) | 1.52 µs to gates off | ≥ 68.5 A (1.10 × normal peak) — **missed by 0.58 A** (risk C9) — and below the 81.1 A backup; ≤ 6.92 µs after 80.5 A, before 50 % inductance at 129 A |
+| Inductor over-current, backup | same sensor → CMPSS1–4 | controller hardware | ±91.5 A (81.1–101.9 A) | 1.21 µs | ≤ 3.48 µs after 101.9 A |
+| Short circuit, shoot-through | DESAT on each driver + booster | driver | V<sub>DS</sub> 5.43–8.47 V; blanking 263–821 ns | gates off 0.42 µs after detection; 1.17–1.51 µs from the fault in the control model | within the **assumed** 2.0 µs withstand; release needs the maker's t<sub>SC</sub> ≥ 2.10 µs and E<sub>SC</sub> ≥ 0.87 J at 1100 V |
 | Port over-current | shunt (low-gain path) → window comparator → FLT_N | discrete, PV-PWR | 387–413 A | 0.19 µs (logic) | coordination band 387–413 A |
 | Port over-current, backup | IA / IB → ADC post-processing limit or CMPSS4 | controller hardware | 373–427 A | 30 µs (ADC) / 15 µs (CMPSS4) | firmware latency ≤ 0.50 s (aR melting curve) |
-| Port over-voltage | bank divider → TLV9024 | discrete, PV-CTL | 1,084 V (1,058–1,110 V) | 47 µs | ≤ 58.5 µs; last switching event ≤ 1,135 V |
-| Port over-voltage, backup | ADC post-processing limit, conversion every ≤ 10 µs | controller hardware | 1,100 V (1,084–1,116 V) | 33.9 µs | ≤ 58.5 µs |
-| Port over-voltage, soft limit | ADC, controlled stop | firmware | 1,050 V | outer loop | above the 1,010 V limit loop |
-| Heatsink over-temperature | NTC1–4 | discrete | 87.9 °C (86.3–89.5 °C) | thermal (1 ms RC) | ≤ 89.9 °C (junction ≤ 125 °C with 5 K margin) |
-| Inductor over-temperature | NTC5–8 in the winding pocket | discrete | 149.9 °C (146.2–153.7 °C) | thermal | above the 145 °C full-load hot spot, below 155 °C |
+| Port over-voltage | bank divider → TLV9024 | discrete, PV-CTL | 1,075 V (1,039–1,110 V) | 47 µs | ≤ 68.8 µs with the phases frozen at their limit (110.7 µs at full power); last switching event ≤ 1,135 V |
+| Port over-voltage, backup | ADC post-processing limit, conversion every ≤ 10 µs | controller hardware | 1,100 V (1,084–1,116 V) | 33.9 µs | ≤ 68.8 µs |
+| Port over-voltage, soft limit | ADC, controlled stop | firmware | 1,034 V = the comparator band's bottom − 5 V | outer loop (31 µs) | above the 1,010 V limit loop; below the hardware band, so the latch cannot pre-empt it |
+| Heatsink over-temperature | NTC1–4 | discrete | 87.9 °C (86.2–89.6 °C) | thermal (1 ms RC) | ≤ 89.9 °C (junction ≤ 125 °C with 5 K margin) |
+| Inductor over-temperature | NTC5–8 in the winding pocket | discrete | 149.9 °C (146.1–153.9 °C) | thermal | above the 145 °C full-load hot spot, below 155 °C |
 | Open NTC probe | all 8 channels | discrete | reading > 2.975 V | thermal | — |
 | Gate-supply loss | NSI6651 UVLO, +5 V supervisor (RDY low below 4.52–4.69 V), live 24 V undervoltage 21.0–21.8 V | RDY wired-AND | logic | 18 ns | ≤ 1 µs |
 | Watchdog | 74LVC1G123 heartbeat monoflop + TPS3828 reset | discrete | 4.7–5.8 ms without an ISR edge; reset after 0.9–2.5 s | = monoflop time | 5 ms |
@@ -84,10 +84,15 @@ gate drive and port lines of the [PV-PWR design check](../../hardware/PV-PWR/out
 [port_spec.json](../../sim/out/port_design/port_spec.json) `lean`; requirements from
 [pv_control report §9–§10](../../sim/out/pv_control/report.md).</sub>
 
-Two terms are not yet in the 68.9–79.9 A band of the primary over-current trip: the comparator's input offset, which is
-specified at 0 V common mode and can add 0.3–1.0 A at the 2.45 V trip node (calculated from its common-mode rejection;
-the same holds for every comparator band on the board), and any drift of the sensor's reference output, which has no
-published drive rating or drift ([risk C9](12-risks-and-open-items.md)).
+Since the review ([D-072](../requirements/DECISIONS.md), PCM-19) every comparator band includes the TLV9024's
+common-mode error at its guaranteed 50 dB rejection (0.98 A / 0.51 A at the inductor window, 9.7 V on the over-voltage
+comparator) and the datasheet delay at the real overdrive (×2 assumed, no maximum is published). The inductor window
+then misses the 1.10 × normal-peak floor by 0.58 A and its top sits 0.58 A over the 79.9 A cap: the fixed error terms
+(5.84 A) exceed the corridor's half-width (5.69 A), so no ladder value restores it. The window stays as drawn (margin
+1.09) with an [OPEN] line in the PV-CTL check — a nuisance trip at the worst ripple corner with every tolerance stacked,
+not a hazard. Closing path: the CMRR measured ≥ 60 dB at 3.3 V on samples plus 10 ppm/K ladder resistors (0.74 USD)
+give 68.8–79.8 A. The sensor's reference output still has no published drive rating or drift
+([risk C9](12-risks-and-open-items.md)).
 
 <img src="../assets/img/design_trip_timing.png" width="820" alt="Response time of the hardware trips against their requirement, log scale">
 
@@ -98,11 +103,11 @@ time and a time requirement).</sub>
 > **Where the records disagree.** [ARCHITECTURE-COSTFIRST.md §6](../requirements/ARCHITECTURE-COSTFIRST.md) lists a local
 > over-current band of 68.5–76 A (the closed-loop LEM sensor of the earlier platform), a heatsink trip of 95 °C, an
 > inductor trip of 145 °C (which would trip at full load), a hold-off of 1.0 kA (0.95–1.05 kA) and an upstream
-> requirement of 0.95–1.3 kA within 0.25 s at L/R ≤ 3 ms. The drawn boards and the port design use 68.9–79.9 A,
-> 86.3–89.5 °C, 146.2–153.7 °C, 967–1,033 A and 967–1,250 A within 0.26 s at **L/R ≤ 1 ms** — the contactor's breaking
-> data exist only at L/R ≤ 1 ms ([port report §13](../../sim/out/port_design/report.md)). This page uses the drawn values.
-> The requirement times in [control_spec.json](../../sim/out/pv_control/control_spec.json) `hardware_trips` still describe
-> the earlier platform's trip chain.
+> requirement of 0.95–1.3 kA within 0.25 s at L/R ≤ 3 ms. The drawn boards and the port design use 67.9–80.5 A,
+> 86.2–89.6 °C, 146.1–153.9 °C, 967–1,033 A and 967–1,250 A within 0.26 s at **L/R ≤ 1 ms** — the contactor's breaking
+> data exist only at L/R ≤ 1 ms ([port report §13](../../sim/out/port_design/report.md)). This page uses the drawn values;
+> since [D-065](../requirements/DECISIONS.md) [control_spec.json](../../sim/out/pv_control/control_spec.json)
+> `hardware_trips` describes the drawn trip chain as well.
 
 ## 🛡️ The latch
 
@@ -190,6 +195,38 @@ the DC-to-AC product ([09 · PCS-P125](09-pcs-p125.md)). The firmware's side of 
 - PV side: array short-circuit current ≤ 169 A (225 A for PV-P100/110); string fuses in the combiner; a load-break DC
   isolator upstream for maintenance.
 
+**Port A declaration** (PCM-16, [D-072](../requirements/DECISIONS.md); printed by the
+[PV-PWR design check](../../hardware/PV-PWR/outputs/PV-PWR_design_check.txt), calculated, no hardware change). Port A
+has no fuse and no precharge, so it admits **a current-limited PV array only**: short-circuit current at the module
+terminals ≤ 168.8 A (1.25 × 135 A; 225 A for PV-P100/110), open-circuit voltage ≤ 1000 V, string fuses and a load-break
+isolator in the combiner, array and cable capacitance ≤ 1.1 µF terminal to terminal behind ≥ 11 µH. K_A closes only with
+the latch clear, the terminal voltage above the polarity enable, the insulation result in range and — with port B live —
+after the converter has precharged the 290 µF bank to within 20 V. **Not admitted:** closing onto the empty bank at the
+array's V<sub>oc</sub> (about 499 A making current, an estimate, against a published making rating of 140 A at 20 V only
+— Hongfa to confirm, R-04); reverse power into an array (firmware holds the port A current ≥ 0); a stiff DC source on
+port A (about 7.4 kA peak onto the empty bank, a weld likely) — that needs the fused, precharged lean port of port B.
+
+## 🛡️ What differs on the inverter (PCS-P125)
+
+The inverter reuses the PV latch, the hardware / firmware split of [D-050](../requirements/DECISIONS.md) and the lean
+battery port; the review of 2026-10-05 changed its protection in five places ([D-067](../requirements/DECISIONS.md);
+[PCS-PWR](../../hardware/PCS-PWR/outputs/PCS-PWR_design_check.txt) and
+[PCS-CTL](../../hardware/PCS-CTL/outputs/PCS-CTL_design_check.txt) design checks, calculated):
+
+| Protection | As drawn now | Why |
+|---|---|---|
+| Phase current | window 426.0–485.5 A (±455 A nominal) on the frozen Sinomags STK-250HO/4, gates off 3.47 µs → 516 A; CMPSS backup 492.6–571.4 A, 2.86 µs → 596.5 A against the 600 A inductor limit | the sensor was a quotation row with 4.0 mV/A assumed |
+| DC-link over-voltage | 978–1,048 V on the bus, 508–569 V on the lower half (comparators); **upper half by firmware**: V<sub>B</sub> − V<sub>A</sub> ≥ 540 V (527–553 V) within ≤ 72 µs, a shorted-half check and a slow imbalance limit (\|V<sub>A</sub> − V<sub>B</sub>/2\| > 0.07 V<sub>B</sub> for 1 s, controlled stop) | the comparators see the bus and the lower half only; every upper-half mechanism is slow except a shorted lower-half capacitor, which only the DC contactor's ~10 ms release ends — a comparator would gain nothing (residual second-failure stress of about 20 ms) |
+| Desaturation | 2 × US1MH (was 3): 6.41–9.37 V; margin 1.08 at the 200 ms overload peak at the predicted 161 °C junction, 1.00 at 175 °C; a hard short off 1.28 µs after it starts | the three-diode band (5.43 V lowest) lay below the hot overload on-state voltage |
+| DC-port fault coordination | the 387–413 A window opens the contactor up to its 967–1,033 A hold-off band; 0.97–2.01 kA nothing clears quickly; the 400 A links clear 2.0–7.4 kA; above 7.5 kA prospective the contactor's short-circuit capacity (8 kA for 6 ms, 10 kA for 1.5 ms) is exceeded | an I²t comparison at one point (290 against 384 kA²s) did not bound the contactor |
+| Discharge | 4 × 93.1 kΩ per half: 60 V after 14.7 min worst case with the full 409.4 µF and the AC filter capacitors; label "wait 15 min" | the earlier bleeders were sized on the 350 µF bank alone (17.0 min with the real network) |
+
+**Installation requirements of the inverter's DC port** (in addition to the PV module's): the battery-side protection
+interrupts any current of **0.97–2.01 kA within 2.5 s** (25 s at 1 kA), and either keeps the prospective short-circuit
+current at the PCS DC terminals **≤ 7.5 kA** (L/R ≤ 1 ms) or interrupts above it within the contactor's short-circuit
+capacity ([port report §14](../../sim/out/port_design/report.md)). The fuse's chart tail does not match its tabulated I²t
+— a quotation or test item.
+
 ## 🎛️ Sequences
 
 **Start-up, normal stop and trip** (from [ARCHITECTURE-COSTFIRST.md §6.2](../requirements/ARCHITECTURE-COSTFIRST.md),
@@ -217,7 +254,7 @@ stateDiagram-v2
     Ready --> Pre : battery present, polarity enable passed
     Pre --> PortB : ΔV inside the 3.5–16.5 V window, K_B closes, K_PRE opens
     PortB --> Both : converter precharges bank A, K_A closes
-    Ready --> Both : PV-only start, K_A closes onto the empty bank
+    Ready --> Both : PV-only start, K_A onto the empty bank - making current open, R-04
     Both --> Run : gates enabled at a carrier zero
     Run --> Stop : stop command over CAN
     Stop --> Dark : current below 300 A for 20 ms, contactors open, bleeders
@@ -256,9 +293,10 @@ sequenceDiagram
 ```
 
 **A shoot-through inside a phase** is not seen by the inductor sensor when the inductor is bypassed: DESAT detects it
-after the 263–810 ns blanking, the booster has the gates off 0.62 µs later, FLT_N sets the latch, and every other channel
-is disabled. Total 1.03 µs typical / 1.08 µs worst against an assumed 2.0 µs withstand
-([pv_control report §9.3](../../sim/out/pv_control/report.md)).
+after the 263–821 ns blanking; the driver's DESAT-to-output delay (≤ 360 ns, its deglitch filter inside it) and the
+booster have the gates off 0.42 µs after detection, FLT_N sets the latch, and every other channel is disabled. From the
+fault 1.17 µs typical / 1.51 µs worst in the control model, which adds the deglitch once more (conservative), against an
+assumed 2.0 µs withstand ([pv_control report §9.3](../../sim/out/pv_control/report.md), [GDRV-HB design check](../../hardware/GDRV-HB/outputs/GDRV-HB_design_check.txt)).
 
 <a id="insulation-coordination-summary"></a>
 
@@ -273,7 +311,7 @@ is disabled. Total 1.03 µs typical / 1.08 µs worst against an assumed 2.0 µs 
 | B1, DC side ↔ SELV, reinforced | 8 kV impulse (6 kV with credit), 4,400 V rms, creepage 10.0 mm PD2 (6.4 mm PD1), clearance 8.0 / 9.2 / 10.4 mm at 2000 / 3000 / 4000 m | [PV-CTL design check](../../hardware/PV-CTL/outputs/PV-CTL_design_check.txt) |
 | B2, DC side ↔ PE, basic | 6 kV impulse (4 kV with credit), 2,200 V rms, creepage 5.0 mm PD2 / 12.5–16 mm PD3 | ARCHITECTURE-COSTFIRST.md §2.1 |
 | B3, inside the DC side, functional | partial-discharge-free at ≥ 1.75 kV<sub>pk</sub> for parts at a switch node | same |
-| Audit status | earlier platform: 132 rows, 22 fail at 2000 m; cost-first boards: only B1's five isolators checked so far | [insulation report](../../sim/out/insulation/report.md), [08 · Verification](08-verification.md) |
+| Audit status | earlier platform: 132 rows, 22 fail at 2000 m (last complete run); the audit script has no domain map for the cost-first and inverter boards and now stops with 101 problems — their barrier parts are checked in their own design checks (B1's five isolators, isolation domains) | [insulation report](../../sim/out/insulation/report.md), [08 · Verification](08-verification.md) |
 
 All standard values (IEC 60664-1, IEC 62477-1, IEC 62109) are transcriptions from memory; the credit of a monitored
 arrester for reinforced insulation is not verified against the standard text ([D-032](../requirements/DECISIONS.md)).
@@ -286,19 +324,22 @@ Stated plainly, from [ARCHITECTURE-COSTFIRST.md §6.4 and §12](../requirements/
 - **A bolted short at a port's terminals.** The bank (270 µF, 135 J at 1000 V on the PV port; 315 µF, 158 J on the battery
   port of the three-phase board) dumps through the contactor (~22 kA peak, a weld is likely) and rings below zero; the
   leg body diodes carry up to ~4.5 kA per device — **that port's legs are likely destroyed**. On the battery port the
-  dump also melts the aR fuses. Both currents are calculated for 270 µF and have not been re-run for 315 µF. The module
-  is expected to fail without fire, stays latched and is repaired.
+  dump also melts the aR fuses. Both currents are calculated for 270 µF; the re-run on the drawn Jianghai bank (PCM-18)
+  covered the clamped case only and found the bank's internal reversal at −104 V (three phases) / −92 V (four), with no
+  reversal allowance in either capacitor datasheet (open). The module is expected to fail without fire, stays latched
+  and is repaired.
 - **Battery-fed currents of 967–1,250 A** are cleared only by the upstream protection (installation requirement above).
 - **Loss of both port voltages while more than ~1 kA flows** lets the contactor open above its rating (a double fault).
 - **No rated safety function.** ENABLE is a single-channel functional stop with no SIL / PL claim; a cabinet that needs
   a rated function must open its own DC switching devices.
 - **Device short circuits beyond the assumed withstand.** No Chinese maker publishes a short-circuit rating; the 2.0 µs
-  used for the DESAT timing is an assumption.
+  used for the DESAT timing is an assumption, and each gate-drive preset prints what the maker must confirm (risk C2).
 - **Data the makers do not publish:** the contactor's making current at 1000 V onto an empty bank (~0.5 kA estimated,
   140 A at 20 V published), its coil-to-mounting insulation, the aR fuse's L/R and let-through, the TMR sensors' dv/dt
   immunity at 124 V/ns.
-- **Cold starts below −10 °C** are outside the fans' rating (PV-20 asks −30 °C); a firmware rule or a low-temperature
-  fan option is needed (R-05).
+- **Cold starts below −10 °C** are outside the fans' rating (PV-20 asks −30 °C): the firmware keeps the fans off and
+  limits the power to a passive-cooling table (19.2 / 17.5 / 15.5 kW at −30 / −20 / −10 °C inlet for PV-P75, estimates
+  ±50 %, [D-072](../requirements/DECISIONS.md)); full power below −10 °C is not available (R-05).
 - **Firmware faults** that end in a stopped or damaged unit rather than a hazard: D-050 reduced this exposure by keeping
   the discrete layer, but the firmware's own safety-requirement list is not yet implemented (firmware is out of scope).
 

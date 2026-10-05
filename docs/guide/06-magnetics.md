@@ -29,7 +29,7 @@
 | T_BIAS4, gate-bias transformer | PV-PWR, one per phase | DMEGC EP17 DMR44 ungapped, 5-section bobbin S1 \| S2 \| P \| S3 \| S4, secondaries 24 turns TIW 0.16 mm, ratio 1 : 6 (rev M1) | winding-pair capacitance ≤ 3.43 pF (limit 5); magnetising current 0.136 A (limit 0.15) | 2.18 (1.22 at 5,000 + about 4,000 one-off bobbin tooling) |
 | Port CM ring | PV-PWR, one per port | one flat-µ nanocrystalline ring 63/38/25 mm around both bars, single pass, plus ≥ 127 nF to PE on the board (rev M2) | 17.2 dB at 150 kHz, 18.3 dB at 0.5–2 MHz with the capacitance; ring flux 0.83 T in the low-frequency CM case | 11 |
 | DAB transformer, 11 : 12 | DAB-D60 | two units in parallel, each 2 × DMEGC EE80 DMR95, P-S-P interleaved litz 0.05 mm, vacuum-potted aluminium housing on the cold plate (rev M1) | worst loss 189 W against a 182 W budget; hot spot 133 °C against 130 °C at 65 °C coolant — **2 checks fail (MG-16)** | 186 |
-| DAB series inductor | DAB-D60 | 4 × EE80 DMR95, 3 turns profiled litz 0.05 mm, quasi-distributed gap (6 × 1.11 mm), potted (rev M1) | L 5.56 µH; 90 W worst; B = 0.90 B<sub>sat</sub> at the 635 A saturation requirement — **check fails (MG-15)** | 86 |
+| DAB series inductor | DAB-D60 | 4 × EE80 DMR95, 3 turns profiled litz 0.05 mm, quasi-distributed gap (6 × 1.11 mm), potted (rev M1) | L 5.56 µH; 90 W worst; B = 0.99 B<sub>sat</sub> (0.405 T at 100 °C) at the 700 A saturation requirement (1.1 × the DAB study's 632 A fault peak, [D-068](../requirements/DECISIONS.md)) against the 0.8 limit — **check fails (MG-15)** | 86 |
 | AUX-HV transformer, 30 W | earlier platform only | DMEGC EC34A DMR95, 90 : 15 : 16, TIW-litz secondary, potted (rev M1) | winding loss 0.69 W (own), 1.04 W (OpenMagnetics) | 5.9 |
 
 <sub>Sources: `design_*.json` and [report.md](../../sim/out/magnetics/report.md) "Constructions by the magnetics designer" and
@@ -83,7 +83,7 @@ rev M1 / M2 constructions **by calculation**, 4 open (the report's own summary l
 
 <sub>Chart: [figures_design.py](../assets/figures_design.py) from [magnetics_check.json](../../sim/out/magnetics/magnetics_check.json)
 `checks`: 77 checks, 73 pass; the other four are recorded as known shortfalls, none unexplained: the DAB transformer pair
-at the 137 A worst corner (MG-16, two checks), the series inductor's saturation margin at 635 A (MG-15) and the
+at the 137 A worst corner (MG-16, two checks), the series inductor's saturation margin at 700 A (MG-15) and the
 PV-P100/110 inductor's hot spot, 5.3 K over its 155 °C limit at 114 m³/h per phase and 45 °C inlet (MG-17).</sub>
 
 ## 🧲 PV inductor: what "do not trust the tool, do not trust yourself" looks like
@@ -189,8 +189,8 @@ KDM, CSC and TDG data could not be retrieved.</sub>
 
 <sub>Sources: `cost` blocks of the `design_*.json` files; the module totals are on [07 · Sourcing and cost](07-sourcing-and-cost.md).
 The DAB magnetics leave little to cut: the litz grade is the only real lever, and the real cost lever is the
-requirement envelope — the 137 A transformer current and the 635 A saturation current (report, "DAB magnetics - what a
-cost-first version would give").</sub>
+requirement envelope — the 137 A transformer current and the 700 A saturation current (report, "DAB magnetics - what a
+cost-first version would give"; that section of the report still quotes the earlier 635 A).</sub>
 
 ## 🔬 What a first article must prove
 
@@ -200,7 +200,7 @@ cost-first version would give").</sub>
 | AUX-T1 | AC 4,400 V rms 60 s; impulse 8 kV; thermal at 82.5 W; routine PD ≤ 10 pC at 2,467 V<sub>pk</sub> on every unit | leakage and switched capacitance hold the drain-voltage budget (1,336 V against 1,360 V) only within the routine-test limits |
 | T_BIAS4 | impulse 3,790 V between windings; thermal at 85 °C; PD ≤ 10 pC at 1,750 V<sub>pk</sub> (sample); C ≤ 5 pF (sample) | the capacitances are calculated only |
 | Port CM ring | low-frequency CM bias, saturation, attenuation with the capacitance to PE | µ at 150 Hz and the flat-µ grade are assumptions; the 11 mA touch current needs the PE measures |
-| DAB transformer and inductor | measured R<sub>th</sub>, calorimetric loss with the real current shape, leakage tolerance, L(I) to 635 A at 100 °C | the 137 A corner exceeds the loss and hot-spot budgets today |
+| DAB transformer and inductor | measured R<sub>th</sub>, calorimetric loss with the real current shape, leakage tolerance, L(I) to the 700 A saturation requirement at 100 °C | the 137 A corner exceeds the loss and hot-spot budgets today; four turns (0.74 B<sub>sat</sub>, 106 W) or a measured L(I) settles MG-15 |
 
 <sub>Sources: `spec_<part>.md` §5 in [sim/out/magnetics/](../../sim/out/magnetics/) and [report.md §7](../../sim/out/magnetics/report.md).
 Everything also needs calorimetric loss, a thermal run and L(I) on a wound sample.</sub>

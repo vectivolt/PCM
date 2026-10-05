@@ -43,14 +43,21 @@ One generator per board. A run writes the KiCad project, runs every check and wr
 | Generator | KiCad projects | Role |
 |---|---|---|
 | `gen/pv_power.py` | PV-PWR, PV-PWR-4 | cost-first power board, 3 and 4 phases |
-| `gen/pv_ctrl.py` | PV-CTL (BOM variant PV-CTL-P75) | cost-first control board |
+| `gen/pv_ctrl.py` | PV-CTL (BOM variant PV-CTL-P75) | cost-first control board; reads the PV-PWR design check as built and refuses a stale copy (hash stamp) |
 | `gen/pcs_power.py` | PCS-PWR | inverter power board, three-wire: three two-level legs, split DC link, lean DC port at 250 A, AC contactors, LCL chassis parts; reads `sim/out/pcs_design/pcs_spec.json` and the magnetics design files at build time |
-| `gen/pcs_ctrl.py` | PCS-CTL (BOM variant PCS-CTL-3W) | inverter control board: a re-valued variant of PV-CTL with its own pin plan, `gen/data/pcs_ctrl_pin_plan.csv` |
+| `gen/pcs_ctrl.py` | PCS-CTL (BOM variant PCS-CTL-3W) | inverter control board: a re-valued variant of PV-CTL with its own pin plan, `gen/data/pcs_ctrl_pin_plan.csv`; reads the control study's sampling plan (`sim/out/pcs_control/pcs_control_spec.json`) and the PCS-PWR check as built (refuses a stale copy) |
 | `gen/pvcell.py` | PVCELL-25 | earlier platform: one 25 kW cell |
 | `gen/port.py` | PV-PORT, PV-PORT-180; with `lean`: PORT-LEAN, PORT-LEAN-HOLD | earlier platform port board; verification boards of the lean port |
 | `gen/ctrl_c2000.py` · `gen/sys_io_aux.py` | CTRL-C2000 · SYS-IO-AUX | earlier platform controller card and system I/O |
 | `gen/aux_hv.py` · `gen/bmu_gw.py` · `gen/gdrv.py` | AUX-HV · BMU-GW · GDRV-HB | earlier platform auxiliary supply, BMS gateway, gate-drive card |
-| `gen/dab60.py` | DAB60 | **frozen**: rev B outputs kept, generator not maintained ([build_all.py](../../gen/build_all.py)) |
+| `gen/dab60.py` | DAB60 | **frozen**: rev B outputs kept, generator not maintained ([build_all.py](../../gen/build_all.py)); the DAB study in `sim/out/dab_design/` is not this board ([D-068](../requirements/DECISIONS.md)) |
+
+**Frozen inputs of the earlier platform.** `gen/ctrl_c2000.py` (CTRL-C2000) and `gen/pvcell.py` (PVCELL-25) read frozen
+snapshots of the specs they were designed to — [gen/data/control_spec_platform1.json](../../gen/data/control_spec_platform1.json)
+and [gen/data/cell_spec_platform1.json](../../gen/data/cell_spec_platform1.json), the specs of commit `033d8d8` — because
+the live `sim/out/pv_control/control_spec.json` and `sim/out/pv_design/cell_spec.json` now describe the cost-first boards
+([D-065](../requirements/DECISIONS.md)). Like the frozen DAB60 outputs, they are not re-derived. The loaders the review
+read fail closed (PCM-23): a missing or stale input stops the run instead of falling back to a built-in value.
 
 Each board's outputs land in `hardware/<board>/outputs/`: the schematic PDF, the netlist (`.net` and XML), the ERC
 result, `<board>_report.json` (the checks below), `<board>_design_check.txt` (the board's own calculations) and the
@@ -81,21 +88,24 @@ layout, parasitics, real component behaviour — is in [Verification](08-verific
 |---|---|---|
 | `sim/pv_tradeoff.py` | `pv_tradeoff/` | PV cell topology (Gate-0 and its re-run with Asian devices) |
 | `sim/pv_design.py` · `sim/pv_module.py` | `pv_design/` | cell power stage; module losses, thermal, derating, noise |
-| `sim/pv_control.py` · `sim/pv_mppt.py` | `pv_control/` · `pv_mppt/` | control loops, protection timing; MPPT |
+| `sim/pv_control.py` · `sim/pv_mppt.py` | `pv_control/` · `pv_mppt/` | control loops on the drawn boards, protection timing, the delivered-power envelope (`envelope.csv`); MPPT |
 | `sim/port_design.py` | `port_design/` | DC ports: precharge, coordination, sensing, insulation monitor |
 | `sim/aux_hv_design.py` | `aux_hv_design/` | auxiliary flyback (30 W earlier, 75 W cost-first) |
 | `sim/gdrv_miller.py` | `gdrv_miller/` | false turn-on check of the gate-drive channel |
 | `sim/magnetics.py` | `magnetics/` | three-way magnetics verification; constructions and specifications |
 | `sim/insulation.py` | `insulation/` | insulation coordination and the barrier audit |
-| `sim/dab_design.py` · `sim/dab_control.py` | `dab_design/` · `dab_control/` | DAB-D60 power stage, derating map; control |
-| `sim/pcs_design.py` | `pcs_design/` | PCS-P125 power stage |
+| `sim/dab_design.py` · `sim/dab_control.py` | `dab_design/` · `dab_control/` | DAB-D60 device study (not the drawn DAB60 rev B0): power stage, admitted map, firmware rules FW-DAB-1…11; control |
+| `sim/pcs_design.py` | `pcs_design/` | PCS-P125 power stage, DC link, operating envelope, firmware hand-over |
+| `sim/pcs_control.py` | `pcs_control/` | PCS-P125 control: current loop, PLL, DC-link loop, grid forming, THDi estimate, sampling plan and protection state machine ([D-066](../requirements/DECISIONS.md)) |
 | `sim/pcs_tradeoff.py` | `pcs_design/tradeoff.md` | PCS-P125 stage and filter re-optimisation with the designed inductors (D-059, corrected by D-060) |
 | `sim/pcs_crosscheck.py` | `pcs_design/crosscheck_wolfspeed.md` | independent check of the inverter topology against Wolfspeed's reference designs (D-057) |
 | `sim/compare_megarevo.py` | `compare_megarevo/` | the row-by-row comparison with the PMD-75-G3 |
 | `sim/pv_devices.py` · `sim/dab_devices.py` · `sim/pcs_devices.py` | `audit/` | device data with datasheet page references; device audits |
 
 Every report states what is calculated, what is simulated and what is assumed. The spec JSON files are the hand-off:
-generators read them, so a design value has one source.
+generators read them, so a design value has one source. For the inverter the order is `sim/pcs_design.py` →
+`sim/pcs_control.py` → `gen/pcs_power.py` → `gen/pcs_ctrl.py`: the control board reads the control study's sampling
+plan, and the study takes the sensing chain (current-chain delay, divider poles) from the two boards' design checks.
 
 ## 💰 Re-roll the BOMs and the cost
 
@@ -107,7 +117,10 @@ generators read them, so a design value has one source.
 
 `gen/cost.py` prices each line from [`gen/data/prices.csv`](../../gen/data/prices.csv) (looked-up prices with URL and
 date), [`cost_estimates.csv`](../../gen/data/cost_estimates.csv) (estimates with their basis) and
-[`volume_factors.csv`](../../gen/data/volume_factors.csv) (5,000-unit factors). A line with neither price nor estimate is
+[`volume_factors.csv`](../../gen/data/volume_factors.csv) (5,000-unit factors). The supplier surveys behind the price
+rows are in `sim/data/`: `asia_*.md` and the LCSC sourcing pass [lcsc_semis.md](../../sim/data/lcsc_semis.md) /
+[lcsc_semis.csv](../../sim/data/lcsc_semis.csv) (every transistor and diode position, stock and price ladders read on
+2026-10-05, [D-069](../requirements/DECISIONS.md)) — re-read the LCSC pages before ordering. A line with neither price nor estimate is
 listed as UNPRICED and never counted as zero. The script exits with code 1 if its self-check fails.
 [Sourcing and cost](07-sourcing-and-cost.md) explains the method.
 
@@ -118,11 +131,13 @@ listed as UNPRICED and never counted as zero. The script exits with code 1 if it
 | `.venv/bin/python gen/pin_audit.py` | every drawn pin table equals a ledger transcribed from the datasheet by someone who had not seen the drawing (`list` writes the parts list) |
 | `.venv/bin/python gen/temp_audit.py` | every orderable part against the −30…+60 °C ambient requirement (hot limit 85 °C inside the enclosure) |
 | `.venv/bin/python gen/check_interfaces.py` | the cables of the earlier platform's modules: pin map, driver direction, power. The cost-first board-to-board contract (`PC`) is checked inside the PV-PWR and PV-CTL design checks, and the inverter's `PCS_PC` and `PCS_X` inside the PCS-PWR and PCS-CTL design checks |
-| `.venv/bin/python sim/insulation.py` | every barrier part against the insulation requirements |
+| `.venv/bin/python sim/insulation.py` | every barrier part of the earlier platform's boards against the insulation requirements — it has no domain map for PV-CTL, PCS-PWR, PCS-CTL, PORT-LEAN and PORT-LEAN-HOLD and currently stops with 101 problems ([08 · Verification](08-verification.md#-audits)); those boards check their own barrier parts in their design checks |
 | `.venv/bin/python sim/magnetics.py` | every magnetic part three ways; exits 1 if a check fails |
 
 Review findings of the independent design reviews are kept in `gen/data/review_*.csv` and
-`gen/data/integration_findings.csv` ([D-023](../requirements/DECISIONS.md)).
+`gen/data/integration_findings.csv` ([D-023](../requirements/DECISIONS.md)). The latest,
+[review_pcm.csv](../../gen/data/review_pcm.csv) (27 findings of the review of commit `033d8d8`), adds status, class and
+closure columns; the dispositions are decisions D-065 to D-069 and D-072.
 
 ## 📐 Conventions
 
@@ -163,8 +178,14 @@ repository; [`docs/SOURCES.csv`](../SOURCES.csv) lists every file with its URL a
 | `.venv/bin/python docs/fetch.py --summary` | regenerates the count tables of [docs/LIBRARY.md](../LIBRARY.md) |
 
 Files that sites refuse to serve to a script are marked MANUAL and must be saved by hand — the list and the current
-counts are in [docs/LIBRARY.md](../LIBRARY.md). Never move or rename a library file without first searching `gen/`,
-`sim/`, `bom/` and `hardware/` for its path.
+counts are in [docs/LIBRARY.md](../LIBRARY.md), which `docs/fetch.py --summary` writes (do not edit it by hand). Never
+move or rename a library file without first searching `gen/`, `sim/`, `bom/` and `hardware/` for its path.
+
+**Firmware packages of reference designs** (the Wolfspeed CRD200DA23N-GMA, CRD60DD12N-GMB and CRD-60DD12N-K,
+[D-071](../requirements/DECISIONS.md)) have their manifest rows like any other file and are unpacked in a `firmware/`
+folder next to the design, which git ignores. Our static reading of each package lives beside its README as
+`FIRMWARE-NOTES.md` (every number labelled read / calculated / inferred, with file and line); what they change for our
+firmware is [REFERENCE-LESSONS.md §6](../requirements/REFERENCE-LESSONS.md). Nothing in them was built or run.
 
 ## 🧰 The documentation itself
 

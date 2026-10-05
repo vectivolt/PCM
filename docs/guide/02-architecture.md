@@ -70,7 +70,7 @@ flowchart LR
 | Safety barriers | 132 audited HV–PELV barrier rows ([insulation report](../../sim/out/insulation/report.md)) | B1 only: the auxiliary transformer's SELV winding + 5 isolators |
 | Safety chain | dual channel, 75-row FMEA | one hardware latch + watchdog |
 | Supply | cabinet 24 V, 30 W bootstrap flyback | self-powered from both ports |
-| BOM, catalogue prices | 2,812 USD | 952 USD ([bom/COST.md](../../bom/COST.md), estimate, as of 2026-10-05) |
+| BOM, catalogue prices | 2,812 USD | 976 USD ([bom/COST.md](../../bom/COST.md), estimate, as of 2026-10-05; 817 USD at 5,000 units) |
 
 The costing itself is on [07 · Sourcing and cost](07-sourcing-and-cost.md).
 
@@ -278,7 +278,7 @@ architecture's own words ([§12](../requirements/ARCHITECTURE-COSTFIRST.md)):
 | 5 | Cabinet 24 V and redundant feeds | self-powered flyback | the module is dark when both ports are below ~200 V |
 | 6 | Ethernet, CAN FD, second CAN and RS-485, 8 + 8 digital I/O, 12 temperatures, 4 fans | 1 CAN, 1 RS-485, 1 stop input, 1 status output, 7 (9) temperatures, 3 fans | fewer interfaces |
 | 7 | Contactor auxiliary contact | weld check by a voltage test | — |
-| 8 | Active discharge | passive bleeders | label "wait 10 min" (15 min for PV-P100/110) |
+| 8 | Active discharge | passive bleeders | label "wait 10 min" (15 min for PV-P100/110 and for the inverter PCS-P125, whose worst case is 14.7 min to 60 V — [D-067](../requirements/DECISIONS.md)) |
 | 9 | Margins | shared heatsink, open-loop TMR sensors, per-phase bias | junction 78 → 107 °C at 45 °C inlet (power-board check); bias ±2 %; sensor 1.5 % before calibration; fan rated to −10 °C, not −30 °C |
 | 10 | Common controller card shared with other products | product-specific control board | the DAB and the PCS reuse the PV control board as assembly variants |
 

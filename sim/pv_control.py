@@ -95,8 +95,9 @@ ASSUME = {
     "t_sh_s": (75e-9, "F280039C sample-and-hold window, the first part of t_conv_s (SPRSP61C 6.13.3.2)"),
     "adc_noise_lsb": (0.44, "ADC noise per sample incl. quantisation: F280039C ENOB 11.4 bits with an external VREFHI "
                             "(SPRSP61C 6.13.3.2.2) -> 2^0.6 / sqrt(12) LSB rms"),
-    "desat_filter_ns": ((150.0, 265.0), "NSI6651 DESAT filter after the blanking (cell_spec protection desat_basis; "
-                                        "sim/data/asia_drivers.md)"),
+    "desat_filter_ns": ((100.0, 320.0), "NSI6651 DESAT deglitch filter, -Q1 / industrial envelope - INSIDE t_DESAT_OFF (both timed from the "
+                                        "threshold crossing, NSI66x1A Fig. 8.10 p23 / -Q1 Fig. 8.8 p25): information only, not added to the "
+                                        "chain (review PCM-10, gen/gdrv.py)"),
     "noise_pp_per_rms": (6.0, "peak-to-peak / rms of a sensor noise quoted as pp (+/-3 sigma): STK-HO/A 75 25 mVpp is "
                               "specified over DC-100 kHz; the PV-CTL AFE passes 331 kHz (noise above 100 kHz unknown)"),
     "body_v0_V": (2.9, "body-diode threshold, the lower of SG2M040170HJ (V_SD 3.7 V at 19 A, "
@@ -2411,8 +2412,8 @@ def derive_requirements(P, G, R):
     vth = ch["desat_V"]
     rds = {"SG2M040170HJ": (0.040, 0.088), "MSC035SMA170B4": (0.035, 0.065)}     # typ 25 / 175 C (datasheets p.4)
     rq["desat"] = dict(blank_range_us=blank, filter_range_us=filt, off_after_detect_us=t_off,
-                       typ_us=0.5 * (blank[0] + blank[1]) + 0.5 * (filt[0] + filt[1]) + t_off,
-                       max_us=blank[1] + filt[1] + t_off, scwt_1100_us=sc_["withstand_assumed_us"],
+                       typ_us=0.5 * (blank[0] + blank[1]) + t_off,                 # the filter is inside t_off (PCM-10)
+                       max_us=blank[1] + t_off, scwt_1100_us=sc_["withstand_assumed_us"],
                        withstand_basis=sc_["basis"], soft_off_only_us=sc_["response_us"]["Q1"],
                        required_detect_to_off_us=sc_["required_detect_to_off_us_max"], vth=vth,
                        desat_A_25C=[2 * vth[0] / max(r[0] for r in rds.values()), 2 * vth[1] / min(r[0] for r in rds.values())],

@@ -4,8 +4,9 @@ PCS_X in gen/interfaces.py). This script re-values the PV-CTL module in place (i
 values at call time) and builds PCS-CTL; gen/pv_ctrl.py and its outputs are not changed. Nothing is bench-validated.
 
 STAGES DONE / TODO (each DONE stage builds and passes every check):
-  1 DONE  IL1-3 windows +/-450 A on the PCS phase-current sensor (RFQ: G 4.0 mV/A around its own Uref 2.5 V, ASSUMED as
-          on PCS-PWR): divider 10.0k / 10.0k, Uref ladder 7.68k / 40.2k / 7.15k, ADC stage Rf 2.49k; OV comparators
+  1 DONE  IL1-3 windows +/-450 A on the PCS phase-current sensor (since PCM-20 the Sinomags STK-250HO/4, 3.2 mV/A around its
+          own Uref pin; rev A0 assumed an RFQ 4.0 mV/A part): divider 10.0k / 10.0k, Uref ladder re-valued (C.ILR_LAD),
+          ADC stage Rf 2.49k; OV comparators
           1050 V on VB (DC link) and 560 V on VA (lower half); inductor OT ladder for the L1 140 C limit; K_A (= AC
           contactor 1) gated by HEALTHY only; the three SELV fan headers of PV-CTL; three-wire assembly bom/PCS-CTL-3W
   2 DONE  sheet 08: PCS_X socket (X6521FV-2x08, mate of PCS-PWR's box header); K_AC2 = K_AC2_M (GPIO61) AND HEALTHY
@@ -19,9 +20,12 @@ STAGES DONE / TODO (each DONE stage builds and passes every check):
           PV-P75 uses PV-CTL-P75) with fans, guards, harness and standoffs in gen/build_all.py extras; gen/cost.py
           MODULES / MODULE_AMPS; the lines the pricer could not price entered from sim/out/pcs_design/pcs_costed_bom.csv
           as labelled ESTIMATE / RFQ rows (@PCS-P125) in gen/data/cost_estimates.csv.
-OPEN: (1) every sensor number of the IL window is an ASSUMPTION for the RFQ sensor (G 4.0 mV/A, Vref 2.475-2.525 V, Voe
-      +/-10 mV, X 1 % / 3 % of I_PN 250 A, 1.5 % / 3 % of I_PM 500 A above I_PN, response 1 us; linear to +/-525 A, i.e.
-      output swing 0.4-4.6 V - tighter than PCS-PWR's '>= +/-500 A' RFQ line). (2) The window top (495 A)
+REVIEW (PCM-04 / 05 / 06 / 14 / 20 and the control study's record errors): the IL window, ADC scaling and trip response on the
+      STK-250HO/4's data-sheet values (parsed from PCS-PWR's design check, error terms of its p13); the inverter's firmware limits
+      (pcs_spec handover firmware_limits) in the firmware table, incl. the upper DC-link half (VB - VA) by firmware; the
+      inverter's own ADC plan (sim/out/pcs_control/pcs_control_spec.json firmware.sampling), dead band, CMPSS row and K_A route.
+OPEN: (1) closed (PCM-20): the sensor is the STK-250HO/4; what stays open is the maker's missing working-voltage / PD / dv/dt
+      statement and qualification (PCS-PWR design check). (2) The window top (495 A)
       rests on the pcs_spec commutation deck at 450 A scaled with current (ESTIMATE: 1050 V + 358 V x 495 / 450 = 1444 V vs
       1445 V); the inverter study has no control_spec, so di/dt, the 600 A limit, response limits, firmware OV (975 V)
       and the 1087 V bus limit are this script's ASSUMPTIONS (PCS_REQ below); the DC OV band is centred so its top is
@@ -36,7 +40,9 @@ Usage: .venv/bin/python gen/pcs_ctrl.py
 """
 import contextlib
 import copy
+import hashlib
 import io
+import json
 import math
 import os
 import re
@@ -51,6 +57,9 @@ import pv_power as PP
 C.PROJECT, C.REV, C.DATE = "PCS-CTL", "A0", "2026-10-05"
 C.PLAN_CSV = os.path.join(C.HERE, "data", "pcs_ctrl_pin_plan.csv")
 C.PWR_TXT = os.path.join(L.REPO, "hardware/PCS-PWR/outputs/PCS-PWR_design_check.txt")
+PCS_SPEC_PATH = os.path.join(L.REPO, "sim", "out", "pcs_design", "pcs_spec.json")
+PORT_SPEC_PATH = os.path.join(L.REPO, "sim", "out", "port_design", "port_spec.json")
+PS = json.load(open(PCS_SPEC_PATH))         # firmware limits and the upper-half analysis (PCM-04/05/06/14)
 C.P75_SUFFIX = "-3W"                      # three-wire assembly: the phase-4 (neutral leg) comparators not fitted
 C.PH4, C.BUILDS, C.P75_DNP = "four-wire only", ("four-wire", "three-wire"), "DNP (three-wire)"
 C.TITLE = "PCS-CTL control board"
@@ -61,13 +70,29 @@ C.ROOT_NOTES = ["ARCHITECTURE-PCS section 6; the PV-CTL schematic re-valued by g
                 "(bom/PCS-CTL-3W_BOM.csv)." % C.PH4,
                 "Pin plan: gen/data/pcs_ctrl_pin_plan.csv (from SPRSP61C, checked every build)."]
 
-# ---- phase-current sensor of PCS-PWR (RFQ): ASSUMED values, stated in the design check (OPEN 1)
-G_CS, VREF_CS, VOE_CS, T_CS = 4.0e-3, (2.475, 2.525), 10e-3, 1.0e-6
-C.SENS = dict(ipn=250.0, ipm=500.0, x25=(0.01, 0.015), xt=0.03)
-C.IL_NET = ("10.0k", "10.0k")             # node = IL / 2: +/-500 A -> 0.25-2.25 V at the comparators and the TLV9064
-C.IL_FB = ("36.5k", "2.49k")              # ADC = 0.534 IL - 0.205 V: +/-500 A in 0.06-2.20 V
-C.ILR_LAD = ("7.68k", "40.2k", "7.15k")   # ILnR - TH_ILn_HI - TH_ILn_LO - GND: +/-455 A nominal
-C.LADDER["OV"] = ("2.37k", "11.8k")       # VREF - TH_OV - GND: 1026 V on VB: band top at the 1050 V of the hand-over
+# ---- phase-current sensor of PCS-PWR: Sinomags STK-250HO/4 (PCM-20). Gain, Uref, Voe, source resistances, range and step
+# response are parsed from PCS-PWR's design check (pcs_levels); the window's error terms are the same data sheet's
+# (sensing/Sinomags-STK-HO-4.pdf Ver 1.0, printed p13): Voe drift +/-10 mV and gain drift +/-1 % over -40..105 C, gain error
+# +/-0.5 % at 25 C (factory trim), linearity +/-0.5 % of I_PM. The maker's accuracy (+/-1 % / +/-3 % of I_PN) is stated at I_PN
+# (its X_TRange formula divides by V_FS); the windows sit at 1.8-2.1 x I_PN, so the terms are summed at the trip current instead.
+STK4_ERR = dict(voe_t=10e-3, err_g=0.005, g_t=0.01, lin=0.005)
+C.SENS = dict(ipn=250.0, ipm=625.0)
+C.IL_NET = ("10.0k", "10.0k")             # node = IL / 2: +/-625 A -> 0.25-2.25 V at the comparators and the TLV9064
+C.IL_FB = ("36.5k", "2.49k")              # ADC = 0.534 IL - 0.205 V: +/-625 A in 0.06-2.20 V
+
+
+def sens_err(i, cal):
+    """STK-250HO/4 error (A) at |i|, offsets apart (Voe is the window's own term): Voe drift + gain drift x |i| + linearity x
+    I_PM over -40..105 C, plus the 25 C gain error when not calibrated (replaces PV-CTL's STK-HO/A 75 model)"""
+    g = pcs_levels()["g"]
+    return STK4_ERR["voe_t"] / g + (STK4_ERR["g_t"] + (0.0 if cal else STK4_ERR["err_g"])) * abs(i) + STK4_ERR["lin"] * C.SENS["ipm"]
+
+
+C.sens_err = sens_err
+C.ILR_LAD = ("11.8k", "32.4k", "11.0k")   # ILnR - TH_ILn_HI - TH_ILn_LO - GND: +/-455 A nominal at the STK-250HO/4's 3.2 mV/A
+#                                           (PCM-20; rev A0 7.68k / 40.2k / 7.15k for an assumed 4.0 mV/A would trip near 570 A)
+C.LADDER["OV"] = ("2.43k", "11.8k")       # VREF - TH_OV - GND: 1013 V on VB: band top at the 1050 V of the hand-over (re-centred:
+#                                           PV-CTL's comparator model now carries the TLV9024 common-mode error, 9.5 V; 2.37k gave 1060 V)
 C.LADDER["OVA"] = ("5.11k", "11.8k")      # VREF - TH_OVA - GND: 540 V on VA (lower half; midpoint against DC-)
 C.LADDER["OTL"] = ("30.9k", "1.87k")      # VREF - TH_OTL - GND: L1 winding about 130 C (its hot-spot limit 140 C)
 C.TH_NETS["OVA"] = ("TH_OVA",)
@@ -96,6 +121,7 @@ PCS_REQ["hardware_trips"]["port_overvoltage"]["basis"] = ("bus at gates-off <= 1
                                                           "less the 358 V turn-off overshoot at 450 A)")
 PCS_REQ["hardware_trips"]["firmware_overvoltage_V"] = 975.0
 PCS_REQ["hardware_trips"]["port_overvoltage"]["full_current_frozen_case"]["slope_V_per_us"] = 250.0 / 350.0
+PCS_REQ["dead_time"]["firmware_dead_band_ns"] = PS["handover"]["control_engineer"]["sampling"]["dead_time_ns"]   # pcs_spec, not PV
 C.CS = PCS_REQ
 C.CELL = {"inductor": {"I_at_50pct_L0_A": I_LIM, "I_peak_normal_max_A": I_NORM}}
 
@@ -128,7 +154,8 @@ def plan():
     """The PV-CTL plan, IA / IA_H / VAX and NTC1-8 off their pins, plus the PCS_X lines: VG1-3 and VC1-3 one per ADC
     (A, B, C: each set sampled together), RCM, NTC9, the NTC mux; K_AC2_M into the gating, RCM_TST, the mux address."""
     drop = {"IA_ADC", "IA_H_ADC", "VAX_ADC"} | {"NTC%d" % k for k in range(1, 9)}
-    P = [r for r in _plan_pv() if r[0] not in drop]
+    P = [r if r[0] != "K_A_M" else r[:4] + ("AND HEALTHY -> K_A (AC contactor 1: HEALTHY only, D-062; HOLD keeps only K_B)",)
+         for r in _plan_pv() if r[0] not in drop]
     for net, lab, route in (("VG1_ADC", "A6", "grid L1 at the terminal (ADC-A), VMID + V/1203"),
                             ("VG2_ADC", "B11", "grid L2 at the terminal (ADC-B)"), ("VG3_ADC", "C1", "grid L3 (ADC-C)"),
                             ("VC1_ADC", "A5", "C_f node L1 (ADC-A), VMID + V/1203"), ("VC2_ADC", "B5", "C_f node L2 "
@@ -185,44 +212,179 @@ _vrange_pv = C.vrange
 C.vrange = lambda net: (0.0, 5.25) if net == "RCM" else _vrange_pv(net)    # RCM sensor output (ASSUMED <= its +5V)
 
 
+_PW = {}
+
+
 def pcs_levels():
-    """PCS-PWR's levels at the PCS_PC connector (gen/pcs_power.py as drawn; the sensor values are OPEN 1)."""
-    v33 = PP.V33
-    vmid = (3.0 * 0.998 * 16.35 / 29.8 * 0.999, 3.0 * 1.002 * 16.35 / 29.8 * 1.001)      # port.lean_refs ladder
-    r_sh, sw = 100e-6, 0.05
-    lin = lambda g: min((vmid[0] - sw) / (g * r_sh), (v33[0] - sw - vmid[1]) / (g * r_sh))
-    return dict(v0=2.5, v0_rng=VREF_CS, g=G_CS, uref=VREF_CS, voe=VOE_CS, rs_ilr=(111.0, 121.0), rs_il=(114.0, 126.0),
-                tau_ia=30.1e3 * 470e-12, f_ia=1 / (2 * 3.14159265 * 30.1e3 * 470e-12), vmid=vmid, k_ia=3.0e-3,
-                ia_lin=lin(30), k_ih=1.0e-3, ih_lin=lin(10), il_lin=525.0, t_sens=T_CS, t_rc=(25.0 + 101.0) * 1e-9,
-                k_div=1 / 1203.0, alloc=[PP.CTRL_LOAD["+24V"], PP.CTRL_LOAD["+5V"], PP.CTRL_LOAD["+3V3"]],
-                flt_pullup=True, rdy_pullup_on_pwr=True, hs_max=89.9, sink=75.0, hot=(124.5, 140.0),
-                port_oc_on_flt=True, il4_zero=True, ntc_open=True)
+    """PCS-PWR's levels at the PCS_PC connector (gen/pcs_power.py as drawn); the phase-current sensor's numbers are parsed from
+    its design check (the STK-250HO/4 line), so the two boards cannot state different sensors (PCM-20 / PCM-23)."""
+    if not _PW:
+        rel = os.path.relpath(C.PWR_TXT, L.REPO)
+        if not os.path.exists(C.PWR_TXT):
+            raise SystemExit("%s missing: build gen/pcs_power.py first" % rel)
+        m = re.search(r"STK-250HO/4: ([\d.]+) mV/A around Uref ([\d.]+)-([\d.]+) V \(pin 4\), Voe \+/-([\d.]+) mV, R_out ([\d.]+)-"
+                      r"([\d.]+) ohm, R_ref ([\d.]+)-([\d.]+) ohm, linear \+/-([\d.]+) A, response ([\d.]+) us max", open(C.PWR_TXT).read())
+        if not m:
+            raise SystemExit("%s states no STK-250HO/4 sensor line: rebuild gen/pcs_power.py" % rel)
+        g, u0, u1, voe, ro0, ro1, rr0, rr1, ipm, t_res = map(float, m.groups())
+        assert ipm == C.SENS["ipm"], "sensor range vs this board's error model"
+        v33 = PP.V33
+        vmid = (3.0 * 0.998 * 16.35 / 29.8 * 0.999, 3.0 * 1.002 * 16.35 / 29.8 * 1.001)      # port.lean_refs ladder
+        r_sh, sw = 100e-6, 0.05
+        lin = lambda g_: min((vmid[0] - sw) / (g_ * r_sh), (v33[0] - sw - vmid[1]) / (g_ * r_sh))   # noqa: E731
+        _PW.update(v0=2.5, v0_rng=(u0, u1), g=g * 1e-3, uref=(u0, u1), voe=voe * 1e-3, rs_ilr=(rr0 + 99.0, rr1 + 101.0),
+                   rs_il=(ro0 + 99.0, ro1 + 101.0), tau_ia=30.1e3 * 470e-12, f_ia=1 / (2 * 3.14159265 * 30.1e3 * 470e-12),
+                   vmid=vmid, k_ia=3.0e-3, ia_lin=lin(30), k_ih=1.0e-3, ih_lin=lin(10), il_lin=ipm, t_sens=t_res * 1e-6,
+                   t_rc=(ro1 + 101.0) * 1e-9, k_div=1 / 1203.0, alloc=[PP.CTRL_LOAD["+24V"], PP.CTRL_LOAD["+5V"], PP.CTRL_LOAD["+3V3"]],
+                   flt_pullup=True, rdy_pullup_on_pwr=True, hs_max=89.9, sink=75.0, hot=(124.5, 140.0),
+                   port_oc_on_flt=True, il4_zero=True, ntc_open=True)
+    return dict(_PW)
 
 
 C.pwr_levels = pcs_levels
 
 
+def pcs_pwr_current():
+    """PCM-23: the PCS-PWR design check this board reads (C.PWR_TXT) must exist, be built from the present pcs_spec / port_spec, and
+    still state the levels pcs_levels() assumes - otherwise stop instead of using a missing or stale copy"""
+    rel = os.path.relpath(C.PWR_TXT, L.REPO)
+    if not os.path.exists(C.PWR_TXT):
+        raise SystemExit("%s missing: build gen/pcs_power.py first" % rel)
+    t = open(C.PWR_TXT).read()
+    h = re.search(r"pcs_spec\.json sha256 ([0-9a-f]{16}); port_spec\.json sha256 ([0-9a-f]{16})", t)
+    now = tuple(hashlib.sha256(open(p, "rb").read()).hexdigest()[:16] for p in (PCS_SPEC_PATH, PORT_SPEC_PATH))
+    if not h or h.groups() != now:
+        raise SystemExit("%s is stale (not built from the present pcs_spec.json / port_spec.json): rebuild gen/pcs_power.py first" % rel)
+    pw = pcs_levels()
+    vm = re.search(r"VMID ([\d.]+)-([\d.]+) V", t)
+    if not (vm and (float(vm.group(1)), float(vm.group(2))) == tuple(round(v, 3) for v in pw["vmid"]) and "V(DC+)/1203" in t
+            and "100R + 1 nF (0.13 us)" in t and "shunt 2 x 200 uOhm" in t):
+        raise SystemExit("%s no longer states the levels pcs_levels() assumes (VMID band, 1/1203 dividers, IL source RC, shunt): "
+                         "update gen/pcs_ctrl.py" % rel)
+
+
+CTRL_SPEC_PATH = os.path.join(L.REPO, "sim", "out", "pcs_control", "pcs_control_spec.json")
+
+
+def pwr_dead_time():
+    """(hardware dead time at the gates, min / max ns; firmware value below which the hardware stretches) from PCS-PWR's check"""
+    m = re.search(r"Dead time at the gates .*?: (\d+)-(\d+) ns >= .*?a firmware dead band below (\d+) ns is extended by the hardware",
+                  open(C.PWR_TXT).read())
+    if not m:
+        raise SystemExit("%s states no 'Dead time at the gates' line: rebuild gen/pcs_power.py" % C.PWR_TXT)
+    return tuple(float(x) for x in m.groups())
+
+
+def adc_plan():
+    """the inverter's own ADC sampling plan (control study, sim/out/pcs_control/pcs_control_spec.json firmware.sampling) - read,
+    not retyped; fail closed without it"""
+    if not os.path.exists(CTRL_SPEC_PATH):
+        raise SystemExit("%s missing: run sim/pcs_control.py (the inverter's ADC plan)" % os.path.relpath(CTRL_SPEC_PATH, L.REPO))
+    s = json.load(open(CTRL_SPEC_PATH))["firmware"]["sampling"]
+    t_per = 1e3 / C.CS["sampling"]["outer_loop_kHz"]
+    assert s["va_interval_us"] <= 10.0 and s["all_simultaneous"], "inverter ADC plan: VA / VB every <= 10 us, rounds simultaneous"
+    rounds = " / ".join("+".join(n.replace("_ADC", "") for n in r["nets"]) for r in s["rounds"])
+    return ("inverter plan (sim/out/pcs_control/pcs_control_spec.json firmware.sampling, read at build time): %.1f conversions per "
+            "%.2f us on 3 ADCs = %.0f %% busy at %.2f us per conversion; rounds %s, each converted simultaneously on ADC-A/B/C; VA / VB "
+            "%d x per period (every %.1f us <= the 10 us the ADC-PPB over-voltage backup needs); last loop input %.2f us after the "
+            "trigger; NTC1-8 through the TMUX1208 in %.0f ms per scan; the CLA budget at 120 MHz is the architecture's R-14"
+            % (s["conv_per_period"], t_per, s["busy_pct"], s["t_conv_us"], rounds, s["k_va"], s["va_interval_us"], s["latency_us"],
+               s["tmux_scan_ms"]))
+
+
+_info_pv = C.info
+
+
+def info(name, detail):
+    """PV-CTL's info lines, with the inverter's own ADC plan instead of the PV control_spec's"""
+    _info_pv(name, adc_plan() if name == "ADC load" else detail)
+
+
+C.info = info
+_trips_pv = C.check_trips
+
+
+def check_trips(pw):
+    """PV-CTL's trip checks; the CMPSS backup row carries the inverter's requirement (PCS_REQ), not the PV cell band"""
+    ok, rows = _trips_pv(pw)
+    bk = C.CS["hardware_trips"]["inductor_overcurrent"]["ctrl_backup"]
+    req = "%.1f-%.1f A, <= %.2f us (inverter, PCS_REQ)" % (bk["band_A"][0], bk["band_A"][1], bk["max_response_us"])
+    assert sum(1 for r in rows if r[0] == "IL1-4 CMPSS backup") == 1, "PV-CTL trip table changed: re-check the CMPSS row"
+    return ok, [r[:4] + (req,) if r[0] == "IL1-4 CMPSS backup" else r for r in rows]
+
+
+C.check_trips = check_trips
+_fw_pv = C.firmware_table
+
+
+def firmware_table(rows):
+    """PV-CTL's second-layer table with the inverter's values in the rows that carried PV numbers (CMPSS DAC, soft OV limit, dead
+    band, three-wire build), plus the inverter's own limits (pcs_spec handover firmware_limits)"""
+    r = {x[0]: x for x in rows}
+    il = r["IL1-4 CMPSS backup"]
+    hw_lo, hw_hi, fw_floor = pwr_dead_time()
+    fw_dt = C.CS["dead_time"]["firmware_dead_band_ns"]
+    fix = {
+        "IL backup, per phase": lambda x: (x[0], x[1], "%s, DAC = idle zero +/-%.1f A" % (il[2], C.I_BK), x[3], x[4], x[5]),
+        "port OC backup": lambda x: (x[0], x[1].replace("PV-P75:", "three-wire:"), x[2].replace("PV-PWR", "PCS-PWR"), x[3], x[4],
+                                     x[5]),
+        "OV / UV soft limits": lambda x: (x[0], x[1], "%.0f V (PCS_REQ firmware OV, ASSUMED)" % C.CS["hardware_trips"]["firmware_overvoltage_V"],
+                                          x[3], x[4], x[5]),
+        "dead time": lambda x: (x[0], "ePWM dead-band generator set to %.0f ns (pcs_spec hand-over) - a floor only: PCS-PWR's RC stretch "
+                                "extends any firmware value below %.0f ns, so the dead time at the gates is the hardware's %.0f-%.0f ns "
+                                "(PCS-PWR design check); dead-time compensation uses that band (identified per leg), not the "
+                                "firmware value" % (fw_dt, fw_floor, hw_lo, hw_hi),
+                                "%.0f-%.0f ns at the gates (firmware %.0f ns, stretched)" % (hw_lo, hw_hi, fw_dt), x[3], x[4], x[5]),
+        "PV-P75 build": lambda x: ("three-wire build (PCS-CTL-3W)", x[1], x[2], x[3], x[4], x[5])}
+    out = [fix[x[0]](x) if x[0] in fix else x for x in _fw_pv(rows)]
+    assert sum(1 for x in _fw_pv(rows) if x[0] in fix) == len(fix), "PV-CTL firmware table changed: re-check the inverter rows"
+    return out + [(x["item"], x["peripheral"], x["threshold"], x["filter"], x["latency"], x["self_test"])
+                  for x in PS["handover"]["firmware_limits"]]
+
+
+C.firmware_table = firmware_table
+
+
 def extra_checks(B):
-    """Lines PV-CTL does not have: the lower-half OV comparator, the K_A gating, the sensor assumptions."""
+    """Lines PV-CTL does not have: the lower-half OV comparator, the upper half by firmware, the K_A gating, the sensor."""
     pw = pcs_levels()
     (th, e), = C.lad_th("OVA")
     vmid = sum(pw["vmid"]) / 2
     v_nom = (th - vmid) / pw["k_div"]
-    dv = th * (C.REF_E + e) + C.VIO_CMP + (pw["vmid"][1] - pw["vmid"][0]) / 2
+    dv = th * (C.REF_E + e) + C.VIO_CMP + C.cm_err(th) + (pw["vmid"][1] - pw["vmid"][0]) / 2
     lo, hi = v_nom - dv / pw["k_div"] - v_nom * 0.0032, v_nom + dv / pw["k_div"] + v_nom * 0.0032
     ok = C.say(lo > 475.0 * 1.05 and hi <= 575.0, "Trip lower-half over-voltage (TLV9024 on VA = V(M - DC-))",
-               "%.0f V nominal -> %.0f-%.0f V (divider, VMID, REF, ladder, VIO); above 1.05 x 475 V (half of 950 V) and "
-               "<= 1.15 x U_N(85 C) 500 V of the C3D1U147 = 575 V; the upper half is the total minus this (VB 1050 V "
-               "trip), its plausibility is firmware (no midpoint control, two-level)" % (v_nom, lo, hi))
+               "%.0f V nominal -> %.0f-%.0f V (divider, VMID, REF, ladder, VIO, TLV9024 common-mode error); above 1.05 x 475 V "
+               "(half of 950 V) and <= 1.15 x U_N(85 C) 500 V of the C3D1U147 = 575 V; the upper half: next line" % (v_nom, lo, hi))
+    uh = PS["dc_link"]["upper_half"]
+    smp = json.load(open(CTRL_SPEC_PATH))["firmware"]["sampling"]
+    t_per = 1e3 / C.CS["sampling"]["outer_loop_kHz"]
+    ok &= C.say(not uh["hardware_needed"] and abs(uh["outer_loop_us"] - t_per) < 0.01 and smp["va_interval_us"] <= uh["conversion_us"],
+                "Upper DC-link half (VB - VA): firmware limit, no comparator (pcs_spec dc_link upper_half, PCM-04)",
+                "%s. Latency basis = this board: outer loop %.2f us, VA / VB converted every %.1f us (<= the %.0f us assumed) -> "
+                "<= %.0f us; limit (firmware table below): %s" % (uh["why"], t_per, smp["va_interval_us"], uh["conversion_us"],
+                                                                   uh["latency_us"], uh["firmware_limit"]["threshold"]))
     gates = {g[2]: g[1] for g in C.GATES}
-    ok &= C.say(gates["K_A"] == gates["K_AC2"] == "HEALTHY" and gates["K_B"] == "KGATE", "Contactor gating (PCS assembly)",
+    plan_k_a = {r[0]: r[4] for r in C.plan()}["K_A_M"]
+    ok &= C.say(gates["K_A"] == gates["K_AC2"] == "HEALTHY" and gates["K_B"] == "KGATE" and "HOLD ->" not in plan_k_a,
+                "Contactor gating (PCS assembly)",
                 "K_A = AC contactor 1 and K_AC2 = AC contactor 2 gated by HEALTHY only (a trip opens both, they break at "
                 "the next zero current; K_AC2 is in the latch evaluation above); K_B = DC contactor keeps HEALTHY OR HOLD "
-                "(hold-off layer; PCS-PWR also holds it in hardware above 0.97-1.03 kA) - OPEN 3")
-    C.info("Phase-current sensor ASSUMED (RFQ on PCS-PWR, OPEN 1)", "G %.1f mV/A, Vref %.3f-%.3f V, Voe +/-%.0f mV, X25 1 %% of "
-           "I_PN 250 A (1.5 %% of I_PM 500 A above I_PN), X_T 3 %%, response %.1f us; normal peak %.0f A (1.2 x 216 A rms + "
-           "ripple), limit %.0f A, di/dt %.2f A/us (ASSUMED)" % (G_CS * 1e3, VREF_CS[0], VREF_CS[1], VOE_CS * 1e3,
-                                                                 T_CS * 1e6, I_NORM, I_LIM, DIDT))
+                "(hold-off layer; PCS-PWR also holds it in hardware above 0.97-1.03 kA) - OPEN 3; pin plan K_A_M: '%s'" % plan_k_a)
+    n = C.il_numbers(pw)
+    ps = PS["phase_current_sensor"]
+    rng = (-n["z_adc"] / n["g_adc"], (3.0 - n["z_adc"]) / n["g_adc"])
+    e_cal, e_unc = sens_err(C.IL_NOM_MAX * 0.9, True), sens_err(C.IL_NOM_MAX * 0.9, False)
+    assert abs(pw["g"] - ps["gain_mV_per_A"] * 1e-3) < 1e-9 and pw["il_lin"] == ps["linear_range_A"], "PCS-PWR check vs pcs_spec sensor"
+    C.info("Phase-current sensor %s (PCS-PWR; data sheet printed p13, PCM-20)" % ps["mpn"],
+           "%.1f mV/A around its Uref pin %.2f-%.2f V, Voe +/-%.0f mV, linear +/-%.0f A, step response %.1f us max + PCS-PWR RC "
+           "%.2f us, BW %.0f kHz typ (the ADC line's -3 dB is this board's RC chain only); error at %.0f A: %.1f A after the "
+           "2-point calibration / %.1f A without (Voe drift %.0f mV, gain drift %.0f %%, gain error %.1f %%, linearity %.1f %% of "
+           "I_PM; Voe separately) - the window terms above; ADC %.4f A/LSB, %.0f..%.0f A in 0..3.0 V (the sensor is linear to "
+           "+/-%.0f A); normal peak %.0f A (1.2 x 216 A rms + ripple), L1 limit %.0f A, di/dt %.2f A/us (ASSUMED)" %
+           (pw["g"] * 1e3, pw["uref"][0], pw["uref"][1], pw["voe"] * 1e3, pw["il_lin"], pw["t_sens"] * 1e6, pw["t_rc"] * 1e6,
+            ps["bandwidth_Hz"] / 1e3, C.IL_NOM_MAX * 0.9, e_cal, e_unc, STK4_ERR["voe_t"] * 1e3, STK4_ERR["g_t"] * 100,
+            STK4_ERR["err_g"] * 100, STK4_ERR["lin"] * 100, C.LSB / n["g_adc"], rng[0], rng[1], pw["il_lin"], I_NORM, I_LIM, DIDT))
     n_fan = sum(1 for p in B.D.parts.values() if p.lib_id.split(":")[1] == "J_FAN")
     ok &= C.say(n_fan == 3, "Fan headers (SELV zone)", "%d x J_FAN on the fan buck: one per heatsink section" % n_fan)
     return ok
@@ -268,6 +430,7 @@ def check_adc_budget(P, pins):
 
 
 if __name__ == "__main__":
+    pcs_pwr_current()
     B, pins, P, iso, xing = C.build_design()
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):

@@ -1,0 +1,1026 @@
+{
+ "title": "PVCELL-25/27.5 power-stage hand-off (calculated, not bench-validated)",
+ "generated_by": "sim/pv_design.py",
+ "gate0_study": "sim/out/pv_tradeoff/report.md",
+ "topology": "2-level non-inverting four-switch buck-boost (FSBB), common negative rail, bidirectional",
+ "gate0_candidate": "A17",
+ "ratings": {
+  "P_rated_kW": 25.0,
+  "P_max_kW": 27.5,
+  "I_max_A_low_voltage_port": 45.0,
+  "V_ports_V": [
+   250.0,
+   1000.0
+  ],
+  "V_full_power_V": [
+   550.0,
+   950.0
+  ],
+  "P_limit_rule": "min(27.5 kW, 45 A x min(V_A, V_B))"
+ },
+ "switch_positions": [
+  {
+   "name": "S1",
+   "leg": "A",
+   "position": "top (port A +)",
+   "mpn": "SG2M040170HJ",
+   "manufacturer": "Sichain",
+   "parallel": 2,
+   "package": "TO-247-4L (outline TO-247-4L-A, p11)",
+   "datasheet": "docs/datasheets/power-semiconductors/SG2M040170HJ.pdf",
+   "gate_resistor_on_ohm": 3.75,
+   "gate_resistor_off_ohm": 2.5,
+   "gate_resistor_note": "per device, split outputs (UCC21710 OUTH/OUTL); R_off = datasheet switching-energy test value; R_on raised to keep the complementary device's turn-on ringing within the 0.85 x V_DSS rule (E_on penalty from the datasheet E-vs-R_G curve is in the losses)"
+  },
+  {
+   "name": "S2",
+   "leg": "A",
+   "position": "bottom",
+   "mpn": "SG2M040170HJ",
+   "manufacturer": "Sichain",
+   "parallel": 2,
+   "package": "TO-247-4L (outline TO-247-4L-A, p11)",
+   "datasheet": "docs/datasheets/power-semiconductors/SG2M040170HJ.pdf",
+   "gate_resistor_on_ohm": 3.75,
+   "gate_resistor_off_ohm": 2.5,
+   "gate_resistor_note": "per device, split outputs (UCC21710 OUTH/OUTL); R_off = datasheet switching-energy test value; R_on raised to keep the complementary device's turn-on ringing within the 0.85 x V_DSS rule (E_on penalty from the datasheet E-vs-R_G curve is in the losses)"
+  },
+  {
+   "name": "S3",
+   "leg": "B",
+   "position": "top (port B +)",
+   "mpn": "SG2M040170HJ",
+   "manufacturer": "Sichain",
+   "parallel": 2,
+   "package": "TO-247-4L (outline TO-247-4L-A, p11)",
+   "datasheet": "docs/datasheets/power-semiconductors/SG2M040170HJ.pdf",
+   "gate_resistor_on_ohm": 3.75,
+   "gate_resistor_off_ohm": 2.5,
+   "gate_resistor_note": "per device, split outputs (UCC21710 OUTH/OUTL); R_off = datasheet switching-energy test value; R_on raised to keep the complementary device's turn-on ringing within the 0.85 x V_DSS rule (E_on penalty from the datasheet E-vs-R_G curve is in the losses)"
+  },
+  {
+   "name": "S4",
+   "leg": "B",
+   "position": "bottom",
+   "mpn": "SG2M040170HJ",
+   "manufacturer": "Sichain",
+   "parallel": 2,
+   "package": "TO-247-4L (outline TO-247-4L-A, p11)",
+   "datasheet": "docs/datasheets/power-semiconductors/SG2M040170HJ.pdf",
+   "gate_resistor_on_ohm": 3.75,
+   "gate_resistor_off_ohm": 2.5,
+   "gate_resistor_note": "per device, split outputs (UCC21710 OUTH/OUTL); R_off = datasheet switching-energy test value; R_on raised to keep the complementary device's turn-on ringing within the 0.85 x V_DSS rule (E_on penalty from the datasheet E-vs-R_G curve is in the losses)"
+  }
+ ],
+ "switching": {
+  "f_sw_kHz": 32.0,
+  "pwm": "centre-aligned, legs A and B on the same carrier",
+  "dead_time_ns": 200,
+  "min_pulse_us": 1.771,
+  "D_max": 0.94333,
+  "modes": {
+   "buck": "V_B/V_A <= D_max: leg A switches, S3 on, S4 off",
+   "boost": "V_B/V_A >= 1/D_max: leg B switches, S1 on, S2 off",
+   "band": "otherwise: both legs switch, D_A = D_max*min(1,V_B/V_A), D_B = D_max*min(1,V_A/V_B)"
+  },
+  "dead_time_firmware_ns": 200,
+  "dead_time_at_gates_ns": [
+   181,
+   586
+  ],
+  "dead_time_basis": "REQUIRED for the device pair: the Miller clamp must hold before the earliest complementary turn-on (rev-5 AO3400A clamps, gen/gdrv.py) -> 181-586 ns at the gates with the rev-4 spread (gen/gdrv.py rev 5 (design_check record + constants via Python), sim/gdrv_miller.py: stretch 3.4k/100p gives 181-521 ns for MSC035; the gate-driver design must be re-sized). Firmware dead time 200 ns. Loss uses the maximum, ZVS completion the minimum",
+  "min_pulse_basis": "600 ns complementary on-time + 2 x 586 ns dead time at the gates",
+  "body_diode_conduction": {
+   "per_edge_ns_max": 586,
+   "edges_per_period_per_switching_leg": 2,
+   "duty_max_pct": 3.75,
+   "current_per_device_max_A": 36.2,
+   "note": "hard edge: the full dead time; soft edge: the dead time less the transition"
+  }
+ },
+ "gate_drive": {
+  "driver": "NOVOSENSE NSI6651ASC-Q1 (D-035), one isolated channel per switch position (4 per cell); bias supply open (D-035: UCC14241-Q1 documented option)",
+  "V_GS_on_V": 18.0,
+  "V_GS_off_V": -3.5,
+  "Q_g_per_device_nC": 78.0,
+  "gate_power_per_channel_W": 0.273,
+  "peak_gate_current_A": 8.81,
+  "peak_gate_current_source_A": 5.4,
+  "peak_gate_current_sink_A": 8.81,
+  "driver_rating_A": 11.0,
+  "V_GS_on_range_V": [
+   17.83,
+   18.56
+  ],
+  "V_GS_off_range_V": [
+   -3.55,
+   -3.46
+  ],
+  "gate_drive_basis": "sim/pv_design.py drive_requirements(): NSI6651 ROH 2.2 / ROL 0.3 ohm (sim/data/asia_drivers.md), device R_G,int and Q_G from the datasheets, R_KS 0.5 ohm",
+  "miller_clamp": "rev 5 (gen/gdrv.py rev 5 (design_check record + constants via Python), sim/gdrv_miller.py): rev 5: AO3400A clamp MOSFET per gate at the gate-Kelvin pins; NSI6651 CLAMP drives them; release <= 65 ns after OUTH rises - required",
+  "kelvin_source_resistor_ohm": 0.5,
+  "miller_check": {
+   "source": "sim/gdrv_miller.py rev 5 (AO3400A clamp loop <= 1 nH), gen/gdrv.py MILLER_SIM",
+   "worst_corner": {
+    "V": 1100.0,
+    "I_A": 72.4
+   },
+   "V_GS_pin_peak_V": -2.47,
+   "V_GS_die_peak_V": 1.41,
+   "V_GS_die_ideal_clamp_loop_V": 0.95,
+   "miller_current_per_device_A_peak": 3.22,
+   "victim_dvdt_V_per_ns_peak": 115.0,
+   "edge_dvdt_V_per_ns": 115.0,
+   "clamp_loop_nH_max": 1.0,
+   "limits_V": {
+    "design_target": 1.44,
+    "V_th_min_175C": 1.94,
+    "V_th_min_25C": 2.5
+   },
+   "result": "die +1.41 V vs V_th(min, 175 C) 1.94 V: within the 0.5 V design margin",
+   "fallback_variant": {
+    "source": "NOT simulated with the rev-5 network: gen/gdrv.py rev 5 does not carry this device's rail (its AO3400A clamp FET would see 24.6 V > 80 % of 30 V at +20/-4 V); previous round (rev-4 PNP network) die +1.42 V",
+    "result": "not simulated for this variant"
+   }
+  },
+  "rails_by_variant_V": {
+   "SG2M040170HJ": [
+    18.0,
+    -3.5
+   ],
+   "MSC035SMA170B4": [
+    20.0,
+    -4.0
+   ]
+  },
+  "sc_booster": {
+   "r_sb_ohm_per_device": 22.0,
+   "detection_to_off_us": 0.62,
+   "basis": "gen/gdrv.py rev 5 (primary preset; the fallback needs its own booster sizing)"
+  },
+  "rail_range_basis": "REQUIREMENT on the bias design (VDD-VEE 22 V): +-0.5 V on, +-0.3 V off keeps both makers inside their recommended drive and well inside the absolute limits",
+  "requirements": {
+   "rails_V": {
+    "primary": [
+     18.0,
+     -3.5
+    ]
+   },
+   "per_device": {
+    "primary": {
+     "mpn": "SG2M040170HJ",
+     "peak_source_A": 4.278606965174129,
+     "peak_sink_A": 8.6,
+     "gate_power_W_per_channel": 0.10732799999999999,
+     "clamp_engaged_after_ns": null,
+     "vds_on_at_trip_175C_V": 3.1298399999999997,
+     "desat_margin": 2.715793778595711,
+     "sc_response_us": {
+      "Q1": 1.5691399999999998,
+      "industrial": 1.086656
+     }
+    },
+    "alternate": {
+     "mpn": "MSC035SMA170B4",
+     "peak_source_A": 4.085106382978723,
+     "peak_sink_A": 8.067226890756304,
+     "gate_power_W_per_channel": 0.273408,
+     "clamp_engaged_after_ns": null,
+     "vds_on_at_trip_175C_V": 2.37092625,
+     "desat_margin": 3.585096752798616,
+     "sc_response_us": {
+      "Q1": 1.9595999999999998,
+      "industrial": 1.24284
+     }
+    }
+   },
+   "peak_source_A_max": 5.4,
+   "peak_sink_A_max": 8.81,
+   "gate_power_W_per_channel_max": 0.273408,
+   "dead_time_min_required_ns": null,
+   "sc_assumed_withstand_us": 2.0,
+   "sc_response_us_worst": {
+    "Q1": 1.9595999999999998,
+    "industrial": 1.24284
+   },
+   "desat_margin_min": 2.715793778595711
+  },
+  "hardware_dead_time_required_ns": [
+   181,
+   586
+  ],
+  "rev4_hardware_dead_time_ns": [
+   181,
+   521
+  ],
+  "short_circuit": {
+   "withstand_assumed_us": 2.0,
+   "basis": "no Chinese datasheet states one; MSC035SMA170B4 3.1 us typ (1200 V, 20 V), ROHM SCT4036KRHR 4 us - ASSUMPTION to be confirmed by the makers or a SC test",
+   "required_detect_to_off_us_max": 1.0,
+   "response_us": {
+    "Q1": 1.96,
+    "industrial": 1.24
+   },
+   "booster_detection_to_off_us_primary": 0.62,
+   "verdict": "primary: rev-5 booster (22 ohm per device) turns off 0.62 us after DESAT detection (<= 1.0 us required); the internal soft turn-off alone would take 1.96 us. Fallback (MSC035, +20/-4 V): the booster is not sized for it in gen/gdrv.py rev 5 - open"
+  }
+ },
+ "inductor": {
+  "L_at_45A_uH": 225.8909319762923,
+  "L0_uH": 243.68200000000002,
+  "L_tolerance_pct": 8.0,
+  "tolerance_basis": "catalogue A_L +-8 %; DC-bias curve fit spread not included",
+  "L_at_trip_uH": 196.0011884227344,
+  "I_at_50pct_L0_A": 129.0,
+  "I_trip_A": 72.4,
+  "I_sat_definition": "current at which L falls to 50 % of L0 (powder core, soft saturation)",
+  "I_rms_max_A": 47.70348607913046,
+  "I_peak_normal_max_A": 62.29263749467361,
+  "ripple_pp_max_A": 34.585274989347226,
+  "core": "NPC290026 x 2 (stacked, 0.5 mm spacer)",
+  "material": "POCO NPC 26",
+  "turns": 37,
+  "conductor": "solid round enamelled Cu 3.15 mm grade 2, 1 layer",
+  "DCR_20C_mOhm": 16.434480631608285,
+  "DCR_110C_mOhm": 22.247356431008132,
+  "B_dc_at_45A_T": 0.2876844532391501,
+  "B_at_trip_T": 0.44477868284667194,
+  "B_sat_T": 1.25,
+  "mass_kg": 1.7447046857839288,
+  "loss_worst_W": 83.7573959058682,
+  "loss_worst_at": [
+   500.0,
+   1000.0,
+   22500.0
+  ],
+  "core_area_mm2": 1008.0,
+  "path_mm": 183.79999999999998,
+  "review_corrections": {
+   "source": "design_pv_inductor.json rev M2",
+   "loss_factor_applied": 1.0,
+   "hot_spot_rise_K_at_W": [
+    89.84208985295061,
+    83.75739590586821
+   ],
+   "MG-06_conductor": "profiled (rectangular) litz or foil (round 10.3 mm2 litz with 1.1 kV insulation does not fit the 8044E window)",
+   "MG-07_insulation_class": "H (180 C); hot-spot NTC at the winding centre drives the fan law / derating",
+   "asian_core": "POCO NPC 26: better DC bias, ~45 % more core loss, no 80 mm E core (toroids only)"
+  },
+  "requirement": {
+   "note": "ELECTRICAL requirement set by the power stage; the construction (conductor, core, insulation, thermal) is the magnetics engineer's (sim/out/magnetics/design_pv_inductor.json, read by sim/pv_tradeoff.py when present)",
+   "L_vs_I": "out/pv_design/inductor_L_vs_I.csv",
+   "L_at_45A_uH_min": 207.8,
+   "L_at_trip_fraction_of_L0_min": 0.35,
+   "L_tolerance_pct": 8.0,
+   "I_dc_max_A": 45.0,
+   "I_rms_max_A": 47.7,
+   "I_peak_normal_max_A": 62.3,
+   "I_trip_A": 72.4,
+   "ripple_pp_max_A": 34.6,
+   "volt_seconds_max_Vus": 7812.0,
+   "ripple_frequency_kHz": 32.0,
+   "voltage_across_max_V": 1000.0,
+   "loss_allowed_W": 83.8,
+   "hot_spot_max_C": 155.0,
+   "hot_spot_basis": "class H (180 C) less 25 K; module derating keeps it (sim/pv_module.py T_IND_MAX)",
+   "air_flow_m3h_at_full_load": 150.0,
+   "air_flow_basis": "per-cell heatsink design flow (pv_tradeoff); the module model gives the real flow per inlet temperature"
+  },
+  "insulation_requirements_IC16": {
+   "winding_to_core_basic": "PD-free at 1910 Vpk (<= 10 pC), AC 2200 V rms 1 min, impulse 6 kV",
+   "NTC_to_winding_reinforced": "PD <= 10 pC at 2387 Vpk, AC 4400 V rms 1 min, impulse 8 kV",
+   "source": "gen/data/review_insulation.csv IC-16, sim/out/insulation/report.md"
+  },
+  "asian_core_alternative": {
+   "maker": "POCO (CN)",
+   "material": "NPC 26 (catalogue mu 26, Bsat 1.25 T) or NPH-L 26 (1.0 T)",
+   "replaces": "Magnetics Kool Mu MAX 26u 00Y8044E026",
+   "data": "sim/data/asian_magnetic_materials.csv (POCO 2026 catalogue p27-30: DC-bias fit, loss fit printed for 60/75u only)",
+   "open": "an 80/44 E-core shape in NPC 26 is not on file - confirm the shape or use a POCO toroid (NPC290026 class) with a new winding design"
+  },
+  "cost_usd": {
+   "total": 40.5,
+   "basis": "ESTIMATES, no quote: core 2 x 8.0 USD (13.3 USD/kg Asian powder, as M1); solid round enamelled Cu 3.15 mm grade 2 18.0 USD/kg (LME 14.4 + drawing/enamel premium); insulation 4.0 (Nomex wrap, VPI batch, base); winding 5.0 + test 2.0; +10 %"
+  },
+  "construction_source": "design_pv_inductor.json rev M2",
+  "construction": "2 x POCO NPC290026 (NPC 26, 74/45/35 mm) stacked toroid (as M1), 37 turns of solid round enamelled Cu 3.15 mm grade 2, 1 layer, core wrapped 2 x 0.13 mm Nomex 410 + polyimide, VPI class H, NTC at the bore-side winding centre in a reinforced pocket; insulating base with a centre clamp in the cell air stream"
+ },
+ "capacitors": {
+  "port_A": {
+   "series": "KEMET C4AQ DC-link PP film",
+   "mpn": "C4AQUEW5450A3BJ",
+   "count": 2,
+   "C_total_uF": 90.0,
+   "V_rated_70C_V": 1300,
+   "V_op_85C_V": 1100,
+   "ripple_rating_total_Arms": 68.0,
+   "ripple_use_limit_Arms": 47.599999999999994,
+   "ripple_worst_Arms": 23.581544024661152,
+   "ESR_total_mOhm": 1.55,
+   "datasheet": "docs/datasheets/passives-capacitors/C4AQ.pdf"
+  },
+  "port_B": {
+   "series": "KEMET C4AQ DC-link PP film",
+   "mpn": "C4AQUEW5450A3BJ",
+   "count": 2,
+   "C_total_uF": 90.0,
+   "V_rated_70C_V": 1300,
+   "V_op_85C_V": 1100,
+   "ripple_rating_total_Arms": 68.0,
+   "ripple_use_limit_Arms": 47.599999999999994,
+   "ripple_worst_Arms": 23.581544024661152,
+   "ESR_total_mOhm": 1.55,
+   "datasheet": "docs/datasheets/passives-capacitors/C4AQ.pdf"
+  }
+ },
+ "decoupling": {
+  "requirement": "low-ESL film within each leg's commutation loop so that the loop (cap-S_top-S_bottom) is <= 20 nH",
+  "suggested": "3 x C4AQUBU4220A1YJ (2.2 uF / 1300 V, Ipkr 63 A, ESL 24 nH, C4AQ p.14) per leg",
+  "mpn": "C4AQUBU4220A1YJ",
+  "count_per_leg": 3,
+  "C_per_leg_uF": 6.6000000000000005,
+  "ESL_per_leg_nH": 8.0,
+  "peak_current_per_cap_A": 40.5,
+  "peak_current_per_cap_with_recovery_A": 62.5,
+  "Ipkr_per_cap_A": 63.0,
+  "peak_margin": 1.65,
+  "rms_per_cap_A": 3.04,
+  "Irms_70C_per_cap_A": 7.1,
+  "V_op_85C_V": 1100,
+  "basis": "physical-leg deck (sim/spice/pv_dpt_leg_dec.cir): 1100 V, 72.4 A trip current, worst of on-times 0.6, 1.0, 1.5, 2.2, 3.0 us (decoupling-bulk resonance); rule: peak <= Ipkr/1.2 (VDMOS, Q_oss) and <= Ipkr with the Q_rr surrogate, ESL <= 8.5 nH so the 20 nH loop holds. Drawn 2 x C4AQUBU4100A1WJ: 56 A per capacitor vs Ipkr 28 A (PVR-03)",
+  "rejected": [
+   "2 x C4AQUBU4100A1WJ: 56 A per cap vs Ipkr 28 A",
+   "4 x C4AQUBU4100A1WJ: 35 A per cap vs Ipkr 28 A",
+   "4 x C4AQUBU4220A1YJ: nan A per cap vs Ipkr 63 A"
+  ]
+ },
+ "sensing": {
+  "inductor_current": {
+   "range_A": [
+    -100,
+    100
+   ],
+   "bandwidth_kHz_min": 200,
+   "use": "current loop + hardware trip",
+   "basis": "full scale >= 1.3 x hardware trip, rounded up to 10 A"
+  },
+  "port_A_current": {
+   "range_A": [
+    -60,
+    60
+   ],
+   "bandwidth_kHz_min": 10,
+   "use": "MPPT / power"
+  },
+  "port_B_current": {
+   "range_A": [
+    -60,
+    60
+   ],
+   "bandwidth_kHz_min": 10,
+   "use": "power / BMS limit"
+  },
+  "port_A_voltage": {
+   "range_V": [
+    0,
+    1200
+   ],
+   "use": "MPPT, OVP, mode selection"
+  },
+  "port_B_voltage": {
+   "range_V": [
+    0,
+    1200
+   ],
+   "use": "bus/battery regulation, OVP"
+  },
+  "heatsink_temperature": {
+   "range_C": [
+    -40,
+    150
+   ]
+  },
+  "inductor_temperature": {
+   "range_C": [
+    -40,
+    180
+   ]
+  }
+ },
+ "protection": {
+  "inductor_overcurrent_hw_trip_A": 72.4,
+  "current_limit_avg_A": 45.0,
+  "overvoltage_hw_trip_port_A_V": 1100.0,
+  "overvoltage_hw_trip_port_B_V": 1100.0,
+  "overvoltage_sw_limit_V": 1050.0,
+  "undervoltage_stop_V": 240.0,
+  "desat_VDS_threshold_V": 9.3,
+  "desat_blanking_ns": 465,
+  "desat_threshold_range_V": [
+   8.5,
+   10.0
+  ],
+  "desat_blanking_range_ns": [
+   350,
+   465
+  ],
+  "short_circuit_detect_to_off_us": 0.62,
+  "short_circuit_withstand_us_typ": 2.0,
+  "desat_basis": "NSI6651 DESAT pin threshold 8.5/9.26/9.8 V, LEB 200 ns + filter 150-265 ns, DESAT to OUT <= 300 ns (sim/data/asia_drivers.md); V_DS(on) at the trip current, 175 C: SG2M040170HJ 3.1 V (margin 2.7x), MSC035SMA170B4 2.4 V (margin 3.6x); short-circuit withstand ASSUMED 2.0 us (no Chinese datasheet gives one)",
+  "heatsink_overtemperature_trip_C": 95.0,
+  "heatsink_trip_basis": "heatsink temperature at which the hottest device reaches 125 C at full load, minus 5 K"
+ },
+ "worst_case_stresses": {
+  "device_VDS_peak_V": 1400.6189608,
+  "device_VDS_rating_V": 1700,
+  "device_VDS_peak_frac": 0.8238935063529411,
+  "device_VDS_continuous_max_V": 1000.0,
+  "device_Irms_per_position_A": 46.33202859319749,
+  "device_Irms_per_device_A": 23.166014296598746,
+  "device_I_turnoff_max_per_device_A": 36.224999999999994,
+  "device_loss_max_per_position_W": 90.1604113412242,
+  "Tj_max_45C_C": 80.31183554754216,
+  "Tj_max_60C_full_power_C": 97.57003191137068,
+  "Tj_max_60C_EVT_derated_C": 79.31024213494155,
+  "turnoff_overshoot_V": 300.61896079999997,
+  "turnoff_didt_A_per_ns": 6.315455999999542,
+  "inductor_I_peak_A": 62.29263749467361,
+  "inductor_I_rms_A": 47.70348607913046,
+  "port_cap_I_rms_A": 23.581544024661152,
+  "port_cap_V_max_V": 1100.0
+ },
+ "heatsink_insulator": {
+  "function": "basic insulation of every TO-247 tab (drain = A+/B+ or a switch node) from the earthed heatsink (D-032, IC-07)",
+  "material": "AlN ceramic (aluminium nitride), 1.0 mm",
+  "thickness_mm": 1.0,
+  "size_mm_min": "tab 15.9 x 20.9 mm + 2 x overhang",
+  "overhang_mm_min": 6.5,
+  "overhang_basis": "creepage 5.0 mm (PD2) and clearance 7.1 mm at 4000 m (insulation report row 'Basic HV-PE, switch node'): 6.5 mm surface + 1.0 mm thickness >= 7.1 mm",
+  "Rth_cs_K_W": 0.198,
+  "Rth_basis": "AlN 170 W/mK x 1.0 mm, two grease bond lines 50 um at 2.5 W/mK over 15.5 x 20 mm, + 0.05 K/W contact allowance; k values are handbook values (no pad datasheet on file) - confirm with the supplier's data and a thermal test",
+  "mounting": "spring clip on the plastic body (no screw through the tab hole: a PE screw would need its own insulating bushing and creepage), clip force per the device maker (TO-247: ~50-80 N, ASSUMED)",
+  "tests": "type test on the assembled heatsink: AC 2200 V rms 1 min, impulse 6 kV, PD extinction >= 1528 Vpk with <= 10 pC at 1910 Vpk (insulation report); at the claimed altitude's pressure for the PD test",
+  "requirement_source": "gen/data/review_insulation.csv IC-07; sim/out/insulation/report.md"
+ },
+ "switch_node_recurring_peak": {
+  "at_1000V_V": 1269.0,
+  "at_1100V_trip_V": 1396.0,
+  "basis": "calibrated VDMOS commutation at 1100 V / 72.4 A, R_G,on 6.78 ohm (eff.), turn-on ringing scaled with the bus voltage",
+  "vs_bias_VIORM_1414Vpk": "UCC14241-Q1 VIORM 1414 Vpk (IC-06): the bias barrier must cover the recurring peak; margin at 1000 V = 1.11"
+ },
+ "efficiency": {
+  "peak": 0.9950458475923235,
+  "peak_at": {
+   "va": 900.0,
+   "vb": 1000.0,
+   "p_W": 13750.0
+  },
+  "corners": {
+   "550->950": 0.9905113704980066,
+   "950->550": 0.990321850183395,
+   "550->550": 0.9900271311944421,
+   "950->950": 0.9923814581077843,
+   "611->950": 0.9915362377936702,
+   "950->611": 0.9913516740862967,
+   "611->611": 0.9905667236465818,
+   "1000->500": 0.9889731274782976,
+   "500->1000": 0.9891966699880086
+  },
+  "note": "power stage incl. gate drive, driver bias, sensing and the leg RC dampers; dead time at its 586 ns maximum; excludes fans/controller"
+ },
+ "control_plant": {
+  "L_uH_vs_I": "out/pv_design/inductor_L_vs_I.csv",
+  "C_A_uF": 90.0,
+  "C_B_uF": 90.0,
+  "R_series_mOhm": 81.64735643100813,
+  "sampling": "sample i_L at the carrier peak/valley (centre-aligned PWM) for the average",
+  "pwm_frequency_kHz": 32.0
+ },
+ "module": {
+  "3_cells": {
+   "interleave_deg": 120.0,
+   "power_rated_kW": 75.0,
+   "power_max_kW": 82.5,
+   "port_current_max_A": 135.0,
+   "port_A_capacitance_total_uF": 270.0,
+   "port_B_capacitance_total_uF": 270.0,
+   "port_cap_count_total": 12,
+   "port_ripple_current_rms_worst_A": 23.111219334992963,
+   "port_ripple_voltage_pp_worst_V": 0.4349570870678617,
+   "worst_points": [
+    {
+     "va": 950,
+     "vb": 550,
+     "port": "A",
+     "irms_ac_A": 20.95,
+     "dv_pp_V": 0.339
+    },
+    {
+     "va": 950,
+     "vb": 550,
+     "port": "B",
+     "irms_ac_A": 2.45,
+     "dv_pp_V": 0.041
+    },
+    {
+     "va": 550,
+     "vb": 950,
+     "port": "A",
+     "irms_ac_A": 2.45,
+     "dv_pp_V": 0.041
+    },
+    {
+     "va": 550,
+     "vb": 950,
+     "port": "B",
+     "irms_ac_A": 20.95,
+     "dv_pp_V": 0.339
+    },
+    {
+     "va": 1000,
+     "vb": 500,
+     "port": "A",
+     "irms_ac_A": 23.1,
+     "dv_pp_V": 0.435
+    },
+    {
+     "va": 1000,
+     "vb": 500,
+     "port": "B",
+     "irms_ac_A": 3.33,
+     "dv_pp_V": 0.056
+    },
+    {
+     "va": 500,
+     "vb": 1000,
+     "port": "A",
+     "irms_ac_A": 3.33,
+     "dv_pp_V": 0.056
+    },
+    {
+     "va": 500,
+     "vb": 1000,
+     "port": "B",
+     "irms_ac_A": 23.11,
+     "dv_pp_V": 0.435
+    },
+    {
+     "va": 800,
+     "vb": 700,
+     "port": "A",
+     "irms_ac_A": 19.13,
+     "dv_pp_V": 0.355
+    },
+    {
+     "va": 800,
+     "vb": 700,
+     "port": "B",
+     "irms_ac_A": 2.45,
+     "dv_pp_V": 0.041
+    }
+   ],
+   "ripple_frequency_kHz": 96.0
+  },
+  "4_cells": {
+   "interleave_deg": 90.0,
+   "power_rated_kW": 100.0,
+   "power_max_kW": 110.0,
+   "port_current_max_A": 180.0,
+   "port_A_capacitance_total_uF": 360.0,
+   "port_B_capacitance_total_uF": 360.0,
+   "port_cap_count_total": 16,
+   "port_ripple_current_rms_worst_A": 21.499691406372893,
+   "port_ripple_voltage_pp_worst_V": 0.21312965135494216,
+   "worst_points": [
+    {
+     "va": 950,
+     "vb": 550,
+     "port": "A",
+     "irms_ac_A": 21.5,
+     "dv_pp_V": 0.211
+    },
+    {
+     "va": 950,
+     "vb": 550,
+     "port": "B",
+     "irms_ac_A": 2.05,
+     "dv_pp_V": 0.019
+    },
+    {
+     "va": 550,
+     "vb": 950,
+     "port": "A",
+     "irms_ac_A": 2.05,
+     "dv_pp_V": 0.019
+    },
+    {
+     "va": 550,
+     "vb": 950,
+     "port": "B",
+     "irms_ac_A": 21.5,
+     "dv_pp_V": 0.211
+    },
+    {
+     "va": 1000,
+     "vb": 500,
+     "port": "A",
+     "irms_ac_A": 9.98,
+     "dv_pp_V": 0.094
+    },
+    {
+     "va": 1000,
+     "vb": 500,
+     "port": "B",
+     "irms_ac_A": 0.0,
+     "dv_pp_V": 0.0
+    },
+    {
+     "va": 500,
+     "vb": 1000,
+     "port": "A",
+     "irms_ac_A": 0.0,
+     "dv_pp_V": 0.0
+    },
+    {
+     "va": 500,
+     "vb": 1000,
+     "port": "B",
+     "irms_ac_A": 9.98,
+     "dv_pp_V": 0.094
+    },
+    {
+     "va": 800,
+     "vb": 700,
+     "port": "A",
+     "irms_ac_A": 19.72,
+     "dv_pp_V": 0.213
+    },
+    {
+     "va": 800,
+     "vb": 700,
+     "port": "B",
+     "irms_ac_A": 1.96,
+     "dv_pp_V": 0.018
+    }
+   ],
+   "ripple_frequency_kHz": 128.0
+  }
+ },
+ "spice": {
+  "fsbb_decks": [
+   "sim/spice/pv_fsbb_buck.cir",
+   "sim/spice/pv_fsbb_boost.cir",
+   "sim/spice/pv_fsbb_band.cir"
+  ],
+  "dpt_deck": "sim/spice/pv_dpt_SG2M040170HJx2_2L_1100V.cir",
+  "vdmos_Cgd_shape_a": 0.05443525948609175,
+  "leg_deck": "sim/spice/pv_dpt_leg.cir"
+ },
+ "honesty": "All values calculated from datasheets and assumptions listed in sim/out/pv_design/report.md; nothing measured.",
+ "bus_reverse_clamp": {
+  "function": "reverse-voltage clamp across each cell film bank: a bolted port-terminal short rings the bank below zero; without it the leg's two series SiC body diodes carry the freewheel",
+  "part": "WND75P16W6",
+  "manufacturer": "WeEn",
+  "datasheet": "docs/datasheets/power-semiconductors/WND75P16W6.pdf",
+  "package": "TO247-2L (mounting base = cathode)",
+  "devices_per_bank": 8,
+  "banks_per_cell": 2,
+  "per_module": {
+   "3_cells": 48,
+   "4_cells": 64
+  },
+  "connection": "cathode to the bank's bus +, anode to bus -, all devices of a bank in parallel",
+  "placement": "on the cell's laminated DC bus AT the C4AQ bank terminals (port-A bank and port-B bank), devices spread symmetrically between the two capacitors; a clamp on the port board alone does not protect the cell legs",
+  "decision": "one clamp group per cell bank (2 per cell), not one per port: the bus from the port board to each cell bank (>= 10 nH even laminated) is in series with a port-board clamp, and the current stored in it closes through the cell's body diodes",
+  "alternatives_rejected": {
+   "DD600N16K_one_arm_per_port_on_port_board": {
+    "per_device_body_peak_A": 1982.0,
+    "per_device_body_I2t_A2s": 11.8,
+    "I_DM_A": 188.0,
+    "assumed": "10 nH per cell port board -> bank, 5 nH per arm (both LOW estimates), 3 cells, port A, 1100 V",
+    "deck": "sim/spice/pv_dump_3c_DD600_port.cir"
+   },
+   "DD600N16K_one_arm_per_bank": {
+    "per_device_body_peak_A": 569.0,
+    "per_device_body_I2t_A2s": 0.7,
+    "I_DM_A": 188.0,
+    "assumed": "5 nH per arm incl. terminals (NOT in the datasheet; low estimate) vs the tolerated 1.50 nH; also 1.4 kg per module",
+    "deck": "sim/spice/pv_dump_3c_DD600_bank.cir"
+   },
+   "why_the_DAB_differs": "the DAB clamps its own DC-link bank; here every cell bank is a separate bank behind its own bus"
+  },
+  "branch_inductance_max_nH": 1.5,
+  "branch_inductance_assumed_nH": 0.75,
+  "branch_inductance_basis": "bank terminals -> clamp group -> bank; body diodes <= I_DM 188 A up to this value with the leg branch at 15 nH (ESTIMATE); 6 nH per TO-247 incl. leads (ESTIMATE)",
+  "ratings": {
+   "V_RRM_V": 1600.0,
+   "V_RSM_V": 1600.0,
+   "I_FSM_10ms_A": 1050.0,
+   "I2t_10ms_A2s": 5513.0,
+   "I2sqrt_t_A2sqrt_s": null,
+   "I_FSM_vs_tp": [
+    [
+     1e-05,
+     1865.0
+    ],
+    [
+     0.0001,
+     1830.0
+    ],
+    [
+     0.0005,
+     1774.0
+    ],
+    [
+     0.001,
+     1683.0
+    ],
+    [
+     0.002,
+     1533.0
+    ],
+    [
+     0.01,
+     1050.0
+    ]
+   ]
+  },
+  "reverse_voltage_V": 1160.0,
+  "reverse_voltage_margin": 1.38,
+  "reverse_voltage_basis": "OVP 1100 V + bank ESL 9.5 nH x 6.3 A/ns",
+  "surge_worst": {
+   "case": "4 cells, port A, 1100 V",
+   "clamp_group_peak_kA": 12.4,
+   "per_device_peak_A": 1861.0,
+   "per_device_I2t_A2s": 233.0,
+   "t95_ms": 0.59,
+   "allowed_I2t_at_t95_A2s": 906.0,
+   "I2t_margin": 3.9,
+   "sharing": "per-device values are the worst device of the group: mean x 1.2 (peak), x 1.44 (I2t)"
+  },
+  "body_diode_share_with_clamp": {
+   "per_device_peak_A_max": 88.0,
+   "I_DM_A": 188.0,
+   "per_device_I2t_A2s_max": 0.011,
+   "per_device_energy_mJ_max": 0.73
+  },
+  "without_clamp": {
+   "per_device_peak_A_max": 4479.0,
+   "per_device_I2t_A2s_max": 569.0,
+   "per_device_energy_J_max": 10.28,
+   "module_peak_kA": [
+    22.2,
+    24.5,
+    22.2,
+    24.5,
+    26.0,
+    28.6,
+    26.0,
+    28.6
+   ]
+  },
+  "film_bank_internal_reversal_V": -79.0,
+  "leakage_W_per_module_at_1000V_85C": {
+   "3_cells": 8.81,
+   "4_cells": 11.75,
+   "basis": "I_RM 0.05 mA (25 C) / 2.0 mA (150 C) at V_RRM, exponential in T, linear in V (ESTIMATE between the two datasheet points)"
+  },
+  "normal_operation": "permanently reverse-biased (bus >= 240 V): no forward conduction, no recovery event, no switching loss; junction capacitance <= 8 x 300 pF (ESTIMATE) in parallel with the bank, not across a switch",
+  "contactor_weld": "not removed: the first current peak through the contactor flows before the bank voltage crosses zero",
+  "decks": [
+   "sim/spice/pv_dump_3c_A_1000V_n8.cir",
+   "sim/spice/pv_dump_3c_A_1100V_n8.cir",
+   "sim/spice/pv_dump_3c_B_1000V_n8.cir",
+   "sim/spice/pv_dump_3c_B_1100V_n8.cir",
+   "sim/spice/pv_dump_4c_A_1000V_n8.cir",
+   "sim/spice/pv_dump_4c_A_1100V_n8.cir",
+   "sim/spice/pv_dump_4c_B_1000V_n8.cir",
+   "sim/spice/pv_dump_4c_B_1100V_n8.cir"
+  ]
+ },
+ "damper": {
+  "function": "RC damper across each leg at the device pins (drawn on PVCELL 03_power: R301-R304, C303-C308); damps the commutation-loop ringing",
+  "per_leg": "2 x 4.99 ohm in series + 2 x 4.7 nF 2000 V C0G in series",
+  "R_per_leg_ohm": 9.98,
+  "C_per_leg_nF": 2.35,
+  "energy_per_cycle_uJ_at_trip": 178.0,
+  "energy_basis": "1100 V, 72.4 A: hard turn-on 168 uJ + turn-off 8 uJ (the loop's Q_oss/commutation energy, nearly independent of the damper C)",
+  "power_per_leg_W_max": 3.75,
+  "power_per_leg_W_max_at": {
+   "va": 250.0,
+   "vb": 1000.0,
+   "p_W": 11250.0,
+   "load": 1.0
+  },
+  "power_per_leg_W_at_trip_1100V": 5.68,
+  "peak_current_A": 47.1,
+  "peak_voltage_per_resistor_V": 235.0,
+  "capacitor_voltage_per_element_V": 687.0,
+  "required_resistor_rating": {
+   "continuous_W_per_leg_min": 5.5,
+   "continuous_basis": "1.5 x worst per-leg power at the resistor's mounting temperature (heatsink-mounted thick-film power resistors; 2 x 1 W 2512 is not enough)",
+   "pulse_or_working_voltage_per_element_V_min": 290.0,
+   "energy_per_pulse_per_element_uJ": 84.0
+  },
+  "in_loss_model": "yes: loss group 'damp' (ngspice energy table per edge, V 250-1100 V x I 2 A-trip, interpolated)",
+  "deck": "sim/spice/pv_dpt_leg.cir"
+ },
+ "worst_of": "efficiency, worst_case_stresses, damper, decoupling, gate_drive.miller_check and the clamp's body-diode share are the worse of device_primary and device_alternate",
+ "device_primary": {
+  "role": "primary",
+  "mpn": "SG2M040170HJ",
+  "manufacturer": "Sichain",
+  "parallel": 2,
+  "datasheet": "docs/datasheets/power-semiconductors/SG2M040170HJ.pdf",
+  "revision": "V01_02, 2025-12-30 (Final; p13 revision history: V01_00 2025-01-06, V01_01 2025-09-08)",
+  "qualification": "none stated: p1 lists only halogen-free / RoHS; p13 RoHS + REACH statements; p14 item 8 says to consult Sichain for high-reliability applications",
+  "price_usd": 4.07,
+  "price_source": "ESTIMATE: Sichain: RFQ; SG2M020170HJ 9.74 USD scaled by (R ratio)^1.26, the exponent of the Sichain 1200 V LCSC prices (13 mOhm 7.31, 27 mOhm 3.46, 33 mOhm 2.26 USD)",
+  "rg_on_ohm": 3.75,
+  "rg_off_ohm": 2.5,
+  "eta_corner_min": 0.9900626344328121,
+  "eta_corners": {
+   "550->950": 0.99059,
+   "950->550": 0.99057,
+   "550->550": 0.99006,
+   "950->950": 0.99406,
+   "611->950": 0.99162,
+   "950->611": 0.99159,
+   "611->611": 0.99079,
+   "1000->500": 0.98933,
+   "500->1000": 0.98935
+  },
+  "eta_peak": 0.99611,
+  "Tj_max_45C_C": 78.0,
+  "VDS_peak_V": 1396.0,
+  "turn_on_dvdt_V_per_ns": 124.0,
+  "miller_die_peak_V": 1.41,
+  "miller_limit_V": 1.94,
+  "rails_V": [
+   18.0,
+   -3.5
+  ],
+  "dead_time_at_gates_ns": [
+   181,
+   586
+  ],
+  "body_diode_peak_A_in_port_short": 50.8947525,
+  "t_sc_us": null,
+  "drive": {
+   "mpn": "SG2M040170HJ",
+   "peak_source_A": 4.278606965174129,
+   "peak_sink_A": 8.6,
+   "gate_power_W_per_channel": 0.10732799999999999,
+   "clamp_engaged_after_ns": null,
+   "vds_on_at_trip_175C_V": 3.1298399999999997,
+   "desat_margin": 2.715793778595711,
+   "sc_response_us": {
+    "Q1": 1.5691399999999998,
+    "industrial": 1.086656
+   }
+  },
+  "trip_band_costfirst": {
+   "hardware": {
+    "band_A": [
+     68.9,
+     79.9
+    ],
+    "response_us": 1.95,
+    "i_peak_A": 92.1,
+    "L_over_L0": 0.702,
+    "B_T": 0.542,
+    "B_over_Bsat": 0.433,
+    "I_DM_A": 376.0,
+    "v_pk_V": 1396,
+    "v_pk_limit_V": 1445,
+    "ok": true
+   },
+   "backup": {
+    "band_A": [
+     81.1,
+     101.9
+    ],
+    "response_us": 1.21,
+    "i_peak_A": 110.9,
+    "L_over_L0": 0.597,
+    "B_T": 0.621,
+    "B_over_Bsat": 0.497,
+    "I_DM_A": 376.0,
+    "v_pk_V": 1407,
+    "v_pk_limit_V": 1445,
+    "ok": true
+   },
+   "basis": "band top + 1110 V across L(I) of NPC290026 x 2 (stacked, 0.5 mm spacer) for the response time; leg deck at 1110 V; limits L >= 0.35 L0, B <= 0.85 B_sat, I_DM, V_pk <= 0.85 V_DSS (calculated)"
+  }
+ },
+ "device_alternate": {
+  "role": "alternate",
+  "mpn": "MSC035SMA170B4",
+  "manufacturer": "Microchip",
+  "parallel": 2,
+  "datasheet": "docs/datasheets/power-semiconductors/MSC035SMA170B4.pdf",
+  "revision": "DS00005160A",
+  "qualification": null,
+  "price_usd": 39.44,
+  "price_source": "RS Components HK (web-search snippet) 2026-10-04, 309.46 HKD @600",
+  "rg_on_ohm": 6.0,
+  "rg_off_ohm": 4.0,
+  "eta_corner_min": 0.9900271311944421,
+  "eta_corners": {
+   "550->950": 0.99051,
+   "950->550": 0.99032,
+   "550->550": 0.99003,
+   "950->950": 0.99238,
+   "611->950": 0.99154,
+   "950->611": 0.99135,
+   "611->611": 0.99057,
+   "1000->500": 0.98897,
+   "500->1000": 0.9892
+  },
+  "eta_peak": 0.99505,
+  "Tj_max_45C_C": 80.3,
+  "VDS_peak_V": 1401.0,
+  "turn_on_dvdt_V_per_ns": 92.0,
+  "miller_die_peak_V": null,
+  "miller_limit_V": 1.48,
+  "rails_V": [
+   20.0,
+   -4.0
+  ],
+  "dead_time_at_gates_ns": [
+   181,
+   586
+  ],
+  "body_diode_peak_A_in_port_short": 87.631091,
+  "t_sc_us": null,
+  "drive": {
+   "mpn": "MSC035SMA170B4",
+   "peak_source_A": 4.085106382978723,
+   "peak_sink_A": 8.067226890756304,
+   "gate_power_W_per_channel": 0.273408,
+   "clamp_engaged_after_ns": null,
+   "vds_on_at_trip_175C_V": 2.37092625,
+   "desat_margin": 3.585096752798616,
+   "sc_response_us": {
+    "Q1": 1.9595999999999998,
+    "industrial": 1.24284
+   }
+  },
+  "trip_band_costfirst": {
+   "hardware": {
+    "band_A": [
+     68.9,
+     79.9
+    ],
+    "response_us": 1.95,
+    "i_peak_A": 92.1,
+    "L_over_L0": 0.702,
+    "B_T": 0.542,
+    "B_over_Bsat": 0.433,
+    "I_DM_A": 400.0,
+    "v_pk_V": 1386,
+    "v_pk_limit_V": 1445,
+    "ok": true
+   },
+   "backup": {
+    "band_A": [
+     81.1,
+     101.9
+    ],
+    "response_us": 1.21,
+    "i_peak_A": 110.9,
+    "L_over_L0": 0.597,
+    "B_T": 0.621,
+    "B_over_Bsat": 0.497,
+    "I_DM_A": 400.0,
+    "v_pk_V": 1402,
+    "v_pk_limit_V": 1445,
+    "ok": true
+   },
+   "basis": "band top + 1110 V across L(I) of NPC290026 x 2 (stacked, 0.5 mm spacer) for the response time; leg deck at 1110 V; limits L >= 0.35 L0, B <= 0.85 B_sat, I_DM, V_pk <= 0.85 V_DSS (calculated)"
+  }
+ },
+ "module_basis_role": "alternate",
+ "cost_usd": {
+  "per_cell": {
+   "devices": 32.54,
+   "gate_drive": 43.4,
+   "insulators": 8.0,
+   "inductor": 40.5,
+   "port_caps": 43.48,
+   "decoupling": 16.77,
+   "heatsink": 27.0,
+   "clamp_diodes": 42.78,
+   "damper": 4.0,
+   "board_rest": 0.0,
+   "total": 258.47
+  },
+  "per_module_cells_only": {
+   "3_cells": 775.0,
+   "4_cells": 1034.0
+  },
+  "basis": "sim/pv_tradeoff.py cost_usd(): gen/data/prices.csv (largest break <= 1000 pcs) and labelled ESTIMATES (sim/out/pv_tradeoff/gate0b.md); port board, control, fans and enclosure not included",
+  "inductor_row_written_usd": 40.0
+ },
+ "_frozen": "FROZEN SNAPSHOT 2026-10-05 of sim/out/pv_design/cell_spec.json at commit 033d8d8, read by the earlier-platform generator gen/pvcell.py (PVCELL-25, KEMET C4AQ decoupling, LA 150-P / AMC3302 chain; D-044: kept, not developed further). The live cell_spec now describes the drawn cost-first boards (Jianghai capacitors, PCM-18). Only the two DESAT fields were changed, to the -Q1 / industrial envelope of gen/gdrv.py NSI (8.5 / 9.3 / 10.0 V), because gen/pvcell.py asserts them against that table (D-065)."
+}

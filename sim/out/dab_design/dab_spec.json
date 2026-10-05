@@ -5,7 +5,8 @@
     "status": "CALCULATED / SIMULATED - not bench-validated",
     "requirements": "REQUIREMENTS.md sec. 3",
     "reference": "Wolfspeed CRD60DD12N-GMB (PRD-10001 Rev.1), TI TIDA-010054 (TIDUES0F)",
-    "round": "2026-10-04 Asian device re-selection (SRC-1..4) and DAB60 review findings DR-01..07, IC-08, cost re-opening"
+    "round": "2026-10-04 Asian device re-selection (SRC-1..4) and DAB60 review findings DR-01..07, IC-08, cost re-opening; 2026-10-05 review PCM-09..12, PCM-23",
+    "identity": "STUDY of option D2W (not drawn, no schematic or BOM); the drawn board DAB60 rev B0 is module-based - see key assembly"
   },
   "power_stage": {
     "topology": "dual active bridge, two full bridges of 2 paralleled TO-247-4 SiC MOSFETs per switch position (8 per bridge) on ceramic insulators on the earthed cold plate",
@@ -37,7 +38,7 @@
       "max_ns": 300.0,
       "fallback_fixed_ns": 100.0,
       "note": "DR-02 decision: the hardware guard owns the minimum, firmware owns the rest; the drawn GDRV stretcher (104-354 ns) must be replaced by a 69-188 ns gate-level window",
-      "lut_rule": "dead time = t_d(off)(RG_off) - t_d(on) + predicted ZVS transition + 20 ns; RG_off 0.27 ohm adds ~3.5 ns of t_d(off) (DS Fig. 28)",
+      "lut_rule": "dead time = t_d(off) - t_d(on) + predicted ZVS transition + 20 ns, never below the hardware guard (hw_guard_ns, study devices at R_G,off 1.5 ohm)",
       "hw_guard_ns": [
         69.02999999999999,
         187.5111764705882
@@ -93,12 +94,674 @@
     },
     "hard_switching": {
       "die_peak_V_ngspice": {
-        "v1max": 1231.62887,
-        "ioffmax": 1085.60768,
+        "v1max": 1174.52433,
+        "ioffmax": 1139.0623,
         "hard_b1": 1398.2907,
         "hard_b2": 1436.53461
       },
-      "rule": "no hard turn-on at >= 800 V: TPS LUT keeps ZVS; firmware blocks SPS below the LUT's ZVS boundary and checks the LUT integrity at start; the decks overstate the overshoot (~1.5x on the GM4) - DPT on the real layout with R_G,on is a release condition"
+      "rule": "turn-on: V_bus + V_res <= 1200 V at every edge of every LUT entry (no hard turn-on above 600 V, no SPS at light load above 800 V); turn-off: V_bus + dV_deck(I_off) <= 1200 V with the harsh-deck envelope; both built into the LUT (efficiency_map.csv columns V_res1/V_res2, I_off1/I_off2) and re-checked by firmware at start (FW-DAB-2). The deck harshness found on the GM4 module (~1.47x) is information only, never a pass criterion; DPT on the real layout with the real R_G is the release condition",
+      "deck_calibration": {
+        "rows": [
+          {
+            "V1": 950.0,
+            "V2": 900.0,
+            "P": 60000.0,
+            "bridge": 1,
+            "V_bus": 950.0,
+            "I_off": 119.20744353938909,
+            "V_die_pk": 1236.39729,
+            "overshoot": 286.3972900000001,
+            "clean": true
+          },
+          {
+            "V1": 950.0,
+            "V2": 900.0,
+            "P": 60000.0,
+            "bridge": 2,
+            "V_bus": 900.0,
+            "I_off": 43.61586988986799,
+            "V_die_pk": 1070.70612,
+            "overshoot": 170.70612000000006,
+            "clean": true
+          },
+          {
+            "V1": 950.0,
+            "V2": 900.0,
+            "P": 50000.0,
+            "bridge": 1,
+            "V_bus": 950.0,
+            "I_off": 105.99424956307236,
+            "V_die_pk": 1237.05064,
+            "overshoot": 287.05063999999993,
+            "clean": true
+          },
+          {
+            "V1": 950.0,
+            "V2": 900.0,
+            "P": 50000.0,
+            "bridge": 2,
+            "V_bus": 900.0,
+            "I_off": 29.668609581533573,
+            "V_die_pk": 1040.05969,
+            "overshoot": 140.05969000000005,
+            "clean": true
+          },
+          {
+            "V1": 950.0,
+            "V2": 900.0,
+            "P": 42500.0,
+            "bridge": 1,
+            "V_bus": 950.0,
+            "I_off": 96.51014032511145,
+            "V_die_pk": 1249.58344,
+            "overshoot": 299.5834400000001,
+            "clean": true
+          },
+          {
+            "V1": 950.0,
+            "V2": 900.0,
+            "P": 42500.0,
+            "bridge": 2,
+            "V_bus": 900.0,
+            "I_off": 19.657605385908283,
+            "V_die_pk": 982.763431,
+            "overshoot": 82.76343099999997,
+            "clean": true
+          },
+          {
+            "V1": 950.0,
+            "V2": 900.0,
+            "P": 35000.0,
+            "bridge": 1,
+            "V_bus": 950.0,
+            "I_off": 87.34935719599339,
+            "V_die_pk": 1273.68994,
+            "overshoot": 323.68994,
+            "clean": false
+          },
+          {
+            "V1": 950.0,
+            "V2": 900.0,
+            "P": 35000.0,
+            "bridge": 2,
+            "V_bus": 900.0,
+            "I_off": 9.987889860728005,
+            "V_die_pk": 961.68879,
+            "overshoot": 61.68879000000004,
+            "clean": false
+          },
+          {
+            "V1": 900.0,
+            "V2": 900.0,
+            "P": 60000.0,
+            "bridge": 1,
+            "V_bus": 900.0,
+            "I_off": 104.5415962782638,
+            "V_die_pk": 1191.33968,
+            "overshoot": 291.33968000000004,
+            "clean": true
+          },
+          {
+            "V1": 900.0,
+            "V2": 900.0,
+            "P": 60000.0,
+            "bridge": 2,
+            "V_bus": 900.0,
+            "I_off": 61.85730140646896,
+            "V_die_pk": 1182.16209,
+            "overshoot": 282.16209000000003,
+            "clean": true
+          },
+          {
+            "V1": 900.0,
+            "V2": 800.0,
+            "P": 60000.0,
+            "bridge": 1,
+            "V_bus": 900.0,
+            "I_off": 141.34640463881175,
+            "V_die_pk": 1218.01985,
+            "overshoot": 318.0198499999999,
+            "clean": true
+          },
+          {
+            "V1": 900.0,
+            "V2": 800.0,
+            "P": 60000.0,
+            "bridge": 2,
+            "V_bus": 800.0,
+            "I_off": 39.34234054629851,
+            "V_die_pk": 934.275457,
+            "overshoot": 134.27545699999996,
+            "clean": true
+          },
+          {
+            "V1": 850.0,
+            "V2": 800.0,
+            "P": 60000.0,
+            "bridge": 1,
+            "V_bus": 850.0,
+            "I_off": 127.5893838807692,
+            "V_die_pk": 1165.59741,
+            "overshoot": 315.5974100000001,
+            "clean": true
+          },
+          {
+            "V1": 850.0,
+            "V2": 800.0,
+            "P": 60000.0,
+            "bridge": 2,
+            "V_bus": 800.0,
+            "I_off": 57.958663393260224,
+            "V_die_pk": 1101.51287,
+            "overshoot": 301.51287,
+            "clean": true
+          },
+          {
+            "V1": 800.0,
+            "V2": 900.0,
+            "P": 60000.0,
+            "bridge": 1,
+            "V_bus": 800.0,
+            "I_off": 77.28393598789395,
+            "V_die_pk": 1078.47092,
+            "overshoot": 278.47092,
+            "clean": true
+          },
+          {
+            "V1": 800.0,
+            "V2": 900.0,
+            "P": 60000.0,
+            "bridge": 2,
+            "V_bus": 900.0,
+            "I_off": 98.6621097670169,
+            "V_die_pk": 1196.55435,
+            "overshoot": 296.5543500000001,
+            "clean": true
+          },
+          {
+            "V1": 800.0,
+            "V2": 873.0,
+            "P": 30000.0,
+            "bridge": 1,
+            "V_bus": 800.0,
+            "I_off": 40.01787402179748,
+            "V_die_pk": 958.506396,
+            "overshoot": 158.506396,
+            "clean": true
+          },
+          {
+            "V1": 800.0,
+            "V2": 873.0,
+            "P": 30000.0,
+            "bridge": 2,
+            "V_bus": 873.0,
+            "I_off": 49.07388749684499,
+            "V_die_pk": 1034.79129,
+            "overshoot": 161.7912899999999,
+            "clean": true
+          },
+          {
+            "V1": 700.0,
+            "V2": 550.0,
+            "P": 52500.0,
+            "bridge": 1,
+            "V_bus": 700.0,
+            "I_off": 176.95591306966253,
+            "V_die_pk": 1110.11611,
+            "overshoot": 410.11610999999994,
+            "clean": true
+          },
+          {
+            "V1": 700.0,
+            "V2": 550.0,
+            "P": 52500.0,
+            "bridge": 2,
+            "V_bus": 550.0,
+            "I_off": 68.01288864913799,
+            "V_die_pk": 747.748766,
+            "overshoot": 197.74876600000005,
+            "clean": true
+          }
+        ],
+        "env_I_A": [
+          19.657605385908283,
+          29.668609581533573,
+          39.34234054629851,
+          40.01787402179748,
+          43.61586988986799,
+          49.07388749684499,
+          57.958663393260224,
+          61.85730140646896,
+          68.01288864913799,
+          77.28393598789395,
+          96.51014032511145,
+          98.6621097670169,
+          104.5415962782638,
+          105.99424956307236,
+          119.20744353938909,
+          127.5893838807692,
+          141.34640463881175,
+          176.95591306966253
+        ],
+        "env_dV_V": [
+          82.76343099999997,
+          140.05969000000005,
+          140.05969000000005,
+          158.506396,
+          170.70612000000006,
+          170.70612000000006,
+          301.51287,
+          301.51287,
+          301.51287,
+          301.51287,
+          301.51287,
+          301.51287,
+          301.51287,
+          301.51287,
+          301.51287,
+          315.5974100000001,
+          318.0198499999999,
+          410.11610999999994
+        ],
+        "l_loop_H": 1.5e-08,
+        "k_os_deck_950": 2.473080760343704,
+        "hf_network": [
+          10,
+          4.7e-08,
+          0.01,
+          1e-09
+        ],
+        "src": "sim/spice/dab_cal_*.cir",
+        "row_950_900": {
+          "P_kW": [
+            35.0,
+            42.5,
+            50.0,
+            60.0
+          ],
+          "die_peak_V": [
+            1273.68994,
+            1249.58344,
+            1237.05064,
+            1236.39729
+          ],
+          "P_at_limit_kW_interpolated": NaN
+        }
+      }
+    },
+    "light_load": {
+      "P_off_W": 1500.0,
+      "P_on_W": 2500.0,
+      "corners": [
+        {
+          "V1": 950.0,
+          "V2": 400.0,
+          "mismatch": 2.5909090909090913,
+          "sps_phi0_IL_rms_A": 129.53371424126226,
+          "sps_phi0_IL_pk_A": 224.35897435897445,
+          "sps_phi0_Im_pk_A": 6.111111111111112,
+          "sps_P_max_kW": 66.98717948717949
+        },
+        {
+          "V1": 590.0,
+          "V2": 400.0,
+          "mismatch": 1.6090909090909093,
+          "sps_phi0_IL_rms_A": 49.59290773808327,
+          "sps_phi0_IL_pk_A": 85.89743589743595,
+          "sps_phi0_Im_pk_A": 6.111111111111112,
+          "sps_P_max_kW": 41.6025641025641
+        },
+        {
+          "V1": 950.0,
+          "V2": 900.0,
+          "mismatch": 1.1515151515151516,
+          "sps_phi0_IL_rms_A": 27.757224480270466,
+          "sps_phi0_IL_pk_A": 48.07692307692308,
+          "sps_phi0_Im_pk_A": 13.750000000000004,
+          "sps_P_max_kW": 150.7211538461538
+        },
+        {
+          "V1": 590.0,
+          "V2": 900.0,
+          "mismatch": 0.7151515151515152,
+          "sps_phi0_IL_rms_A": 52.1835820229085,
+          "sps_phi0_IL_pk_A": 90.38461538461542,
+          "sps_phi0_Im_pk_A": 13.750000000000004,
+          "sps_P_max_kW": 93.60576923076923
+        },
+        {
+          "V1": 800.0,
+          "V2": 873.0,
+          "mismatch": 0.999687597625742,
+          "sps_phi0_IL_rms_A": 0.05551444896054679,
+          "sps_phi0_IL_pk_A": 0.09615384615385629,
+          "sps_phi0_Im_pk_A": 13.337500000000004,
+          "sps_P_max_kW": 123.1153846153846
+        }
+      ],
+      "lut_950_400": [
+        {
+          "P_kW": 0.0,
+          "mode": "idle: gates off on both bridges (P < P_on, hysteresis to P_off)",
+          "IL_rms_A": 0.0,
+          "IL_pk_A": 0.0
+        },
+        {
+          "P_kW": 2.5,
+          "mode": "LUT",
+          "feasible": true,
+          "a1_deg": 150.0,
+          "a2_deg": 90.0,
+          "phi_deg": 40.283334077672755,
+          "IL_rms_A": 19.018709795681286,
+          "IL_pk_A": 53.506648839658155,
+          "I_off_A": [
+            53.506648839658155,
+            11.615028490028502
+          ],
+          "V_res_V": [
+            0.0,
+            0.0
+          ],
+          "loss_W": 102.58001563694852,
+          "eta": 0.9605852596190617
+        },
+        {
+          "P_kW": 5.0,
+          "mode": "LUT",
+          "feasible": false,
+          "a1_deg": 150.0,
+          "a2_deg": 90.0,
+          "phi_deg": 50.41282630981283,
+          "IL_rms_A": 26.294194078419082,
+          "IL_pk_A": 69.3790725652338,
+          "I_off_A": [
+            69.3790725652338,
+            11.615028490028502
+          ],
+          "V_res_V": [
+            35.62499999999998,
+            0.0
+          ],
+          "loss_W": 128.81888758985897,
+          "eta": 0.9748833229612455
+        },
+        {
+          "P_kW": 10.0,
+          "mode": "LUT",
+          "feasible": false,
+          "a1_deg": 135.0,
+          "a2_deg": 59.99999999999999,
+          "phi_deg": 64.6896300163675,
+          "IL_rms_A": 43.09782034451339,
+          "IL_pk_A": 98.69457694872403,
+          "I_off_A": [
+            98.69457694872403,
+            6.182929724596388
+          ],
+          "V_res_V": [
+            0.0,
+            44.99999999999997
+          ],
+          "loss_W": 237.1410348336352,
+          "eta": 0.9768352283096694
+        },
+        {
+          "P_kW": -2.5,
+          "mode": "LUT",
+          "feasible": true,
+          "a1_deg": 150.0,
+          "a2_deg": 135.0,
+          "phi_deg": -3.2327231701384194,
+          "IL_rms_A": 27.86123124781856,
+          "IL_pk_A": 54.21081978226818,
+          "I_off_A": [
+            54.21081978226818,
+            0.0
+          ],
+          "V_res_V": [
+            0.0,
+            400.0
+          ],
+          "loss_W": 239.16537068866285,
+          "eta": 0.912686771945962
+        },
+        {
+          "P_kW": -5.0,
+          "mode": "LUT",
+          "feasible": false,
+          "a1_deg": 150.0,
+          "a2_deg": 119.99999999999999,
+          "phi_deg": -6.188005716242689,
+          "IL_rms_A": 28.22629504360878,
+          "IL_pk_A": 70.59374115080766,
+          "I_off_A": [
+            70.59374115080766,
+            12.1645274458937
+          ],
+          "V_res_V": [
+            0.0,
+            400.0
+          ],
+          "loss_W": 196.95199301513415,
+          "eta": 0.9621024028546263
+        },
+        {
+          "P_kW": -10.0,
+          "mode": "LUT",
+          "feasible": false,
+          "a1_deg": 150.0,
+          "a2_deg": 75.0,
+          "phi_deg": -3.5569285078251616,
+          "IL_rms_A": 46.9177858281375,
+          "IL_pk_A": 101.7273808527175,
+          "I_off_A": [
+            101.7273808527175,
+            36.0917864102943
+          ],
+          "V_res_V": [
+            94.99999999999999,
+            0.0
+          ],
+          "loss_W": 267.6717573645428,
+          "eta": 0.9739306277323723
+        }
+      ],
+      "infeasible_at_P_on": [
+        [
+          700.0,
+          900.0,
+          2500.0
+        ],
+        [
+          800.0,
+          650.0,
+          -2500.0
+        ],
+        [
+          800.0,
+          700.0,
+          -2500.0
+        ],
+        [
+          800.0,
+          750.0,
+          -2500.0
+        ],
+        [
+          900.0,
+          650.0,
+          -2500.0
+        ],
+        [
+          900.0,
+          700.0,
+          -2500.0
+        ],
+        [
+          900.0,
+          750.0,
+          -2500.0
+        ],
+        [
+          900.0,
+          800.0,
+          -2500.0
+        ],
+        [
+          900.0,
+          850.0,
+          -2500.0
+        ],
+        [
+          950.0,
+          650.0,
+          -2500.0
+        ],
+        [
+          950.0,
+          700.0,
+          -2500.0
+        ],
+        [
+          950.0,
+          750.0,
+          -2500.0
+        ],
+        [
+          950.0,
+          800.0,
+          -2500.0
+        ],
+        [
+          950.0,
+          850.0,
+          -2500.0
+        ],
+        [
+          950.0,
+          900.0,
+          -2500.0
+        ]
+      ],
+      "min_switching_power": [
+        {
+          "V1": 700.0,
+          "V2": 900.0,
+          "direction": "charge",
+          "P_min_feasible_kW": 5.0
+        },
+        {
+          "V1": 800.0,
+          "V2": 650.0,
+          "direction": "discharge",
+          "P_min_feasible_kW": 5.0
+        },
+        {
+          "V1": 800.0,
+          "V2": 700.0,
+          "direction": "discharge",
+          "P_min_feasible_kW": 5.0
+        },
+        {
+          "V1": 800.0,
+          "V2": 750.0,
+          "direction": "discharge",
+          "P_min_feasible_kW": 5.0
+        },
+        {
+          "V1": 900.0,
+          "V2": 650.0,
+          "direction": "discharge",
+          "P_min_feasible_kW": 5.0
+        },
+        {
+          "V1": 900.0,
+          "V2": 700.0,
+          "direction": "discharge",
+          "P_min_feasible_kW": 5.0
+        },
+        {
+          "V1": 900.0,
+          "V2": 750.0,
+          "direction": "discharge",
+          "P_min_feasible_kW": 5.0
+        },
+        {
+          "V1": 900.0,
+          "V2": 800.0,
+          "direction": "discharge",
+          "P_min_feasible_kW": 5.0
+        },
+        {
+          "V1": 900.0,
+          "V2": 850.0,
+          "direction": "discharge",
+          "P_min_feasible_kW": 5.0
+        },
+        {
+          "V1": 950.0,
+          "V2": 650.0,
+          "direction": "discharge",
+          "P_min_feasible_kW": null
+        },
+        {
+          "V1": 950.0,
+          "V2": 700.0,
+          "direction": "discharge",
+          "P_min_feasible_kW": null
+        },
+        {
+          "V1": 950.0,
+          "V2": 750.0,
+          "direction": "discharge",
+          "P_min_feasible_kW": 5.0
+        },
+        {
+          "V1": 950.0,
+          "V2": 800.0,
+          "direction": "discharge",
+          "P_min_feasible_kW": 5.0
+        },
+        {
+          "V1": 950.0,
+          "V2": 850.0,
+          "direction": "discharge",
+          "P_min_feasible_kW": 5.0
+        },
+        {
+          "V1": 950.0,
+          "V2": 900.0,
+          "direction": "discharge",
+          "P_min_feasible_kW": 5.0
+        }
+      ],
+      "mismatch_feasible_at_P_on": [
+        0.7272727272727273,
+        2.5909090909090913
+      ],
+      "mismatch_window": [
+        0.7151515151515152,
+        2.5909090909090913
+      ],
+      "IL_rms_max_light_A": 43.625356407296835,
+      "IL_pk_max_light_A": 93.441069660862,
+      "v2_400_row": {
+        "P_max_590_400_kW": 37.5,
+        "sps_ceiling_590_400_kW": 41.6025641025641,
+        "port2_limit_kW": 40.0,
+        "P_max_row_kW": {
+          "590": 37.5,
+          "600": 37.5,
+          "650": 37.5,
+          "700": 37.5,
+          "750": 37.5,
+          "800": 32.5,
+          "850": 25.0,
+          "900": null,
+          "950": null
+        }
+      }
     }
   },
   "modules": {
@@ -170,14 +833,110 @@
     "desat": {
       "V_DS_trip_V": 7.01,
       "blanking_ns": 591.860465116279,
-      "response_total_ns_max": 1764.8604651162789,
-      "response_basis": "NSI6651 industrial: LEB 200 ns (+25 %) + C_pin 15 pF x 9.8 V / 430 uA + deglitch 265 + DESAT->OUT 300 ns + soft turn-off to the plateau at 0.25 A",
+      "to_gate_falling_ns_max": 891.860465116279,
+      "to_plateau_voltage_ns_max": 1296.932465116279,
+      "to_vth_ns_max": 1551.668465116279,
+      "response_total_ns_max": 1551.668465116279,
+      "t_eq_energy_equivalent_ns": 1111.796465116279,
+      "worst_maker": "SG2M014120LJ",
+      "per_maker_ns": {
+        "IV3Q12013T4Z": {
+          "t_gate": 892,
+          "t_plateau": 1150,
+          "t_vth": 1503,
+          "t_eq": 1096,
+          "blank": 592
+        },
+        "SG2M014120LJ": {
+          "t_gate": 892,
+          "t_plateau": 1297,
+          "t_vth": 1552,
+          "t_eq": 1112,
+          "blank": 592
+        }
+      },
+      "response_basis": "NSI6651 industrial: LEB 200 ns (+25 %) + C_pin 15 pF x 9.8 V / 430 uA + t_DESAT_OFF 300 ns (deglitch included); then the soft turn-off at 0.25 A discharging n x C_iss to V_th, per maker (the composite would mix two makers' data)",
+      "t_DESAT_OFF_basis": "t_DESAT_OFF (DESAT sense to OUT(L) 90 %) is timed from the V_DESAT_TH crossing and contains the deglitch filter t_DESAT_FIL: both intervals start at the same instant in NSI66x1A Fig. 8.10 (p23) and NSI66x1A-Q1 Fig. 8.8 (p25); typ 200 ns filter inside 250 ns",
+      "gate_model": "C_iss discharge at I_STO (V_DS stays at the bus in a short: no Miller charge), as gen/gdrv.py",
+      "t_eq_with_Qg_curve_ns": 1322.5327932688185,
+      "blanking_minimum": {
+        "f_ring_MHz": 38.93760700712051,
+        "t_5_periods_ns": 128.4105620328864,
+        "LEB_typ_ns": 200.0,
+        "LEB_min_assumed_ns": 150.0,
+        "verdict": "no external C_blk needed: the LEB (200 ns typ, 150 ns assumed minimum) covers the partial-hard-turn-on V_DS fall and 5 ring periods (128 ns at 39 MHz); the pin charge C_pin x V_DESAT / I_CHG on top of it is pure delay - keep C_pin as small as the HV diode string allows"
+      },
       "soft_turn_off_A": 0.25,
       "t_sc_assumed_us": 1.12,
-      "t_sc_basis": "ASSUMPTION per device (no Chinese maker publishes one): {'IV3Q12013T4Z': 2e-06, 'SG2M014120LJ': 2e-06} us at <= 800 V / 25 C start, x 800/1000 x 0.7 for 1000 V / 150 C; ROHM SCT4018KR, the only Asian part with a rating, states 4.0 us typ at 18 V / 800 V (p3)",
-      "note": "UCC21710 OC pin 0.7 V (p9) with external DESAT network (p27); 7 V = ~340 A at Tj 150 C; short-circuit withstand of GM4 not published -> confirm by SC test",
-      "margin_vs_assumed_tsc": 0.6346110767041336,
-      "residual_risk": "withstand unknown for both makers; a short-circuit test on samples at 950 V / 150 C is a release condition, and the makers must supply t_SC"
+      "t_sc_basis": "ASSUMPTION per device (no Chinese maker publishes one): {'IV3Q12013T4Z': 2.0, 'SG2M014120LJ': 2.0} us at <= 800 V / 25 C start, x 800/1000 x 0.7 for 1000 V / 150 C; ROHM SCT4018KR, the only Asian part with a rating, states 4.0 us typ at 18 V / 800 V (p3)",
+      "endpoint": "energy, not an instant: in a short V_DS stays at the bus, so there is no Miller plateau that holds the current - the current follows V_GS down from the gate-falling instant to V_th. The gate-falling instant understates the stress, the plateau-voltage or V_th instant with full current assumed to it overstates it; t_eq integrates I / I_sc0 over the whole turn-off",
+      "ratio_t_eq_to_assumed_withstand": 0.9926754152823921,
+      "ratio_gate_falling_to_assumed_withstand": 0.7963039867109635,
+      "ratio_plateau_to_assumed_withstand": 1.157975415282392,
+      "ratio_vth_to_assumed_withstand": 1.3854182724252495,
+      "acceptance": {
+        "rule": "2x: the withstand must be at least twice the chain, in time (t_SC >= 2 t_eq) and in energy (E_SC >= 2 E_chain) at 1000 V / 150 C start / +18 V",
+        "t_SC_required_us_1000V_150C": 2.223592930232558,
+        "t_SC_required_us_800V_25C_same_scaling": 3.970701661129569,
+        "E_chain_J_per_device_1000V": 1.091784128744186,
+        "E_SC_required_J_per_device_1000V": 2.183568257488372,
+        "E_assumed_withstand_J_per_device_1000V": 1.09984,
+        "I_sc_assumed_A_per_device": 982.0,
+        "I_sc_basis": "short-circuit current per device at V_GS(on) = this x the pulsed I_D rating - ASSUMPTION (no SC data from either maker), the same rule as the gen/gdrv.py SC14 / IV3Q presets; the energy RATIO chain / withstand does not depend on it (both at the same current)"
+      },
+      "levers": [
+        {
+          "lever": "as studied: no external C_blk, C_pin 15 pF, soft turn-off I_STO 0.25 A (industrial min)",
+          "t_gate_ns": 891.860465116279,
+          "t_eq_ns": 1111.796465116279,
+          "ratio_to_assumed_hot_withstand": 0.9926754152823921,
+          "meets_2x_rule": false
+        },
+        {
+          "lever": "DESAT pull-up 10 kOhm from VCC2 (+0.82 mA charge; the on-state DESAT level rises by up to 2.7 V, i.e. the V_DS trip falls by that much - the string must be re-sized)",
+          "t_gate_ns": 667.6,
+          "t_eq_ns": 887.5360000000001,
+          "ratio_to_assumed_hot_withstand": 0.7924428571428572,
+          "meets_2x_rule": false
+        },
+        {
+          "lever": "DESAT-pin capacitance halved (7.5 pF: one low-capacitance HV diode, tight layout - ASSUMED achievable)",
+          "t_gate_ns": 720.9302325581396,
+          "t_eq_ns": 940.8662325581396,
+          "ratio_to_assumed_hot_withstand": 0.8400591362126247,
+          "meets_2x_rule": false
+        },
+        {
+          "lever": "DESAT comparator (internal to the NSI6651: the deglitch, 265 ns max, runs inside t_DESAT_OFF, 300 ns max; the -Q1 grade is slower, 360 ns) - no lever",
+          "t_gate_ns": 891.860465116279,
+          "t_eq_ns": 1111.796465116279,
+          "ratio_to_assumed_hot_withstand": 0.9926754152823921,
+          "meets_2x_rule": false
+        },
+        {
+          "lever": "soft turn-off at the typical I_STO 0.40 A (part spread, not a design choice)",
+          "t_gate_ns": 891.860465116279,
+          "t_eq_ns": 1029.3204651162791,
+          "ratio_to_assumed_hot_withstand": 0.9190361295681064,
+          "meets_2x_rule": false
+        },
+        {
+          "lever": "gen/gdrv.py booster (R_sb 56 ohm per gate, SC14 preset): fires on the DESAT pin, two-level gate, then R_sb discharge",
+          "t_gate_ns": 891.860465116279,
+          "t_eq_ns": 917.1673614138342,
+          "ratio_to_assumed_hot_withstand": 0.8188994298337806,
+          "meets_2x_rule": false
+        },
+        {
+          "lever": "booster + DESAT pull-up",
+          "t_gate_ns": 667.6,
+          "t_eq_ns": 687.1475031883078,
+          "ratio_to_assumed_hot_withstand": 0.6135245564181321,
+          "meets_2x_rule": false
+        }
+      ],
+      "fixed_internal_ns": 550.0,
+      "release_block": "No lever within the NSI6651 channel meets the 2x rule (t_eq <= 560 ns): its fixed internal delays (LEB 250 + t_DESAT_OFF 300 = 550 ns worst case, the deglitch included) already take 98 % of that, before any pin charge or gate discharge; the best combination (booster + DESAT pull-up) reaches 687 ns = 0.61 x the assumed hot withstand. Release needs the makers' t_SC >= 2.22 us at 1000 V / 150 C start / +18 V (E_SC >= 2.18 J per device at the assumed 982 A; 4.0 us at 800 V / 25 C on the same scaling), or a short-circuit test on samples, or a device with a published withstand of that size"
     },
     "RG_per": "per device (npar = 2)"
   },
@@ -471,33 +1230,33 @@
         "point": "950 / 900 V derating corner",
         "V1_V": 950.0,
         "V2_V": 900.0,
-        "P_W": 60000.0,
-        "a1_deg": 29.999999999999996,
-        "a2_deg": 14.999999999999998,
-        "phi_deg": 29.71879347841791,
-        "I_L_rms_A": 79.56270200849666,
-        "I_L_pk_A": 118.39959239185801,
-        "I_sec_rms_A_secondary_side": 72.79541297194336,
-        "I_m_pk_A": 12.604166666666666,
+        "P_W": 12500.0,
+        "a1_deg": 50.0,
+        "a2_deg": 29.999999999999996,
+        "phi_deg": 15.167463967140689,
+        "I_L_rms_A": 24.704430142489482,
+        "I_L_pk_A": 52.94084518329513,
+        "I_sec_rms_A_secondary_side": 20.020642907691865,
+        "I_m_pk_A": 11.458333333333334,
         "I_L_harmonics_rms_A": {
-          "1": 76.81237403125229,
-          "3": 19.39258070965125,
-          "5": 6.8637121258792,
-          "7": 1.3390173864763966,
-          "9": 1.0620501329218197,
-          "11": 1.5989615251247282,
-          "13": 1.1611041978410488,
-          "15": 0.40554341245944464,
-          "17": 0.2168931882195454,
-          "19": 0.49499569655791603,
-          "21": 0.43596554469817145,
-          "23": 0.1879117354055081,
-          "25": 0.09278103420954364,
-          "27": 0.22428012081078214,
-          "29": 0.20481016559471224,
-          "31": 0.07901673267846447
+          "1": 21.69964903798405,
+          "3": 8.640956786562441,
+          "5": 6.553461916995665,
+          "7": 3.5293407872665954,
+          "9": 1.37125769113621,
+          "11": 1.5473945742908473,
+          "13": 1.7172127277181692,
+          "15": 1.1664506655668492,
+          "17": 0.34896696642937297,
+          "19": 0.2669713574852043,
+          "21": 0.46357492455700333,
+          "23": 0.33221427454204006,
+          "25": 0.25892641903958347,
+          "27": 0.3587400502504244,
+          "29": 0.3027320426220237,
+          "31": 0.08240393055744549
         },
-        "winding_Vs_half_period_primary_referred": 0.00378125,
+        "winding_Vs_half_period_primary_referred": 0.0034375000000000005,
         "f_sw_Hz": 100000.0
       }
     ]
@@ -513,7 +1272,7 @@
     "position": "primary (port-1) side, in series with the transformer",
     "I_rms_max_A": 137.2946977176475,
     "I_pk_max_A": 169.29027098761978,
-    "I_sat_min_A": 635.0,
+    "I_sat_min_A": 700.0,
     "loss_max_W": 80.31887410217206,
     "construction": "designed by the magnetics engineer: sim/out/magnetics/design_dab_series_inductor.json",
     "loss_basis": "magnetics design files rev M1 / M1 (sim/out/magnetics/design_dab_transformer.json; sim/out/magnetics/design_dab_series_inductor.json)",
@@ -590,7 +1349,7 @@
     "mpn": "resistor/RC capacitor RFQ; HF caps CKC33C473KEGACAUTO (KEMET/YAGEO)",
     "note": "port 1 caps must be >= 1.5 kV for 950 V + overshoot; CRD used 2 kV. Resistors: pulse-rated thick film, wide-terminal 2512 with a thermal path to the plane. Values keep the simulated CRD-equivalent network (R/n, n*C); nearest standard parts 13.7 ohm (E96) and 1.1 nF (E24) change it by < 1 %",
     "hf_caps_per_bridge": "20 x 47 nF C0G >= 1.2 kV (3640) KEMET KC-LINK CKC33C473KEGACAUTO across DC+/DC- at the switch positions, spread over the two legs",
-    "P_per_resistor_worst_W": 0.5501510534904875,
+    "P_per_resistor_worst_W": 0.5250870372370552,
     "P_per_resistor_without_hf_caps_W": 17.381984124392478,
     "P_ring_max_W_per_bridge": 28.56247254431605,
     "ring_down_rule": "each bridge commutation reverses its DC current (dI = 2 I_sw in SPS, I_sw per leg in TPS); 0.5 L_bus dI^2 rings down in the terminal network twice per period (P = f L_bus sum dI^2), shared by RC resistors (5 % worst simulated), HF-cap ESR, film-bank ESR and copper",
@@ -599,9 +1358,9 @@
     "hf_caps": {
       "n": 20,
       "mpn": "CKC33C473KEGACAUTO",
-      "I_rms_per_cap_max_A": 6.685198924659337,
-      "I_pk_per_cap_max_A": 18.297169739999998,
-      "P_per_cap_max_W": 0.2234594233113318,
+      "I_rms_per_cap_max_A": 6.516651866763157,
+      "I_pk_per_cap_max_A": 18.58926192,
+      "P_per_cap_max_W": 0.2123337577629387,
       "I_rms_rule_A": 9.1,
       "rule": "<= 70 % of the typical 13 A rms (1 MHz, heatsinked) of the KC-LINK curve (docs/datasheets/passives-capacitors/KEMET-KC-LINK.pdf p2, p3, p5, p6); ESR 5 mOhm / ESL 1.0 nH per part ASSUMED",
       "v_rating": 1200.0,
@@ -648,14 +1407,14 @@
       "range_check": "+/-250 A covers: peak operating 169 A, transients in dab_control up to 174 A with the split phase update (a naive phase step would add ~47 A), the OC trip 210 A with its 200-220 A tolerance (220/250 = 88 % of range) - required range >= 1.1 x 220 = 242 A"
     },
     "NTC": {
-      "part": "module NTC 5 kOhm B25/50 3380",
-      "readout": "UCC21710 AIN/APWM (as CRD)"
+      "part": "plate NTC per bridge (discretes have no internal NTC)",
+      "readout": "hardware comparator + ADC, see protection.trip_temperatures (DR-06)"
     },
     "coolant": "inlet temperature + flow switch"
   },
   "protection": {
     "I_xfmr_oc_trip_A": 200.0,
-    "I_xfmr_oc_trip_vs_V": "min(200 A, I where V_bus,max + dV(I) = 1150 V, dV from DS Fig. 19) for the higher-voltage bridge",
+    "I_xfmr_oc_trip_vs_V": "fixed window +/-200 A (band 190-210 A) at every bus voltage: with the soft turn-off the level need not follow V_bus (I_xfmr_oc_vdep_implementation); the Fig. 19 rule of the module round does not apply to the study devices",
     "V1_ov_fw_V": 960,
     "V1_ov_hw_V": 1000,
     "V2_ov_fw_V": 920,
@@ -674,7 +1433,7 @@
       190.0,
       210.0
     ],
-    "I_xfmr_oc_vdep_implementation": "NOT on the CTRL CMPSS: AN1 passes the AMC3330 (1.6-2.6 us) and acts after the local trip. The local hardware window is the only fast OC protection; with soft turn-off its level need not depend on the bus voltage (overshoot 33 V)",
+    "I_xfmr_oc_vdep_implementation": "NOT on the CTRL CMPSS: AN1 passes the AMC3330 (1.6-2.6 us) and acts after the local trip. The local hardware window is the only fast OC protection; with soft turn-off its level need not depend on the bus voltage (overshoot 36 V)",
     "local_ov_board": {
       "port1": {
         "trip_V": [
@@ -685,7 +1444,7 @@
         "response_us": 63.0,
         "slew_V_per_us": 0.7555555555555554,
         "V_peak": 1048.2585945053663,
-        "I_off_SSOA_limit_at_peak_A": 110.2495702175833,
+        "I_off_SSOA_limit_at_peak_A": 39.7,
         "cap_V_rating": 1300.0,
         "cap_V_allowed_hot_spot": 1222.4811154645054
       },
@@ -698,11 +1457,11 @@
         "response_us": 63.0,
         "slew_V_per_us": 0.5128205128205129,
         "V_peak": 982.7939485672379,
-        "I_off_SSOA_limit_at_peak_A": 129.23288993552148,
+        "I_off_SSOA_limit_at_peak_A": 52.2,
         "cap_V_rating": 1100.0,
         "cap_V_allowed_hot_spot": 1073.8376479570704
       },
-      "verdict": "DC: inside the module 1200 V and both capacitor banks (port 1 1300 V class, port 2 1074 V allowed at its hot spot). Switching: while the bus is above ~950 V the turn-off SOA allows only 110 A (port 1 at 1048 V) vs up to 113 A at full load, so the firmware OV (960/920 V) must set the phase to zero within one switching period (cycle-by-cycle via CMPSS/trip zone) - the 63 us hardware path is the backup only"
+      "verdict": "DC: inside the module 1200 V and both capacitor banks (port 1 1300 V class, port 2 1074 V allowed at its hot spot). Switching: while the bus is above ~950 V the turn-off SOA allows only 40 A (port 1 at 1048 V) vs up to 113 A at full load, so the firmware OV (960/920 V) must set the phase to zero within one switching period (cycle-by-cycle via CMPSS/trip zone) - the 63 us hardware path is the backup only"
     },
     "trip_turn_off": {
       "oc_trip_A": 200.0,
@@ -712,26 +1471,43 @@
       ],
       "slope_A_per_us": 287.8205128205128,
       "mechanism": "every hardware trip (local OC window, port OV, DC flux, +24V UV, driver RDY/UVLO, cross-trip from the other bridge, over-temperature) injects into the DESAT pin of all 8 NSI6651 drivers (diode-OR, >= 10 V from each driver's own VCC2 through a switch referenced to that driver's GND2: one isolated trip channel per driver, reinforced like the driver itself), so every switch turns off through the driver soft turn-off (I_STO >= 0.25 A, industrial grade). RST/EN low alone is a normal fast turn-off (NSI datasheet p28) and is used only AFTER the soft turn-off, >= 3 us later, to latch the state",
-      "t_inject_us": 0.665,
-      "t_soft_ramp_us": 0.608,
-      "t_response_us": 1.273,
-      "I_peak_fault_A": 576.3955128205127,
+      "t_inject_us": 0.6499999999999999,
+      "t_soft_ramp_us": 0.816,
+      "t_response_us": 1.4659999999999997,
+      "I_peak_fault_A": 631.9448717948717,
       "I_peak_pwm_bounded_A": 337.60683760683764,
-      "I_per_device_peak_A": 340.59734848484845,
+      "I_per_device_peak_A": 306.7522727272728,
       "I_DM_device_A": 367.0,
+      "I_DM_check_maker": "IV3Q12013T4Z",
+      "per_maker": {
+        "IV3Q12013T4Z": {
+          "t_soft_ramp_us": 0.4240000000000001,
+          "I_peak_fault_A": 519.1192307692309,
+          "I_per_device_peak_A": 306.7522727272728,
+          "I_DM_A": 367.0,
+          "ratio_to_I_DM": 0.8358372553876643
+        },
+        "SG2M014120LJ": {
+          "t_soft_ramp_us": 0.816,
+          "I_peak_fault_A": 631.9448717948717,
+          "I_per_device_peak_A": 373.42196969696965,
+          "I_DM_A": 491.0,
+          "ratio_to_I_DM": 0.7605335431710176
+        }
+      },
       "soft_turn_off_fall_ns": 264.00000000000006,
-      "overshoot_soft_V": 32.749745046620035,
-      "V_peak_soft_V": 1032.74974504662,
+      "overshoot_soft_V": 35.90595862470862,
+      "V_peak_soft_V": 1035.9059586247085,
       "inductor_I_sat_100C_A": 380.51514795817354,
       "hard_path_as_drawn": {
         "t_us": 0.78,
         "I_peak_A": 434.5,
-        "V_peak_V": 3428.6360380851506
+        "V_peak_V": 4479.908144076911
       },
       "ov_trip_turn_off": {
-        "I_A": 110.2495702175833
+        "I_A": 39.7
       },
-      "inductor_note": "series inductor saturates at about 381 A (0.41 T, 100 C) against a fault peak of 576 A: the I_sat_min requirement is raised to 634 A (1.1 x fault peak)"
+      "inductor_note": "series inductor saturates at about 381 A (0.41 T, 100 C) against a fault peak of 632 A: the I_sat_min requirement is raised to 695 A (1.1 x fault peak)"
     },
     "trip_temperatures": {
       "sensor": "metal-tag NTC (B57703M class) on the cold plate between the two hottest positions of each bridge, PELV-insulated probe, hardware comparator into the bridge trip chain (fails \"hot\": an open NTC must read as over-temperature)",
@@ -788,8 +1564,8 @@
     "note": "resistor + contactor per ECO-07 on both ports (port block); the DAB is enabled only after the port block reports precharge complete and the main contactor closed"
   },
   "worst_case_stresses": {
-    "module_V_peak_V": 1199.9525331004286,
-    "module_V_peak_rule": "V_bus + L_loop x 0.8 I_off / t_f at the worst feasible point (L_loop 15 nH ASSUMED for the discrete layout, t_f 15 ns at the design R_G,off, hot)",
+    "module_V_peak_V": 1200.0,
+    "module_V_peak_rule": "max of V_bus + dV_deck(I_off) (harsh-deck envelope, 15 nH loop ASSUMED for the discrete layout, report section 7) and V_bus + V_res (partial / hard turn-on) at the worst admitted point",
     "P_ring_max_W_per_bridge": 28.56247254431605,
     "I_xfmr_rms_A": 137.2946977176475,
     "I_xfmr_pk_A": 169.29027098761978,
@@ -816,7 +1592,7 @@
     "Rth_jh_K_W": null,
     "Rth_hf_K_W": 0.045,
     "cross_heating": 0.3,
-    "flow_order": "port-2 module first (UG p49), then port-1 module, then transformer/inductor plate",
+    "flow_order": "port-2 bridge first (UG p49), then port-1 bridge, then transformer/inductor plate",
     "Rth_jc_K_W": 0.27,
     "Rth_insulator_stack_K_W": 0.13,
     "Rth_cp_per_device_K_W": 0.07,
@@ -850,8 +1626,8 @@
       "V2=700": 57500.0,
       "V2=750": 57500.0,
       "V2=800": 57500.0,
-      "V2=850": 57500.0,
-      "V2=900": 47500.0
+      "V2=850": 55000.0,
+      "V2=900": null
     },
     "V1=600": {
       "V2=400": 37500.0,
@@ -864,7 +1640,7 @@
       "V2=750": 60000.0,
       "V2=800": 60000.0,
       "V2=850": 57500.0,
-      "V2=900": 50000.0
+      "V2=900": null
     },
     "V1=650": {
       "V2=400": 37500.0,
@@ -877,10 +1653,10 @@
       "V2=750": 60000.0,
       "V2=800": 60000.0,
       "V2=850": 60000.0,
-      "V2=900": 57500.0
+      "V2=900": null
     },
     "V1=700": {
-      "V2=400": 35000.0,
+      "V2=400": 37500.0,
       "V2=450": 42500.0,
       "V2=500": 47500.0,
       "V2=550": 52500.0,
@@ -890,75 +1666,75 @@
       "V2=750": 60000.0,
       "V2=800": 60000.0,
       "V2=850": 60000.0,
-      "V2=900": 60000.0
+      "V2=900": 10000.0
     },
     "V1=750": {
+      "V2=400": 37500.0,
+      "V2=450": 42500.0,
+      "V2=500": 47500.0,
+      "V2=550": 52500.0,
+      "V2=600": 57500.0,
+      "V2=650": 60000.0,
+      "V2=700": 60000.0,
+      "V2=750": 60000.0,
+      "V2=800": 60000.0,
+      "V2=850": 60000.0,
+      "V2=900": 17500.0
+    },
+    "V1=800": {
       "V2=400": 32500.0,
       "V2=450": 37500.0,
       "V2=500": 42500.0,
-      "V2=550": 50000.0,
+      "V2=550": 47500.0,
       "V2=600": 55000.0,
       "V2=650": 60000.0,
       "V2=700": 60000.0,
       "V2=750": 60000.0,
       "V2=800": 60000.0,
       "V2=850": 60000.0,
-      "V2=900": 60000.0
-    },
-    "V1=800": {
-      "V2=400": 30000.0,
-      "V2=450": 35000.0,
-      "V2=500": 40000.0,
-      "V2=550": 45000.0,
-      "V2=600": 50000.0,
-      "V2=650": 57500.0,
-      "V2=700": 60000.0,
-      "V2=750": 60000.0,
-      "V2=800": 60000.0,
-      "V2=850": 60000.0,
-      "V2=900": 60000.0
+      "V2=900": 30000.0
     },
     "V1=850": {
-      "V2=400": 22500.0,
+      "V2=400": 25000.0,
       "V2=450": 27500.0,
       "V2=500": 32500.0,
-      "V2=550": 37500.0,
+      "V2=550": 35000.0,
       "V2=600": 42500.0,
-      "V2=650": 50000.0,
+      "V2=650": 47500.0,
       "V2=700": 57500.0,
       "V2=750": 60000.0,
       "V2=800": 60000.0,
       "V2=850": 60000.0,
-      "V2=900": 60000.0
+      "V2=900": 42500.0
     },
     "V1=900": {
-      "V2=400": 12500.0,
-      "V2=450": 17500.0,
-      "V2=500": 25000.0,
-      "V2=550": 30000.0,
-      "V2=600": 35000.0,
-      "V2=650": 40000.0,
-      "V2=700": 47500.0,
-      "V2=750": 55000.0,
-      "V2=800": 60000.0,
-      "V2=850": 60000.0,
-      "V2=900": 60000.0
+      "V2=400": null,
+      "V2=450": null,
+      "V2=500": null,
+      "V2=550": null,
+      "V2=600": null,
+      "V2=650": null,
+      "V2=700": null,
+      "V2=750": null,
+      "V2=800": 10000.0,
+      "V2=850": 15000.0,
+      "V2=900": 25000.0
     },
     "V1=950": {
       "V2=400": null,
       "V2=450": null,
-      "V2=500": 12500.0,
-      "V2=550": 20000.0,
-      "V2=600": 25000.0,
-      "V2=650": 30000.0,
-      "V2=700": 35000.0,
-      "V2=750": 42500.0,
-      "V2=800": 52500.0,
-      "V2=850": 60000.0,
-      "V2=900": 60000.0
+      "V2=500": null,
+      "V2=550": null,
+      "V2=600": null,
+      "V2=650": null,
+      "V2=700": null,
+      "V2=750": null,
+      "V2=800": null,
+      "V2=850": 10000.0,
+      "V2=900": 12500.0
     }
   },
-  "verdict_950V": "ACCEPTABLE WITH DERATING, cosmic-ray risk NOT quantified: (1) cosmic ray: neither IV3Q12013T4Z nor SG2M014120LJ has a published FIT-vs-DC-voltage curve; 950 V is 79 % of V_DSS. For scale only, Wolfspeed's curves give 0.9 FIT (Gen 4) to 51 FIT (Gen 3) per bridge at 950 V at sea level for 0.3 cm2 per switch - the makers' curve is a release condition. (2) switching SOA: no switching-SOA curve for the discretes; with the assumed 15 nH loop and t_f 15 ns the turn-off current at 950 V must stay below 137 A per switch position (V_DS,peak <= 1200 V); P_max at 950 V: 60.0 kW at V2=900 V, 52.5 kW at 800 V, 35.0 kW at 700 V. (3) the loop inductance is the critical assumption: verify by DPT.",
+  "verdict_950V": "NOT ADMITTED AT POWER until a double-pulse test calibrates the deck; cosmic-ray risk NOT quantified: (1) cosmic ray: neither IV3Q12013T4Z nor SG2M014120LJ has a published FIT-vs-DC-voltage curve; 950 V is 79 % of V_DSS. For scale only, Wolfspeed's curves give 0.9 FIT (Gen 4) to 51 FIT (Gen 3) per bridge at 950 V at sea level for 0.3 cm2 per switch - the makers' curve is a release condition. (2) switching SOA: no switching-SOA curve for the discretes; the admitted map now follows the harsh ngspice deck itself (18 clean samples, section 7): at 800-950 V buses its die overshoot is 278-318 V for every clean ZVS turn-off of 58-141 A (set by the deck's 10 A/ns channel, it does not fall with the current) and 83-171 V at 20-49 A; at 950 / 900 V the SPS decks give 1274 V at 35.0 kW, 1250 V at 42.5 kW, 1237 V at 50.0 kW, 1236 V at 60.0 kW - the peak does not fall to 1200 V at any deck power. So at 950 V the turn-off current must stay below 54 A (900 V: 58 A) per switch position (V_DS,peak <= 1200 V). P_max at 950 V: 12.5 kW at V2 = 900 V, not admitted at >= 10 kW at 800 V, not admitted at >= 10 kW at 700 V (2026-10-04 claim on the I^2 rule with the 1.47x GM4 credit: 60 / 52.5 / 35 kW). Full-power window at 60 kW: 11 of 20 points admitted (I^2 screening rule without the credit: 9; the withdrawn rule: 16). (3) The deck (15 nH, 10 A/ns channel, linear charge-equivalent C_oss) is an assumption, not a measurement: a double-pulse test on the real layout with the real R_G is the release condition that can restore the 900-950 V rows; the 1.47x found on the GM4 module is information only, never a pass criterion.",
   "pessimistic": {
     "basis": "loss model + unexplained CRD loss 91 W + 0.0 W/kW (fit of UG Fig. 57 vs our model of the CRD) added at every point; two bounding allocations",
     "modules": {
@@ -967,7 +1743,7 @@
         600.0,
         800.0
       ],
-      "xfmr_hot_spot_max_C": 96.20072192709443,
+      "xfmr_hot_spot_max_C": 97.39784481646541,
       "full_power_points_surviving": [
         [
           600.0,
@@ -1014,10 +1790,6 @@
           850.0
         ],
         [
-          700.0,
-          900.0
-        ],
-        [
           750.0,
           700.0
         ],
@@ -1032,10 +1804,6 @@
         [
           750.0,
           850.0
-        ],
-        [
-          750.0,
-          900.0
         ],
         [
           800.0,
@@ -1054,10 +1822,6 @@
           850.0
         ],
         [
-          800.0,
-          900.0
-        ],
-        [
           850.0,
           750.0
         ],
@@ -1068,22 +1832,6 @@
         [
           850.0,
           850.0
-        ],
-        [
-          850.0,
-          900.0
-        ],
-        [
-          900.0,
-          800.0
-        ],
-        [
-          900.0,
-          850.0
-        ],
-        [
-          900.0,
-          900.0
         ]
       ],
       "full_power_points_lost": [],
@@ -1093,7 +1841,7 @@
       },
       "coolant_heat_W_max_60kW": 1209.294547497865,
       "flow_for_5K_lpm": 4.007604134209992,
-      "fix": "coolant inlet would have to be <= 50 C (impractical: below dew point in most sites); practical fixes: 3 x IV3Q12013T4Z / SG2M014120LJ per switch (Tj max 73 C at full power) or derate to the pessimistic map (60 kW kept at 29 of 29 base full-power window points)",
+      "fix": "coolant inlet would have to be <= 50 C (impractical: below dew point in most sites); practical fixes: 3 x IV3Q12013T4Z / SG2M014120LJ per switch (Tj max 73 C at full power) or derate to the pessimistic map (60 kW kept at 22 of 22 base full-power window points)",
       "coolant_inlet_for_full_power_C": 50.0,
       "derating_charge_W": {
         "V1=590": {
@@ -1106,8 +1854,8 @@
           "V2=700": 57500.0,
           "V2=750": 57500.0,
           "V2=800": 57500.0,
-          "V2=850": 57500.0,
-          "V2=900": 47500.0
+          "V2=850": 55000.0,
+          "V2=900": null
         },
         "V1=600": {
           "V2=400": 37500.0,
@@ -1120,7 +1868,7 @@
           "V2=750": 60000.0,
           "V2=800": 60000.0,
           "V2=850": 57500.0,
-          "V2=900": 50000.0
+          "V2=900": null
         },
         "V1=650": {
           "V2=400": 37500.0,
@@ -1133,11 +1881,11 @@
           "V2=750": 60000.0,
           "V2=800": 60000.0,
           "V2=850": 60000.0,
-          "V2=900": 57500.0
+          "V2=900": null
         },
         "V1=700": {
-          "V2=400": 35000.0,
-          "V2=450": 40000.0,
+          "V2=400": 37500.0,
+          "V2=450": 42500.0,
           "V2=500": 47500.0,
           "V2=550": 52500.0,
           "V2=600": 57500.0,
@@ -1146,72 +1894,72 @@
           "V2=750": 60000.0,
           "V2=800": 60000.0,
           "V2=850": 60000.0,
-          "V2=900": 60000.0
+          "V2=900": 10000.0
         },
         "V1=750": {
+          "V2=400": 37500.0,
+          "V2=450": 42500.0,
+          "V2=500": 47500.0,
+          "V2=550": 52500.0,
+          "V2=600": 57500.0,
+          "V2=650": 60000.0,
+          "V2=700": 60000.0,
+          "V2=750": 60000.0,
+          "V2=800": 60000.0,
+          "V2=850": 60000.0,
+          "V2=900": 17500.0
+        },
+        "V1=800": {
           "V2=400": 32500.0,
           "V2=450": 37500.0,
           "V2=500": 42500.0,
-          "V2=550": 50000.0,
+          "V2=550": 47500.0,
           "V2=600": 55000.0,
           "V2=650": 60000.0,
           "V2=700": 60000.0,
           "V2=750": 60000.0,
           "V2=800": 60000.0,
           "V2=850": 60000.0,
-          "V2=900": 60000.0
-        },
-        "V1=800": {
-          "V2=400": 30000.0,
-          "V2=450": 35000.0,
-          "V2=500": 40000.0,
-          "V2=550": 45000.0,
-          "V2=600": 50000.0,
-          "V2=650": 57500.0,
-          "V2=700": 60000.0,
-          "V2=750": 60000.0,
-          "V2=800": 60000.0,
-          "V2=850": 60000.0,
-          "V2=900": 60000.0
+          "V2=900": 30000.0
         },
         "V1=850": {
-          "V2=400": 22500.0,
+          "V2=400": 25000.0,
           "V2=450": 27500.0,
           "V2=500": 32500.0,
-          "V2=550": 37500.0,
+          "V2=550": 35000.0,
           "V2=600": 42500.0,
-          "V2=650": 50000.0,
+          "V2=650": 47500.0,
           "V2=700": 57500.0,
           "V2=750": 60000.0,
           "V2=800": 60000.0,
           "V2=850": 60000.0,
-          "V2=900": 60000.0
+          "V2=900": 42500.0
         },
         "V1=900": {
-          "V2=400": 12500.0,
-          "V2=450": 17500.0,
-          "V2=500": 25000.0,
-          "V2=550": 30000.0,
-          "V2=600": 35000.0,
-          "V2=650": 40000.0,
-          "V2=700": 47500.0,
-          "V2=750": 55000.0,
-          "V2=800": 60000.0,
-          "V2=850": 60000.0,
-          "V2=900": 60000.0
+          "V2=400": null,
+          "V2=450": null,
+          "V2=500": null,
+          "V2=550": null,
+          "V2=600": null,
+          "V2=650": null,
+          "V2=700": null,
+          "V2=750": null,
+          "V2=800": 10000.0,
+          "V2=850": 15000.0,
+          "V2=900": 25000.0
         },
         "V1=950": {
           "V2=400": null,
           "V2=450": null,
-          "V2=500": 12500.0,
-          "V2=550": 20000.0,
-          "V2=600": 25000.0,
-          "V2=650": 30000.0,
-          "V2=700": 35000.0,
-          "V2=750": 42500.0,
-          "V2=800": 52500.0,
-          "V2=850": 60000.0,
-          "V2=900": 60000.0
+          "V2=500": null,
+          "V2=550": null,
+          "V2=600": null,
+          "V2=650": null,
+          "V2=700": null,
+          "V2=750": null,
+          "V2=800": null,
+          "V2=850": 10000.0,
+          "V2=900": 12500.0
         }
       }
     },
@@ -1221,7 +1969,7 @@
         600.0,
         800.0
       ],
-      "xfmr_hot_spot_max_C": 124.34710268579192,
+      "xfmr_hot_spot_max_C": 126.54434358523929,
       "full_power_points_surviving": [
         [
           600.0,
@@ -1268,10 +2016,6 @@
           850.0
         ],
         [
-          700.0,
-          900.0
-        ],
-        [
           750.0,
           700.0
         ],
@@ -1286,10 +2030,6 @@
         [
           750.0,
           850.0
-        ],
-        [
-          750.0,
-          900.0
         ],
         [
           800.0,
@@ -1308,10 +2048,6 @@
           850.0
         ],
         [
-          800.0,
-          900.0
-        ],
-        [
           850.0,
           750.0
         ],
@@ -1322,22 +2058,6 @@
         [
           850.0,
           850.0
-        ],
-        [
-          850.0,
-          900.0
-        ],
-        [
-          900.0,
-          800.0
-        ],
-        [
-          900.0,
-          850.0
-        ],
-        [
-          900.0,
-          900.0
         ]
       ],
       "full_power_points_lost": [],
@@ -1354,27 +2074,27 @@
           "V2=400": 37500.0,
           "V2=450": 42500.0,
           "V2=500": 47500.0,
-          "V2=550": 52500.0,
+          "V2=550": 50000.0,
           "V2=600": 55000.0,
           "V2=650": 57500.0,
           "V2=700": 57500.0,
           "V2=750": 57500.0,
           "V2=800": 57500.0,
-          "V2=850": 57500.0,
-          "V2=900": 47500.0
+          "V2=850": 55000.0,
+          "V2=900": null
         },
         "V1=600": {
           "V2=400": 37500.0,
           "V2=450": 42500.0,
           "V2=500": 47500.0,
-          "V2=550": 52500.0,
+          "V2=550": 50000.0,
           "V2=600": 55000.0,
           "V2=650": 57500.0,
           "V2=700": 60000.0,
           "V2=750": 60000.0,
           "V2=800": 60000.0,
           "V2=850": 57500.0,
-          "V2=900": 50000.0
+          "V2=900": null
         },
         "V1=650": {
           "V2=400": 37500.0,
@@ -1387,11 +2107,11 @@
           "V2=750": 60000.0,
           "V2=800": 60000.0,
           "V2=850": 60000.0,
-          "V2=900": 57500.0
+          "V2=900": null
         },
         "V1=700": {
-          "V2=400": 35000.0,
-          "V2=450": 40000.0,
+          "V2=400": 37500.0,
+          "V2=450": 42500.0,
           "V2=500": 47500.0,
           "V2=550": 52500.0,
           "V2=600": 57500.0,
@@ -1400,154 +2120,154 @@
           "V2=750": 60000.0,
           "V2=800": 60000.0,
           "V2=850": 60000.0,
-          "V2=900": 60000.0
+          "V2=900": 10000.0
         },
         "V1=750": {
+          "V2=400": 37500.0,
+          "V2=450": 42500.0,
+          "V2=500": 47500.0,
+          "V2=550": 52500.0,
+          "V2=600": 57500.0,
+          "V2=650": 60000.0,
+          "V2=700": 60000.0,
+          "V2=750": 60000.0,
+          "V2=800": 60000.0,
+          "V2=850": 60000.0,
+          "V2=900": 17500.0
+        },
+        "V1=800": {
           "V2=400": 32500.0,
           "V2=450": 37500.0,
           "V2=500": 42500.0,
-          "V2=550": 50000.0,
+          "V2=550": 47500.0,
           "V2=600": 55000.0,
           "V2=650": 60000.0,
           "V2=700": 60000.0,
           "V2=750": 60000.0,
           "V2=800": 60000.0,
           "V2=850": 60000.0,
-          "V2=900": 60000.0
-        },
-        "V1=800": {
-          "V2=400": 30000.0,
-          "V2=450": 35000.0,
-          "V2=500": 40000.0,
-          "V2=550": 45000.0,
-          "V2=600": 50000.0,
-          "V2=650": 57500.0,
-          "V2=700": 60000.0,
-          "V2=750": 60000.0,
-          "V2=800": 60000.0,
-          "V2=850": 60000.0,
-          "V2=900": 60000.0
+          "V2=900": 30000.0
         },
         "V1=850": {
-          "V2=400": 22500.0,
+          "V2=400": 25000.0,
           "V2=450": 27500.0,
           "V2=500": 32500.0,
-          "V2=550": 37500.0,
+          "V2=550": 35000.0,
           "V2=600": 42500.0,
-          "V2=650": 50000.0,
+          "V2=650": 47500.0,
           "V2=700": 57500.0,
           "V2=750": 60000.0,
           "V2=800": 60000.0,
           "V2=850": 60000.0,
-          "V2=900": 60000.0
+          "V2=900": 42500.0
         },
         "V1=900": {
-          "V2=400": 12500.0,
-          "V2=450": 17500.0,
-          "V2=500": 25000.0,
-          "V2=550": 30000.0,
-          "V2=600": 35000.0,
-          "V2=650": 40000.0,
-          "V2=700": 47500.0,
-          "V2=750": 55000.0,
-          "V2=800": 60000.0,
-          "V2=850": 60000.0,
-          "V2=900": 60000.0
+          "V2=400": null,
+          "V2=450": null,
+          "V2=500": null,
+          "V2=550": null,
+          "V2=600": null,
+          "V2=650": null,
+          "V2=700": null,
+          "V2=750": null,
+          "V2=800": 10000.0,
+          "V2=850": 15000.0,
+          "V2=900": 25000.0
         },
         "V1=950": {
           "V2=400": null,
           "V2=450": null,
-          "V2=500": 12500.0,
-          "V2=550": 20000.0,
-          "V2=600": 25000.0,
-          "V2=650": 30000.0,
-          "V2=700": 35000.0,
-          "V2=750": 42500.0,
-          "V2=800": 52500.0,
-          "V2=850": 60000.0,
-          "V2=900": 60000.0
+          "V2=500": null,
+          "V2=550": null,
+          "V2=600": null,
+          "V2=650": null,
+          "V2=700": null,
+          "V2=750": null,
+          "V2=800": null,
+          "V2=850": 10000.0,
+          "V2=900": 12500.0
         }
       }
     }
   },
   "design_levers": {
-    "note": "model; baseline stays 1 x CBB011M12GM4T per bridge (DAB-02); owner decision only",
+    "note": "reference only: the module family of the drawn board (CBB011M12GM4T, DAB-02) re-run with today's model; not the study's option set (device_options)",
     "rows": [
       {
         "lever": "baseline: 1 x CBB011M12GM4T per bridge (DAB-02)",
         "modules_total": 2,
-        "eta_800_800_60kW": 0.9855730128551712,
-        "loss_800_800_60kW_W": 878.2903117264364,
-        "eta_worst_window": 0.971547374159655,
+        "eta_800_800_60kW": 0.9857631179231361,
+        "loss_800_800_60kW_W": 866.5498932558394,
+        "eta_worst_window": 0.9719899532053985,
         "worst_point": "600/700 V 60 kW",
-        "frac_window_ge_98p8": 0.48,
-        "Tj_max_C": 144.94865743446002,
+        "frac_window_ge_98p8": 0.49,
+        "Tj_max_C": 143.30646321878447,
         "all_ok": false
       },
       {
         "lever": "gate drive +18 V (same modules)",
         "modules_total": 2,
-        "eta_800_800_60kW": 0.9861206166968436,
-        "loss_800_800_60kW_W": 844.4839141269005,
-        "eta_worst_window": 0.9725947451689959,
+        "eta_800_800_60kW": 0.9863123558669556,
+        "loss_800_800_60kW_W": 832.6557434848115,
+        "eta_worst_window": 0.9730384848633478,
         "worst_point": "600/700 V 60 kW",
-        "frac_window_ge_98p8": 0.52,
-        "Tj_max_C": 140.3837576223274,
+        "frac_window_ge_98p8": 0.53,
+        "Tj_max_C": 138.74263225235276,
         "all_ok": false
       },
       {
         "lever": "coolant inlet 25 C instead of 50 C",
         "modules_total": 2,
-        "eta_800_800_60kW": 0.9863581451135361,
-        "loss_800_800_60kW_W": 829.8317373286511,
-        "eta_worst_window": 0.9732261134634965,
+        "eta_800_800_60kW": 0.9865465068161459,
+        "loss_800_800_60kW_W": 818.2174742439018,
+        "eta_worst_window": 0.9734853549559016,
         "worst_point": "600/900 V 20 kW",
-        "frac_window_ge_98p8": 0.53,
-        "Tj_max_C": 110.44898354197153,
+        "frac_window_ge_98p8": 0.54,
+        "Tj_max_C": 108.83980805249988,
         "all_ok": false
       },
       {
         "lever": "magnetics copper loss -50 % (larger transformer/inductor)",
         "modules_total": 2,
-        "eta_800_800_60kW": 0.9863117692904779,
-        "loss_800_800_60kW_W": 832.6919217055836,
-        "eta_worst_window": 0.9728564824573618,
+        "eta_800_800_60kW": 0.9865018248522358,
+        "loss_800_800_60kW_W": 820.9721345291621,
+        "eta_worst_window": 0.9732984408051304,
         "worst_point": "600/700 V 60 kW",
-        "frac_window_ge_98p8": 0.53,
-        "Tj_max_C": 144.70568737282656,
+        "frac_window_ge_98p8": 0.56,
+        "Tj_max_C": 143.06806565719648,
         "all_ok": false
       },
       {
         "lever": "2 x CBB011M12GM4T in parallel per bridge",
         "modules_total": 4,
-        "eta_800_800_60kW": 0.9902753096451629,
-        "loss_800_800_60kW_W": 589.2113189202936,
-        "eta_worst_window": 0.9673296339496934,
+        "eta_800_800_60kW": 0.9904060553981979,
+        "loss_800_800_60kW_W": 581.2127995084651,
+        "eta_worst_window": 0.9676484990861056,
         "worst_point": "600/900 V 20 kW",
-        "frac_window_ge_98p8": 0.79,
-        "Tj_max_C": 76.25300961890022,
+        "frac_window_ge_98p8": 0.81,
+        "Tj_max_C": 76.144582530702,
         "all_ok": false
       },
       {
         "lever": "2 x CAB011M12FM3 half bridges per bridge",
         "modules_total": 4,
-        "eta_800_800_60kW": 0.9833394542208145,
-        "loss_800_800_60kW_W": 1016.56934689276,
-        "eta_worst_window": 0.9677361990725988,
+        "eta_800_800_60kW": 0.9835047748683682,
+        "loss_800_800_60kW_W": 1006.3128651616042,
+        "eta_worst_window": 0.9679543066449451,
         "worst_point": "600/900 V 20 kW",
-        "frac_window_ge_98p8": 0.12,
-        "Tj_max_C": 160.80146960969455,
+        "frac_window_ge_98p8": 0.15,
+        "Tj_max_C": 159.15053908373193,
         "all_ok": false
       },
       {
         "lever": "2 x GM4 per bridge + 18 V + Cu -50 % + 25 C inlet",
         "modules_total": 4,
-        "eta_800_800_60kW": 0.9916156736701591,
-        "loss_800_800_60kW_W": 507.31305802028146,
-        "eta_worst_window": 0.9688110706474075,
+        "eta_800_800_60kW": 0.9917485309763683,
+        "loss_800_800_60kW_W": 499.2073352813425,
+        "eta_worst_window": 0.9691360990026977,
         "worst_point": "600/900 V 20 kW",
-        "frac_window_ge_98p8": 0.91,
-        "Tj_max_C": 50.69762049027008,
+        "frac_window_ge_98p8": 0.93,
+        "Tj_max_C": 50.58737497914653,
         "all_ok": false
       },
       {
@@ -1716,7 +2436,8 @@
   },
   "audit": {
     "file": "sim/out/audit/dab_devices_audit.csv",
-    "status": "E_TAB, C_oss, SSOA, di/dt, cosmic, ferrite curves replaced by the audit vector-data values; V_SD now a Fig. 7 table"
+    "status": "E_TAB, C_oss, SSOA, di/dt, cosmic, ferrite curves replaced by the audit vector-data values; V_SD now a Fig. 7 table",
+    "applies_to": "CBB011M12GM4T data only (the drawn board's module: option row GM4, design levers, CRD calibration) - the study devices are read from sim/data/dab_discrete_curves.py"
   },
   "device_primary": {
     "mpn": "IV3Q12013T4Z",
@@ -1818,12 +2539,12 @@
         "loss_800_800_60kW_W": 590.2094491229053,
         "eta_800_800_30kW": 0.9937676231273375,
         "eta_peak_light": 0.994424378860699,
-        "eta_mean_window": 0.9909809350853265,
+        "eta_mean_window": 0.9909785889019572,
         "eta_min_window": 0.9828261346047616,
         "frac_window_ge_98p8": 0.89,
         "Tj_max_window_C": 78.57534674396985,
         "Tj_max_full_C": 78.57534674396985,
-        "full_power_points_ok": 16,
+        "full_power_points_ok": 7,
         "full_power_points": 20,
         "tj_rule_ok": true,
         "current_rule_ok": true,
@@ -1850,12 +2571,12 @@
         "loss_800_800_60kW_W": 642.593545366107,
         "eta_800_800_30kW": 0.9935512878865783,
         "eta_peak_light": 0.9941764645692792,
-        "eta_mean_window": 0.9900929131357628,
+        "eta_mean_window": 0.9900805168875604,
         "eta_min_window": 0.9772115195488795,
-        "frac_window_ge_98p8": 0.79,
+        "frac_window_ge_98p8": 0.78,
         "Tj_max_window_C": 84.64322950904925,
         "Tj_max_full_C": 84.64322950904925,
-        "full_power_points_ok": 16,
+        "full_power_points_ok": 9,
         "full_power_points": 20,
         "tj_rule_ok": true,
         "current_rule_ok": true,
@@ -1882,12 +2603,12 @@
         "loss_800_800_60kW_W": 602.0704798182819,
         "eta_800_800_30kW": 0.9947821839815487,
         "eta_peak_light": 0.996076035251728,
-        "eta_mean_window": 0.9909919687724816,
+        "eta_mean_window": 0.990987118227822,
         "eta_min_window": 0.9803849989389113,
         "frac_window_ge_98p8": 0.84,
         "Tj_max_window_C": 80.21872547742976,
         "Tj_max_full_C": 80.21872547742976,
-        "full_power_points_ok": 16,
+        "full_power_points_ok": 7,
         "full_power_points": 20,
         "tj_rule_ok": true,
         "current_rule_ok": true,
@@ -1914,12 +2635,12 @@
         "loss_800_800_60kW_W": 642.593545366107,
         "eta_800_800_30kW": 0.9935512878865783,
         "eta_peak_light": 0.9941764645692792,
-        "eta_mean_window": 0.9900892488047809,
+        "eta_mean_window": 0.9900793605424758,
         "eta_min_window": 0.9772115195488795,
-        "frac_window_ge_98p8": 0.79,
+        "frac_window_ge_98p8": 0.78,
         "Tj_max_window_C": 84.64322950904925,
         "Tj_max_full_C": 84.64322950904925,
-        "full_power_points_ok": 16,
+        "full_power_points_ok": 9,
         "full_power_points": 20,
         "tj_rule_ok": true,
         "current_rule_ok": true,
@@ -1947,16 +2668,16 @@
         "loss_800_800_60kW_W": 560.1273215240154,
         "eta_800_800_30kW": 0.9931331932688336,
         "eta_peak_light": 0.993698870850736,
-        "eta_mean_window": 0.990805037928674,
+        "eta_mean_window": 0.9908002213498556,
         "eta_min_window": 0.9799018373042386,
         "frac_window_ge_98p8": 0.91,
         "Tj_max_window_C": 69.99917866847953,
         "Tj_max_full_C": 69.99917866847953,
-        "full_power_points_ok": 20,
+        "full_power_points_ok": 16,
         "full_power_points": 20,
         "tj_rule_ok": true,
         "current_rule_ok": true,
-        "soa_ok": true,
+        "soa_ok": false,
         "I_dev_or_term_max_A": 35.52592922220772,
         "dead_time_hw_ns": [
           38,
@@ -1979,16 +2700,16 @@
         "loss_800_800_60kW_W": 572.8937557417579,
         "eta_800_800_30kW": 0.9930841882981373,
         "eta_peak_light": 0.9937729651006255,
-        "eta_mean_window": 0.9903810804624555,
+        "eta_mean_window": 0.9903646682191575,
         "eta_min_window": 0.9702196798752021,
         "frac_window_ge_98p8": 0.86,
         "Tj_max_window_C": 71.5127988190936,
         "Tj_max_full_C": 71.5127988190936,
-        "full_power_points_ok": 20,
+        "full_power_points_ok": 18,
         "full_power_points": 20,
         "tj_rule_ok": true,
         "current_rule_ok": true,
-        "soa_ok": true,
+        "soa_ok": false,
         "I_dev_or_term_max_A": 37.66247219251403,
         "dead_time_hw_ns": [
           73,
@@ -2016,11 +2737,11 @@
         "frac_window_ge_98p8": 0.96,
         "Tj_max_window_C": 64.08838736040977,
         "Tj_max_full_C": 64.08838736040977,
-        "full_power_points_ok": 20,
+        "full_power_points_ok": 16,
         "full_power_points": 20,
         "tj_rule_ok": true,
         "current_rule_ok": true,
-        "soa_ok": true,
+        "soa_ok": false,
         "I_dev_or_term_max_A": 36.96891726044025,
         "dead_time_hw_ns": [
           87,
@@ -2043,16 +2764,16 @@
         "loss_800_800_60kW_W": 585.1162313546207,
         "eta_800_800_30kW": 0.9929158771829314,
         "eta_peak_light": 0.9933499509389052,
-        "eta_mean_window": 0.9901342637186481,
+        "eta_mean_window": 0.9901113605101675,
         "eta_min_window": 0.9695359088897345,
-        "frac_window_ge_98p8": 0.81,
+        "frac_window_ge_98p8": 0.8,
         "Tj_max_window_C": 72.25267274986658,
         "Tj_max_full_C": 72.25267274986658,
-        "full_power_points_ok": 20,
+        "full_power_points_ok": 18,
         "full_power_points": 20,
         "tj_rule_ok": true,
         "current_rule_ok": true,
-        "soa_ok": true,
+        "soa_ok": false,
         "I_dev_or_term_max_A": 37.672473539883434,
         "dead_time_hw_ns": [
           76,
@@ -2075,12 +2796,12 @@
         "loss_800_800_60kW_W": 786.4419257848623,
         "eta_800_800_30kW": 0.9906191456447696,
         "eta_peak_light": 0.9908860701501396,
-        "eta_mean_window": 0.9870512280394469,
+        "eta_mean_window": 0.9870362666133612,
         "eta_min_window": 0.9723810593120056,
         "frac_window_ge_98p8": 0.46,
         "Tj_max_window_C": 103.86389148730726,
         "Tj_max_full_C": 103.86389148730726,
-        "full_power_points_ok": 18,
+        "full_power_points_ok": 12,
         "full_power_points": 20,
         "tj_rule_ok": true,
         "current_rule_ok": true,
@@ -2107,12 +2828,12 @@
         "loss_800_800_60kW_W": 765.4300568594008,
         "eta_800_800_30kW": 0.9862745907539249,
         "eta_peak_light": 0.9870693348400712,
-        "eta_mean_window": 0.9841132161408263,
+        "eta_mean_window": 0.984077144889322,
         "eta_min_window": 0.9185548978918021,
         "frac_window_ge_98p8": 0.05,
         "Tj_max_window_C": 162.8122689576575,
         "Tj_max_full_C": 87.57537936106652,
-        "full_power_points_ok": 16,
+        "full_power_points_ok": 9,
         "full_power_points": 20,
         "tj_rule_ok": true,
         "current_rule_ok": true,
@@ -2139,12 +2860,12 @@
         "loss_800_800_60kW_W": 898.5315168477724,
         "eta_800_800_30kW": 0.9823748366279577,
         "eta_peak_light": 0.9840101851541271,
-        "eta_mean_window": 0.9808006092138561,
+        "eta_mean_window": 0.980758981686287,
         "eta_min_window": 0.9134645854474708,
         "frac_window_ge_98p8": 0.0,
         "Tj_max_window_C": 165.15263210081196,
         "Tj_max_full_C": 104.9124877391928,
-        "full_power_points_ok": 18,
+        "full_power_points_ok": 12,
         "full_power_points": 20,
         "tj_rule_ok": true,
         "current_rule_ok": true,
@@ -2206,17 +2927,17 @@
   },
   "efficiency_claim": {
     "model_peak": 0.9942481091710625,
-    "cal_peak": 0.9910054492791222,
-    "model_min_ge20kW_window": 0.979090621063735,
-    "cal_min_ge20kW_window": 0.9747403171705329,
+    "cal_peak": 0.9909440991983428,
+    "model_min_ge20kW_window": 0.980878181178296,
+    "cal_min_ge20kW_window": 0.9794184600955205,
     "model_800_800_60kW": 0.989457874099988,
     "cal_800_800_60kW": 0.9879725244538422,
-    "cal_frac_window_ge_98p8": 0.5894736842105263,
+    "cal_frac_window_ge_98p8": 0.5967741935483871,
     "k0_W": 91.16702259643552,
     "k1_W_per_W": 0.0,
     "dab04_peak_met": false,
     "dab04_20kW_met": false,
-    "statement": "DAB-04 (99.2 % peak, > 98.8 % above 20 kW) is NOT MET. Claimed (calibrated to Wolfspeed's measured CRD loss, the model + 91 W + 0.0 W/kW): peak 99.10 %, 98.80 % at 800/800 V 60 kW, minimum 97.47 % above 20 kW in the full-power window (59 % of those points >= 98.8 %). Model alone (not claimed): peak 99.42 %, 98.95 % at 800/800 V 60 kW, minimum 97.91 %."
+    "statement": "DAB-04 (99.2 % peak, > 98.8 % above 20 kW) is NOT MET. Claimed (calibrated to Wolfspeed's measured CRD loss, the model + 91 W + 0.0 W/kW): peak 99.09 %, 98.80 % at 800/800 V 60 kW, minimum 97.94 % above 20 kW in the full-power window (60 % of those points >= 98.8 %). Model alone (not claimed): peak 99.42 %, 98.95 % at 800/800 V 60 kW, minimum 98.09 %."
   },
   "calibration_gap": {
     "p_W": [
@@ -2324,5 +3045,52 @@
   },
   "st_crosscheck_inputs": {
     "E_turn_on_zero_current_800V_J": 0.0006642664964335239
+  },
+  "assembly": {
+    "this_file": "STUDY of the device option chosen in report section 0 - not the drawn board; values here are not its acceptance evidence and the drawn board's checks are not evidence for this study",
+    "study": {
+      "id": "D2W - 2 x IV3Q12013T4Z / SG2M014120LJ per switch",
+      "makers": "design basis: worst of InventChip and Sichain",
+      "driver": "NOVOSENSE NSI6651ASC-DSWR (industrial), UCC14241-Q1 bias, +18 / -3.5 V, R_G,on / R_G,off 2 / 1.5 ohm per device",
+      "magnetics": "D-014 values (11:12, 6.50 uH, 150 uH); construction rev M1 of sim/out/magnetics (leakage 0.94 + external 5.56 uH)",
+      "schematic": null,
+      "bom": null,
+      "status": "calculated study; no schematic, no BOM, no revision letter. DAB-12: hardware only against a customer need - drawing a board for it (new generator, new revision identity, own build checks) is an owner decision"
+    },
+    "drawn_board": {
+      "id": "DAB60 rev B0 (2026-10-04)",
+      "generator": "gen/dab60.py - frozen, not regenerated (gen/build_all.py FROZEN); its design_check asserts modules/bridge*/mpn == CBB011M12GM4T, so it stops on this file",
+      "devices": "2 x Wolfspeed CBB011M12GM4T (one full-bridge module per bridge)",
+      "driver": "TI UCC21710 + UCC14241-Q1, +15 / -4 V, R_G,on / R_G,off 1 / 0.27 ohm",
+      "magnetics": "D-014 values with the earlier split: leakage 4.38 + external 2.12 uH",
+      "evidence": "hardware/DAB60/outputs/DAB60_design_check.txt and DAB60_report.json, computed against the earlier module-round dab_spec.json (that file is not kept in git)",
+      "bom": "bom/DAB60_BOM.csv; costed as the earlier platform in bom/DAB-D60-FULL_costed_BOM.csv"
+    },
+    "results": {
+      "report 0 option table": "all options on the same D-014 magnetics; row GM4 re-evaluates the drawn board's module with today's rules (comparison only, not its acceptance evidence)",
+      "report 0.1-0.4 (DR-01..07, dead time, trip turn-off, DESAT chain, reverse clamp, cost \"after\", efficiency claim)": "study",
+      "report 0.3 cost \"before\"": "drawn module-based platform (bom/DAB-D60-FULL_costed_BOM.csv)",
+      "loss / efficiency map and LUT (efficiency_map.csv), derating maps (derating_map.csv, derating_charge_W), pessimistic maps, stresses, banks, magnetics requirements, 950 V verdict, light-load policy": "study",
+      "commutation decks (snubber_study.csv, sim/spice/dab_snub_*.cir, dab_cal_*.cir, dab_matched / v2low / light)": "study: composite worst-case C_oss and R_DS(on) of the two makers, 15 nH discrete loop + 7.2 nH bussing",
+      "fault-timing chain (gate_drive.desat, protection.trip_turn_off)": "study: NSI6651 industrial grade with the two makers' gate charge",
+      "CRD calibration (report 1, 5; crd_calibration.png)": "Wolfspeed CRD60DD12N-GMB reference (CBB011M12GM4T) - model check only",
+      "design levers (report 5c, design_levers.csv)": "module family of the drawn board (CBB011M12GM4T / CAB011M12FM3) with their own UCC21710 dead-time guard - reference only",
+      "control study (sim/dab_control.py, sim/out/dab_control)": "study plant: n, L, L_m and banks (D-014, common to both), R_loop / OC trip / dead-time guard of the study devices; SPS, ideal edges; its PCS-P125 link cases read the PCS outputs"
+    },
+    "acceptance_rule": "no mixed-generation claims: nothing in this file is acceptance evidence for DAB60 rev B, and DAB60_design_check.txt is no evidence for the study"
+  },
+  "firmware_requirements": {
+    "FW-DAB-1 modulation": "only from the offline LUT: efficiency_map.csv rows with feasible = 1 (a1, a2, phi vs V1, V2, P; inner shifts up to 150 deg); interpolate only between feasible neighbours; outside the feasible set the gates stay off",
+    "FW-DAB-2 LUT integrity": "at start and after every LUT write: CRC over the table, and for every entry V_bus + V_res <= 1200 V and V_bus + dV_deck(I_off) <= 1200 V from its stored columns (no hard turn-on above 600 V, no SPS at light load above 800 V); a failed check keeps the gates off and reports",
+    "FW-DAB-3 idle": "gates off on both bridges while |P_ref| < 1.5 kW; switching resumes at |P_ref| >= 2.5 kW (the LUT's lowest row), or at the lowest feasible row where that row has none (power_stage.light_load.min_switching_power); in between the last state holds, switching with the 2.5 kW entry's a1 / a2 and the current-loop phase",
+    "FW-DAB-4 never zero-phase SPS": "SPS at phi ~ 0 with both bridges switching circulates the whole mismatch current (130 A rms / 224 A peak at 950 / 400 V, above the 200 A OC trip): SPS only where |V1 - n V2| <= 130 V (zero-phase peak <= 50 A, the range sim/dab_control.py covers), the LUT's TPS entry from the first switching period elsewhere",
+    "FW-DAB-5 power reversal": "through the idle band (gates off for |P_ref| < 1.5 kW), re-entering on the LUT entry of the new direction; sim/dab_control.py reversal scenario",
+    "FW-DAB-6 operating window": "P <= derating_charge_W(V1, V2) (charge and discharge maps) and the LUT feasible flag; port 2 at 400 V is a derated corner (DAB-11: full power >= 700 V)",
+    "FW-DAB-7 flux balance": "flux-balance loop and the 5 A DC trip stay active in every switching state; at idle the magnetising current decays through the body diodes and the loop restarts from zero",
+    "FW-DAB-8 power ramp into the PCS-P125 link": "every change of the power reference into a DC link the PCS holds (start, stop, step, reversal) at or below the PCS control study's DC/DC ramp rule (system total, shared /N_alive by the system controller; sim/out/pcs_control/report.md firmware table); numbers in sim/out/dab_control/report.md, PCS-P125 DC link",
+    "FW-DAB-9 stops and trips on the PCS-P125 link": "non-hazard stops ramp to zero at the FW-DAB-8 rate before the gates go off; hazard trips gate off at once and report on the module bus; port contactors open only at zero current; the PCS removes the step through its measured DC current",
+    "FW-DAB-10 off-grid bus forming": "CV on port 1 at the control study's crossover, setpoint above the PCS UV stop by the full-load step dip (sim/out/dab_control/report.md); the port-1 OV trip stays below the PCS DC OV trip so that the DAB stops first on a PCS trip",
+    "FW-DAB-11 sensor-offset nulling": "at power-up and at every idle the transformer-current and branch-current sensor offsets are nulled over >= 64 samples with the gates off; a null outside +/-4.0 A is a sensor fault that blocks the start; voltage channels are never auto-zeroed. Reason: the flux-balance loop (FW-DAB-7) nulls the MEASURED DC, so an un-nulled sensor offset of the +/-4 A the DAB60 check allows becomes a real DC bias of up to about 32 mT that the 5 A trip cannot see (Wolfspeed CRD-60DD12N-K firmware cross-check, REFERENCE-LESSONS section 6, R-WS-5, 2026-10-05)",
+    "FW-DAB-12 firmware practice (reference cross-check)": "the module adopts R-WS-1..R-WS-9 of docs/requirements/REFERENCE-LESSONS.md section 6 (range-checked bus/service inputs; ramp to zero and stop on communication loss, assumed 30 ms on the module CAN; lock-out after the third hazard trip of a class within 10 min and at once when hardware and firmware both see an over-voltage; explicit recovery threshold, dwell and restart-rate limit for every non-latched limit; exception paths force the one-shot trip and stop the heartbeat first, clock-fail and emulation-stop trips enabled; start-up self-test fires each fault line alone and the 10 ms read-back covers the trip routing; no bus-reachable mode disables a protection, parameter writes only in SERVICE with authorisation and timeout; redundant range-checked calibration, a failed load blocks the start)"
   }
 }

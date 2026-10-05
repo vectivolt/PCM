@@ -52,6 +52,19 @@ if not os.path.exists(SPEC_PATH):
     raise SystemExit("run .venv/bin/python sim/port_design.py first (it writes %s)" % os.path.relpath(SPEC_PATH, L.REPO))
 S = json.load(open(SPEC_PATH))
 ohm, farad = gdrv.ohm, gdrv.farad
+# RFQ rating of the 220 ohm aluminium-housed precharge resistor (RPRE_AL), the same part on every battery-type port. rpre_duty()
+# gives the duty of one bank: charge from 0 to v with C +10 % and R +5 % (tau), and a shorted bank on R -5 % until the abort at
+# 1.1 tau + 30 ms relay release (port_spec lean convention). Covered (PCM-03): PCS-P125 409.4 uF (bank + leg films) from the
+# 1050 V trip 248 J / 104 ms, shorted 762 J in 0.14 s; PV-P75 port B 334.8 uF and PV-P100 386.4 uF (incl. decoupling, PV-PWR
+# design checks) from the 1144 V pole peak 241 / 278 J at 85 / 98 ms, shorted 774 / 864 J in 0.12 / 0.14 s
+RPRE_RATING = dict(R=220.0, tol=0.05, e_charge_J=280.0, tau_s=0.105, e_short_J=900.0, t_short_s=0.15)
+
+
+def rpre_duty(c, v):
+    """(charge energy J, tau_max s, shorted-bank energy J, its duration s) of a bank of nominal capacitance c from v"""
+    r = RPRE_RATING
+    tau = r["R"] * (1 + r["tol"]) * 1.1 * c
+    return 0.5 * 1.1 * c * v ** 2, tau, v ** 2 / (r["R"] * (1 - r["tol"])) * (1.1 * tau + 0.03), 1.1 * tau + 0.03
 
 AMC_PINS = {  # identical pinout AMC3330 (SBASA34B Fig 4-1 / Table 4-1, p3) and AMC3302 (SBASA11B Fig 5-1 / Table 5-1, p4)
     "left": ["6 INP i", "7 INN i", None, "1 DCDC_OUT po", "3 HLDO_IN pi", "5 HLDO_OUT po", "4 NC nc", None,
@@ -181,8 +194,9 @@ PARTS = {
     # Diodes Inc S2M.pdf (S2A/A-S2M/A, ds16004): 1000 V 1.5 A, SMB, cathode = pin 1
     "S2M": dict(mfr="Diodes Inc", mpn="S2M-13-F", prefix="D", pkg="SMB", stock=("Device", "D"), ds=DS + "power-semiconductors/S2M.pdf",
                 desc="Rectifier 1000 V 1.5 A"),
-    # Bourns SMBJ_Bourns.pdf: SMBJ33A VRWM 33 V, VBR 36.7-40.6 V, VC 53.3 V (Omron p5: zener 1-2 x coil voltage)
-    "SMBJ33A": dict(mfr="Bourns", mpn="SMBJ33A", prefix="D", pkg="SMB", stock=("Device", "D_Zener"), ds=DS + "protection/SMBJ_Bourns.pdf",
+    # MDD MDD-SMBJ-series.pdf p3 table: SMBJ33A VRWM 33 V, VBR 36.7-40.6 V, VC 53.3 V, IPP 11.3 A (same JEDEC values as the Bourns
+    # sheet it replaces; cathode band = unidirectional, p1) (Omron p5: zener 1-2 x coil voltage)
+    "SMBJ33A": dict(mfr="MDD (Microdiode Semiconductor)", mpn="SMBJ33A", prefix="D", pkg="SMB", stock=("Device", "D_Zener"), ds=DS + "protection/MDD-SMBJ-series.pdf",   # MDD primary (LCSC C173526, in stock), Bourns SMBJ33A = alternate not on LCSC: sim/data/lcsc_semis.md P24, 2026-10-05
                     desc="TVS 33 V unidirectional, relay coil clamp zener"),
     # Vishay IRFL214.pdf (doc 91194) p1: 250 V, +/-20 V, RDS(on) <= 2.0 ohm at 10 V, VGS(th) 2-4 V, EAS 50 mJ;
     # SOT-223 1 G, 2 D, 3 S (tab = D)
@@ -309,15 +323,17 @@ LEAN_PARTS = {
                      ds=DS + "isolation-interface/CA-IS3417WT.pdf",
                      desc="Isolated 1700 V back-to-back SiC SSR, 50 ohm, opto-compatible input: IMD string switch",
                      pins={"left": ["4 ANODE i", "3 CATHODE1 p", "5 CATHODE2 p", "1 NC1 nc", "2 NC2 nc", "6 NC3 nc"],
-                           "right": ["11 D1A p", "12 D1B p", "9 D2A p", "10 D2B p", "7 NC4 nc", "8 NC5 nc"]}),
+                           "right": ["11 Drain1 p", "12 Drain1 p", "9 Drain2 p", "10 Drain2 p", "7 NC4 nc", "8 NC5 nc"]}),
     # Viking-ARHV-A.pdf: ARHV high-voltage chip resistors, 1206 / 1210 (alternates.csv rows for TNPV)
     "ARHV06_1M": dict(mfr="Viking Tech", mpn="ARHV06BTC1004A", prefix="R", pkg="1206", stock=("Device", "R"),
                       ds=DS + "passives-capacitors/Viking-ARHV-A.pdf", desc="HV chip resistor 1.00 M 0.1 % 25 ppm/K"),
     "ARHV13_124K": dict(mfr="Viking Tech", mpn="ARHV13BTC1243A", prefix="R", pkg="1210", stock=("Device", "R"),
                         ds=DS + "passives-capacitors/Viking-ARHV-A.pdf", desc="HV chip resistor 124 k 0.1 % 25 ppm/K"),
     "RPRE_AL": dict(mfr="", mpn="", prefix="R", pkg="aluminium housing, M4", ds="", sourcing="RFQ", stock=("Device", "R"),
-                    desc="CHASSIS-MOUNTED RFQ precharge resistor 220 ohm 5 %, 1000 V DC, single pulse >= 600 J in 0.1 s "
-                         "(shorted bank to the abort) and 180 J at tau 80 ms, basic insulation to the housing (2200 V rms)"),
+                    desc="CHASSIS-MOUNTED RFQ precharge resistor 220 ohm 5 %%, 1000 V DC (1144 V peak), single pulse >= %.0f J in "
+                         "%.2f s (shorted bank to the abort) and >= %.0f J at tau %.0f ms (bank charge), basic insulation to the housing "
+                         "(2200 V rms)" % (RPRE_RATING["e_short_J"], RPRE_RATING["t_short_s"], RPRE_RATING["e_charge_J"],
+                                           RPRE_RATING["tau_s"] * 1e3)),
     # TI OPA2388 SBOS777D 'Pin Functions' (D SOIC-8), as gen/ctrl_c2000.py
     "OPA2388": dict(mfr=TI, mpn="OPA2388IDR", prefix="U", pkg="SOIC-8 (D)", ds=DS + "sensing/OPA4388.pdf",
                     desc="Dual zero-drift RRIO op amp, 10 MHz, 2.5-5.5 V",

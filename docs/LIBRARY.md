@@ -30,9 +30,9 @@ Counts from `docs/SOURCES.csv` (regenerate with `python docs/fetch.py --summary`
 
 |  | rows | on disk | to fetch by hand | MB on disk |
 |---|---:|---:|---:|---:|
-| reference designs | 107 | 92 | 15 | 348 |
-| datasheets | 440 | 424 | 16 | 769 |
-| **total** | **547** | **516** | **31** | **1116** |
+| reference designs | 111 | 96 | 15 | 408 |
+| datasheets | 514 | 498 | 16 | 868 |
+| **total** | **625** | **594** | **31** | **1276** |
 
 ### Reference designs
 
@@ -70,9 +70,10 @@ Counts from `docs/SOURCES.csv` (regenerate with `python docs/fetch.py --summary`
 | `wolfspeed/crd-020dd17p-j` | 20 W, 60-1000 V input auxiliary flyback (Wolfspeed) | 2 | 0 |
 | `wolfspeed/crd-25bda6512n-k` | 25 kW bidirectional three-phase T-type inverter / PFC (Wolfspeed) | 2 | 0 |
 | `wolfspeed/crd-60dd12n` | 60 kW four-phase interleaved boost converter (Wolfspeed) | 2 | 0 |
-| `wolfspeed/crd200da23n-gma` | 200 kW three-phase two-level inverter for a 1500 V DC bus (Wolfspeed) | 2 | 0 |
+| `wolfspeed/crd200da23n-gma` | 200 kW three-phase two-level inverter for a 1500 V DC bus (Wolfspeed) | 3 | 0 |
 | `wolfspeed/crd250da12e-xm3` | three-phase SiC inverter stack, liquid cooled (Wolfspeed) | 2 | 0 |
-| `wolfspeed/crd60dd12n-gmb` | 60 kW isolated bidirectional DC/DC, dual active bridge (Wolfspeed) | 2 | 0 |
+| `wolfspeed/crd60dd12n-gmb` | 60 kW isolated bidirectional DC/DC, dual active bridge (Wolfspeed) | 3 | 0 |
+| `wolfspeed/crd60dd12n-k` | 60 kW three-phase interleaved LLC DC/DC converter, unidirectional (Wolfspeed) | 2 | 0 |
 
 ### Datasheets per category
 
@@ -84,10 +85,10 @@ Counts from `docs/SOURCES.csv` (regenerate with `python docs/fetch.py --summary`
 | isolation-interface | 39 | 39 | 0 | 70 |
 | magnetics | 35 | 35 | 0 | 63 |
 | passives-capacitors | 27 | 27 | 0 | 33 |
-| power-semiconductors | 125 | 122 | 3 | 174 |
+| power-semiconductors | 176 | 173 | 3 | 259 |
 | power-supply | 28 | 28 | 0 | 79 |
-| protection | 83 | 73 | 10 | 102 |
-| sensing | 41 | 41 | 0 | 86 |
+| protection | 105 | 95 | 10 | 114 |
+| sensing | 42 | 42 | 0 | 88 |
 | thermal | 10 | 10 | 0 | 40 |
 | timing | 2 | 2 | 0 | 3 |
 <!-- /generated:counts -->

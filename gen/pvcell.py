@@ -32,18 +32,26 @@ import port
 PROJECT, REV, DATE = "PVCELL-25", "C0", "2026-10-04"
 DS = "docs/datasheets/"
 TI = "Texas Instruments"
-SPEC = json.load(open(os.path.join(L.REPO, "sim", "out", "pv_design", "cell_spec.json")))
+SPEC = json.load(open(os.path.join(L.REPO, "gen", "data", "cell_spec_platform1.json")))   # FROZEN snapshot (2026-10-05) of the
+#   cell spec this earlier-platform board was designed against (see its _frozen note); the live sim/out/pv_design/cell_spec.json
+#   now describes the drawn cost-first boards and gen/pv_power.py reads it itself (D-065)
 
 
-def spec(*path):
-    """cell_spec.json value at `path`; a missing key stops the build, so the drawing cannot drift from the design."""
-    v = SPEC
-    for k in path:
-        try:
-            v = v[k]
-        except (KeyError, IndexError, TypeError):
-            raise SystemExit("cell_spec.json has no %s - re-run sim/pv_design.py" % "/".join(map(str, path)))
-    return v
+def make_spec(table):
+    """accessor factory over one spec dict (gen/pv_power.py binds it to the live cell_spec)."""
+    def spec(*path):
+        """cell_spec.json value at `path`; a missing key stops the build, so the drawing cannot drift from the design."""
+        v = table
+        for k in path:
+            try:
+                v = v[k]
+            except (KeyError, IndexError, TypeError):
+                raise SystemExit("cell_spec.json has no %s - re-run sim/pv_design.py" % "/".join(map(str, path)))
+        return v
+    return spec
+
+
+spec = make_spec(SPEC)
 
 
 def deck():
@@ -182,7 +190,7 @@ PARTS = {
                          ds=DS + "power-semiconductors/SG2M040170HJ.pdf",
                          desc="SiC MOSFET 1700 V 40 mOhm, TO-247-4L with driver source, VGS -8/+22 V abs, -4/+18 V op; "
                               "no qualification stated (Sichain p14: consult for high reliability). Mount on PAD_ALN",
-                         pins={"left": ["4 G i", "3 SS p"], "right": ["1 D p", "5 TAB p", "2 S p"]}),
+                         pins={"left": ["4 G i", "3 Driver_Source p"], "right": ["1 D p", "5 TAB p", "2 S p"]}),   # pin 3 named as the datasheet p1 (pin audit)
     # KEMET F3114_C4AQ (5/5/2025) p14: 1300 V class (VNDC 1300 V at 70 C hot spot, VOP85 1100 V), two terminals
     "C4AQ_45U": dict(mfr="KEMET", mpn="C4AQUEW5450A3BJ", prefix="C", pkg="radial 4-lead 57.5x45x65 mm",
                      stock=("Device", "C"), ds=DS + "passives-capacitors/C4AQ.pdf",
@@ -341,7 +349,9 @@ DVDT_MAX = spec("device_primary", "turn_on_dvdt_V_per_ns")
 RM = 20.0                            # LA 150-P measuring resistor: V_M = RM x IP / 2000 = 10 mV/A (<= 30 ohm: +/-212 A)
 K_M, K_AN1 = RM / LA150["kn"], 2 * RM / LA150["kn"]   # V/A at V_M (and AN1_P - VMID), V/A at the AN1 pair
 I_LIN_REQ = 110.0                    # rev B brief: linear >= +/-110 A (CTRL backup trip 88 A peaks at 105-107 A)
-CTRL_SPEC = json.load(open(os.path.join(L.REPO, "sim", "out", "pv_control", "control_spec.json")))
+CTRL_SPEC = json.load(open(os.path.join(L.REPO, "gen", "data", "control_spec_platform1.json")))   # FROZEN snapshot (2026-10-05)
+#   of the control spec this earlier-platform cell was designed against (LA 150-P / AMC3302 chain, D-044); the live
+#   sim/out/pv_control/control_spec.json describes the cost-first PV-CTL chain (PCM-02 re-base) and no longer carries these keys
 R_BIAS, R_TERM = 470.0, 120.0        # RS-422 fail-safe bias per line, termination
 R_NTC_BIAS = 10.0e3                  # heatsink: 2.5 V - Rf - T_HS - NTC - AGND; 10 k so an open probe is told from -40 C
 R_L_BIAS = 1.00e3                    # winding: 2.5 V - Rf - T_L - NTC - AGND (hot-end resolution; open = firmware check)

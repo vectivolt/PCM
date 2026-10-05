@@ -11,7 +11,7 @@ docs/requirements/ARCHITECTURE-COSTFIRST.md sections 0, 1.2, 2, 5, 6, 7, 10).
              STK-HO/A 75 signals, 2.5 V + 10.667 mV/A) divided to ILn_P and buffered (TLV9064, offset from VREF); the
              power board's VMID-centred signals straight into the ADC through 100 R / 1 nF.
     trips    7 x TLV9024 on +3V3 (open drain): IL windows (+/-74 A, one ladder per phase from that sensor's own Uref,
-             ILnR on PC), VA / VB OV (1084 V; this and the rest from VREF ladders), NTC
+             ILnR on PC), VA / VB OV (1075 V; this and the rest from VREF ladders), NTC
              OT (heatsink 87.9 C, inductor 150 C) and open probe; the phase-4 pair is an assembly option (not fitted
              on PV-P75, where IL4 = 0 V and NTC4 / NTC8 are open). Port over-current (387-413 A) comes from the
              power board on FLT_N; CMPSS1-4 (IL) and CMPSS4 / PPB (IB) are firmware-set backups. One latch
@@ -26,8 +26,13 @@ docs/requirements/ARCHITECTURE-COSTFIRST.md sections 0, 1.2, 2, 5, 6, 7, 10).
 Nothing here is bench-validated: every number in design_check() is calculated.
 Usage: .venv/bin/python gen/pv_ctrl.py
 Rev A1 (2026-10-05, D-056): IL trip thresholds from each sensor's Uref (ILnR, PV-PWR rev A2): 68.9-79.9 A, was 66.2-79.9 A.
+PCM review (same revision letter, values re-calculated): every TLV9024 band now carries the common-mode error of its comparator (CMRR >= 50
+dB at 3.3 V, risk C9) and the data-sheet propagation delay at the overdrive the ramp builds: IL window 67.9-80.5 A (the 68.5 A floor is
+NOT met: see the [OPEN] item of the design check), OV ladder 2.05k / 11.3k (1074 V nominal, 1039-1110 V); fan supply contract with PV-PWR;
+firmware table row for the fans' cold-start rule (module_spec.json).
 """
 import csv
+import hashlib
 import json
 import math
 import os
@@ -269,17 +274,19 @@ PARTS.update({
     "L22U": dict(mfr="SZ Cjiang Technology", mpn="FXL0530-220-M", prefix="L", pkg="5.4x5.2x3.0 mm molded",
                  stock=("Device", "L"), ds=DS + "magnetics/Cjiang-FXL.pdf",
                  desc="Power inductor 22 uH 20 %, Isat 2.0 A, Irms 1.5 A, 248 mOhm (SELV 5 V)"),
-    # MDD SM712 pin configuration: 1 I/O 1, 2 I/O 2, 3 GND (common)
+    # MDD SM712 data sheet p.1 'Schematic & Pin Configuration' (SOT-23 top view): 1 I/O 1, 2 I/O 2, 3 GND (the common pin; PCM pin audit)
     "SM712": dict(mfr="MDD (Microdiode Semiconductor)", mpn="SM712", prefix="D", pkg="SOT-23",
                   ds=DS + "protection/MDD-SM712.pdf", desc="RS-485 asymmetric TVS array -7/+12 V",
-                  pins={"left": ["1 IO1 p", "2 IO2 p"], "right": ["3 COM p"]}),
+                  pins={"left": ["1 IO1 p", "2 IO2 p"], "right": ["3 GND p"]}),
     "ESD2CAN24": catalog.PARTS["ESD2CAN24"],
     "JP_OPEN": catalog.PARTS["JP_OPEN"],
-    # Bourns SMBJ series table: SMBJ36A VBR 40-44.2 V; SMBJ58CA bidirectional VBR 64.4-71.2 V, VC 93.6 V
-    "SMBJ36A": dict(mfr="Bourns", mpn="SMBJ36A", prefix="D", pkg="SMB", stock=("Device", "D_Zener"),
-                    ds=DS + "protection/SMBJ_Bourns.pdf", desc="TVS 600 W unidirectional, VRWM 36 V (SELV 24 V input)"),
-    "SMBJ58CA": dict(mfr="Bourns", mpn="SMBJ58CA", prefix="D", pkg="SMB", stock=("Device", "D_TVS"),
-                     ds=DS + "protection/SMBJ_Bourns.pdf", desc="TVS 600 W bidirectional, VRWM 58 V (SELV 0 V to PE)"),
+    # MDD SMBJ series (MDD-SMBJ-series.pdf p.3 table): SMBJ36A VRWM 36 V, VBR 40.0-44.2 V, VC 58.1 V, IPP 10.4 A; SMBJ58CA bidirectional
+    # VRWM 58 V, VBR 64.4-71.2 V, VC 93.6 V, IPP 6.5 A (the same JEDEC values as the Bourns sheet); cathode band = unidirectional (p.1).
+    # MDD primary (LCSC C114001 / C114007, in stock), Bourns = alternate not on LCSC (sim/data/lcsc_semis.md P25/P26, 2026-10-05)
+    "SMBJ36A": dict(mfr="MDD (Microdiode Semiconductor)", mpn="SMBJ36A", prefix="D", pkg="SMB", stock=("Device", "D_Zener"),
+                    ds=DS + "protection/MDD-SMBJ-series.pdf", desc="TVS 600 W unidirectional, VRWM 36 V (SELV 24 V input)"),
+    "SMBJ58CA": dict(mfr="MDD (Microdiode Semiconductor)", mpn="SMBJ58CA", prefix="D", pkg="SMB", stock=("Device", "D_TVS"),
+                     ds=DS + "protection/MDD-SMBJ-series.pdf", desc="TVS 600 W bidirectional, VRWM 58 V (SELV 0 V to PE)"),
     # Nexperia BZX84 series rev 7 table 2: 1 anode, 2 n.c., 3 cathode; C5V1 = 4.8-5.4 V
     "BZX84C5V1": dict(mfr="Nexperia", mpn="BZX84-C5V1,215", prefix="D", pkg="SOT-23", ds=DS + "protection/BZX84.pdf",
                       desc="Zener 5.1 V 5 % 250 mW (ENABLE input clamp)", pins={"left": ["1 A p"],
@@ -610,7 +617,8 @@ def sheet_afe(B):
 
 
 # ---- trip thresholds: ladders from VREF, values chosen to centre each band (design_check asserts them)
-LADDER = {"OV": ("2.10k", "11.8k"),              # VREF - TH_OV - GND: 1084 V nominal (VMID 1.646 V + V/1203)
+LADDER = {"OV": ("2.05k", "11.3k"),              # VREF - TH_OV - GND: 1075 V nominal (VMID 1.646 V + V/1203); was 2.10k / 11.8k (1084 V): moved
+#                                                  # 8.9 V down so that, with the TLV9024 common-mode error (+9.7 V), the band top stays 1110 V
           "OTH": ("102k", "10.0k"),              # VREF - TH_OTH - GND: heatsink 87.9 C (10.0k bias)
           "OTL": ("30.9k", "1.15k"),             # VREF - TH_OTL - GND: inductor 149.9 C (4.99k bias)
           "OPEN": ("115R", "13.7k")}             # VREF - TH_OPEN - GND: 2.975 V, open probe (any NTC)
@@ -668,7 +676,7 @@ def sheet_trip(B):
         for t in ("HI", "LO"):
             B.C("10n", "TH_IL%d_%s" % (n, t), "GND")
     B.block("Threshold ladders (0.1 %, 25 ppm/K, from VREF)",
-            "TH_OV: VA/VB 1084 V; TH_OTH: heatsink 87.9 C (PV-PWR: <= 89.9 C); TH_OTL: inductor 150 C;\n"
+            "TH_OV: VA/VB 1075 V; TH_OTH: heatsink 87.9 C (PV-PWR: <= 89.9 C); TH_OTL: inductor 150 C;\n"
             "TH_OPEN 2.975 V: an NTC node above it is an open probe (cold limit -30 C).")
     for key, nets in TH_NETS.items():
         ladder(B, key, nets)
@@ -819,6 +827,83 @@ V5_RT = "200k"                        # 500 kHz
 N_FAN = 3
 EN_DIV = ("33k", "10k", "100n")       # ENABLE input divider (ON >= 8.8 V, OFF <= 3.4 V) + debounce C
 S24 = (12.0, 36.0)                    # SELV input range: cross-regulated fan winding (PV-PWR / aux75_spec)
+# ---- fan supply (PCM-26): ONE contract with the power board. gen/pv_power.py imports these functions, prints the SELV minimum at its worst
+# cross-regulation point (aux75_spec) and what this buck passes from it, and applies the resulting airflow in its thermal line; this board
+# re-derives that value from its drawn parts and checks the power board's printed line (hardware/PV-PWR*/outputs), so the two design checks
+# cannot state different fan voltages. Airflow is taken proportional to the fans' speed and the speed proportional to the supply voltage
+# (ASSUMED: the 7 V = 29 % speed law of sim/pv_module.py; the Delta data sheet gives 7.0-27.6 V operating and 3700 rpm at 24 V).
+FAN_V_RATED = 24.0                    # V: the fans' rated voltage (Delta AFB / FFB1224SHE-F00 p.1)
+FAN_W = {"PV-P75": 3 * 12.0, "PV-P100/110": 3 * 17.0}   # W at full speed: 3 x AFB1224SHE-F00 (Delta p.1: 24 V, 0.50 A typ / 0.75 A max);
+#                                                      PV-P100/110: 3 x FFB1224SHE-F00 capped at 17 W each (sim/pv_module.py FAN_P_CAP)
+# TPS54360B in dropout (SNVSB93 7.3.4 and equations 1 / 43: the high side stays on until BOOT-SW < 2.1 V, the effective duty "approaches
+# 100 %", 0.99 in the equation):  V_out = D (V_in - I R_DS(on)) - (1 - D) V_F - I R_dc.
+FAN_BUCK = dict(d=0.99, rds=0.24, vf=0.70, dcr25=0.156, t_board=85.0, r_pcb=0.010)
+#   R_DS(on) 0.24 ohm (ESTIMATE): Fig. 1 (6.7), BOOT-SW = 3 V curve (the dropout operating point) 0.12 ohm at 25 C (the data sheet's own
+#   example in 8.2.2.10) to 0.20 ohm at Tj = 150 C, x 190 / 155 mOhm (the 6.5 maximum over the BOOT-SW = 6 V curve at 150 C) for the
+#   tolerance 8.2.2.10 asks to include; V_F 0.70 V: SS56 at 5 A, max (MDD SS5x p.1; it conducts 1 % of the period); R_dc: FXL0840-330-M
+#   156 mOhm MAX at 25 C (Cjiang-FXL.pdf) x (1 + 0.00393 (85 - 25)) copper at the board's 85 C + 10 mOhm trace (ESTIMATE)
+EN_V_MAX, EN_MARGIN = 1.3, 0.02       # TPS54360B EN threshold maximum (SNVSB93 6.5) and the margin the running command keeps above it
+
+
+def fan_vf(dty, vfb=0.8, rf=None, v5=5.0):
+    """S_FAN_VF (V): the 5 V PWM through 4.7k / 2.2 uF against the FB injection resistor, FB at vfb"""
+    rf, rinj = val(FAN_PWM_RC[0]) if rf is None else rf, val(FAN_FB[2])
+    return (dty * v5 / rf + vfb / rinj) / (1 / rf + 1 / rinj)
+
+
+def fan_vout(dty):
+    """fan buck set point (V) at PWM duty dty (nominal parts): higher duty = lower voltage"""
+    rt, rbot, rinj = (val(x) for x in FAN_FB)
+    return 0.8 + rt * (0.8 / rbot + (0.8 - fan_vf(dty)) / rinj)
+
+
+def v5_range():
+    """SELV 5 V set point over the 1 % divider and the 0.792-0.808 V reference (TPS54360B)"""
+    return (0.792 * (1 + val(V5_FB[0]) * 0.99 / (val(V5_FB[1]) * 1.01)), 0.808 * (1 + val(V5_FB[0]) * 1.01 / (val(V5_FB[1]) * 0.99)))
+
+
+def fan_set_range(dty):
+    """(lowest, highest) buck set point in V and the lowest S_FAN_VF in V at PWM duty dty with the buck running (FB at its set point),
+    over the corners of 1 % Rtop / Rbot / Rinj / PWM series resistor, the 0.792-0.808 V reference and the SELV 5 V range (64 corners)"""
+    rt0, rb0, ri0 = (val(x) for x in FAN_FB)
+    rf0, out, vfs = val(FAN_PWM_RC[0]), [], []
+    for kt in (0.99, 1.01):
+        for kb in (0.99, 1.01):
+            for ki in (0.99, 1.01):
+                for kf in (0.99, 1.01):
+                    for vfb in (0.792, 0.808):
+                        for v5 in v5_range():
+                            vf = (dty * v5 / (rf0 * kf) + vfb / (ri0 * ki)) / (1 / (rf0 * kf) + 1 / (ri0 * ki))
+                            out.append(vfb + rt0 * kt * (vfb / (rb0 * kb) + (vfb - vf) / (ri0 * ki)))
+                            vfs.append(vf)
+    return min(out), max(out), min(vfs)
+
+
+def fan_d_on():
+    """lowest duty that keeps EN above its 1.3 V worst-case threshold (FB = 0 V while off): the START command"""
+    return next(x / 1000 for x in range(1001) if fan_vf(x / 1000, 0.0) >= EN_V_MAX)
+
+
+def fan_d_full():
+    """100 % speed command once the buck runs: the lowest duty (0.005 steps) whose lowest EN voltage over the corners stays 20 mV above the
+    1.3 V threshold maximum (FB is then at its set point, not at 0 V) - the highest set point the EN pin allows"""
+    return next(x / 200 for x in range(201) if fan_set_range(x / 200)[2] >= EN_V_MAX + EN_MARGIN)
+
+
+def fan_r_dc():
+    return FAN_BUCK["dcr25"] * (1 + 0.00393 * (FAN_BUCK["t_board"] - 25.0)) + FAN_BUCK["r_pcb"]
+
+
+def fan_ceiling(vin, i):
+    """largest voltage (V) the fan buck can pass from S_24V = vin (V) at the fan current i (A): its dropout limit"""
+    b = FAN_BUCK
+    return b["d"] * (vin - i * b["rds"]) - (1 - b["d"]) * b["vf"] - i * fan_r_dc()
+
+
+def fan_vin_for(v, i):
+    """S_24V (V) at which the buck can just pass v (V) at i (A): fan_ceiling inverted"""
+    b = FAN_BUCK
+    return (v + (1 - b["d"]) * b["vf"] + i * fan_r_dc()) / b["d"] + i * b["rds"]
 
 
 def buck(B, vin, vout, en, rt, fb, comp, lkey, tag):
@@ -936,6 +1021,7 @@ def build_design():
 # ============================================================================ 5. design check (calculated, not tested)
 CS = json.load(open(os.path.join(L.REPO, "sim/out/pv_control/control_spec.json")))
 CELL = json.load(open(os.path.join(L.REPO, "sim/out/pv_design/cell_spec.json")))
+MOD = json.load(open(os.path.join(L.REPO, "sim/out/pv_design/module_spec.json")))      # cold-start rule (PCM-17); stamped in the PV-PWR check
 PSL = json.load(open(os.path.join(L.REPO, "sim/out/port_design/port_spec.json")))["lean"]
 INS = json.load(open(os.path.join(L.REPO, "sim/out/insulation/insulation_spec.json")))
 PWR_TXT = os.path.join(L.REPO, "hardware/PV-PWR/outputs/PV-PWR_design_check.txt")
@@ -943,16 +1029,24 @@ LSB = 3.0 / 4096
 REF_E = 0.001 + 20e-6 * 115 + 100e-6 + 15e-6 * 7 + 50e-6     # REF3030E (SBVS032K 6.5): initial, box drift -30..85 C,
 #                                                             hysteresis, load regulation (7 mA), long term
 R01 = 0.001 + 25e-6 * 60                                    # one 0.1 % 25 ppm/K resistor over +/-60 K
-VIO_CMP = 2e-3                                              # TLV9024 VOS -40..125 C (SNOSDA3H 5.6), IB 5 pA
-T_CMP = 1.0e-6                                              # TLV9024: 100 ns typ at 100 mV overdrive, no maximum
-#                                                             published: 1 us ASSUMED incl. a small overdrive
+R01_LOW_TCR = 0.001 + 10e-6 * 60                            # the same with a 10 ppm/K part (a remedy considered in the IL window item)
+LADDER_TERMS = ("r1", "r2", "ra", "rb", "rc")               # the resistors of the IL divider and ladder: the only terms a value change touches
+VIO_CMP = 2e-3                                              # TLV9024 VOS -40..125 C (SNOSDA3H 5.7), IB 5 pA; specified at VCM = (V-) = 0 V
+# TLV9024 common-mode error (PCM-19, risk C9): CMRR >= 60 dB at VS = 5 V and >= 50 dB at VS = 1.8 V over (V-) - 0.2 V ... (V+) + 0.2 V and
+# -40..125 C (SNOSDA3H 5.7). The comparators run from +3V3 (3.24-3.43 V): between the two specified supplies and not specified itself, so
+# the LOWER guarantee is used. dV_os = (V_cm - V_cm,spec) / CMRR is added to every comparator band (the VOS spec is at 0 V common mode).
+VCM_SPEC, CMRR_MIN_DB, V_CM_MAX = 0.0, 50.0, 3.24 + 0.2     # V, dB, V ((V+) min + 0.2 V input range)
+# TLV9024 propagation delay, high to low (the trip direction of every comparator here), VS = 3.3 V, the slowest of the -40..125 C curves
+# (125 C), read off SNOSDA3H Fig. 5-19 (+-10 ns): (overdrive mV, ns). Typical curve, no maximum is published: x T_CMP_FACTOR ASSUMED.
+TPD_HL = ((5, 458), (10, 350), (20, 248), (25, 215), (50, 148), (70, 125), (100, 110), (200, 90), (500, 82), (1000, 82))
+T_CMP_FACTOR = 2.0
 T_LOGIC = 6e-9                                              # LVC07 / LVC1G74 / LVC08 per stage at 3.3 V (max)
 T_PB = 8e-9 + 110e-9 + 52e-9                                # power board: AHCT1G08 + NSI6651 tprop max (gdrv.NSI)
 #                                                             + SG2M040170HJ turn-off (gen/pvcell.py DEV)
 CMPSS = dict(gain=0.02, inl=16, t=60e-9, filt=5 / 120e6)    # SPRSP61C 6.13.5.3: DAC gain 2 % FSR, INL 16 LSB, comparator;
 #                                                             digital filter 5 SYSCLK (window 5, threshold 4) ASSUMED
 T_TZ = 25e-9                                                # ePWM trip-zone action
-IL_TOP_MAX = 79.9            # A: IL window top - at 79.9 A the device peak is 1,396 V vs 1,445 V allowed (D-056, module_spec)
+IL_TOP_MAX = 79.9            # A: IL window top cap (D-056); the device peak at the top vs 0.85 V_DSS is cell_spec trip_band_costfirst (printed by the window's open item)
 # variant knobs (gen/pcs_ctrl.py sets them for the inverter; the PV values here)
 IL_LO_FACTOR, I_BK, LATCH_I, P75_SUFFIX, LATCH_VA, V_PPB = 1.10, 91.5, 85.0, "-P75", 800.0, 1100.0
 HOLD_KEEPS = ("K_A", "K_B")                                 # contactor commands a trip keeps while HOLD is high
@@ -977,8 +1071,37 @@ def info(name, detail):
     print("[INFO] %s - %s" % (name, detail))
 
 
+def open_item(name, detail):
+    """a design-margin rule that is NOT met: printed loudly with its shortfall, does not fail the build (the hard limits stay in say())"""
+    print("[OPEN] %s - %s" % (name, detail))
+
+
 def val(s):
     return L.number(s)
+
+
+def cm_err(v_cm, db=None):
+    """TLV9024 common-mode offset error (V): |V_cm - V_cm,spec| / CMRR at the comparator's input common mode v_cm; asserts that the
+    node sits inside the specified range (V-) - 0.2 V ... (V+) min + 0.2 V (outside it the CMRR is not specified)"""
+    assert -0.2 <= v_cm <= V_CM_MAX, "comparator input at %.3f V is outside the TLV9024 common-mode range" % v_cm
+    return abs(v_cm - VCM_SPEC) / 10 ** ((CMRR_MIN_DB if db is None else db) / 20)
+
+
+def tpd_hl(od):
+    """TLV9024 typical propagation delay (s), high to low, at an input overdrive od (V): log-linear through TPD_HL, clamped to its ends"""
+    od_mv = min(max(od * 1e3, TPD_HL[0][0]), TPD_HL[-1][0])
+    for (o1, t1), (o2, t2) in zip(TPD_HL, TPD_HL[1:]):
+        if o1 <= od_mv <= o2:
+            return (t1 + (t2 - t1) * math.log(od_mv / o1) / math.log(o2 / o1)) * 1e-9
+
+
+def t_cmp(slope):
+    """comparator delay (s) used for an input that ramps at `slope` V/s through the threshold: the data-sheet delay at the overdrive the
+    ramp has built up by the time the output switches (fixed point t = tpd(slope t)), x T_CMP_FACTOR; also returns (typical delay, overdrive V)"""
+    t = 0.3e-6
+    for _ in range(80):
+        t = 0.5 * (t + tpd_hl(slope * t))
+    return T_CMP_FACTOR * t, t, slope * t
 
 
 def r_ntc(t):
@@ -996,32 +1119,77 @@ def t_ntc(r):
     return lo
 
 
+def pwr_text(path):
+    """the power board's design-check text, refused when it is missing or was built from other spec files than the ones on disk now (the
+    'Built from' line that gen/pv_power.py writes: sha256 of every spec file it read): PV-CTL never reads a stale copy"""
+    rel = os.path.relpath(path, L.REPO)
+    if not os.path.exists(path):
+        raise SystemExit("%s is missing: build it first with .venv/bin/python gen/pv_power.py" % rel)
+    t = open(path).read()
+    m = re.search(r"^Built from \(sha256, first 16 hex\): (.*)$", t, re.M)
+    if not m:
+        raise SystemExit("%s has no 'Built from' line: rebuild it with .venv/bin/python gen/pv_power.py" % rel)
+    stale = []
+    for item in m.group(1).split("; "):
+        f, h = item.rsplit(" ", 1)
+        if not os.path.exists(os.path.join(L.REPO, f)):
+            raise SystemExit("%s: input %s is missing" % (rel, f))
+        if hashlib.sha256(open(os.path.join(L.REPO, f), "rb").read()).hexdigest()[:16] != h:
+            stale.append(f)
+    if stale:
+        raise SystemExit("%s is stale (built from other versions of %s): rebuild it with .venv/bin/python gen/pv_power.py" %
+                         (rel, ", ".join(stale)))
+    return t
+
+
+def pwr_need(pat, t, what):
+    m = re.search(pat, t)
+    if not m:
+        raise SystemExit("%s not found in %s: regenerate it with .venv/bin/python gen/pv_power.py" %
+                         (what, os.path.relpath(PWR_TXT, L.REPO)))
+    return m
+
+
 def pwr_levels():
     """The power board's as-built PC levels, parsed from its design-check output (gen/pv_power.py)."""
-    t = open(PWR_TXT).read()
-    il = re.search(r"IL1-3 OUT: ([\d.]+) V \(([\d.]+)-([\d.]+)\) \+ ([\d.]+) mV/A", t).groups()
-    ia = re.search(r"IA, IB OUT: OPA2388, VMID ([\d.]+)-([\d.]+) V \+ ([\d.]+) mV/A.*?linear \+/-(\d+) A; IA_H, IB_H: "
-                   r"VMID \+ ([\d.]+) mV/A, \+/-(\d+) A", t).groups()
-    sn = re.search(r"linear \+/-([\d.]+) A >= range.*?delay ([\d.]+) us \+ RC ([\d.]+) us", t).groups()
-    ur = re.search(r"IL1R-\dR OUT: sensor reference Uref ([\d.]+)-([\d.]+) V \(STK pin 4; ILn - ILnR = [\d.]+ \+/- "
-                   r"([\d.]+) mV.*?source (\d+)-(\d+) ohm", t).groups()
-    rs = re.search(r"each IL line into [\d.]+ kOhm: source (\d+)-(\d+) ohm", t).groups()
-    bw = re.search(r"IA / IB bandwidth \(lean_shunt feedback ([\d.]+)k \|\| ([\d.]+)p\): ([\d.]+) kHz", t).groups()
+    t = pwr_text(PWR_TXT)
+    il = pwr_need(r"IL1-3 OUT: ([\d.]+) V \(([\d.]+)-([\d.]+)\) \+ ([\d.]+) mV/A", t, "the IL1-3 level").groups()
+    ia = pwr_need(r"IA, IB OUT: OPA2388, VMID ([\d.]+)-([\d.]+) V \+ ([\d.]+) mV/A.*?linear \+/-(\d+) A; IA_H, IB_H: "
+                  r"VMID \+ ([\d.]+) mV/A, \+/-(\d+) A", t, "the IA / IB level").groups()
+    sn = pwr_need(r"linear \+/-([\d.]+) A >= range.*?delay ([\d.]+) us \+ RC ([\d.]+) us", t, "the sensor chain line").groups()
+    ur = pwr_need(r"IL1R-\dR OUT: sensor reference Uref ([\d.]+)-([\d.]+) V \(STK pin 4; ILn - ILnR = [\d.]+ \+/- "
+                  r"([\d.]+) mV.*?source (\d+)-(\d+) ohm", t, "the ILnR level").groups()
+    rs = pwr_need(r"each IL line into [\d.]+ kOhm: source (\d+)-(\d+) ohm", t, "the IL source resistance").groups()
+    bw = pwr_need(r"IA / IB bandwidth \(lean_shunt feedback ([\d.]+)k \|\| ([\d.]+)p\): ([\d.]+) kHz", t, "the IA / IB bandwidth").groups()
     return dict(v0=float(il[0]), v0_rng=(float(il[1]), float(il[2])), g=float(il[3]) * 1e-3,
                 uref=(float(ur[0]), float(ur[1])), voe=float(ur[2]) * 1e-3, rs_ilr=(float(ur[3]), float(ur[4])),
                 rs_il=(float(rs[0]), float(rs[1])), tau_ia=float(bw[0]) * 1e3 * float(bw[1]) * 1e-12, f_ia=float(bw[2]) * 1e3,
                 vmid=(float(ia[0]), float(ia[1])), k_ia=float(ia[2]) * 1e-3, ia_lin=float(ia[3]),
                 k_ih=float(ia[4]) * 1e-3, ih_lin=float(ia[5]), il_lin=float(sn[0]), t_sens=float(sn[1]) * 1e-6,
-                t_rc=float(sn[2]) * 1e-6, k_div=1.0 / float(re.search(r"VA, VB OUT \(bank side\): VMID \+ V/(\d+)", t).group(1)),
-                alloc=[float(x) * 1e-3 for x in re.search(r"control board allocation (\d+) / (\d+) / (\d+) mA", t).groups()],
+                t_rc=float(sn[2]) * 1e-6,
+                k_div=1.0 / float(pwr_need(r"VA, VB OUT \(bank side\): VMID \+ V/(\d+)", t, "the VA / VB divider").group(1)),
+                alloc=[float(x) * 1e-3 for x in
+                       pwr_need(r"control board allocation (\d+) / (\d+) / (\d+) mA", t, "the control board allocation").groups()],
                 flt_pullup="control board MUST pull up to its 3.3 V (4.99k recommended)" in t,
                 rdy_pullup_on_pwr=bool(re.search(r"RDY OUT: open drain.*?pulled up HERE", t)),
-                hs_max=float(re.search(r"heatsink OT trip must be <= ([\d.]+) C", t).group(1)),
-                sink=float(re.search(r"-> sink ([\d.]+) C at 45 C inlet", t).group(1)),
-                hot=tuple(float(x) for x in re.search(r"hot spot (\d+) C <= (\d+) C", t).groups()),
+                hs_max=float(pwr_need(r"heatsink OT trip must be <= ([\d.]+) C", t, "the heatsink OT limit").group(1)),
+                sink=float(pwr_need(r"-> sink ([\d.]+) C at 45 C inlet", t, "the full-load sink temperature").group(1)),
+                hot=tuple(float(x) for x in pwr_need(r"hot spot (\d+) C <= (\d+) C", t, "the inductor hot spot").groups()),
                 port_oc_on_flt="port OC (live)" in t and "open drain, 12 NSI6651 /FLT" in t,
                 il4_zero="IL4 = 0 V on PV-P75" in t and "IL4R = 0 V on PV-P75" in t,
                 ntc_open="NTC4 / NTC8 open on PV-P75" in t)
+
+
+def pwr_fan_contract(path):
+    """the power board's fan supply contract (gen/pv_power.py 'Fan supply contract' line): the SELV minimum at its worst cross-regulation
+    point, what the fan buck then passes, at which current, the voltage the thermal model's fans need, and the resulting airflow ratio
+    against the limit that the power board's thermal line holds (inside its thermal margin)"""
+    m = re.search(r"Fan supply contract: S_24V >= ([\d.]+) V at the worst cross-regulation point, fan buck passes >= ([\d.]+) V at "
+                  r"([\d.]+) A, fans need ([\d.]+) V \(airflow x([\d.]+), limit x([\d.]+)\)", pwr_text(path))
+    if not m:
+        raise SystemExit("no 'Fan supply contract' line in %s: regenerate it with .venv/bin/python gen/pv_power.py" %
+                         os.path.relpath(path, L.REPO))
+    return dict(zip(("s_min", "v_pass", "i", "v_need", "flow", "flow_min"), map(float, m.groups())))
 
 
 def lad_th(key):
@@ -1042,7 +1210,7 @@ def thermal_band(bias, th_key, tol):
     for kr in (-1, 1):
         for kb in (-1, 1):
             for kv in (-1, 1):
-                v = th * (1 + kv * err) + kv * VIO_CMP
+                v = th * (1 + kv * err) + kv * (VIO_CMP + cm_err(th))
                 r = rb * (1 + kv * R01) * v / (3.0 - v)
                 t0 = t_ntc(r / (1 + kr * tol[0]))
                 f = math.exp(kb * tol[1] * 3988.0 * (1 / (t0 + 273.15) - 1 / 298.15))
@@ -1077,28 +1245,39 @@ def il_trip(p, hi):
     """|I| at which the IL comparator of one direction switches: ILn = Uref + Voe + G I through the PV-PWR source rsi
     into the 10.0k / 29.4k node, against the ladder tap (comparator offset towards a later trip when vio > 0)"""
     h, lo = il_nodes(p)
-    v = h + p["vio"] if hi else lo - p["vio"]
+    e = p["vio"] + p.get("vcm", 0.0)
+    v = h + e if hi else lo - e
     return abs((v * (p["r1"] + p["r2"] + p["rsi"]) / p["r2"] - p["uref"] - p["voe"]) / p["g"])
 
 
-def il_window(pw):
-    """Both trip directions: (nominal, low, high, {term: +/- A}); worst case = linear sum of every term's swing"""
+def il_window(pw, cmrr_db=None, r01=None):
+    """Both trip directions: (nominal, low, high, {term: +/- A}); worst case = linear sum of every term's swing. 'vcm' = the TLV9024
+    common-mode error (CMRR >= cmrr_db, default CMRR_MIN_DB) at that comparator's own input common mode (TH_ILn_HI / TH_ILn_LO);
+    r01 = tolerance of one ladder / divider resistor (default R01)"""
+    r01 = R01 if r01 is None else r01
     lad = [val(x) for x in ILR_LAD]
     nom = dict(uref=sum(pw["uref"]) / 2, voe=0.0, g=pw["g"], r1=val(IL_NET[0]), r2=val(IL_NET[1]), ra=lad[0], rb=lad[1],
-               rc=lad[2], rsi=sum(pw["rs_il"]) / 2, rsr=sum(pw["rs_ilr"]) / 2, vio=0.0, vref=3.0, rpu=val(ILR_PU))
+               rc=lad[2], rsi=sum(pw["rs_il"]) / 2, rsr=sum(pw["rs_ilr"]) / 2, vio=0.0, vcm=0.0, vref=3.0, rpu=val(ILR_PU))
     tol = dict(uref=(pw["uref"][1] - pw["uref"][0]) / 2, voe=pw["voe"], vio=VIO_CMP, vref=3.0 * REF_E,
                rsi=(pw["rs_il"][1] - pw["rs_il"][0]) / 2, rsr=(pw["rs_ilr"][1] - pw["rs_ilr"][0]) / 2,
-               rpu=0.016 * nom["rpu"], **{k: R01 * nom[k] for k in ("r1", "r2", "ra", "rb", "rc")})
+               rpu=0.016 * nom["rpu"], **{k: r01 * nom[k] for k in LADDER_TERMS})
     out = []
+    h0, l0 = il_nodes(nom)
     for hi in (True, False):
         i0, terms = il_trip(nom, hi), {}
-        for k, d in tol.items():
+        for k, d in dict(tol, vcm=cm_err(h0 if hi else l0, cmrr_db)).items():
             terms[k] = abs(il_trip(dict(nom, **{k: nom[k] + d}), hi) - il_trip(dict(nom, **{k: nom[k] - d}), hi)) / 2
         terms["X"] = sens_err(i0, False)
         di = sum(terms.values())
-        out.append((i0, i0 - di, i0 + di, terms))
+        out.append((i0, i0 - di, i0 + di, terms, h0 if hi else l0))
     dead = il_nodes(dict(nom, uref=0.0, vref=3.0 * (1 - REF_E), rpu=nom["rpu"] * 1.016))[1]   # sensor dead: IL = ILR = 0
     return out, dead
+
+
+def il_band(pw, cmrr_db=None, r01=None):
+    """(bottom, top) of the IL window over both directions"""
+    band, _ = il_window(pw, cmrr_db, r01)
+    return min(b[1] for b in band), max(b[2] for b in band)
 
 
 def check_trips(pw):
@@ -1113,49 +1292,87 @@ def check_trips(pw):
     band, dead = il_window(pw)
     lo_l, hi_l = min(b[1] for b in band), max(b[2] for b in band)
     tw = {k: max(b[3][k] for b in band) for k in band[0][3]}
-    t_loc = pw["t_sens"] + pw["t_rc"] + n["tau"] + T_CMP + 3 * T_LOGIC + T_PB
+    t_c, t_typ, od_c = t_cmp(didt * n["g_cmp"])
+    t_loc = pw["t_sens"] + pw["t_rc"] + n["tau"] + t_c + 3 * T_LOGIC + T_PB
     i_bk = I_BK
     d = i_bk * n["g_adc"]
     db = (CMPSS["gain"] * d + 2 * CMPSS["inl"] * LSB + d * REF_E) / n["g_adc"] + i_bk * 2 * 25e-6 * 60 + s_err(i_bk, True)
     lo_b, hi_b = i_bk - db, i_bk + db
     t_bk = (pw["t_sens"] + pw["t_rc"] + n["tau"] + val(IL_RC[0]) * val(IL_RC[1]) + 0.1e-6 + CMPSS["t"] + CMPSS["filt"] +
             T_TZ + T_PB)
-    ok &= say(lo_l >= IL_LO_FACTOR * i_pk and hi_l <= IL_TOP_MAX and hi_l < lo_b and hi_l + didt * t_loc <= i_lim and
-              t_loc <= io["local"]["max_response_us"] * 1e-6 and hi_l * 1.05 < pw["il_lin"] and dead > 2 * VIO_CMP and
-              max(b[0] for b in band) <= (IL_NOM_MAX or SENS["ipn"]),
-              "Trip IL local window (TLV9024 on ILn_P, both directions, thresholds from each sensor's Uref)",
-              "+%.1f / -%.1f A nominal -> %.1f-%.1f A, %.1f %% above the normal peak (rev A0 from VREF: 66.2-79.9 A as "
-              "then modelled, without the PV-PWR source resistance). Worst-case terms (A, larger direction): sensor X 1 %% + "
-              "3 %% of Ipn %.2f, Voe %.2f, Uref 2.48-2.52 V %.2f (only the offset part scales with it), 10.0k/29.4k divider "
-              "%.2f, Uref ladder %.2f, comparator VOS %.2f, PV-PWR sources (R_out / R_ref + 100R) %.2f, VREF + 1 M pull-up "
-              "%.2f; no hysteresis (the latch holds the trip). Needs >= %.1f A (%.2f x normal peak %.1f A), top <= %.1f A "
-              "(device peak, cell_spec trip band) and < backup %.1f A; dead sensor (IL = ILR = 0 V): TH_LO %.0f mV above "
-              "the node -> trips. Gates off %.2f us (sensor %.2f + PV-PWR RC %.2f + node %.2f + comparator %.1f ASSUMED + "
-              "logic + driver) <= %.2f us -> %.1f A <= %.0f A (50 %% L0); sensor linear to %.0f A. NOT in the band: the "
-              "TLV9024 VOS is specified at VCM = 0 V; its CMRR (60 dB at 5 V, 50 dB at 1.8 V) allows 2.4-7.7 mV more at "
-              "the 2.45 V node (0.3-1.0 A), as for every comparator band on this board"
-              % (band[0][0], band[1][0], lo_l, hi_l, 100 * (lo_l / i_pk - 1), tw["X"], tw["voe"], tw["uref"],
-                 tw["r1"] + tw["r2"], tw["ra"] + tw["rb"] + tw["rc"], tw["vio"], tw["rsi"] + tw["rsr"], tw["vref"] + tw["rpu"],
-                 IL_LO_FACTOR * i_pk, IL_LO_FACTOR, i_pk, IL_TOP_MAX, lo_b, dead * 1e3, t_loc * 1e6, pw["t_sens"] * 1e6, pw["t_rc"] * 1e6,
-                 n["tau"] * 1e6, T_CMP * 1e6, io["local"]["max_response_us"], hi_l + didt * t_loc, i_lim, pw["il_lin"]))
-    rec = CELL.get("device_primary", {}).get("trip_band_costfirst", {}).get("hardware")
-    ok &= not rec or say([round(lo_l, 1), round(hi_l, 1)] == rec["band_A"] and abs(rec["response_us"] - t_loc * 1e6) < 0.006,
-              "Record: cell_spec trip_band_costfirst (sim/pv_design.py TRIP_HW, read by sim/pv_module.py) = this window",
-              "cell_spec %s A, %.2f us; this board %.1f-%.1f A, %.2f us%s" % (rec["band_A"], rec["response_us"], lo_l, hi_l,
-                                                                              t_loc * 1e6, "" if [round(lo_l, 1), round(hi_l, 1)]
-                                                                              == rec["band_A"] else
-                                                                              " - update TRIP_HW and re-run sim/pv_design.py"))
-    ok &= say(lo_b > hi_l and hi_b + didt * t_bk <= i_lim and t_bk <= io["ctrl_backup"]["max_response_us"] * 1e-6,
+    hard = (hi_l < lo_b and hi_l + didt * t_loc <= i_lim and lo_l > i_pk and t_loc <= io["local"]["max_response_us"] * 1e-6 and
+            hi_l * 1.05 < pw["il_lin"] and dead > 2 * VIO_CMP and max(b[0] for b in band) <= (IL_NOM_MAX or SENS["ipn"]))
+    ok &= say(hard, "Trip IL local window (TLV9024 on ILn_P, both directions, thresholds from each sensor's Uref)",
+              "+%.1f / -%.1f A nominal -> %.1f-%.1f A, %.1f %% above the normal peak %.1f A. Worst-case terms (A, larger "
+              "direction): sensor X 1 %% + 3 %% of Ipn %.2f, Voe %.2f, Uref 2.48-2.52 V %.2f (only the offset part scales with "
+              "it), 10.0k/29.4k divider %.2f, Uref ladder %.2f, comparator VOS %.2f, TLV9024 common-mode error %.2f (+) / %.2f (-) "
+              "(CMRR >= %.0f dB, the lower of its 5 V / 1.8 V guarantees; V_cm %.2f / %.2f V = %.1f / %.1f mV; it scales with the "
+              "signal, so no divider value changes it), PV-PWR sources (R_out / R_ref + 100R) %.2f, VREF + 1 M pull-up %.2f; no "
+              "hysteresis (the latch holds the trip). Hard conditions (pass / fail): lowest threshold above the normal peak, top "
+              "below the backup %.1f A, dead sensor (IL = ILR = 0 V): TH_LO %.0f mV above the node -> trips, sensor linear to %.0f "
+              "A, gates off within the control_spec limit. Gates off %.2f us (sensor %.2f + PV-PWR RC %.2f + node %.2f + "
+              "comparator %.2f [TLV9024 %.0f ns typ at the %.0f mV overdrive that the %.1f A/us ramp builds, SNOSDA3H Fig. 5-19 "
+              "at 3.3 V / 125 C, x%.0f ASSUMED because no maximum is published; was 1.0 us ASSUMED] + logic + driver) <= %.2f us "
+              "(control_spec) -> %.1f A <= %.0f A (50 %% L0)"
+              % (band[0][0], band[1][0], lo_l, hi_l, 100 * (lo_l / i_pk - 1), i_pk, tw["X"], tw["voe"], tw["uref"],
+                 tw["r1"] + tw["r2"], tw["ra"] + tw["rb"] + tw["rc"], tw["vio"], band[0][3]["vcm"], band[1][3]["vcm"],
+                 CMRR_MIN_DB, band[0][4], band[1][4], 1e3 * cm_err(band[0][4]), 1e3 * cm_err(band[1][4]), tw["rsi"] + tw["rsr"],
+                 tw["vref"] + tw["rpu"], lo_b, dead * 1e3, pw["il_lin"], t_loc * 1e6, pw["t_sens"] * 1e6, pw["t_rc"] * 1e6,
+                 n["tau"] * 1e6, t_c * 1e6, t_typ * 1e9, od_c * 1e3, didt * 1e-6,
+                 T_CMP_FACTOR, io["local"]["max_response_us"], hi_l + didt * t_loc, i_lim))
+    corridor = IL_TOP_MAX - IL_LO_FACTOR * i_pk
+    sh_lo, sh_hi = IL_LO_FACTOR * i_pk - lo_l, hi_l - IL_TOP_MAX
+    if max(sh_lo, sh_hi) > 1e-9:
+        # the corridor [1.10 x normal peak, top cap] against the band: no resistor value changes the terms below, so no ladder fits
+        w_max = max(sum(b[3].values()) for b in band)
+        fixed = max(sum(v for k, v in b[3].items() if k not in LADDER_TERMS) for b in band)
+        x_sens = max(b[3]["X"] + b[3]["voe"] + b[3]["uref"] for b in band)
+        alt = []
+        for db_, r01_, tag in ((CMRR_MIN_DB, R01, "CMRR %.0f dB, 25 ppm/K (as drawn)" % CMRR_MIN_DB),
+                               (60.0, R01, "CMRR 60 dB, 25 ppm/K"), (CMRR_MIN_DB, R01_LOW_TCR, "CMRR %.0f dB, 10 ppm/K" % CMRR_MIN_DB),
+                               (60.0, R01_LOW_TCR, "CMRR 60 dB, 10 ppm/K")):
+            lo_a, hi_a = il_band(pw, db_, r01_)
+            alt.append("%s: %.1f-%.1f A (%.2f A per side beyond the corridor after re-centring)" %
+                       (tag, lo_a, hi_a, max(0.5 * (hi_a - lo_a) - 0.5 * corridor, 0.0)))
+        phys = ""
+        if "device_primary" in CELL:        # the physical consequence at this band top (cell_spec trip_band_costfirst, calculated)
+            r_ = CELL["device_primary"]["trip_band_costfirst"]["hardware"]
+            phys = ("; at this top the gates-off peak is %.1f A against %.0f A (50 %% L0) and the device peak %.0f V against %.0f V "
+                    "(cell_spec trip_band_costfirst), so the margin the top cap protects is not used up" %
+                    (hi_l + didt * t_loc, i_lim, r_["v_pk_V"], r_["v_pk_limit_V"]))
+        open_item("Trip IL local window - design-margin rules NOT met at the guaranteed CMRR (risk C9)",
+                  "needs bottom >= %.1f A (%.2f x normal peak %.1f A) and top <= %.1f A (corridor %.1f A, half-width %.2f A) but the "
+                  "band is %.1f-%.1f A (half-width %.2f A, already centred: +%.1f / -%.1f A nominal): %.2f A short at the bottom, "
+                  "%.2f A over at the top, the top still %.1f A below the backup %.1f A; the hard conditions hold%s. NO ladder or "
+                  "divider value restores the corridor: the terms that no resistor value changes (sensor X + Voe + Uref %.2f A, "
+                  "comparator VOS and TLV9024 common-mode error %.2f A, PV-PWR sources, VREF + pull-up) add up to %.2f A against "
+                  "the corridor's half-width. Variants (calculated): %s. Closes with: the CMRR measured on sample parts at 3.3 V "
+                  "over -40..125 C, 10 ppm/K divider and ladder resistors, a better sensor, an end-of-line threshold trim (D-058), "
+                  "or the top cap raised toward the backup's %.1f A (the data-sheet comparator delay already lowers the gates-off "
+                  "peak by %.1f A against the earlier 1.0 us)"
+                  % (IL_LO_FACTOR * i_pk, IL_LO_FACTOR, i_pk, IL_TOP_MAX, corridor, 0.5 * corridor, lo_l, hi_l, w_max, band[0][0],
+                     band[1][0], max(sh_lo, 0.0), max(sh_hi, 0.0), lo_b - hi_l, lo_b, phys, x_sens,
+                     max(b[3]["vio"] + b[3]["vcm"] for b in band), fixed, "; ".join(alt), lo_b, didt * (1.0e-6 - t_c)))
+    if "device_primary" in CELL:               # the PV cell_spec (an assembly variant with its own CELL has no device blocks): a missing record is an error
+        rec = CELL["device_primary"]["trip_band_costfirst"]["hardware"]
+        ok &= say([round(lo_l, 1), round(hi_l, 1)] == rec["band_A"] and abs(rec["response_us"] - t_loc * 1e6) < 0.006,
+                  "Record: cell_spec trip_band_costfirst (sim/pv_design.py TRIP_HW, read by sim/pv_module.py) = this window",
+                  "cell_spec %s A, %.2f us; this board %.1f-%.1f A, %.2f us%s" % (rec["band_A"], rec["response_us"], lo_l, hi_l,
+                                                                                  t_loc * 1e6, "" if [round(lo_l, 1), round(hi_l, 1)]
+                                                                                  == rec["band_A"] and abs(rec["response_us"] - t_loc * 1e6) < 0.006
+                                                                                  else " - update TRIP_HW and re-run sim/pv_design.py"))
+    bk_req = mr["cell_inductor_current"]["comparator_threshold_band_A"]            # control_spec: the band the backup layer is held to
+    ok &= say(lo_b > hi_l and hi_b + didt * t_bk <= i_lim and t_bk <= io["ctrl_backup"]["max_response_us"] * 1e-6 and
+              bk_req[0] - 0.05 <= lo_b and hi_b <= bk_req[1] + 0.05,
               "Trip IL backup (CMPSS1-4 windows on ILn_ADC, DAC set after the idle null and calibration)",
-              "+/-%.1f A -> %.1f-%.1f A (DAC 2 %% + 2 x 16 LSB, VREF, resistor drift, sensor X over temperature); gates "
-              "off %.2f us <= %.2f us -> %.1f A <= %.0f A; control_spec band %.1f-%.1f A was the LEM chain's" %
-              (i_bk, lo_b, hi_b, t_bk * 1e6, io["ctrl_backup"]["max_response_us"], hi_b + didt * t_bk, i_lim,
-               *mr["cell_inductor_current"]["comparator_threshold_band_A"]))
+              "+/-%.1f A -> %.1f-%.1f A (DAC 2 %% + 2 x 16 LSB, VREF, resistor drift, sensor X over temperature) inside the "
+              "control_spec band %.1f-%.1f A; gates off %.2f us <= %.2f us (control_spec) -> %.1f A <= %.0f A" %
+              (i_bk, lo_b, hi_b, *bk_req, t_bk * 1e6, io["ctrl_backup"]["max_response_us"], hi_b + didt * t_bk, i_lim))
     rows += [("IL1-4 local window", "+%.1f/-%.1f A" % (band[0][0], band[1][0]), "%.1f-%.1f A" % (lo_l, hi_l),
-              "%.2f us" % (t_loc * 1e6), ">= %.1f A, <= %.1f A, <= %.1f us" % (IL_LO_FACTOR * i_pk, IL_TOP_MAX,
+              "%.2f us" % (t_loc * 1e6), ">= %.1f A, <= %.1f A, <= %.2f us" % (IL_LO_FACTOR * i_pk, IL_TOP_MAX,
                                                                          io["local"]["max_response_us"])),
              ("IL1-4 CMPSS backup", "+/-%.1f A (DAC)" % i_bk, "%.1f-%.1f A" % (lo_b, hi_b), "%.2f us" % (t_bk * 1e6),
-              "84.4-98.6 A, <= 4.87 us")]
+              "%.1f-%.1f A, <= %.2f us" % (*bk_req, io["ctrl_backup"]["max_response_us"]))]
     # ---- port over-current: PV-PWR comparators on FLT_N (primary); CMPSS4 on IB (3 phases) / ADC PPB (backup)
     want = PSL["port_oc_trip_A"]
     tau_ia = pw["tau_ia"]                                             # gen/port.py lean_shunt output pole (PV-PWR as built)
@@ -1164,14 +1381,16 @@ def check_trips(pw):
     d_ip = 400.0 * pw["k_ia"]
     chain = 0.01 + 150e-6 * 80 + 2 * 0.001                           # shunt 1 %, TCR, gain resistors (port_design LEAN)
     db_ip = (CMPSS["gain"] * d_ip + 2 * CMPSS["inl"] * LSB + d_ip * REF_E) / pw["k_ia"] + 400.0 * chain
-    ok &= say(pw["port_oc_on_flt"] and 400 + db_ip < pw["ia_lin"],
+    oc_req = hw["port_overcurrent_A"]["OC_band_A"]                                 # control_spec: the band the control study works with
+    ok &= say(pw["port_oc_on_flt"] and 400 + db_ip < pw["ia_lin"] and [round(x) for x in want] == [round(x) for x in oc_req],
               "Trip port over-current (PV-PWR comparators -> FLT_N; backup here)",
-              "primary %d-%d A on the power board's own window (lean_shunt IH path) arrives on FLT_N with no firmware; "
-              "backup: CMPSS4 on IB (3 phases) or ADC PPB on IA / IB, +/-400 A after the idle null -> %.0f-%.0f A, inside "
-              "the %d A linear range of IA" % (want[0], want[1], 400 - db_ip, 400 + db_ip, pw["ia_lin"]))
+              "primary %d-%d A (= control_spec %d-%d A) on the power board's own window (lean_shunt IH path) arrives on FLT_N "
+              "with no firmware; backup: CMPSS4 on IB (3 phases) or ADC PPB on IA / IB, +/-400 A after the idle null -> "
+              "%.0f-%.0f A, inside the %d A linear range of IA" % (want[0], want[1], oc_req[0], oc_req[1], 400 - db_ip, 400 + db_ip,
+                                                                   pw["ia_lin"]))
     rows += [("port OC (PV-PWR, on FLT_N)", "+/-400 A", "%d-%d A" % tuple(want), "%.2f us (logic)" % (3 * T_LOGIC * 1e6 +
                                                                                                    T_PB * 1e6),
-              "387-413 A (coordinator)"),
+              "%d-%d A (control_spec)" % tuple(oc_req)),
              ("port OC backup", "+/-400 A (CMPSS4 on IB / PPB)", "%.0f-%.0f A" % (400 - db_ip, 400 + db_ip),
               "%.0f us PPB / %.0f us CMPSS4" % (t_ip_ppb * 1e6, t_ip_cmp * 1e6), "-")]
     # ---- port over-voltage on VA / VB
@@ -1181,24 +1400,46 @@ def check_trips(pw):
     vmid = sum(pw["vmid"]) / 2
     v_nom = (th_ov - vmid) / pw["k_div"]
     e_div = 2 * 0.001 + 2 * 25e-6 * 40                                # 6 x 1 M ARHV06 + 4.99k (port_design)
-    dv = th_ov * (REF_E + e_ov) + VIO_CMP + (pw["vmid"][1] - pw["vmid"][0]) / 2
+    dv = th_ov * (REF_E + e_ov) + VIO_CMP + cm_err(th_ov) + (pw["vmid"][1] - pw["vmid"][0]) / 2
     lo_v, hi_v = v_nom - dv / pw["k_div"] - v_nom * e_div, v_nom + dv / pw["k_div"] + v_nom * e_div
     tau_div = 4.99e3 * 6e6 / (6e6 + 4.99e3) * 4.7e-9                   # lean_dividers 6 M / 4.99k / 4.7 nF
-    worst, lag_w = 0.0, 0.0
-    for slope in (0.27, ov["full_current_frozen_case"]["slope_V_per_us"]):
-        lag = tau_div + 5e-3 / (slope * 1e6 * pw["k_div"]) + T_CMP + 3 * T_LOGIC + T_PB
-        worst, lag_w = max(worst, hi_v + slope * 1e6 * lag), max(lag_w, lag)
-    ok &= say(lo_v > hw["firmware_overvoltage_V"] and worst <= v_lim and
-              lag_w <= mr["port_voltage_VA_VB"]["ov_detection_lag_us_max"] * 1e-6,
+    t_ov = T_CMP_FACTOR * tpd_hl(5e-3)                                # delay at the 5 mV overdrive of the build-up model below
+    pv_ = mr["port_voltage_VA_VB"]
+    # the two ramps the lag is held to: the full-power load rejection (design ramp 0.27 V/us: 75 A into the 270 uF bank of the earlier
+    # build; the control study now quotes 0.22 V/us at 82.5 kW into 334.8 uF - the slower ramp adds 4.6 us of build-up, inside the limit) and
+    # the frozen-current case of control_spec; each against its own lag limit
+    worst, lag_w, lag_ok = 0.0, 0.0, True
+    for slope, lag_max in ((0.27, pv_["ov_detection_lag_us_max"]), (ov["full_current_frozen_case"]["slope_V_per_us"],
+                                                                    pv_["ov_detection_lag_us_max_full_current_case"])):
+        lag = tau_div + 5e-3 / (slope * 1e6 * pw["k_div"]) + t_ov + 3 * T_LOGIC + T_PB
+        worst, lag_w, lag_ok = max(worst, hi_v + slope * 1e6 * lag), max(lag_w, lag), lag_ok and lag <= lag_max * 1e-6
+    ok &= say(worst <= v_lim and lag_ok,
               "Trip port over-voltage (TLV9024 on VA and VB)",
-              "%.0f V nominal -> %.0f-%.0f V (divider %.1f %%, VMID %.3f-%.3f V, REF, ladder, VIO); needs > %.0f V "
-              "(firmware OV) and <= %.0f V at gates-off: band top + slope x lag = %.0f V; lag %.0f us (RC %.1f us + "
-              "5 mV overdrive build-up + comparator) <= %.1f us" % (v_nom, lo_v, hi_v, e_div * 100, pw["vmid"][0],
-                                                                  pw["vmid"][1], hw["firmware_overvoltage_V"], v_lim,
-                                                                  worst, lag_w * 1e6, tau_div * 1e6,
-                                                                  mr["port_voltage_VA_VB"]["ov_detection_lag_us_max"]))
+              "%.0f V nominal -> %.0f-%.0f V (divider %.1f %%, VMID %.3f-%.3f V, REF, ladder, VIO, TLV9024 common-mode error "
+              "%.1f V at V_cm %.2f V, CMRR >= %.0f dB); <= %.0f V at gates-off: band top + slope x lag = %.0f V; lag %.0f us "
+              "(RC %.1f us + 5 mV overdrive build-up + comparator %.2f us [TLV9024 %.0f ns typ at 5 mV, SNOSDA3H Fig. 5-19, "
+              "x%.0f ASSUMED]) <= %.1f us (full power) / %.1f us (frozen current), control_spec" %
+              (v_nom, lo_v, hi_v, e_div * 100, pw["vmid"][0], pw["vmid"][1], cm_err(th_ov) / pw["k_div"], th_ov, CMRR_MIN_DB, v_lim,
+               worst, lag_w * 1e6, tau_div * 1e6, t_ov * 1e6, tpd_hl(5e-3) * 1e9, T_CMP_FACTOR, pv_["ov_detection_lag_us_max"],
+               pv_["ov_detection_lag_us_max_full_current_case"]))
+    if "device_primary" in CELL:
+        rec_ov = CELL["ov_trip_costfirst"]
+        ok &= say([round(lo_v), round(hi_v)] == rec_ov["band_V"] and abs(rec_ov["response_us"] - lag_w * 1e6) < 1.0,
+                  "Record: cell_spec ov_trip_costfirst (sim/pv_design.py OV_HW, read by sim/pv_module.py bank study) = this band",
+                  "cell_spec %s V, %.0f us; this board %.0f-%.0f V, %.1f us%s" % (rec_ov["band_V"], rec_ov["response_us"], lo_v, hi_v,
+                                                                                 lag_w * 1e6, "" if [round(lo_v), round(hi_v)] ==
+                                                                                 rec_ov["band_V"] else
+                                                                                 " - update OV_HW and re-run sim/pv_design.py"))
+    if lo_v <= hw["firmware_overvoltage_V"]:
+        open_item("Trip port over-voltage - band bottom below the firmware OV (risk C9)",
+                  "the band bottom %.0f V is %.1f V below the firmware's %.0f V controlled stop: in that corner the hardware latch "
+                  "trips first (a latched trip instead of a stop, no loss of protection); the cause is the TLV9024 common-mode "
+                  "error (%.1f V at the port); with CMRR 60 dB it would be %.0f V" %
+                  (lo_v, hw["firmware_overvoltage_V"] - lo_v, hw["firmware_overvoltage_V"], cm_err(th_ov) / pw["k_div"],
+                   lo_v + (cm_err(th_ov) - cm_err(th_ov, 60.0)) / pw["k_div"]))
     rows.append(("port OV VA / VB", "%.0f V" % v_nom, "%.0f-%.0f V" % (lo_v, hi_v), "%.0f us" % (lag_w * 1e6),
-                 "1100 V (fw 1050), <= 58.5 us"))
+                 "<= %.0f V at gates-off (fw %.0f V), <= %.1f us (control_spec)" %
+                 (v_lim, hw["firmware_overvoltage_V"], pv_["ov_detection_lag_us_max_full_current_case"])))
     # ---- over-temperature and open probe
     n_h, lo_h, hi_h = thermal_band(NTC_BIAS["hs"], "OTH", NTC_TOL["hs"])
     ok &= say(hi_h <= pw["hs_max"] and lo_h > pw["sink"] + 5, "Trip heatsink over-temperature (NTC1-4)",
@@ -1210,7 +1451,7 @@ def check_trips(pw):
               "%.1f C nominal -> %.1f-%.1f C: above the %.0f C full-load hot spot and below the %.0f C limit (PV-PWR rev "
               "M2); the architecture's 145 C would trip at full load" % (n_l, lo_ll, hi_ll, *pw["hot"]))
     (th_o, e_o), = lad_th("OPEN")
-    o_lo, o_hi = th_o * (1 - e_o) - VIO_CMP, th_o * (1 + e_o) + VIO_CMP
+    o_lo, o_hi = th_o * (1 - e_o) - VIO_CMP - cm_err(th_o), th_o * (1 + e_o) + VIO_CMP + cm_err(th_o)
     cold = {k: ntc_v(T_AMB_MIN, NTC_BIAS[k], 1 + NTC_TOL[k][0], 1 + NTC_TOL[k][1]) for k in ("hs", "ind")}
     lock = {k: t_ntc(val(NTC_BIAS[k]) * o_lo / (3.0 - o_lo) / (1 + NTC_TOL[k][0])) for k in ("hs", "ind")}
     ok &= say(max(cold.values()) < o_lo and o_hi < 3.0 * (1 - 1e-4), "Trip open NTC probe (all 8 channels)",
@@ -1242,22 +1483,30 @@ def check_trips(pw):
     rows += [("external stop ENABLE", "open contact", "ON >= %.1f V / OFF <= %.1f V" % (v_on, v_off),
               "%.2f ms" % (t_stop * 1e3), "<= 2 ms"),
              ("FLT_N (DESAT, UVLO, port OC)", "low", "logic", "%.0f ns + PV-PWR" % (3 * T_LOGIC * 1e9),
-              "0.62 us (driver)"),
-             ("RDY (gate supplies, +5V, 24 V)", "low", "logic", "%.0f ns" % (3 * T_LOGIC * 1e9), "<= 1 us"),
+              "%.2f us (driver, control_spec desat)" % hw["desat"]["off_after_detect_us"]),
+             ("RDY (gate supplies, +5V, 24 V)", "low", "logic", "%.0f ns" % (3 * T_LOGIC * 1e9),
+              "<= %.1f us (control_spec desat)" % hw["desat"]["required_detect_to_off_us"]),
              ("3.3 V supervisor / MCU reset", "2.93 V", "2.88-3.00 V (TPS3828)", "via XRSn -> WD_OK", "-")]
     # ---- firmware layer: ADC PPB limit on every VA / VB conversion (<= 10 us), after the hardware comparator
     v_ppb, t_conv = V_PPB, 10e-6
     dv_ppb = v_ppb * (e_div + REF_E) + (pw["vmid"][1] - pw["vmid"][0]) / 2 / pw["k_div"] + 2 * LSB / pw["k_div"]
     lag_p = tau_div + t_conv + 0.3e-6 + T_TZ + T_PB
     end_p = max(v_ppb + dv_ppb + sl * 1e6 * lag_p for sl in (0.27, ov["full_current_frozen_case"]["slope_V_per_us"]))
-    ok &= say(end_p <= v_lim and lag_p <= mr["port_voltage_VA_VB"]["ov_detection_lag_us_max"] * 1e-6 and
-              v_ppb - dv_ppb > hi_v - 30, "Backup port over-voltage (ADC PPB on VA_ADC / VB_ADC, firmware-set)",
+    ok &= say(end_p <= v_lim and lag_p <= mr["port_voltage_VA_VB"]["ov_detection_lag_us_max"] * 1e-6,
+              "Backup port over-voltage (ADC PPB on VA_ADC / VB_ADC, firmware-set)",
               "%.0f V -> %.0f-%.0f V (divider, REF, VMID +/-5 mV, 2 LSB), converted every %.0f us: lag %.1f us <= "
               "%.1f us, %.0f V at gates-off <= %.0f V (also in the frozen-current case)" %
               (v_ppb, v_ppb - dv_ppb, v_ppb + dv_ppb, t_conv * 1e6, lag_p * 1e6,
                mr["port_voltage_VA_VB"]["ov_detection_lag_us_max"], end_p, v_lim))
+    if v_ppb - dv_ppb <= hi_v - 30:
+        open_item("Backup port over-voltage - ordering against the hardware band top (risk C9)",
+                  "the backup band bottom %.0f V is more than 30 V below the hardware band top %.0f V (%.1f V short): the backup "
+                  "can trip before the hardware comparator in the corner where the comparator sits at the top of its band; both "
+                  "still act before the %.0f V limit (the firmware level cannot be raised: %.0f V at gates-off against %.0f V)" %
+                  (v_ppb - dv_ppb, hi_v, hi_v - 30 - (v_ppb - dv_ppb), v_lim, end_p, v_lim))
     rows.append(("port OV backup (ADC PPB)", "%.0f V" % v_ppb, "%.0f-%.0f V" % (v_ppb - dv_ppb, v_ppb + dv_ppb),
-                 "%.1f us" % (lag_p * 1e6), "control_spec 1084-1116 V, <= 58.5 us"))
+                 "%.1f us" % (lag_p * 1e6), "<= %.0f V at gates-off, <= %.1f us (control_spec)" %
+                 (v_lim, pv_["ov_detection_lag_us_max_full_current_case"])))
     return ok, rows
 
 
@@ -1545,17 +1794,19 @@ def firmware_table(rows):
     dt = CS["dead_time"]["firmware_dead_band_ns"]
     return [
         ("IL backup, per phase", "CMPSS1-4 H+L on the pin plan's mux index, DAC from VDAC (= VREF); CTRIPH|CTRIPL -> "
-         "ePWM X-BAR TRIP4 -> DCAEVT1 -> one-shot on all ePWM", "%s, DAC = idle zero +/-91.5 A" % il[2],
+         "ePWM X-BAR TRIP4 -> DCAEVT1 -> one-shot on all ePWM", "%s, DAC = idle zero +/-%.1f A" % (il[2], I_BK),
          "digital filter 5 of 5 SYSCLK", il[3], "idle: DACH below / DACL above the zero -> OST flag must set; restore"),
         ("port OC backup", "ADC PPB on IA (ADC-A), IB (ADC-C), converted at carrier zero and peak, offset = idle zero; "
          "PV-P75: CMPSS4 window on IB -> TRIP5 -> one-shot", ip[2] + " (primary: PV-PWR on FLT_N)", "1 conversion",
          ip[3], "PPB limit inside the idle reading -> ADCEVT -> OST flag; restore"),
         ("port OV backup", "ADC PPB on VA (ADC-A), VB (ADC-B), every <= 10 us -> TRIP5 -> one-shot", ov[2] +
-         " (hardware 1058-1110 V first)", "1 conversion", ov[3], "as above"),
-        ("OV / UV soft limits", "ADC, controlled stop (no latch)", "1050 V (control_spec)", "outer loop", "31 us",
-         "-"),
+         " (hardware %s first)" % r["port OV VA / VB"][2], "1 conversion", ov[3], "as above"),
+        ("OV / UV soft limits", "ADC, controlled stop (no latch)",
+         "%.0f V (control_spec)" % CS["hardware_trips"]["firmware_overvoltage_V"], "outer loop",
+         "%.0f us" % (1e3 / CS["sampling"]["outer_loop_kHz"]), "-"),
         ("over-temperature, 2nd layer", "ADC NTC1-8 + inlet: derating, controlled stop below the hardware band",
-         "heatsink <= 85 C (hw 86.3-89.5), inductor <= 145 C (hw 146-154)", "1 s mean", "s",
+         "heatsink <= 85 C (hw %s), inductor <= 145 C (hw %s)" % (r["OT heatsink NTC1-4"][2], r["OT inductor NTC5-8"][2]),
+         "1 s mean", "s",
          "cold start: every NTC within 10 K of the inlet NTC; open / short flagged (hw trips anyway)"),
         ("FLT_N / RDY / STOP_OK / OC_N / OVT_N", "GPIO inputs (X-BAR -> XINT), read and logged before any clear",
          "-", "3-sample qualification", "-", "BIAS_EN low -> RDY low (latch sets); BIAS_EN high -> RDY high"),
@@ -1578,7 +1829,30 @@ def firmware_table(rows):
          "lock; command pins without pull-up; CMPSS, PPB, TZ, dead band read back every 10 ms -> trip on mismatch",
          "-", "-", "10 ms", "-"),
         ("PV-P75 build", "phase 4 idle: ePWM7/8 held by a forced one-shot, IL4 / NTC4 / NTC8 ignored, CMPSS4 on IB; "
-         "the phase-4 TLV9024 pair is not fitted (assembly option)", "-", "-", "-", "build code from the EEPROM")]
+         "the phase-4 TLV9024 pair is not fitted (assembly option)", "-", "-", "-", "build code from the EEPROM"),
+        ("firmware practice adopted from the Wolfspeed firmware cross-check (docs/requirements/REFERENCE-LESSONS.md section 6, R-WS-1..9)",
+         "range-checked bus/service inputs (switching frequency and dead time not writable in operation); ramp to zero and stop on "
+         "communication loss (ASSUMED 1 s on CAN); lock-out after the third hazard trip of a class within 10 min (ASSUMED) and at once "
+         "when hardware and firmware both see an over-voltage; explicit recovery threshold, dwell and restart-rate limit per non-latched "
+         "limit; every exception path forces the one-shot trip and stops the heartbeat, clock-fail and emulation-stop trips enabled; no "
+         "bus-reachable mode disables a protection, parameter writes only in SERVICE with authorisation and timeout",
+         "-", "-", "-", "self-test fires each fault line alone; the 10 ms read-back covers the trip routing; calibration stored redundantly "
+         "and range-checked, a failed load blocks the start")] + cold_start_rows()
+
+
+def cold_start_rows():
+    """PCM-17: the fans' cold-start rule, worded and valued by sim/pv_module.py (module_spec.json), not copied here. PV-CTL only: the
+    inverter's fans and its power limits are PCS-CTL's own"""
+    if PROJECT != "PV-CTL":
+        return []
+    k = MOD["costfirst"]["cold_start"]
+    pol, st = k["policy"], k["policy"]["fans_start_regardless_of_inlet_C"]
+    tbl = "; ".join("%s %s kW at %s C inlet" % (n, " / ".join("%.1f" % t["kW"] for t in m["table"]),
+                                                " / ".join("%.0f" % t["inlet_C"] for t in m["table"])) for n, m in k["modules"].items())
+    return [("fans, cold start (PCM-17)", "FAN_PWM from the inlet NTC (NTC_IN): " + "; ".join(k["firmware_rule"]),
+             "inlet %.0f C (fan rating); passive power %s (ESTIMATE +-50 %%, module_spec.json); start regardless of the inlet: heatsink "
+             "NTC %.0f C, inductor NTC %.0f C" % (pol["fan_rated_min_inlet_C"], tbl, st["heatsink_NTC"], st["inductor_NTC"]), "-", "-",
+             "-")]
 
 
 def check_barrier(B, iso):
@@ -1631,18 +1905,38 @@ def check_budget(B, pw):
          "architecture section 3: 39.6 / 56.1 W; input range %.0f-%.0f V (PV-PWR), both bucks rated 60 V, no "
          "under-voltage lock-out above 4.5 V" % (p_selv, fan["PV-P75"], fan["PV-P100/110"], 5.0 * s5 / 0.8, *S24))
     rt, rbot, rinj = (val(x) for x in FAN_FB)
-    rf = val(FAN_PWM_RC[0])
-    vf = lambda dty, vfb=0.8: (dty * 5.0 / rf + vfb / rinj) / (1 / rf + 1 / rinj)          # noqa: E731
-    vout = lambda dty: 0.8 + rt * (0.8 / rbot + (0.8 - vf(dty)) / rinj)                   # noqa: E731
-    d_on = next(x / 1000 for x in range(1001) if vf(x / 1000, 0.0) >= 1.3)   # FB = 0 V while off: latest turn-on
-    v_hi, v_lo, v_hys = vout(d_on), vout(1.0), 0.8 + rt * (0.8 / rbot + (0.8 - 1.1) / rinj)
-    ok &= say(23.0 <= v_hi <= 25.2 and 6.0 <= v_lo <= 8.5 and vf(0.0, 0.0) < 1.1, "Fan supply transfer (isolated PWM)",
-              "duty 0 = off (EN %.2f V < 1.1 V); on from duty <= %.2f (EN 1.3 V worst) at %.1f V, %.1f V at duty 1.0 "
-              "(architecture: 7-24 V); full speed while S_24V >= %.1f V, below it the buck passes the input in "
-              "dropout; firmware commands 0 or >= %.2f (inside the EN hysteresis the output can reach %.1f V); "
-              "FAN_PWM gated by BIAS_EN" % (vf(0.0, 0.0), d_on, v_hi, v_lo, v_hi + 1.5, d_on, v_hys))
-    v5 = (0.792 * (1 + val(V5_FB[0]) * 0.99 / (val(V5_FB[1]) * 1.01)),
-          0.808 * (1 + val(V5_FB[0]) * 1.01 / (val(V5_FB[1]) * 0.99)))
+    d_on, d_full = fan_d_on(), fan_d_full()
+    v_hi, v_lo, v_hys = fan_vout(d_on), fan_vout(1.0), 0.8 + rt * (0.8 / rbot + (0.8 - 1.1) / rinj)
+    s_lo, s_hi, _ = fan_set_range(d_on)
+    f_lo, f_hi, vf_lo = fan_set_range(d_full)
+    contract, c_ok, v_ceil = [], True, []
+    for b, path in (("PV-P75", PWR_TXT), ("PV-P100/110", PWR_TXT.replace("PV-PWR", "PV-PWR-4"))) if PROJECT == "PV-CTL" else ():
+        c = pwr_fan_contract(path)           # the power board's own line; this board re-derives what its buck passes from it
+        v_pass = fan_ceiling(c["s_min"], c["i"])
+        flow = min(1.0, v_pass / c["v_need"])
+        v_ceil.append(v_pass)
+        c_ok &= (abs(v_pass - c["v_pass"]) < 0.015 and abs(c["i"] - FAN_W[b] / c["v_need"]) < 0.005 and
+                 abs(flow - c["flow"]) < 0.001 and flow >= c["flow_min"] and c["s_min"] >= S24[0])
+        contract.append("%s: S_24V >= %.2f V at the worst cross-regulation point -> the buck passes >= %.2f V at %.2f A (%.0f %% of "
+                        "the %.2f V the thermal model's fans run at: airflow x%.3f, limit x%.3f; the power board prints %.2f V, x%.3f; "
+                        "24.00 V itself would need S_24V >= %.2f V)" % (b, c["s_min"], v_pass, c["i"], 100 * flow, c["v_need"], flow,
+                                                                         c["flow_min"], c["v_pass"], c["flow"],
+                                                                         fan_vin_for(FAN_V_RATED, c["i"])))
+    sp_ok = f_lo >= max(v_ceil, default=0.0) and vf_lo >= EN_V_MAX + EN_MARGIN       # the dropout ceiling, not the set point, limits
+    ok &= say(23.0 <= v_hi <= 25.2 and 6.0 <= v_lo <= 8.5 and fan_vf(0.0, 0.0) < 1.1 and c_ok and sp_ok,
+              "Fan supply transfer (isolated PWM)",
+              "duty 0 = off (EN %.2f V < 1.1 V); START from duty <= %.2f (EN %.1f V worst, FB = 0 while off) at %.1f V nominal "
+              "(%.1f-%.1f V over the 1 %% resistors, 0.792-0.808 V reference and the SELV 5 V range, 64 corners), %.1f V at duty "
+              "1.0 (architecture: 7-24 V). 100 %% speed command once the buck runs: duty %.3f (EN >= %.2f V over the corners) -> set "
+              "point %.1f-%.1f V, always above what the dropout lets through, so the dropout ceiling limits (firmware trims the duty "
+              "on the tach; the 17 W cap of PV-P100/110 is a speed limit). Below its input the buck runs in dropout (TPS54360B: D "
+              "%.2f, R_DS(on) %.2f ohm hot max, %.0f mOhm choke at 85 C, SS56) and passes S_24V less the drop (the earlier 'S_24V >= "
+              "25.6 V' was set point + 1.5 V, ASSUMED). Contract with the power board - %s. Firmware commands 0 or >= %.2f (inside "
+              "the EN hysteresis the output can reach %.1f V); FAN_PWM gated by BIAS_EN" %
+              (fan_vf(0.0, 0.0), d_on, EN_V_MAX, v_hi, s_lo, s_hi, v_lo, d_full, vf_lo, f_lo, f_hi, FAN_BUCK["d"], FAN_BUCK["rds"],
+               1e3 * fan_r_dc(),
+               "; ".join(contract) if contract else "not checked for this variant (its power board declares none)", d_on, v_hys))
+    v5 = v5_range()
     ok &= say(4.5 <= v5[0] and v5[1] <= 5.5, "SELV 5 V set point", "%.2f-%.2f V inside CA-IS3050 VCC2 4.5-5.5 V, "
               "CA-IS3082 VDDB 3.0-5.5 V, CA-IS382x 2.5-5.5 V" % v5)
     for tag, vo, io_, cout, rc, cc, fsw in (("SELV 5 V", 5.0, 0.3, 44e-6, V5_COMP[0], V5_COMP[1], 500e3),

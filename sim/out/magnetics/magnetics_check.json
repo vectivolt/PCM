@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-05 05:01",
+ "generated": "2026-10-05 22:05",
  "openmagnetics": {
   "available": true,
   "version": "1.7.33",
@@ -13,7 +13,7 @@
    "magneticFieldStrength": "BINNS_LAWRENSON",
    "magneticFieldStrengthFringingEffect": "ROSHEN"
   },
-  "runtime_s": 2.2424252033233643
+  "runtime_s": 2.2082948684692383
  },
  "designer": {
   "pv_inductor": {
@@ -57276,9 +57276,9 @@
    "tag": "lser_isat",
    "severity": "minor",
    "where": "sim/out/magnetics/design_dab_series_inductor.json rev M1 vs dab_spec.json series_inductor I_sat_min_A",
-   "finding": "The series-inductor saturation requirement moved from 275 A to 635 A (1.1 x the trip fault peak (DR-03, soft turn-off path) at 100 C) after rev M1: the 3-turn construction reaches 0.368 T = 0.90 B_sat (100 C, typical) - no saturation, but only ~10 % margin on a typical B_sat value",
-   "evidence": "B = L I / (N A_e) = 5.56 uH x 635 A / (3 x 3200 mm2); gapped ferrite: L falls < 10 % at 0.9 B_sat because the gap dominates the reluctance",
-   "recommendation": "4 turns on the same 4 x EE80 (gap 11.9 mm in 8 gaps): B 0.276 T = 0.67 B_sat, loss 106 W worst (3 turns: 90 W), fits True; decide with the DAB cost round (rev M2), or accept 3 turns with a measured L(I) to 635 A at 100 C"
+   "finding": "The series-inductor saturation requirement moved from 275 A to 700 A (1.1 x the trip fault peak (DR-03, soft turn-off path) at 100 C) after rev M1: the 3-turn construction reaches 0.405 T = 0.99 B_sat (100 C, typical) - no saturation, but only ~10 % margin on a typical B_sat value",
+   "evidence": "B = L I / (N A_e) = 5.56 uH x 700 A / (3 x 3200 mm2); gapped ferrite: L falls < 10 % at 0.9 B_sat because the gap dominates the reluctance",
+   "recommendation": "4 turns on the same 4 x EE80 (gap 11.9 mm in 8 gaps): B 0.304 T = 0.74 B_sat, loss 106 W worst (3 turns: 90 W), fits True; decide with the DAB cost round (rev M2), or accept 3 turns with a measured L(I) to 635 A at 100 C"
   },
   {
    "id": "MG-17",
@@ -57386,8 +57386,8 @@
   },
   {
    "id": "lser_m1_b",
-   "what": "M1 series inductor B at I_sat_min 635 A / B_sat(100 C)",
-   "value": "0.90",
+   "what": "M1 series inductor B at I_sat_min 700 A / B_sat(100 C)",
+   "value": "0.99",
    "limit": "<= 0.8",
    "ok": false,
    "exc": "MG-15",

@@ -337,10 +337,7 @@ def load_market():
 def main():
     book, by_sku, skipped = load_prices()
     est, fac = load_estimates(), load_factors()
-    try:
-        from build_all import MODULES as BOARDS      # boards per module, so PCB counts follow the generator
-    except Exception:                                # no board list: every board type counts once (COST.md says 'board list unavailable')
-        BOARDS = {}
+    from build_all import MODULES as BOARDS          # boards per module, so PCB counts follow the generator (fail closed: no silent fallback, PCM-23)
     results = {}
     for module in MODULES:
         rows = rd(os.path.join(REPO, "bom", module + "_module_BOM.csv"))

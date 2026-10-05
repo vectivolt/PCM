@@ -16,11 +16,14 @@ magnetics/design_pv_inductor.json and port_design/port_spec.json; design_check()
 Usage: .venv/bin/python gen/pv_power.py      (builds PV-PWR and PV-PWR-4, each with its own checks and BOM)
 Rev A2 (2026-10-05, D-056): PV-P75 battery-side film bank 7 x 45 uF (7th on phase 2), bleeders 8 x 73.2 k, STK Uref on PC (IL1R-IL4R).
 """
+import hashlib
 import json
 import math
 import os
 import re
 import sys
+
+import numpy as np
 
 import aux_hv
 import catalog
@@ -36,11 +39,17 @@ DS = "docs/datasheets/"
 OUT = lambda *p: os.path.join(L.REPO, "sim", "out", *p)
 
 
-SPEC = pvcell.SPEC                                                   # cell_spec.json (per phase = one former cell)
+SPEC = json.load(open(os.path.join(L.REPO, "sim", "out", "pv_design", "cell_spec.json")))   # LIVE cell spec (pvcell.SPEC is the earlier platform's frozen snapshot)                                                   # cell_spec.json (per phase = one former cell)
 CTRL = json.load(open(OUT("pv_control", "control_spec.json")))
 MODS = json.load(open(OUT("pv_design", "module_spec.json")))
 MAG = json.load(open(OUT("magnetics", "design_pv_inductor.json")))   # read at build time: rev M1 / M2 / later
-spec = pvcell.spec
+spec = pvcell.make_spec(SPEC)
+# every spec file this board's numbers are read from (relative to the repository): the design check records their hashes, so that
+# gen/pv_ctrl.py refuses a power-board check that was built from other versions (PCM-23)
+STAMP_FILES = ("sim/out/pv_design/cell_spec.json", "sim/out/pv_control/control_spec.json", "sim/out/pv_design/module_spec.json",
+               "sim/out/pv_design/report.md", "sim/out/magnetics/design_pv_inductor.json", "sim/out/port_design/port_spec.json",
+               "sim/out/aux_hv_design/aux75_spec.json", "sim/out/gdrv_miller/result_primary.json", "sim/out/port_design/report.md")
+FAN_FLOW_TOL = 0.03          # airflow reduction treated as inside the thermal margin (PCM-26); more than this derates module_spec
 
 # ------------------------------------------------------------------------------------------------ catalog
 MAG_ROW = MAG["cost"]["cost_estimates_row"].split(",")[0]
@@ -592,6 +601,7 @@ IQ = dict(opa2388=2.6e-3, tlv3502=5e-3, ref3030=37e-6, lvc=10e-6, ahct=10e-6, ah
 #   <= 10 uA; SN74AHCT1G08 SCLS315S ICC <= 10 uA + dICC <= 1.5 mA per input at 3.4 V; SN6505B SLLSEP9I I(VCC) <= 2.3 mA
 COIL = dict(hfe82v=6.0, g7l=2.3)                   # W at 24 V: Hongfa HFE82V-300C p1 (no economiser); Omron G7L-X p2 DC24
 NSI = gdrv.NSI
+NSI_TYP = dict(icc1=1.6e-3, icc2=3.3e-3)           # NSI66x1A-Q1 p.6: ICC1 0.6 / 1.6 / 4 mA, ICC2 1 / 3.3 / 7 mA (min / typ / max)
 T_IN, T_BOARD, ETA_5V = 45.0, pvcell.T_BOARD, 0.85   # inlet (PV-11/PV-20 rating point); board 85 C, 5 V buck ASSUMED
 ETA_33 = 0.85                                      # TPS62130 5 -> 3.3 V at 0.1-0.4 A: ASSUMED (SLVSAG7F curves ~0.88-0.92)
 R_SA = {3: 0.06, 4: 0.049}                         # K/W heatsink target incl. air rise (ARCHITECTURE section 9)
@@ -610,16 +620,176 @@ def aux_rating(n_ph):
     return next(v for k, v in S75["ratings"].items() if k.startswith("%d phases" % n_ph))
 
 
+def selv_rows(n_ph):
+    """aux75_spec selv_table_V: [(live 24 V load W, SELV minimum V)] with the fans at 100 %, for this build"""
+    return sorted((float(re.search(r"live ([\d.]+) W", k).group(1)), v[0]) for k, v in S75["regulation"]["selv_table_V"].items()
+                  if k.startswith("%d phases" % n_ph) and k.endswith("fans 100 %"))
+
+
 def live_min_for_fans(n_ph):
     """Live 24 V load above which the SELV winding stays >= fan_full_speed_needs_V with the fans at 100 % (aux75_spec
     selv_table_V minima, linear between its live-load rows)."""
     need = S75["regulation"]["fan_full_speed_needs_V"]
-    rows = sorted((float(re.search(r"live ([\d.]+) W", k).group(1)), v[0]) for k, v in S75["regulation"]["selv_table_V"].items()
-                  if k.startswith("%d phases" % n_ph) and k.endswith("fans 100 %"))
+    rows = selv_rows(n_ph)
     for (w1, v1), (w2, v2) in zip(rows, rows[1:]):
         if v1 < need <= v2:
             return w1 + (need - v1) * (w2 - w1) / (v2 - v1)
     return rows[0][0] if rows[0][1] >= need else float("inf")
+
+
+def selv_min_at(n_ph, live_w):
+    """SELV minimum (V) at a live 24 V load with the fans at 100 %: aux75_spec selv_table_V, linear between its rows"""
+    rows = selv_rows(n_ph)
+    return float(np.interp(live_w, [w for w, _ in rows], [v for _, v in rows]))
+
+
+def fan_contract(n_ph):
+    """PCM-26 - ONE contract for the fan supply. S_24V at the worst cross-regulation point (aux75_spec: fans at 100 %, the live load at
+    which the SELV winding first guarantees fan_full_speed_needs_V), what the fan buck then passes (gen/pv_ctrl.py fan_ceiling: the
+    TPS54360B in dropout with the drawn choke and catch diode, at the fans' current), the voltage the thermal model's fans run at
+    (module_spec fan_speed_cap x 24 V) and the airflow ratio that follows (speed ~ voltage ASSUMED, as sim/pv_module.py). gen/pv_ctrl.py
+    re-derives it from its own drawn parts and compares with the line this board prints"""
+    import pv_ctrl as CTL
+    var = "PV-P75" if n_ph == 3 else "PV-P100/110"
+    m = MODS["modules"][var]
+    s_min = S75["regulation"]["fan_full_speed_needs_V"]
+    v_need = CTL.FAN_V_RATED * m["fan_speed_cap"]
+    i = CTL.FAN_W[var] / v_need
+    v_pass = CTL.fan_ceiling(s_min, i)
+    ratio = min(1.0, v_pass / v_need)
+    if ratio < 1.0 - FAN_FLOW_TOL:
+        raise SystemExit("%s: the fan supply passes only %.2f V of the %.2f V the thermal model's fans run at (airflow x%.3f < x%.3f): "
+                         "derate module_spec airflow and the heatsink temperature (sim/pv_module.py)" %
+                         (var, v_pass, v_need, ratio, 1.0 - FAN_FLOW_TOL))
+    return dict(var=var, s_min=s_min, v_need=v_need, i=i, v_pass=v_pass, ratio=ratio, flow_min=1.0 - FAN_FLOW_TOL,
+                q0=m["airflow_m3h_full_45C"], exp=MODS["costfirst"]["heatsink"]["R_sa_flow_exponent"][var],
+                v_rated=CTL.FAN_V_RATED, d=CTL.FAN_BUCK["d"], rds=CTL.FAN_BUCK["rds"], rdc=CTL.fan_r_dc(),
+                vin_full=CTL.fan_vin_for(CTL.FAN_V_RATED, i))
+
+
+def port_assumption(name):
+    """one of the port design's assumptions (the table 'A_*' of sim/out/port_design/report.md); a missing one stops the build"""
+    m = re.search(r"^\| %s \| ([0-9.e+-]+) \|" % name, open(OUT("port_design", "report.md")).read(), re.M)
+    if not m:
+        raise SystemExit("%s not found in sim/out/port_design/report.md: regenerate it with .venv/bin/python sim/port_design.py" % name)
+    return float(m.group(1))
+
+
+def rlc_peak(v, r, l, c):
+    """peak current (A) of a series R-L-C closing onto an uncharged capacitor c from a stiff source v (the closed form of the port design)"""
+    a, w0 = r / (2 * l), 1 / math.sqrt(l * c)
+    if a < w0:                                   # under-damped: i = v / (wd l) e^(-a t) sin(wd t), peak where tan(wd t) = wd / a
+        wd = math.sqrt(w0 * w0 - a * a)
+        t = math.atan(wd / a) / wd
+        return v / (wd * l) * math.exp(-a * t) * math.sin(wd * t)
+    w = math.sqrt(max(a * a - w0 * w0, 1e-12))   # over-damped: i = v / (2 w l) (e^((-a + w) t) - e^((-a - w) t))
+    t = math.log((a + w) / (a - w)) / (2 * w)
+    return v / (2 * w * l) * (math.exp((-a + w) * t) - math.exp((-a - w) * t))
+
+
+def port_a_declaration(n_ph):
+    """PCM-16: what port A tolerates, from the drawn hardware (port_spec lean, the port design's assumptions): the admissible source type,
+    external fusing, connection sequence, source capacitance and reverse-power permission, as one block of the design check. No hardware."""
+    rating = {3: 135, 4: 180}[n_ph]
+    ln = port.S["lean"]
+    pv, ct, mk, hold = ln["pv_port"][str(rating)], ln["contactors"]["HFE82V"], ln["pv_make"][str(rating)], ln["contactor"]
+    v_max = 1000.0
+    c_a = bank_total(n_ph, "A") * F45["c"] + DEC_N * n_ph * F22["c"]                  # the bank behind K_A
+    esr = F45["esr"] / bank_total(n_ph, "A")
+    r_s, l_s = port_assumption("A_RS_BATT"), port_assumption("A_LS_BATT")             # a stiff source: 0.03 ohm, 3 uH incl. a short cable
+    r_x, l_x = port_assumption("A_R_LOOP_X"), port_assumption("A_L_LOOP")             # the module's own loop to the bank
+    i_stiff = rlc_peak(v_max, r_s + r_x + esr, l_s + l_x, c_a)
+    i_dis, c_pe = port_assumption("A_I_MAKE_PV"), port_assumption("A_C_PV_PE" if n_ph == 3 else "A_C_PV_PE_110")
+    l_arr = 10e-6 + l_x                                                               # port_design: a PV source behind 10 uH of cable
+    c_src = l_arr * (i_dis / v_max) ** 2                                             # source capacitance whose discharge peaks at i_dis
+    oc = ln["port_oc_trip_A"]
+    return ("PORT A DECLARATION (PCM-16; calculated from port_spec lean and the port design's assumptions, ESTIMATES labelled; no hardware "
+            "change). Port A admits: a current-limited PV array only - short-circuit current at the module terminals <= %.1f A (1.25 x the "
+            "%d A port rating; K_A breaks %.0f A at 1000 V both polarities x %d operations: margin x%.2f, carries x%.2f), open-circuit "
+            "voltage <= %.0f V (OV trip band 1039-1110 V), connected to the DC terminals through string fuses in the combiner (IEC 62548, "
+            "ARCHITECTURE-COSTFIRST 6.3) and a load-break isolator, array and cable capacitance terminal to terminal <= %.1f uF behind "
+            ">= %.0f uH (the 330 A discharge peak the making estimate assumes, back-calculated: ESTIMATE; the array's capacitance to PE "
+            "is %.1f uF, common mode only); connection: K_A closes only with the latch clear, VAX above the polarity enable (%d-%d V "
+            "band: a reversed array cannot be closed onto), the IMD result in range and, with port B live, after the converter has "
+            "pre-charged the %.0f uF A bank to within 20 V (then the making current is the array's Isc), otherwise onto the EMPTY bank "
+            "at the array's Voc: making current about %.0f A (Isc %.0f A + %.0f A discharge, ESTIMATE) against a published making "
+            "rating of %.0f A at %.0f V only - covered: %s (Hongfa to confirm, R-04). Reverse power B -> A is NOT admitted with an "
+            "array: there is no series diode, fuse or precharge on port A, the port over-current window (%d-%d A, both directions, "
+            "FLT_N) protects the module and not the array, and an array driven backwards conducts through its cells and bypass diodes "
+            "(limited only by the modules' reverse-current rating and the combiner's string fuses) - firmware holds the port A "
+            "current at >= 0 while the port is declared PV (second layer behind the converter's own current limit). Port A does NOT "
+            "admit: a stiff DC source (battery, DC bus, rectifier, another converter) - K_A would close onto the empty %.0f uF bank "
+            "with a peak of about %.1f kA at %.0f V (%.2f ohm + %.1f uH source and loop, %.0f J stored: %.0fx the making rating's %.0f A, "
+            "weld likely), a fault fed by it is cleared only by K_A (<= %.0f A normal opening, hold-off to %d-%d A, %.0f A once) with no "
+            "fuse behind it, and nothing blocks reverse current; a stiff DC source on port A requires the PV-PORT-180 / lean port with "
+            "fuse and precharge (gen/port.py lean_port as the battery port B: 2 x HPE501 250 A aR links, 220 ohm precharge, "
+            "polarity and dV interlocks)" %
+            (pv["isc"], rating, ct["break_1000V_both"], ct["n_break"], pv["brk_margin"], pv["carry"], v_max, c_src * 1e6, l_arr * 1e6,
+             c_pe * 1e6, ln["polarity_enable_V"][0], ln["polarity_enable_V"][1], c_a * 1e6, mk["i_make_est"], pv["isc"], i_dis,
+             ct["make_published"][0], ct["make_published"][1], "yes" if mk["covered"] else "NO", oc[0], oc[1], c_a * 1e6, i_stiff / 1e3,
+             v_max, r_s + r_x + esr, (l_s + l_x) * 1e6, 0.5 * c_a * v_max ** 2, i_stiff / ct["make_published"][0],
+             ct["make_published"][0], ct["break_1000V_both"], hold["hold_off_band_A"][0], hold["hold_off_band_A"][1],
+             hold["break_once_published_A"]))
+
+
+def leg_commutation():
+    """PCM-18 (R-08 closed): the leg commutation with the capacitors AS DRAWN - cell_spec leg_commutation (sim/pv_design.py: the Jianghai
+    FCSA3DS456 bank share and the FCSA3DS225 leg decoupling in the ngspice leg deck, at 1000 V / 1100 V and at the normal peak / the
+    hardware-trip current) and the gate-source excursion of the held-off device at the same corners (sim/gdrv_miller.py). Returns the
+    result text; the limits are asserted, a missing or stale record stops the build"""
+    cd, lc, dc = spec("capacitors_drawn"), spec("leg_commutation"), spec("decoupling")
+    for blk, f in ((cd["bank"], F45), (cd["decoupling"], F22)):        # the deck's capacitor data = the parts drawn here
+        for k_cd, k_f in (("C", "c"), ("vop85", "v85"), ("vndc", "v70"), ("irms85", "irms85"), ("ipkr", "ipk"), ("esl", "esl"), ("esr", "esr")):
+            assert abs(blk[k_cd] / f[k_f] - 1) < 1e-9, "cell_spec capacitors_drawn %s differs from the part drawn here (%s): re-run sim/pv_design.py" % (k_cd, k_f)
+    assert cd["bank"]["count_per_phase_and_port"] == BANK_N and cd["decoupling"]["count_per_leg"] == DEC_N == dc["count_per_leg"], \
+        "cell_spec capacitors_drawn counts differ from the drawing: re-run sim/pv_design.py"
+    path = OUT("gdrv_miller", "result_primary.json")
+    if not os.path.exists(path):
+        raise SystemExit("%s is missing: generate it with .venv/bin/python sim/gdrv_miller.py" % os.path.relpath(path, L.REPO))
+    gm = json.load(open(path))["primary"]
+    if "corners" not in gm or gm["dev"] != "SG2M040170HJ":
+        raise SystemExit("%s has no corner runs of the SG2M040170HJ: re-run sim/gdrv_miller.py" % os.path.relpath(path, L.REPO))
+    near = lambda r, v, i: abs(r["V"] - v) < 1e-6 and abs(r["I_A"] - i) < 0.06
+    worst_run = next(r for r in gm["runs"] if abs(r["l_clamp_nH"] - 1.0) < 1e-9)      # 1100 V at the hardware-trip current, 1 nH loop
+    gs = []
+    for c in lc["corners"]:
+        if c["V"] == lc["corners"][-1]["V"] and c["case"] == "hardware trip":          # the worst-device corner = the miller study's own run
+            gs.append((worst_run["nfet"]["pin_pk"], worst_run["nfet"]["die_pk"], worst_run["v_pk"]))
+            continue
+        m = [r for r in gm["corners"] if near(r, c["V"], c["I_A"])]
+        if len(m) != 1:
+            raise SystemExit("%s has no run at %.0f V / %.1f A (cell_spec leg_commutation corner): re-run sim/gdrv_miller.py" %
+                             (os.path.relpath(path, L.REPO), c["V"], c["I_A"]))
+        gs.append((m[0]["pin_pk"], m[0]["die_pk"], m[0]["device_peak_V"]))
+    for c, g in zip(lc["corners"], gs):                                                 # the same leg deck behind both files
+        assert abs(c["device_peak_V"] - g[2]) < 1.0, "gdrv_miller and cell_spec leg decks disagree (stale): re-run sim/pv_design.py and sim/gdrv_miller.py"
+    v_lim, vth = lc["device_peak_limit_V"], gm["vth_175_min"]
+    die_max = max(g[1] for g in gs)
+    assert max(c["device_peak_V"] for c in lc["corners"]) <= v_lim, "leg commutation: device peak above 0.85 x V_DSS"
+    assert die_max <= vth - 0.5 + 1e-9, "held-off device: gate-source excursion above V_GS(th) min less the 0.5 V design margin"
+    net, cs = lc["network"], lc["corners"]
+    return ("Leg commutation with the capacitors AS DRAWN (PCM-18, R-08 closed; cell_spec leg_commutation, ngspice VDMOS decks "
+            "sim/spice/pv_dpt_leg_c*.cir, calculated): bank share %d x FCSA3DS456 per phase (%.0f nH / %.1f mOhm each, Jianghai CBB138 "
+            "p.30 values, the earlier deck ran the KEMET 19 / 24 nH) -> %.0f nH bus -> %d x FCSA3DS225 (%.1f nH / %.1f mOhm per leg) -> "
+            "%.1f nH board + devices -> RC damper; device V_DS peak %s against %.0f V = 0.85 x 1700 V; gate-source of the held-off "
+            "device (gdrv clamp network, 1 nH loop, %.1f V bias, sim/gdrv_miller.py): pin %.2f..%.2f V, die %+.2f..%+.2f V against "
+            "V_GS(th) min %.2f V at 175 C (margin %.2f V, design margin 0.5 V); decoupling capacitor current per FCSA3DS225: peak "
+            "%.1f-%.1f A over the corners (%.1f A at the worst on-time, %.1f A with the Q_rr surrogate) against Ipkr %.0f A, rms "
+            "%.2f-%.2f A (%.2f A at the worst on-time) against %.1f A at 85 C / %.1f A at 70 C" %
+            (cd["bank"]["count_per_phase_and_port"], cd["bank"]["esl"] * 1e9, cd["bank"]["esr"] * 1e3, net["bus_nH"],
+             cd["decoupling"]["count_per_leg"], net["decoupling_ESL_nH"], net["decoupling_ESR_mOhm"], net["board_and_devices_nH"],
+             "; ".join("%.0f V (%.0f V / %.1f A %s)" % (c["device_peak_V"], c["V"], c["I_A"], c["case"]) for c in cs), v_lim,
+             gm["runs"][0]["voff"], min(g[0] for g in gs), max(g[0] for g in gs), min(g[1] for g in gs), die_max, vth, vth - die_max,
+             min(c["decoupling_peak_per_cap_A"] for c in cs), max(c["decoupling_peak_per_cap_A"] for c in cs),
+             dc["peak_current_per_cap_A"], dc["peak_current_per_cap_with_recovery_A"], cd["decoupling"]["ipkr"],
+             min(c["decoupling_rms_per_cap_A"] for c in cs), max(c["decoupling_rms_per_cap_A"] for c in cs), dc["rms_per_cap_A"],
+             cd["decoupling"]["irms85"], cd["decoupling"]["irms"]))
+
+
+def stamp():
+    """the 'Built from' line of the design check: sha256 (first 16 hex) of every spec file this board's numbers were read from"""
+    return "Built from (sha256, first 16 hex): " + "; ".join(
+        "%s %s" % (f, hashlib.sha256(open(os.path.join(L.REPO, f), "rb").read()).hexdigest()[:16]) for f in STAMP_FILES)
 
 
 def island_idle_in_w():
@@ -648,10 +818,16 @@ def thermal_inputs():
     """R_th chain and the per-phase device losses of the full-load table of sim/out/pv_design/report.md (cell_spec does
     not carry them): (R_jc, R_cs, R_spread, worst device loss per phase over the full-load points)."""
     txt = open(OUT("pv_design", "report.md")).read()
-    f = lambda pat: float(re.search(pat, txt).group(1))
+
+    def f(pat):
+        m = re.search(pat, txt)
+        if not m:
+            raise SystemExit("sim/out/pv_design/report.md: %r not found - re-run sim/pv_design.py" % pat)
+        return float(m.group(1))
     rows = re.findall(r"^\| (\d+)->(\d+) \| ([\d.]+) \| \w+ \| [\d.]+ \| [\d.]+ \| ([\d.]+) \| ([\d.]+) \| ([\d.]+) \|", txt,
                       re.M)
-    assert len(rows) >= 8, "report.md full-load table not found"
+    if len(rows) < 8:
+        raise SystemExit("sim/out/pv_design/report.md: the full-load table is not found - re-run sim/pv_design.py")
     return (f(r"R_th,jc ([\d.]+) K/W"), f(r"case-sink ([\d.]+) K/W"), f(r"spreading ([\d.]+) K/W"),
             max(float(c) + float(s_) + float(d) for *_, c, s_, d in rows))
 
@@ -669,27 +845,39 @@ def design_check(B, n_ph, st):
     assert w["device_VDS_peak_V"] <= 0.85 * dev["vdss"] and w["device_VDS_continuous_max_V"] <= 0.67 * dev["vdss"]
     assert w["device_Irms_per_device_A"] <= dev["id100"] and w["device_I_turnoff_max_per_device_A"] <= dev["idm"]
     assert cnt("SG2M040170HJ") == 8 * n_ph and cnt("PAD_ALN") == 8 * n_ph, "device / pad count"
-    say("dev", "Devices %d x SG2M040170HJ (2 per switch): V_DS peak %.0f V = %.2f x 1700 V (<= 0.85), continuous %.0f V = "
-        "%.2f x (<= 0.67); %.1f A rms per device vs I_D(100 C) %.0f A; turn-off %.1f A vs IDM %.0f A (cell_spec)",
-        8 * n_ph, w["device_VDS_peak_V"], w["device_VDS_peak_V"] / dev["vdss"], w["device_VDS_continuous_max_V"],
+    say("dev", "Devices %d x SG2M040170HJ (2 per switch): V_DS peak %.0f V = %.2f x 1700 V (<= 0.85; the larger of the lumped 20 nH loop deck, "
+        "%.0f V, which has no capacitor model, and the physical-leg deck with the capacitors as drawn, %.0f V: see the leg commutation line), "
+        "continuous %.0f V = %.2f x (<= 0.67); %.1f A rms per device vs I_D(100 C) %.0f A; turn-off %.1f A vs IDM %.0f A (cell_spec)",
+        8 * n_ph, w["device_VDS_peak_V"], w["device_VDS_peak_V"] / dev["vdss"], w["device_VDS_peak_lumped_deck_V"],
+        w["device_VDS_peak_physical_leg_V"], w["device_VDS_continuous_max_V"],
         w["device_VDS_continuous_max_V"] / dev["vdss"], w["device_Irms_per_device_A"], dev["id100"],
         w["device_I_turnoff_max_per_device_A"], dev["idm"])
 
-    # ---- thermal: one earthed heatsink for every device (ARCHITECTURE 9), losses from report.md / cell_spec
+    # ---- thermal: one earthed heatsink for every device (ARCHITECTURE 9), losses from report.md / cell_spec. The fans run on the voltage the
+    # fan supply contract guarantees (fan_contract): a lower voltage slows them, the airflow follows their speed, R_sa follows the airflow
     rjc, rcs, rsp, p_ph = thermal_inputs()
+    fc = fan_contract(n_ph)
     p_dev = spec("worst_case_stresses", "device_loss_max_per_position_W") / N_PAR
     dt_js = p_dev * (rjc + rcs + rsp)
-    t_hs = T_IN + R_SA[n_ph] * n_ph * p_ph
+    rsa = R_SA[n_ph] * fc["ratio"] ** -fc["exp"]
+    t_hs = T_IN + rsa * n_ph * p_ph
     tj = t_hs + dt_js
     trip_ok = 125.0 - dt_js - 5.0
-    flow = MODS["modules"]["PV-P75" if n_ph == 3 else "PV-P100/110"]["airflow_m3h_full_45C"]
+    flow = fc["q0"]
     assert tj <= 125.0 and HS_PAD["Rth_cs_K_W"] == rcs, "Tj above the 125 C design limit on the shared heatsink"
     N.update(tj=tj, t_hs=t_hs, trip_ok=trip_ok)
-    say("thermal", "Thermal (shared heatsink, R_sa <= %.3f K/W incl. air rise at ~%.0f m3/h, module_spec): devices %.1f W per "
-        "phase (report.md full-load table) x %d = %.0f W -> sink %.1f C at %.0f C inlet; hottest device %.1f W x (R_jc %.2f + "
-        "AlN %.3f + spread %.2f K/W) = %.1f K -> Tj %.1f C (<= 125 C design limit; per-cell heatsinks gave %.0f C). "
-        "FINDING for the control board: the heatsink OT trip must be <= %.1f C (was %.0f C) to keep the cell_spec 5 K margin",
-        R_SA[n_ph], flow, p_ph, n_ph, n_ph * p_ph, t_hs, T_IN, p_dev, rjc, rcs, rsp, dt_js, tj,
+    say("thermal", "Thermal (shared heatsink, R_sa <= %.3f K/W incl. air rise at ~%.0f m3/h, module_spec; fan supply contract below: the "
+        "fan buck passes %.2f V at the worst supply point against the %.2f V the thermal model's fans run at = airflow x%.3f = %.0f "
+        "m3/h, R_sa x%.4f (flow exponent %.2f of the module_spec heatsink model) = %.4f K/W, %s): devices %.1f W per phase (report.md full-load table) "
+        "x %d = %.0f W -> sink %.1f C at %.0f C inlet; hottest device %.1f W x (R_jc %.2f + AlN %.3f + spread %.2f K/W) = %.1f K -> Tj "
+        "%.1f C (<= 125 C design limit, %.1f K of it unused; per-cell heatsinks gave %.0f C). FINDING for the control board: the "
+        "heatsink OT trip must be <= %.1f C (was %.0f C) to keep the cell_spec 5 K margin",
+        R_SA[n_ph], flow, fc["v_pass"], fc["v_need"], fc["ratio"], flow * fc["ratio"], fc["ratio"] ** -fc["exp"], fc["exp"], rsa,
+        ("inside the thermal margin: the airflow reduction is %.1f %% against the %.0f %% allowed and the sink moves by %.1f K (%.1f K "
+         "even if R_sa followed 1 / airflow)" % (100 * (1 - fc["ratio"]), 100 * FAN_FLOW_TOL, t_hs - (T_IN + R_SA[n_ph] * n_ph * p_ph),
+                                                 (1 / fc["ratio"] - 1) * R_SA[n_ph] * n_ph * p_ph) if fc["ratio"] < 1.0 else
+         "no reduction: the fans' model voltage is below what the fan buck passes"),
+        p_ph, n_ph, n_ph * p_ph, t_hs, T_IN, p_dev, rjc, rcs, rsp, dt_js, tj, 125.0 - tj,
         spec("worst_case_stresses", "Tj_max_45C_C"), trip_ok, spec("protection", "heatsink_overtemperature_trip_C"))
 
     # ---- inductor (read at build time) against the electrical requirement of cell_spec
@@ -725,14 +913,15 @@ def design_check(B, n_ph, st):
         "minimum %d / %d (A: %s; B: %s, load rejection %.1f uF); %.0f V max vs 1100 V at 85 C hot spot "
         "(OV overshoot %.0f V <= 1.15 x 1100 V, IEC 61071); ripple %.1f A rms per capacitor (per-phase worst, no interleaving "
         "credit) = %.0f %% of Imax 22.1 A (85 C). Leg decoupling %d x FCSA3DS225: peak %.1f A (with recovery) vs 176 A, "
-        "%.2f A rms vs 3.9 A (85 C, x%.2f), %.2f W per capacitor (%.1f K at 33 K/W); ESL %.1f nH per leg vs the 8.5 nH basis. "
-        "OPEN R-08: Jianghai ESL 35 nH (bank) / 25 nH vs KEMET 19 / 24 nH in the leg deck - re-run sim/spice/pv_dpt_leg_dec.cir",
+        "%.2f A rms vs 3.9 A (85 C, x%.2f), %.2f W per capacitor (%.1f K at 33 K/W); ESL %.1f nH per leg vs the 8.5 nH basis "
+        "(the leg deck now runs these parts: next line)",
         n_bank["A"], n_bank["B"], "/".join("%d+%d" % (bank_n(n_ph, "A", q), bank_n(n_ph, "B", q)) for q in range(1, n_ph + 1)),
         n_bank["A"] * F45["c"] * 1e6, n_bank["B"] * F45["c"] * 1e6, fb["A"]["parts_min"], fb["B"]["parts_min"],
         fb["A"]["binding"], fb["B"]["binding"], fb["B"]["need_uF"]["load_rejection"], vmax, port.V_POLE, i_cap,
         100 * i_cap / F45["irms85"], DEC_N,
         dc["peak_current_per_cap_with_recovery_A"], dc["rms_per_cap_A"], F22["irms85"] / dc["rms_per_cap_A"], p_dec,
         p_dec * F22["rth"], F22["esl"] / DEC_N * 1e9)
+    say("legcomm", "%s", leg_commutation())
     dmp = spec("damper")
     rq = dmp["required_resistor_rating"]
     p_part = pvcell.CRCW["p70"] * (pvcell.CRCW["t_max"] - T_BOARD) / (pvcell.CRCW["t_max"] - 70.0)
@@ -804,6 +993,10 @@ def design_check(B, n_ph, st):
     err = (STK["lin"] * STK["ipn"] + drift * i45) / i45
     err130 = (STK130["lin"] * STK130["ipn"] + (STK["x_t"] - STK["voe_t"] - STK130["lin"]) * i45) / i45
     assert err <= 0.02, "sensor residual error at 45 A above the +/-2 % sharing figure (ARCHITECTURE 5)"
+    acc = cc["accuracy_after_cal"]       # the control study's sensor accuracy after calibration: never tighter than the drawn sensor
+    assert acc["gain_pct"] >= drift * 100 - 1e-6 and acc["offset_A"] >= STK["lin"] * STK["ipn"] - 0.01, \
+        "control_spec cell_inductor_current accuracy_after_cal is tighter than the sensor as drawn (gain drift %.2f %%, linearity %.2f A)" % (
+            drift * 100, STK["lin"] * STK["ipn"])
     zero = (STK["vref"][1] - 2.5 + STK["voe"] + STK["voe_t"] * STK["vfs"]) / STK["g"]
     zero_r = (STK["voe"] + STK["voe_t"] * STK["vfs"]) / STK["g"]              # against the sensor's own Uref (ILnR)
     noise = STK["noise_pp"] / STK["g"]
@@ -813,13 +1006,15 @@ def design_check(B, n_ph, st):
         "delay 0.2 us + RC %.2f us = %.2f us vs <= %.2f us (CMPSS backup) and %.2f us (local OC); BW %.0f kHz >= %.0f kHz. "
         "After 2-point calibration + idle re-zero: linearity %.2f A + gain drift <= %.1f %% (3 %% - 1.5 %% offset - 0.5 %% "
         "linearity, not separated in the data sheet) = %.2f %% at %.0f A <= 2 %% sharing (HO/A 130: %.2f %%); control_spec "
-        "gain 0.83 %% met at 25 C only. Uncalibrated zero +/-%.1f A against a fixed reference (Vref + Voe + drift), +/-%.1f A "
+        "(sharing study) takes gain %.2f %% and offset %.2f A after the calibration - the drift bound and the linearity above, "
+        "asserted not tighter than the sensor as drawn. Uncalibrated zero +/-%.1f A against a fixed reference (Vref + Voe + drift), +/-%.1f A "
         "against the sensor's own Uref (Voe + drift): the fixed-threshold OC window of PV-CTL rev A1 is set from ILnR. "
         "Noise 25 mVpp = %.1f A pp per sample (R-07). Primary at the switch node: 4 kV rms, "
         "8 kV impulse, 13.8 mm; PD and dv/dt immunity not stated (R-07, bench)", STK["g"] * 1e3, STK["ipm"],
         max(cc["range_A"]), oc["ctrl_backup"]["band_A"][1], i_pk, i_sat, i_rms, STK["ipn"], rc_ * 1e6, t_s * 1e6,
         cc["group_delay_us_max"], oc["local"]["max_response_us"], bw / 1e3, cc["bandwidth_kHz_min"],
-        STK["lin"] * STK["ipn"], drift * 100, err * 100, i45, err130 * 100, zero, zero_r, noise)
+        STK["lin"] * STK["ipn"], drift * 100, err * 100, i45, err130 * 100, cc["accuracy_after_cal"]["gain_pct"],
+        cc["accuracy_after_cal"]["offset_A"], zero, zero_r, noise)
 
     # ---- port current paths (gen/port.py lean_shunt) for the PC levels and the port OC trip
     r_sh = port.S["lean"]["shunt"]["R_ohm"]
@@ -861,6 +1056,8 @@ def design_check(B, n_ph, st):
                                    "the 6 M divider %.1f); worst case (R +1 %%, C +10 %%, divider, from %.0f V) %.1f min"
                                    % (b, c * 1e6, t1, t1, t0, port.V_POLE, t2) for b, c, t0, t1, t2 in tmin),
         v_el, port.V_POLE, p_el, p_lim, T_BOARD, (1000.0 / bl["n"]) ** 2 / bl["R_elem_ohm"], LABEL_MIN[n_ph])
+
+    say("portA", "%s", port_a_declaration(n_ph))
 
     # ---- supply budgets: +5V / +5V_GD (LMR38020 2 A), +3V3 (TPS62130 3 A, from +5V_GD), live +24V against the aux block
     n_buf, n_ch = 2 + 4 * n_ph, 4 * n_ph                      # AHCT1G08 on +5V (the +5V_GD one is in i5g)
@@ -905,6 +1102,38 @@ def design_check(B, n_ph, st):
     p_aux = p_live + SELV_W[n_ph]
     hold = S75["holdup"]
     t_hold = hold["c_uF"] * 1e-6 * (V24[0] ** 2 - hold["v_end"] ** 2) / (2 * p_live) * 1e3
+    # ---- PCM-14: what the live budget sums, bottom-up from the data sheets, and the same budget with typical values. The summed
+    # figure is the stack of the maxima (gate bias from the P_CH allocation at the highest 5 V rail, every 5 V load at its data-sheet
+    # maximum, both coils at their maximum hold power); the rating is the aux block's per-winding figure, so the reserve is printed
+    # for the stack AND for the typical case
+    vt_, v3_, von_, dvx = e["vt"], e["v3"], e["von"], gdrv.EXT_DIV[GATE_V]
+    q_g = spec("gate_drive", "Q_g_per_device_nC") * 1e-9                 # SG2M040170HJ Q_g at its data-sheet swing (typical only)
+    c_gs_ext = sum(L.number(p_.value.split()[0]) for p_ in parts if key(p_) == "C" and
+                   any(str(x).startswith("G_P") for x in p_.pins.values()) and any(str(x).startswith("KS_P") for x in p_.pins.values()))
+    c_gs_gate = c_gs_ext / (n_ch * N_PAR)                                # external gate-source capacitor per gate (the PCS preset fits 1 nF)
+
+    def ch_a(typ):
+        """one gate-drive channel's load from its VDD-VEE rail (A), bottom-up from the data sheets; typ = typical figures, rails at nominal"""
+        vt, v3, von = tuple(sum(x) / 2 for x in (vt_, v3_, von_)) if typ else (vt_[1], v3_[0], von_[1])
+        return {"gate charge": (q_g * N_PAR + c_gs_gate * N_PAR * vt) * pvcell.F_SW,
+                "NSI6651 ICC2": (NSI_TYP if typ else NSI)["icc2"], "DESAT charge current": NSI["ichg"][1 if typ else 2],
+                "10k OUTH-gate": N_PAR * von / 10e3, "dividers": vt / sum(dvx["vdd"]) + v3 / sum(dvx["vee"]),
+                "COM bias 4.7k": (vt - v3) / 4.7e3}
+
+    def bias_w(i_ch, typ):
+        """5 V input power of one phase's gate bias for a channel load i_ch (gdrv.ext_bias_numbers' formula: raw rail at full load)"""
+        v5hi, v5lo = (sum(V5) / 2,) * 2 if typ else gdrv.V5_RANGE[::-1]
+        vf = sum(gdrv.VF_BRIDGE) / 2 if typ else gdrv.VF_BRIDGE[1]
+        i_pri = 4 * 30.0 * i_ch / v5lo / 0.9
+        return 4 * (gdrv.BIAS_XF["n"] * (v5hi - i_pri * gdrv.BIAS_XF["r_on"]) - 2 * vf) * i_ch / 0.9
+    ch_max, ch_typ = ch_a(False), ch_a(True)
+    i_max, i_typ = sum(ch_max.values()), sum(ch_typ.values())
+    assert abs(bias_w(e["i_ld"], False) / e["p_in"] - 1) < 1e-9, "bias power formula no longer equals gdrv.ext_bias_numbers"
+    assert i_max <= e["i_ld"], "gate-bias allocation (gdrv P_CH) below the bottom-up data-sheet maximum of a channel"
+    p_bias_max, p_bias_typ = bias_w(i_max, False), bias_w(i_typ, True)
+    d_typ = (2 * (ECON["hold_W_max"] - ECON["hold_W_at_24V"]) + (n_ph * (e["p_in"] - p_bias_typ) +
+                                                               n_ch * (NSI["icc1"] - NSI_TYP["icc1"]) * V5[1]) / ETA_5V)
+    p_live_typ = p_live - d_typ
     N.update(i5=s5, i5g=s5g, i33=s33, p_live=p_live, p_aux=p_aux, t_hold=t_hold, live_w=rt["live_W"])
     say("live24", "Live 24 V budget (maxima): 5 V / 3.3 V converters %.1f W (5 V output %.1f W incl. %.2f W at 3.3 V, eta %.2f "
         "ASSUMED; IMD LEDs %.2f W not counted while switching: the IMD runs with K_A open) + 2 contactors held on the "
@@ -912,10 +1141,29 @@ def design_check(B, n_ph, st):
         "(aux75_spec ratings, x%.3f); SELV fans + logic %.1f W <= %.1f W; total %.1f W <= %.1f W. Pull-in (%.1f W max: cold "
         "coil -15 %% ASSUMED at -40 C, 100-152 ms): (a) K_A pulls in, K_B held, converter switching = %.1f W; (b) K_B pulls "
         "in at the end of the battery precharge with the precharge relay still on (%.1f W max) and K_A held, gates not "
-        "switching (port B open; bias idle %.2f W per phase) = %.1f W; both <= live peak %.1f W. Hold-up of the aux's %.0f uF "
-        "at %.1f W: %.0f ms to %.0f V", p_bucks, p5_out, s33 * V33[1], ETA_5V, p_imd, ECON["hold_W_max"], p_live,
-        rt["live_W"], rt["live_W"] / p_live, SELV_W[n_ph], rt["selv_W"], p_aux, rt["total_W"], pull_max, p_peak, g7l_max,
-        4 * island_idle_in_w(), p_peak_b, rt["live_peak_W"], hold["c_uF"], p_live, t_hold, hold["v_end"])
+        "switching (port B open; bias idle %.2f W per phase) = %.1f W; both <= live peak %.1f W (reserve %.1f W = %.1f %% in the "
+        "tighter case a). Hold-up of the aux's %.0f uF at %.1f W: %.0f ms to %.0f V", p_bucks, p5_out, s33 * V33[1], ETA_5V, p_imd,
+        ECON["hold_W_max"], p_live, rt["live_W"], rt["live_W"] / p_live, SELV_W[n_ph], rt["selv_W"], p_aux, rt["total_W"], pull_max,
+        p_peak, g7l_max, 4 * island_idle_in_w(), p_peak_b, rt["live_peak_W"], rt["live_peak_W"] - max(p_peak, p_peak_b),
+        100 * (rt["live_peak_W"] - max(p_peak, p_peak_b)) / rt["live_peak_W"], hold["c_uF"], p_live, t_hold, hold["v_end"])
+    say("live24typ", "Live 24 V reserve, honestly (PCM-14): the %.1f W above is a STACK of maxima - %.0f %% of it is gate bias (%d "
+        "channels x allocation %.1f mA from VDD-VEE = %.2f W per phase at the highest 5 V rail), the rest every 5 V / 3.3 V load at its "
+        "maximum and both coils at %.2f W. Gate bias bottom-up from the data sheets per channel: %s = %.1f mA at the maxima (allocation "
+        "%.1f mA covers it x%.2f; Q_g %.0f nC is the data sheet's typical at its 22 V swing - the real swing is %.1f-%.1f V; external "
+        "gate-source capacitor %s) and %.1f mA at the typical figures (ICC2 %.1f mA typ, ICC1 %.1f mA typ, NSI66x1A-Q1 p.6; rails at "
+        "nominal) -> %.2f W per phase (maxima %.2f W, allocation %.2f W). Same budget with the typical gate bias, ICC1 and the coils at "
+        "their typical hold power (%.2f W each; every other load still at its maximum) = %.1f W = %.0f %% of the %.1f W rating, "
+        "reserve %.1f W against %.1f W for the stack. Pull-in peaks stay stacked maxima (cold coil): %.1f W of the %.1f W live peak. "
+        "Per-winding capability is the aux block's own rating (aux75_spec: live %.1f W continuous, %.1f W peak; SELV %.1f W), not the "
+        "converter's %.1f W total: this board needs no change of the winding allocation, the live winding is the tight one "
+        "(sim/aux_hv_design.py untouched; its live peak must hold %.0f ms)", p_live, 100 * n_ph * e["p_in"] / ETA_5V / p_live, n_ch,
+        e["i_ld"] * 1e3, e["p_in"], ECON["hold_W_max"], ", ".join("%s %.1f" % (k, v * 1e3) for k, v in ch_max.items()), i_max * 1e3,
+        e["i_ld"] * 1e3, e["i_ld"] / i_max, q_g * 1e9, vt_[0], vt_[1],
+        "%.0f pF each (%.0f pF fitted)" % (c_gs_gate * 1e12, c_gs_ext * 1e12) if c_gs_ext else "none fitted on this board (gdrv c_gs=None; "
+        "the PCS preset fits 1 nF per gate)", i_typ * 1e3, NSI_TYP["icc2"] * 1e3, NSI_TYP["icc1"] * 1e3, p_bias_typ, p_bias_max,
+        e["p_in"], ECON["hold_W_at_24V"], p_live_typ, 100 * p_live_typ / rt["live_W"], rt["live_W"], rt["live_W"] - p_live_typ,
+        rt["live_W"] - p_live, max(p_peak, p_peak_b), rt["live_peak_W"], rt["live_W"], rt["live_peak_W"], rt["selv_W"], rt["total_W"],
+        ECON["pull_in_window_s"][1] * 1e3)
     assert p_live <= rt["live_W"] and SELV_W[n_ph] <= rt["selv_W"] and p_aux <= rt["total_W"], \
         "live / SELV / total load above the aux block's ratings (aux75_spec)"
     assert max(p_peak, p_peak_b) <= rt["live_peak_W"], "contactor pull-in peak above the aux live peak rating"
@@ -927,14 +1175,28 @@ def design_check(B, n_ph, st):
     assert V24[0] >= 1.03 * v70, "contactor pull-in at a 70 C coil not guaranteed from the live 24 V minimum"
     r_hot = r_c * 1.15 * (1 + 0.00393 * (t70 - 23.0))
     v_feed_2v = 2.0 * (r_hot + r_h) / r_hot
+    # contactor retry rule (PCM-14): every pull-in attempt costs e_pull from the live winding; a firmware rule bounds the attempts so that
+    # repeated attempts cannot average above the reserve the stacked maxima leave on the live rating
+    e_pull = pull_max * ECON["pull_in_window_s"][1]
+    reserve = rt["live_W"] - p_live
+    t_retry = max(10.0, e_pull / reserve)
+    pre = port.S["precharge"]
     say("pullin", "Contactor pull-in from the aux's directly regulated live 24 V (%.2f-%.2f V, not the 21.0 V the port "
         "engineer checked): needs %.2f V at a 70 C coil (port_spec) -> x%.3f; guaranteed up to a %.0f C coil at %.2f V "
-        "(linear through the port_spec points 21.0 V / %.1f C and %.2f V / 70 C). Hold-up sag after both ports are lost: "
-        "RDY falls at the aux UV (21.0-21.8 V) and the gates stop; a closed contactor needs only its hold current - on the "
-        "economiser the coil sees V_feed x R_c / (R_c + %.1f ohm), so a hot coil (%.0f ohm) reaches the 2 V release "
-        "guarantee only at a %.1f V feed (the real holding level is typical-only in the data sheet); a feed that recovers "
-        "re-arms the full-voltage pull-in (any fall resets the economiser)", V24[0], V24[1], v70, V24[0] / v70, t_max,
-        V24[0], t21, v70, r_h, r_hot, v_feed_2v)
+        "(linear through the port_spec points 21.0 V / %.1f C and %.2f V / 70 C). Cold-coil case of the budget: coil 96 ohm x 0.85 "
+        "(-15 %% ASSUMED, no tolerance in the data sheet) x copper at -40 C (PV-20 asks -30 C: %.1f W) = %.1f ohm at %.2f V = %.1f W for "
+        "%.0f-%.0f ms. Hold-up sag after both ports are lost: RDY falls at the aux UV (21.0-21.8 V) and the gates stop; a closed "
+        "contactor needs only its hold current - on the economiser the coil sees V_feed x R_c / (R_c + %.1f ohm), so a hot coil (%.0f "
+        "ohm) reaches the 2 V release guarantee only at a %.1f V feed (the real holding level is typical-only in the data sheet); a "
+        "feed that recovers re-arms the full-voltage pull-in (any fall resets the economiser). FIRMWARE RULE (retry): a pull-in that "
+        "does not close (the terminal / bank voltage does not follow within 0.5 s, ASSUMED) is retried at most %d times per contactor "
+        "per close command and at least %.0f s apart - one attempt takes %.1f J from the live winding, %.2f W averaged over that "
+        "interval against the %.2f W the stacked maxima leave on the live rating - then the contactor stays open for %.0f s and the "
+        "fault is latched (the precharge lock-out of port_spec)", V24[0], V24[1], v70, V24[0] / v70, t_max, V24[0], t21, v70,
+        V24[1] ** 2 / (r_c * 0.85 * (1 - 0.00393 * 53.0)), r_c * cold, V24[1], pull_max, ECON["pull_in_window_s"][0] * 1e3,
+        ECON["pull_in_window_s"][1] * 1e3, r_h, r_hot, v_feed_2v, pre["max_attempts"], t_retry, e_pull, e_pull / t_retry, reserve,
+        pre["lockout_s"])
+    assert e_pull / t_retry <= reserve + 1e-9, "retry interval too short for the live reserve"
     # live load while switching against the SELV cross-regulation (aux75_spec selv_table_V, fans at 100 %)
     e_typ = gdrv.ext_bias_numbers(GATE_V)
     q_sw = spec("gate_drive", "Q_g_per_device_nC") * 1e-9 * N_PAR * pvcell.F_SW * e_typ["vt"][0]   # per channel
@@ -947,10 +1209,19 @@ def design_check(B, n_ph, st):
     say("fans", "%s (rule, printed on the supplies sheet). The SELV winding gives >= %.1f V at 100 %% fans (full speed) once "
         "the live 24 V carries >= %.1f W (aux75_spec selv_table_V, interpolated). While switching the live load is >= %.1f W "
         "(lower estimate: island resistor currents + gate charge at typical Q_g and the lowest rails, sensors at Icc min, eta "
-        "0.95, both coils held hot at %.2f W) and <= %.1f W (maxima) -> x%.2f. Gates off: SELV %.1f-%.1f V (fan buck 12-36 V "
-        "passes what it gets; run-on cooling only). The A0 minimum-load stage (13 x 1.3k, 6.2 W) is deleted", FAN_RULE,
-        S75["regulation"]["fan_full_speed_needs_V"], w_fan, p_low, hold_min, p_live, p_low / w_fan,
-        S75["regulation"]["selv_V_gates_off"][0], S75["regulation"]["selv_V_gates_off"][1])
+        "0.95, both coils held hot at %.2f W) and <= %.1f W (maxima) -> x%.2f; at that lowest live load the SELV minimum is %.2f V. "
+        "Gates off: SELV %.1f-%.1f V (fan buck 12-36 V passes what it gets; run-on cooling only). The A0 minimum-load stage (13 x 1.3k, "
+        "6.2 W) is deleted. Fan supply contract: S_24V >= %.2f V at the worst cross-regulation point, fan buck passes >= %.2f V at %.2f "
+        "A, fans need %.2f V (airflow x%.3f, limit x%.3f) - the worst cross-regulation point is the live load %.1f W (fans 100 %%) "
+        "where aux75_spec first guarantees that SELV level; the fan buck (TPS54360B, gen/pv_ctrl.py fan_ceiling) runs in dropout: D "
+        "%.2f, R_DS(on) %.2f ohm, choke + trace %.0f mOhm, SS56, so it passes S_24V less %.2f V at that current (24.00 V itself would "
+        "need S_24V >= %.2f V; the earlier 25.6 V of the control board was set point + 1.5 V, ASSUMED); the fans' speed follows their "
+        "voltage (ASSUMED, as the 7 V = 29 %% law of sim/pv_module.py) and the airflow their speed, so the thermal line above runs on "
+        "airflow x%.3f; the control board prints the same voltage from its own drawn parts", FAN_RULE,
+        S75["regulation"]["fan_full_speed_needs_V"], w_fan, p_low, hold_min, p_live, p_low / w_fan, selv_min_at(n_ph, p_low),
+        S75["regulation"]["selv_V_gates_off"][0], S75["regulation"]["selv_V_gates_off"][1], fc["s_min"], fc["v_pass"], fc["i"],
+        fc["v_need"], fc["ratio"], fc["flow_min"], w_fan, fc["d"], fc["rds"], 1e3 * fc["rdc"], fc["s_min"] - fc["v_pass"],
+        fc["vin_full"], fc["ratio"])
     sw_lo, sw_hi = sup_window()
     assert sw_lo[0] >= 4.5 and sw_hi[1] <= V5[0], "+5V supervisor window vs AHCT VCC 4.5 V / the 5 V tolerance"
     say("sup", "+5V and +5V_GD (%.2f-%.2f V, LMR38020 VREF 0.985-1.015 V, 0.1 %% divider) supervised by TPS3710 %s/%s 0.1 %%: "
@@ -1171,6 +1442,7 @@ if __name__ == "__main__":
                       vrange=lambda n, rv=rv: rv.get(n) or port.vrange_lean(n))
         with open(os.path.join(L.REPO, "hardware", PROJECT[n_ph], "outputs", PROJECT[n_ph] + "_design_check.txt"), "w") as f:
             f.write("CALCULATED by gen/pv_power.py design_check() - not measured, not bench-validated.\n")
+            f.write(stamp() + "\n")
             f.write("\n".join(lines.values()) + "\n")
             f.write("".join("WAITS FOR (outside this board): %s\n" % x for x in st.get("wait", [])))
         for x in st.get("wait", []):

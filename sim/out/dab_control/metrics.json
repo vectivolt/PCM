@@ -13,7 +13,7 @@
       "max_ns": 300.0,
       "fallback_fixed_ns": 100.0,
       "note": "DR-02 decision: the hardware guard owns the minimum, firmware owns the rest; the drawn GDRV stretcher (104-354 ns) must be replaced by a 69-188 ns gate-level window",
-      "lut_rule": "dead time = t_d(off)(RG_off) - t_d(on) + predicted ZVS transition + 20 ns; RG_off 0.27 ohm adds ~3.5 ns of t_d(off) (DS Fig. 28)",
+      "lut_rule": "dead time = t_d(off) - t_d(on) + predicted ZVS transition + 20 ns, never below the hardware guard (hw_guard_ns, study devices at R_G,off 1.5 ohm)",
       "hw_guard_ns": [
         69.02999999999999,
         187.5111764705882
@@ -69,45 +69,145 @@
     },
     "st_inputs": {
       "E_turn_on_zero_current_800V_J": 0.0006642664964335239
-    }
+    },
+    "e_zcs_800": 0.0006642664964335239,
+    "p_idle": [
+      1500.0,
+      2500.0
+    ],
+    "pre": {
+      "R1": 220.0,
+      "R2": 220.0,
+      "dV": 10.0
+    },
+    "study": "D2W - 2 x IV3Q12013T4Z / SG2M014120LJ per switch",
+    "drawn": "DAB60 rev B0 (2026-10-04)",
+    "v1_ov_hw": 1000,
+    "ov_resp": 6.3e-05
   },
   "metrics": {
-    "softstart_il_peak": 118.60538968931291,
-    "dc_offset_split": 3.919080136086453,
-    "dc_offset_naive": 46.97778562906167,
-    "cc_err_75": -1.4509403456486325e-06,
-    "cc_err_40": 1.0998705732845337e-05,
-    "cv_err": -0.00031643663214708795,
-    "cv_dip": 5.624125608021245,
+    "softstart_il_peak": 118.67743442554729,
+    "dc_offset_split": 3.3308903569606407,
+    "dc_offset_naive": 46.90638690728488,
+    "cc_err_75": -1.8416771183638048e-06,
+    "cc_err_40": 9.822684084781486e-06,
+    "cv_err": -0.0003166142923873849,
+    "cv_dip": 5.624100380102391,
     "cv_settle_ms": 0.5475000000000002,
-    "rev_i2_end": -69.99997944242197,
-    "rev_il_peak": 114.90452231420204,
-    "share_open": -0.04994840673473935,
-    "share_ctrl": -0.010000015400028784,
-    "one_branch_fault_survivor_I_before_A": 74.58102689622731,
-    "one_branch_fault_survivor_I_after_A": 74.78785817352393,
-    "one_branch_fault_survivor_I_peak_A": 74.81544055918128,
-    "one_branch_fault_survivor_P_after_kW": 59.99871481636247,
-    "one_branch_fault_bus_pre_trip_V": 799.6107237367279,
-    "one_branch_fault_bus_overshoot_V": 19.483009683975297,
-    "one_branch_fault_bus_end_V": 796.6395182499701,
-    "one_branch_fault_il_peak_survivor_A": 118.34905551359839,
-    "one_branch_fault_naive_survivor_I_before_A": 75.00000356194047,
-    "one_branch_fault_naive_survivor_I_after_A": 100.00020762107633,
-    "one_branch_fault_naive_survivor_I_peak_A": 100.23483606002823,
-    "one_branch_fault_naive_survivor_P_after_kW": 80.30103578039247,
-    "one_branch_fault_naive_bus_pre_trip_V": 799.6090723558724,
-    "one_branch_fault_naive_bus_overshoot_V": 19.5966206903654,
-    "one_branch_fault_naive_bus_end_V": 799.1163648333522,
-    "one_branch_fault_naive_il_peak_survivor_A": 156.55333684774746,
-    "one_branch_fault_noff_survivor_I_before_A": 74.58100802138736,
-    "one_branch_fault_noff_survivor_I_after_A": 74.78799550715509,
-    "one_branch_fault_noff_survivor_I_peak_A": 74.82156201730122,
-    "one_branch_fault_noff_survivor_P_after_kW": 59.998787679007805,
-    "one_branch_fault_noff_bus_pre_trip_V": 799.2591856461547,
-    "one_branch_fault_noff_bus_overshoot_V": 65.23215105895963,
-    "one_branch_fault_noff_bus_end_V": 800.9252142034804,
-    "one_branch_fault_noff_il_peak_survivor_A": 130.46945133180907
+    "rev_i2_end": -69.99997908353406,
+    "rev_il_peak": 114.76495097563748,
+    "share_open": -0.04994840509226528,
+    "share_ctrl": -0.010000015435549675,
+    "softstart_idle_periods": 72,
+    "rev_idle_periods": 4,
+    "rev_dc_offset": 4.078075631750366,
+    "mz_V1": 950.0,
+    "mz_V2": 400.0,
+    "mz_il_pk": 259.5048507362717,
+    "mz_il_half_pp": 224.70214229486373,
+    "mz_il_dc": -34.755655761571276,
+    "mz_il_pk_closed_form": 224.3589743589744,
+    "mz_p2_kW": 0.4388812688870783,
+    "pcs_link": {
+      "gfl_step": {
+        "v_min": 747.3171735737046,
+        "v_max": 766.2860294423659,
+        "v_end": 747.3186331924917,
+        "inside_band": true,
+        "recovers": true
+      },
+      "gfl_ramp": {
+        "v_min": 747.9523379659663,
+        "v_max": 756.3244141090232,
+        "v_end": 748.0815043776114,
+        "inside_band": true,
+        "recovers": true
+      },
+      "gfl_trip_out": {
+        "v_min": 735.339024068346,
+        "v_max": 751.0191939579113,
+        "v_end": 747.2965482828738,
+        "inside_band": true,
+        "recovers": true
+      },
+      "gfl_trip_in": {
+        "v_min": 749.0548767553273,
+        "v_max": 765.1363121236724,
+        "v_end": 752.7918440584624,
+        "inside_band": true,
+        "recovers": true
+      },
+      "cv_step": {
+        "v_min": 707.3428969758993,
+        "v_max": 749.999803160137,
+        "v_end": 749.999801743814,
+        "inside_band": true,
+        "recovers": true
+      },
+      "cv_step_fmax": {
+        "v_min": 716.3406602710411,
+        "v_max": 749.9998845768445,
+        "v_end": 749.9998736676042,
+        "inside_band": true,
+        "recovers": true
+      },
+      "cv_dump": {
+        "v_min": 749.9942024039667,
+        "v_max": 790.4389190412301,
+        "v_end": 750.0001155077551,
+        "inside_band": true,
+        "recovers": true
+      },
+      "analytic": {
+        "C_bus_F": 0.0005443999999999999,
+        "I_full_A": 80.0,
+        "t_to_uv_after_dab_trip_offgrid_ms": 0.6992428420590469,
+        "t_to_ov_after_dab_trip_regen_ms": 2.0414999999999996,
+        "f_cv_needed_for_uv_hi_Hz": 422.88013028565825,
+        "v_set_min_for_step_at_present_f_cv_V": 752.3079828180645,
+        "dpdt_rule_W_per_s": 6250000.0,
+        "t_full_power_at_rule_ms": 9.6,
+        "pcs_trip_dab_feeding_peak_V": 1009.2578986039676,
+        "pcs_trip_dab_feeding_t_to_dab_ov_ms": 1.7012499999999997
+      },
+      "inputs": {
+        "C": 0.0004093999999999999,
+        "ov": 1050.0,
+        "uv_nom": 647.2457248994788,
+        "uv_hi": 709.6508797939638,
+        "f_c": 40.0,
+        "zero": 4.0,
+        "ff_tau": 0.00011438318176679735,
+        "v_bus": 750.0,
+        "C_dab_F": 0.000135,
+        "f_cv": 400.0,
+        "f_cv_max": 500.0
+      }
+    },
+    "one_branch_fault_survivor_I_before_A": 74.58102508141768,
+    "one_branch_fault_survivor_I_after_A": 74.78761979915386,
+    "one_branch_fault_survivor_I_peak_A": 74.815440412148,
+    "one_branch_fault_survivor_P_after_kW": 59.99862028444258,
+    "one_branch_fault_bus_pre_trip_V": 799.6106309013096,
+    "one_branch_fault_bus_overshoot_V": 19.483024043165187,
+    "one_branch_fault_bus_end_V": 796.6394275827583,
+    "one_branch_fault_il_peak_survivor_A": 118.3491209623644,
+    "one_branch_fault_naive_survivor_I_before_A": 75.00000356131737,
+    "one_branch_fault_naive_survivor_I_after_A": 100.00020741865521,
+    "one_branch_fault_naive_survivor_I_peak_A": 100.23483531691384,
+    "one_branch_fault_naive_survivor_P_after_kW": 80.30107168769415,
+    "one_branch_fault_naive_bus_pre_trip_V": 799.608979592723,
+    "one_branch_fault_naive_bus_overshoot_V": 19.596635732392997,
+    "one_branch_fault_naive_bus_end_V": 799.1162764480999,
+    "one_branch_fault_naive_il_peak_survivor_A": 156.8994099435272,
+    "one_branch_fault_noff_survivor_I_before_A": 74.58100619615524,
+    "one_branch_fault_noff_survivor_I_after_A": 74.78790378389598,
+    "one_branch_fault_noff_survivor_I_peak_A": 74.82156193699578,
+    "one_branch_fault_noff_survivor_P_after_kW": 59.998787846223756,
+    "one_branch_fault_noff_bus_pre_trip_V": 799.2589249357662,
+    "one_branch_fault_noff_bus_overshoot_V": 65.2323256355595,
+    "one_branch_fault_noff_bus_end_V": 800.9271974146478,
+    "one_branch_fault_noff_il_peak_survivor_A": 130.4695275251015
   },
   "assumptions": {
     "R_loop": 0.04289333995525328,
@@ -124,6 +224,10 @@
     "t_can": 0.01,
     "i_ramp": 20000.0,
     "pcs_ff_tau": 0.002,
+    "v_bus_pcs": 750.0,
+    "dpdt_pcs": 6250000.0,
+    "p_pre_cv": 0.1,
+    "f_cv_max": 500.0,
     "P_branch_max": 60000.0
   }
 }

@@ -762,7 +762,7 @@
    "NSI6651_peak_A": 10.0
   },
   "desat": {
-   "threshold_V_DS": "6.3-7.9 V (NSI6651 8.5-9.8 V minus 100 ohm x I_CHG and 3 x US1MH, gen/gdrv.py DESAT_CLASS[1700])",
+   "threshold_V_DS": "set by the gate-drive preset (gen/gdrv.py '6 x SG2M040170HJ': NSI6651 8.5-9.8 V less 100 ohm x I_CHG and the US1M string); PCS-PWR's design check coordinates it with the on-state voltage below",
    "V_DS_at_OC_trip_V": 6.303,
    "blanking_ns": [
     150,
@@ -770,7 +770,66 @@
    ],
    "response_to_off_us": 1.0,
    "t_sc_assumed_us": 2.0,
-   "note": "Sichain gives no short-circuit withstand: 2 us ASSUMED as for the PV module (pv_design T_SC_ASSUMED)"
+   "sc_acceptance": "DAB rule DR-05, release block (risk C2): maker-confirmed t_SC >= 2 t_eq and E_SC >= 2 E at 1050 V / 150 C start / +18 V; t_eq and E printed by gen/gdrv.py for the '6 x SG2M040170HJ' preset (PCS-PWR design check); not covered until then",
+   "note": "Sichain gives no short-circuit withstand: 2 us ASSUMED as for the PV module (pv_design T_SC_ASSUMED)",
+   "onstate_200ms_overload": {
+    "I_pk_per_device_A": 66.16666666666667,
+    "tj_200ms_hottest_C": 161.00358369680052,
+    "R_typ_at_tj_mohm": 93.99652800338278,
+    "inlet_C": 45.0,
+    "V_DS_typ_at_tj_V": 6.219436936223827,
+    "V_DS_typ_175C_V": 6.68311170442287,
+    "V_DS_max_rds_at_tj_V": 8.085268017090975,
+    "V_DS_max_rds_175C_V": 8.688045215749728,
+    "tj_cold_C": 86.00358369680052,
+    "inlet_cold_C": -30.0,
+    "V_DS_typ_cold_V": 4.088455182897837,
+    "V_DS_max_rds_cold_V": 5.314991737767188,
+    "current_factor_Fig5": {
+     "25.0": 1.108311575282855,
+     "175.0": 1.1477750809061489
+    },
+    "R_25C_vs_I_mohm": [
+     [
+      20,
+      36.1
+     ],
+     [
+      38,
+      38.3
+     ],
+     [
+      50,
+      39.8
+     ],
+     [
+      60,
+      41.4
+     ],
+     [
+      70,
+      43.1
+     ],
+     [
+      80,
+      45.1
+     ],
+     [
+      90,
+      47.5
+     ],
+     [
+      100,
+      49.8
+     ],
+     [
+      110,
+      54.0
+     ]
+    ],
+    "I_DM_A": 188.0,
+    "basis": "1.2 x 216 A peak + half the 950 V ripple per device; all six at the hottest device's 200 ms junction (k 1.10 model); R_DS(on) Table 4 p4 typical (40 / 88 mOhm at 25 / 175 C, 38 A) along the Fig. 4/6 curve, x the p6 Fig. 5 current factor; 'max' = the 52 mOhm data-sheet maximum at 25 C scaled the same way (no hot maximum is published)"
+   }
   }
  },
  "thermal_and_losses": {
@@ -1095,7 +1154,7 @@
    "aux supply (control, drivers, sensors)": 29.411764705882355,
    "fans": 42.35294117647059
   },
-  "switching_share_125kW_750V": -1813875.9737170942,
+  "switching_share_125kW_750V": 0.3813168655508543,
   "derating_current_frac": {
    "45C": {
     "590": 1.2,
@@ -1186,7 +1245,181 @@
     "t_hs_after_2min_C": 74.43082002857899
    }
   ],
-  "sharing_k1p2_tj_C": 133.9906423192516
+  "sharing_k1p2_tj_C": 133.9906423192516,
+  "sharing_population": {
+   "populations": {
+    "data sheet: one 40 mOhm (typ) among five at 52 mOhm (max)": {
+     "r_ratio": 1.3,
+     "k_equal_temperatures": 1.2380952380952381,
+     "tiers": {
+      "45C 100 %": {
+       "k": 1.2158314634322518,
+       "tj_hot_C": 117.43248903071165,
+       "tj_others_C": 113.08649722710622,
+       "limit_C": 150.0,
+       "I_A": 180.0,
+       "I_nominal_A": 180.0
+      },
+      "45C 110 %": {
+       "k": 1.2115628160928626,
+       "tj_hot_C": 135.36841620088055,
+       "tj_others_C": 130.18347458550824,
+       "limit_C": 150.0,
+       "I_A": 198.00000000000003,
+       "I_nominal_A": 198.00000000000003
+      },
+      "45C 120 % 2 min": {
+       "k": 1.2122006643990941,
+       "tj_hot_C": 152.6373167407937,
+       "tj_others_C": 144.86283492524063,
+       "limit_C": 165.0,
+       "I_A": 216.0,
+       "I_nominal_A": 216.0,
+       "tj_hot_at_nominal_C": 152.6373167407937
+      },
+      "45C 200 ms": {
+       "k": 1.2122006643990941,
+       "tj_hot_C": 173.5437981865399,
+       "tj_others_C": 159.00091258004278,
+       "limit_C": 175.0,
+       "I_A": 246.24,
+       "I_nominal_A": 259.2,
+       "tj_hot_at_nominal_C": 186.3280379721963
+      },
+      "60C 100 %": {
+       "k": 1.21509598858335,
+       "tj_hot_C": 138.40583782709365,
+       "tj_others_C": 133.82597089641015,
+       "limit_C": 150.0,
+       "I_A": 180.0,
+       "I_nominal_A": 180.0
+      },
+      "60C 110 %": {
+       "k": 1.2110898316542824,
+       "tj_hot_C": 158.9989617750445,
+       "tj_others_C": 153.52644923446337,
+       "limit_C": 150.0,
+       "I_A": 198.00000000000003,
+       "I_nominal_A": 198.00000000000003
+      },
+      "60C 120 % 2 min": {
+       "k": 1.2115171086004983,
+       "tj_hot_C": 164.55290974185135,
+       "tj_others_C": 158.2812039798965,
+       "limit_C": 165.0,
+       "I_A": 205.2,
+       "I_nominal_A": 216.0,
+       "tj_hot_at_nominal_C": 179.30378159744407
+      },
+      "60C 200 ms": {
+       "k": 1.2115171086004983,
+       "tj_hot_C": 172.0792210485016,
+       "tj_others_C": 163.275159212943,
+       "limit_C": 175.0,
+       "I_A": 220.32000000000005,
+       "I_nominal_A": 259.2,
+       "tj_hot_at_nominal_C": 201.7087343990263
+      }
+     },
+     "ok_45C": false,
+     "ok_60C_without_derating": false
+    },
+    "acceptance rule: one at -5 % among five at +5 %": {
+     "r_ratio": 1.105263157894737,
+     "k_equal_temperatures": 1.0862068965517242,
+     "tiers": {
+      "45C 100 %": {
+       "k": 1.0796036789228194,
+       "tj_hot_C": 107.18061890754804,
+       "tj_others_C": 105.81443798653159,
+       "limit_C": 150.0,
+       "I_A": 180.0,
+       "I_nominal_A": 180.0
+      },
+      "45C 110 %": {
+       "k": 1.0790409868956798,
+       "tj_hot_C": 121.23141635574203,
+       "tj_others_C": 119.64363837356534,
+       "limit_C": 150.0,
+       "I_A": 198.00000000000003,
+       "I_nominal_A": 198.00000000000003
+      },
+      "45C 120 % 2 min": {
+       "k": 1.0792716749838533,
+       "tj_hot_C": 132.90788670547346,
+       "tj_others_C": 130.65128554098416,
+       "limit_C": 165.0,
+       "I_A": 216.0,
+       "I_nominal_A": 216.0,
+       "tj_hot_at_nominal_C": 132.90788670547346
+      },
+      "45C 200 ms": {
+       "k": 1.0792716749838533,
+       "tj_hot_C": 156.0355877054285,
+       "tj_others_C": 150.86147007254354,
+       "limit_C": 175.0,
+       "I_A": 259.2,
+       "I_nominal_A": 259.2,
+       "tj_hot_at_nominal_C": 156.0355877054285
+      },
+      "60C 100 %": {
+       "k": 1.0795638704395705,
+       "tj_hot_C": 126.9058527327768,
+       "tj_others_C": 125.51758703279316,
+       "limit_C": 150.0,
+       "I_A": 180.0,
+       "I_nominal_A": 180.0
+      },
+      "60C 110 %": {
+       "k": 1.078822464723621,
+       "tj_hot_C": 142.83035858316862,
+       "tj_others_C": 141.16286006197876,
+       "limit_C": 150.0,
+       "I_A": 198.00000000000003,
+       "I_nominal_A": 198.00000000000003
+      },
+      "60C 120 % 2 min": {
+       "k": 1.0790490097802459,
+       "tj_hot_C": 156.46979467977982,
+       "tj_others_C": 154.06847200003156,
+       "limit_C": 165.0,
+       "I_A": 216.0,
+       "I_nominal_A": 216.0,
+       "tj_hot_at_nominal_C": 156.46979467977982
+      },
+      "60C 200 ms": {
+       "k": 1.0790490097802459,
+       "tj_hot_C": 169.27510972609258,
+       "tj_others_C": 164.94061120551518,
+       "limit_C": 175.0,
+       "I_A": 246.24,
+       "I_nominal_A": 259.2,
+       "tj_hot_at_nominal_C": 182.7304870585251
+      }
+     },
+     "ok_45C": true,
+     "ok_60C_without_derating": false
+    }
+   },
+   "acceptance_rule": "R_DS(on) of the six devices of one switch within +/-5 % of their mean at V_GS 18 V, I_D 38 A pulsed (< 200 us), T_J 25 C (incoming measurement or the maker's bin; the data sheet allows 40 typ / 52 max mOhm) - bounds the conduction share at k <= 1.086; V_GS(th) within +/-0.25 V (V_DS = V_GS, I_D 12 mA, 25 C; data-sheet spread 2.5-4.0 V) for the switching share; one lot per switch",
+   "model_k": 1.1,
+   "bounded_by_rule": true,
+   "derated_60C_A": {
+    "120 % 2 min": 216.0,
+    "200 ms": 246.24
+   },
+   "corners": {
+    "steady": {
+     "vdc": 950.0,
+     "vll": 459.99999999999994,
+     "ang": 90.0
+    },
+    "overload": {
+     "vdc": 900.0,
+     "ang": 90.0
+    }
+   }
+  }
  },
  "inductors": {
   "basis": "CALCULATED by sim/pcs_design.py step c (PWM spectrum + LCL transfer); loss = BUDGET the design must meet",
@@ -1637,6 +1870,9 @@
   "total": 10,
   "C_half_uF": 699.9999999999999,
   "C_series_uF": 349.99999999999994,
+  "C_local_films_uF": 59.4,
+  "C_total_uF": 409.3999999999999,
+  "C_tolerance": "C3D1U147 tolerance code K (+/-10 %, the 9th character of the order code) - all bus figures use +10 % worst case",
   "worst_case": {
    "vdc": 950.0,
    "ang": 0.0,
@@ -1875,9 +2111,99 @@
   "levels": 2,
   "three_level_per_half": 25,
   "bleeder": {
-   "R_per_half_ohm": 440000.0,
-   "P_W_per_half_950V": 0.5127840909090909,
-   "t_to_60V_s": 637.2428344782624
+   "R_elem_ohm": 93100.0,
+   "n_elem": 4,
+   "R_per_half_ohm": 372400.0,
+   "label_min": 15.0,
+   "t60_worst_min": 14.716666666666667,
+   "t60_nominal_min": 13.258333333333333,
+   "t60_worst_bank_and_films_only_min": 14.008333333333333,
+   "t60_worst_rev_A0_440k_min": 17.033333333333335,
+   "C_aux_bulk_uF": 6.6,
+   "C_f_plus_C_d_per_phase_uF": 59.99999999999999,
+   "P_W_950V": 1.211734693877551,
+   "P_W_950V_rev_A0": 1.0255681818181819,
+   "P_W_per_half_950V": 0.6058673469387755,
+   "V_elem_at_half_trip_V": 140.0,
+   "P_elem_at_half_trip_W": 0.21052631578947367,
+   "basis": "worst case: every capacitor +10 %, bleeder +1 %, the 6 M dividers credited (VB, VA, VC x 3), from the 1050 V trip with the C_f charged to the 460 V AC peak at the worst of 6 phase angles; aux input bulk on the bus (its strings not credited); the C_f nodes held inside the bus by the body diodes; criterion: the largest voltage between any two conductors <= 60 V"
+  },
+  "upper_half": {
+   "mechanisms": [
+    {
+     "mech": "capacitance tolerance split at precharge (C3D code K +/-10 %: whole upper half -10 %, lower +10 %)",
+     "v_upper": 577.5,
+     "va": 472.5,
+     "time": "static after the precharge, bled out with tau 4.3 min",
+     "verdict": "inside U_N(70 C); |VA - VB/2| = 0.05 VB, below the 0.07 VB imbalance limit; VB - VA reaches the 540 V limit only above 982 V, outside the 950 V operating range",
+     "ratio_un70": 0.9625,
+     "ratio_un_hs_45C": 0.9625,
+     "ratio_un_hs_60C": 0.9753843859906702
+    },
+    {
+     "mech": "one lower-half capacitor shorted (the lower half collapses, the battery holds the upper half through the closed DC contactor)",
+     "v_upper": 950.0,
+     "va": 0.0,
+     "time": "until the DC contactor opens: firmware detection <= 72 us + release <= 10 ms + margin ~ 20 ms",
+     "verdict": "1.58 x U_N(70 C) at 950 V (1.75 at the 1050 V trip), plus the ring of the upper half's recharge through the battery inductance (not modelled): above every C3D allowance (1.5 U_N for 100 ms) after a first failure, for the ~20 ms until the DC contactor opens - only opening it ends the stress, so a discrete comparator would not shorten it",
+     "ratio_un70": 1.5833333333333333,
+     "ratio_un_hs_45C": 1.5833333333333333,
+     "ratio_un_hs_60C": 1.6045284271707996
+    },
+    {
+     "mech": "upper bleeder string open (only the films' insulation, >= 10,000 s / C, across the upper half)",
+     "v_upper": 927.2401572914961,
+     "va": 22.759842708503925,
+     "time": "drifts with tau 8.0 min from 475 V at 950 V: the 0.07 VB imbalance limit after 1.3 min, U_N(70 C) after 2.6 min",
+     "verdict": "minutes - firmware imbalance limit (controlled stop) long before U_N",
+     "ratio_un70": 1.5454002621524934,
+     "ratio_un_hs_45C": 1.5454002621524934,
+     "ratio_un_hs_60C": 1.5660875696721357
+    },
+    {
+     "mech": "C_f-star current into M (150 Hz zero sequence <= 9 A rms + carrier band, step d)",
+     "v_upper": 534.494291755398,
+     "va": 515.505708244602,
+     "time": "cycle by cycle, zero mean (150 Hz alone: +/-9.9 V peak)",
+     "verdict": "bounded ripple, no drift",
+     "ratio_un70": 0.8908238195923299,
+     "ratio_un_hs_45C": 0.8908238195923299,
+     "ratio_un_hs_60C": 0.9027487213495359
+    },
+    {
+     "mech": "DC offset / step in the zero sequence (C_f blocks DC; a step of V_dc/2 moves M through 3 C_f)",
+     "v_upper": 575.8064516129032,
+     "va": 474.19354838709677,
+     "time": "transient, bled out with tau 4.3 min",
+     "verdict": "bounded, no steady drift",
+     "ratio_un70": 0.9596774193548386,
+     "ratio_un_hs_45C": 0.9596774193548386,
+     "ratio_un_hs_60C": 0.972524021222369
+    }
+   ],
+   "U_N_hot_spot_V": {
+    "45C": 600.0,
+    "60C": 592.0742717379566
+   },
+   "T_hs_C": {
+    "45C": 56.18885923930652,
+    "60C": 71.18885923930651
+   },
+   "hardware_needed": false,
+   "firmware_limit": {
+    "item": "upper DC-link half (VB - VA) and half imbalance",
+    "peripheral": "ADC VA (ADC-A) and VB (ADC-B), converted together every <= 10 us, difference in the outer loop -> trip: one-shot on all ePWM, K_B_M, K_A_M and K_AC2_M low (DC contactor releases in <= 10 ms unless HOLD), cause logged, no automatic restart; slow imbalance -> controlled stop, then the same",
+    "threshold": "VB - VA >= 540 V (527-553 V with 0.6 % per channel, ASSUMED) = the hardware VA trip's nominal; VA < 0.25 VB or VB - VA < 0.25 VB (a shorted half); |VA - VB/2| > 0.07 VB for 1 s (the worst static split of +/-10 % halves is 0.05 VB)",
+    "filter": "2 consecutive outer-loop results (1 s for the imbalance)",
+    "latency": "<= 72 us (31.25 us outer loop x 2 + one 10 us conversion)",
+    "self_test": "power-up: |VA - VB/2| <= 0.07 VB and VB - VA < 540 V at the precharged bank, else no start"
+   },
+   "tau_balance_min": 4.344666666666666,
+   "imbalance_limit_frac_VB": 0.07,
+   "outer_loop_us": 31.25,
+   "conversion_us": 10.0,
+   "latency_us": 72.5,
+   "why": "the one fast mechanism (a shorted lower-half capacitor) is relieved only by opening the DC contactor, whose 10 ms release dwarfs the firmware's 72 us latency - a discrete comparator would gain nothing; every other mechanism takes minutes or stays within U_N(70 C) (SRC-7 / D-050: firmware where it is adequate)"
   }
  },
  "ports_and_common_mode": {
@@ -2082,11 +2408,18 @@
   },
   "precharge": {
    "R_ohm": 220.0,
-   "C_eq_uF": 349.99999999999994,
-   "tau_s": 0.07699999999999999,
-   "t_to_10V_s": 0.3506485206532416,
-   "E_J_950V": 157.93749999999997,
-   "I_pk_A": 4.318181818181818
+   "C_eq_uF": 409.3999999999999,
+   "C_eq_max_uF": 450.34,
+   "tau_s": 0.09006799999999998,
+   "tau_max_s": 0.10402853999999999,
+   "t_to_10V_s": 0.4101585838726774,
+   "t_to_10V_max_s": 0.48414470044477587,
+   "E_J_950V": 184.74174999999997,
+   "E_J_max": 248.249925,
+   "E_short_J": 761.8928798325358,
+   "t_short_s": 0.144431394,
+   "I_pk_A": 4.318181818181818,
+   "basis": "charge from 0 to the 1050 V trip with C +10 % and R +5 % (tau_max); shorted bank: 1050 V on R -5 % until the abort at 1.1 tau_max + 30 ms relay release (the lean port's convention, port_spec lean)"
   },
   "dc_port": {
    "contactor": "Hongfa HFE82V-300C/1000 (300 A at 85 C, break-once 1.5 kA; port_spec lean)",
@@ -2097,20 +2430,2271 @@
    "ov_trip_V": 1050.0
   }
  },
+ "operating_map": {
+  "basis": "CALCULATED steady state: V_c = V_g + (R + j w L) I, L = L1 + L2 = 126 uH, R = 16.0 mOhm per phase (one switch of six devices at 150 C + the L1 / L2 copper models); modulation limit 1.1316 (SVPWM linear limit x 0.98) less 0.033 dead-time compensation (2 x 510 ns x 32 kHz, ASSUMED: top of the drawn hardware dead time) and a 5 % current-loop headroom (ASSUMED); grid impedance and harmonics outside L2 not counted; P at the AC terminals",
+  "R_ohm_per_phase": 0.016024412551180024,
+  "L_H": 0.00012599999999999997,
+  "m_usable": 1.0989665276116665,
+  "vdc_min_at_rated_current_V": {
+   "340 V 50 Hz": {
+    "PF 1 inverter": 538.6179756047591,
+    "PF 1 rectifier": 523.038656173967,
+    "PF 0, Q > 0 (over-excited, current lags)": 549.7891286671053,
+    "PF 0, Q < 0 (under-excited, current leads)": 511.2833592992278,
+    "diode conduction (sqrt(2) V_LL)": 480.83261120685233,
+    "closing permissive (no load, synchronised close)": 530.4789037108865
+   },
+   "340 V 60 Hz": {
+    "PF 1 inverter": 538.7693896978109,
+    "PF 1 rectifier": 523.194578988594,
+    "PF 0, Q > 0 (over-excited, current lags)": 553.6397374482262,
+    "PF 0, Q < 0 (under-excited, current leads)": 507.4328171065238,
+    "diode conduction (sqrt(2) V_LL)": 480.83261120685233,
+    "closing permissive (no load, synchronised close)": 530.4789037108865
+   },
+   "360 V 50 Hz": {
+    "PF 1 inverter": 569.8037631436969,
+    "PF 1 rectifier": 554.2233359615968,
+    "PF 0, Q > 0 (over-excited, current lags)": 580.9908021335116,
+    "PF 0, Q < 0 (under-excited, current leads)": 542.484582687267,
+    "diode conduction (sqrt(2) V_LL)": 509.11688245431424,
+    "closing permissive (no load, synchronised close)": 561.6835451056444
+   },
+   "360 V 60 Hz": {
+    "PF 1 inverter": 569.9468923711235,
+    "PF 1 rectifier": 554.3704878104389,
+    "PF 0, Q > 0 (over-excited, current lags)": 584.8414509639003,
+    "PF 0, Q < 0 (under-excited, current leads)": 538.6339899348394,
+    "diode conduction (sqrt(2) V_LL)": 509.11688245431424,
+    "closing permissive (no load, synchronised close)": 561.6835451056444
+   },
+   "400 V 50 Hz": {
+    "PF 1 inverter": 632.1809203515003,
+    "PF 1 rectifier": 616.5987548934213,
+    "PF 0, Q > 0 (over-excited, current lags)": 643.3950126925188,
+    "PF 0, Q < 0 (under-excited, current leads)": 604.888087364085,
+    "diode conduction (sqrt(2) V_LL)": 565.685424949238,
+    "closing permissive (no load, synchronised close)": 624.0928278951606
+   },
+   "400 V 60 Hz": {
+    "PF 1 inverter": 632.3099300874949,
+    "PF 1 rectifier": 616.7310241644248,
+    "PF 0, Q > 0 (over-excited, current lags)": 647.2457248994788,
+    "PF 0, Q < 0 (under-excited, current leads)": 601.0374160179225,
+    "diode conduction (sqrt(2) V_LL)": 565.685424949238,
+    "closing permissive (no load, synchronised close)": 624.0928278951606
+   },
+   "440 V 50 Hz": {
+    "PF 1 inverter": 694.5638493161193,
+    "PF 1 rectifier": 678.9803974375382,
+    "PF 0, Q > 0 (over-excited, current lags)": 705.8001202239024,
+    "PF 0, Q < 0 (under-excited, current leads)": 667.292672800464,
+    "diode conduction (sqrt(2) V_LL)": 622.2539674441618,
+    "closing permissive (no load, synchronised close)": 686.5021106846766
+   },
+   "440 V 60 Hz": {
+    "PF 1 inverter": 694.6812739721778,
+    "PF 1 rectifier": 679.1005166654049,
+    "PF 0, Q > 0 (over-excited, current lags)": 709.6508797939638,
+    "PF 0, Q < 0 (under-excited, current leads)": 663.4419439185926,
+    "diode conduction (sqrt(2) V_LL)": 622.2539674441618,
+    "closing permissive (no load, synchronised close)": 686.5021106846766
+   },
+   "460 V 50 Hz": {
+    "PF 1 inverter": 725.7570131047505,
+    "PF 1 rectifier": 710.1730400559596,
+    "PF 0, Q > 0 (over-excited, current lags)": 737.0029391508801,
+    "PF 0, Q < 0 (under-excited, current leads)": 698.4952802818475,
+    "diode conduction (sqrt(2) V_LL)": 650.5382386916237,
+    "closing permissive (no load, synchronised close)": 717.7067520794346
+   },
+   "460 V 60 Hz": {
+    "PF 1 inverter": 725.8693916273861,
+    "PF 1 rectifier": 710.2878842083022,
+    "PF 0, Q > 0 (over-excited, current lags)": 740.8537180320558,
+    "PF 0, Q < 0 (under-excited, current leads)": 694.6445282536224,
+    "diode conduction (sqrt(2) V_LL)": 650.5382386916237,
+    "closing permissive (no load, synchronised close)": 717.7067520794346
+   }
+  },
+  "admissible": {
+   "590": {
+    "340": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 116.6
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -116.6
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 116.6
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -116.6
+      }
+     }
+    },
+    "360": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 123.5
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -123.5
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 123.5
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -123.5
+      }
+     }
+    },
+    "400": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 0.0,
+       "P_kW": -0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": -0.0
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 0.0,
+       "P_kW": -0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": -0.0
+      }
+     }
+    },
+    "440": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 0.0,
+       "P_kW": -0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": -0.0
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 0.0,
+       "P_kW": -0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": -0.0
+      }
+     }
+    },
+    "460": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 0.0,
+       "P_kW": -0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": -0.0
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 0.0,
+       "P_kW": -0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": -0.0
+      }
+     }
+    }
+   },
+   "600": {
+    "340": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 116.6
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -116.6
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 116.6
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -116.6
+      }
+     }
+    },
+    "360": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 123.5
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -123.5
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 123.5
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -123.5
+      }
+     }
+    },
+    "400": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 0.0,
+       "P_kW": -0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": -0.0
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 0.0,
+       "P_kW": -0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": -0.0
+      }
+     }
+    },
+    "440": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 0.0,
+       "P_kW": -0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": -0.0
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 0.0,
+       "P_kW": -0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": -0.0
+      }
+     }
+    },
+    "460": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 0.0,
+       "P_kW": -0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": -0.0
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 0.0,
+       "P_kW": -0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": -0.0
+      }
+     }
+    }
+   },
+   "650": {
+    "340": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 116.6
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -116.6
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 116.6
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -116.6
+      }
+     }
+    },
+    "360": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 123.5
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -123.5
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 123.5
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -123.5
+      }
+     }
+    },
+    "400": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 197.7,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 197.7,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 137.2
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -137.2
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 197.7,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 197.7,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 137.2
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -137.2
+      }
+     }
+    },
+    "440": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 0.0,
+       "P_kW": -0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": -0.0
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 0.0,
+       "P_kW": -0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": -0.0
+      }
+     }
+    },
+    "460": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 0.0,
+       "P_kW": -0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": -0.0
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 0.0,
+       "P_kW": -0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": -0.0
+      }
+     }
+    }
+   },
+   "700": {
+    "340": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 116.6
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -116.6
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 116.6
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -116.6
+      }
+     }
+    },
+    "360": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 123.5
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -123.5
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 123.5
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -123.5
+      }
+     }
+    },
+    "400": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 197.7,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 197.7,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 137.2
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -137.2
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 197.7,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 197.7,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 137.2
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -137.2
+      }
+     }
+    },
+    "440": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 179.8,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 179.8,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 126.0,
+       "P_kW": 0.0,
+       "Q_kvar": 96.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 179.8,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 179.8,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 105.0,
+       "P_kW": 0.0,
+       "Q_kvar": 80.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     }
+    },
+    "460": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 0.0,
+       "P_kW": -0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": -0.0
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 0.0,
+       "P_kW": -0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 0.0,
+       "P_kW": 0.0,
+       "Q_kvar": -0.0
+      }
+     }
+    }
+   },
+   "750": {
+    "340": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 116.6
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -116.6
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 116.6
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -116.6
+      }
+     }
+    },
+    "360": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 123.5
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -123.5
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 123.5
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -123.5
+      }
+     }
+    },
+    "400": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 197.7,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 197.7,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 137.2
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -137.2
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 197.7,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 197.7,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 137.2
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -137.2
+      }
+     }
+    },
+    "440": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 179.8,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 179.8,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": 150.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 179.8,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 179.8,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": 150.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     }
+    },
+    "460": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 171.9,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 171.9,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 188.3,
+       "P_kW": 0.0,
+       "Q_kvar": 150.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 188.3,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 171.9,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 171.9,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 188.3,
+       "P_kW": 0.0,
+       "Q_kvar": 150.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 188.3,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     }
+    }
+   },
+   "800": {
+    "340": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 116.6
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -116.6
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 116.6
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -116.6
+      }
+     }
+    },
+    "360": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 123.5
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -123.5
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 123.5
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -123.5
+      }
+     }
+    },
+    "400": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 197.7,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 197.7,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 137.2
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -137.2
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 197.7,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 197.7,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 137.2
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -137.2
+      }
+     }
+    },
+    "440": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 179.8,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 179.8,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": 150.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 179.8,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 179.8,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": 150.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     }
+    },
+    "460": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 171.9,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 171.9,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 188.3,
+       "P_kW": 0.0,
+       "Q_kvar": 150.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 188.3,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 171.9,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 171.9,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 188.3,
+       "P_kW": 0.0,
+       "Q_kvar": 150.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 188.3,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     }
+    }
+   },
+   "850": {
+    "340": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 116.6
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -116.6
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 116.6
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -116.6
+      }
+     }
+    },
+    "360": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 123.5
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -123.5
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 123.5
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -123.5
+      }
+     }
+    },
+    "400": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 197.7,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 197.7,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 137.2
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -137.2
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 197.7,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 197.7,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 137.2
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -137.2
+      }
+     }
+    },
+    "440": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 179.8,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 179.8,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": 150.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 179.8,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 179.8,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": 150.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     }
+    },
+    "460": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 171.9,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 171.9,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 188.3,
+       "P_kW": 0.0,
+       "Q_kvar": 150.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 188.3,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 171.9,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 171.9,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 188.3,
+       "P_kW": 0.0,
+       "Q_kvar": 150.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 188.3,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     }
+    }
+   },
+   "900": {
+    "340": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 116.6
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -116.6
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 116.6
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -116.6
+      }
+     }
+    },
+    "360": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 123.5
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -123.5
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 123.5
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -123.5
+      }
+     }
+    },
+    "400": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 197.7,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 197.7,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 137.2
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -137.2
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 197.7,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 197.7,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 137.2
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -137.2
+      }
+     }
+    },
+    "440": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 179.8,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 179.8,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": 150.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 179.8,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 179.8,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": 150.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     }
+    },
+    "460": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 171.9,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 171.9,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 188.3,
+       "P_kW": 0.0,
+       "Q_kvar": 150.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 188.3,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 171.9,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 171.9,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 188.3,
+       "P_kW": 0.0,
+       "Q_kvar": 150.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 188.3,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     }
+    }
+   },
+   "950": {
+    "340": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 116.6
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -116.6
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -116.6,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 116.6
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -116.6
+      }
+     }
+    },
+    "360": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 123.5
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -123.5
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 198.0,
+       "P_kW": 123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 198.0,
+       "P_kW": -123.5,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 123.5
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -123.5
+      }
+     }
+    },
+    "400": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 197.7,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 197.7,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 137.2
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -137.2
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 197.7,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 197.7,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": 137.2
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 198.0,
+       "P_kW": 0.0,
+       "Q_kvar": -137.2
+      }
+     }
+    },
+    "440": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 179.8,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 179.8,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": 150.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 179.8,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 179.8,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": 150.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 196.8,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     }
+    },
+    "460": {
+     "50 Hz": {
+      "PF 1 inverter": {
+       "I_A": 171.9,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 171.9,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 188.3,
+       "P_kW": 0.0,
+       "Q_kvar": 150.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 188.3,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     },
+     "60 Hz": {
+      "PF 1 inverter": {
+       "I_A": 171.9,
+       "P_kW": 137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 1 rectifier": {
+       "I_A": 171.9,
+       "P_kW": -137.0,
+       "Q_kvar": 0.0
+      },
+      "PF 0, Q > 0 (over-excited, current lags)": {
+       "I_A": 188.3,
+       "P_kW": 0.0,
+       "Q_kvar": 150.0
+      },
+      "PF 0, Q < 0 (under-excited, current leads)": {
+       "I_A": 188.3,
+       "P_kW": 0.0,
+       "Q_kvar": -150.0
+      }
+     }
+    }
+   }
+  },
+  "overload_tiers": {
+   "110 % continuous": {
+    "I_A": 198.0,
+    "duration": "continuous",
+    "kVA": {
+     "340": 116.6,
+     "360": 123.5,
+     "400": 137.2,
+     "440": 150.9,
+     "460": 157.8
+    }
+   },
+   "120 % 2 min": {
+    "I_A": 216.0,
+    "duration": "2 min",
+    "kVA": {
+     "340": 127.2,
+     "360": 134.7,
+     "400": 149.6,
+     "440": 164.6,
+     "460": 172.1
+    }
+   },
+   "200 ms limit (1.2 x 216 A)": {
+    "I_A": 259.2,
+    "duration": "200 ms",
+    "kVA": {
+     "340": 152.6,
+     "360": 161.6,
+     "400": 179.6,
+     "440": 197.5,
+     "460": 206.5
+    }
+   }
+  },
+  "S_max_kVA": 150.0,
+  "rectification": {
+   "460 V AC, 590 V DC, stiff grid": {
+    "I_peak_A": 845.9934138776755,
+    "I_dc_mean_A": 730.3441107697502
+   },
+   "460 V AC, 590 V DC, SCR 5": {
+    "I_peak_A": 113.29386132097115,
+    "I_dc_mean_A": 97.80632218266945
+   },
+   "460 V AC, 620 V DC, stiff grid": {
+    "I_peak_A": 157.96432049974945,
+    "I_dc_mean_A": 78.6061386018881
+   },
+   "460 V AC, 620 V DC, SCR 5": {
+    "I_peak_A": 21.15428740553808,
+    "I_dc_mean_A": 10.52678758445707
+   },
+   "440 V AC, 590 V DC, stiff grid": {
+    "I_peak_A": 189.52227695076755,
+    "I_dc_mean_A": 105.99482914877117
+   },
+   "440 V AC, 590 V DC, SCR 5": {
+    "I_peak_A": 25.38047011935718,
+    "I_dc_mean_A": 14.194629978594353
+   },
+   "440 V AC, 620 V DC, stiff grid": {
+    "I_peak_A": 3.2316371443802856,
+    "I_dc_mean_A": 0.44348361753473325
+   },
+   "440 V AC, 620 V DC, SCR 5": {
+    "I_peak_A": 0.4327748236214863,
+    "I_dc_mean_A": 0.059390499546543574
+   }
+  },
+  "t_ac_open_s": 0.05,
+  "rated_power_at_400V_A": 180.42195912175805,
+  "S_max_at_400V_A": 216.50635094610968
+ },
  "cost_usd": {
   "three_wire": {
-   "catalogue": 1408.9041,
-   "5k": 1130.53899,
-   "per_kW_cat": 11.2712328,
-   "per_kW_5k": 9.04431192
+   "catalogue": 1408.9406999999999,
+   "5k": 1130.6102799999999,
+   "per_kW_cat": 11.271525599999999,
+   "per_kW_5k": 9.04488224
   },
   "four_wire": {
-   "catalogue": 1694.2257,
-   "5k": 1360.9877900000001
+   "catalogue": 1694.2745,
+   "5k": 1361.0760799999998
   },
   "four_wire_increment": {
-   "cat": 285.3216,
-   "5k": 230.4488
+   "cat": 285.3338,
+   "5k": 230.4658
   },
   "blocks": {
    "POWER": {
@@ -2118,8 +4702,8 @@
     "5k": 201.98
    },
    "GATE DRIVE": {
-    "catalogue": 50.54,
-    "5k": 37.25
+    "catalogue": 50.58,
+    "5k": 37.32
    },
    "LCL FILTER": {
     "catalogue": 522.6,
@@ -2158,7 +4742,7 @@
     "5k": 10.7
    }
   },
-  "evidence_share_5k": 0.051115088034248156,
+  "evidence_share_5k": 0.0512024355554241,
   "architect": {
    "three_wire": [
     1037.04,
@@ -2254,10 +4838,10 @@
     "qty": 6,
     "part": "class (per channel)",
     "maker": "Nexperia / Diodes / TSC / Yageo",
-    "unit_cat_usd": 3.81,
-    "unit_5k_usd": 3.239,
-    "ext_cat_usd": 22.86,
-    "ext_5k_usd": 19.43,
+    "unit_cat_usd": 3.804,
+    "unit_5k_usd": 3.234,
+    "ext_cat_usd": 22.83,
+    "ext_5k_usd": 19.4,
     "basis_cat": "PV row 2.60 USD (2 gates, contains the stretch) less the stretch + 0.25 USD per extra gate (ESTIMATE) + 0.30 buffer",
     "basis_5k": "ASSUMED x0.85"
    },
@@ -2267,10 +4851,10 @@
     "qty": 6,
     "part": "per gdrv.channel()",
     "maker": "TI / Nexperia + passives",
-    "unit_cat_usd": 0.122,
-    "unit_5k_usd": 0.107,
-    "ext_cat_usd": 0.73,
-    "ext_5k_usd": 0.64,
+    "unit_cat_usd": 0.135,
+    "unit_5k_usd": 0.124,
+    "ext_cat_usd": 0.81,
+    "ext_5k_usd": 0.74,
     "basis_cat": "bom/PV-P75_costed_BOM.csv unit prices",
     "basis_5k": "PV costed BOM 5k column (REAL for the ICs)"
    },
@@ -2341,15 +4925,15 @@
    },
    {
     "block": "SENSING",
-    "function": "Phase current sensor, open-loop TMR +-500 A (C_f side of L1)",
+    "function": "Phase current sensor, open-loop Hall +-625 A, 200 kHz, busbar through the aperture (C_f side of L1)",
     "qty": 3,
-    "part": "STK-HO/A class",
+    "part": "STK-250HO/4",
     "maker": "Sinomags (CN)",
     "unit_cat_usd": 6.0,
     "unit_5k_usd": 4.8,
     "ext_cat_usd": 18.0,
     "ext_5k_usd": 14.4,
-    "basis_cat": "ESTIMATE (architect, range raised for the 450 A trip)",
+    "basis_cat": "ESTIMATE: no LCSC listing; LEM HO 250-S class 13.70 USD at 500 (Digi-Key) x 0.44 (gen/data/cost_estimates.csv)",
     "basis_5k": "ASSUMED x0.80"
    },
    {
@@ -2484,7 +5068,7 @@
    },
    {
     "block": "DC PORT",
-    "function": "D-050 port protection: polarity + precharge-dV interlock comparators and the port over-current window with their logic (gen/port.py lean_port interlocks='full', oc_trip=True, battery port) - 1 x SN74LVC1G32DBVR, 3 x TLV3502AIDCNR, 3 x SN74LVC1G11DBVR",
+    "function": "D-050 port protection: polarity + precharge-dV interlock comparators and the port over-current window with their logic (gen/port.py lean_port interlocks='full', oc_trip=True, battery port) - 3 x SN74LVC1G11DBVR, 1 x SN74LVC1G32DBVR, 3 x TLV3502AIDCNR",
     "qty": 1,
     "part": "lean-port parts (gen/port.py)",
     "maker": "TI + passives",
@@ -2619,7 +5203,7 @@
     "part": "PV-CTL sheets 04/05 (gen/pv_ctrl.py)",
     "maker": "TI / Nexperia + passives",
     "unit_cat_usd": 3.906,
-    "unit_5k_usd": 3.669,
+    "unit_5k_usd": 3.67,
     "ext_cat_usd": 3.91,
     "ext_5k_usd": 3.67,
     "basis_cat": "bom/PV-P75_costed_BOM.csv unit prices (TLV9024PWR: pv_ctrl PRICE estimate)",
@@ -2696,10 +5280,10 @@
     "qty": 1,
     "part": "2 x NSI6651 channel + buffer + 1 x bias",
     "maker": "NOVOSENSE + CUSTOM",
-    "unit_cat_usd": 16.852,
-    "unit_5k_usd": 12.417,
-    "ext_cat_usd": 16.85,
-    "ext_5k_usd": 12.42,
+    "unit_cat_usd": 16.864,
+    "unit_5k_usd": 12.434,
+    "ext_cat_usd": 16.86,
+    "ext_5k_usd": 12.43,
     "basis_cat": "rows above",
     "basis_5k": "rows above"
    },
@@ -2718,9 +5302,9 @@
    },
    {
     "block": "4-WIRE OPTION",
-    "function": "Neutral inductor L_N 120 uH (as L1: the neutral leg's ripple is that of a phase leg) + TMR sensor",
+    "function": "Neutral inductor L_N 120 uH (as L1: the neutral leg's ripple is that of a phase leg) + STK-250HO/4",
     "qty": 1,
-    "part": "L1 class + STK class",
+    "part": "L1 class + STK-250HO/4",
     "maker": "CUSTOM + Sinomags",
     "unit_cat_usd": 132.6,
     "unit_5k_usd": 107.9,
@@ -2760,23 +5344,23 @@
   "protection_D050": {
    "control_3W": [
     3.9063999999999988,
-    3.6692999999999976
+    3.6696999999999975
    ],
    "control_4W": [
     4.406399999999997,
-    4.094299999999999
+    4.094699999999999
    ],
    "port_holdoff": [
     1.448,
     1.448
    ],
    "port_interlocks_oc": [
-    4.769899999999999,
-    4.766099999999999
+    4.7699,
+    4.7661
    ],
    "per_channel_stretch_negdet": [
-    0.12229999999999999,
-    0.10669999999999999
+    0.1345,
+    0.12369999999999999
    ],
    "counts": {
     "control_3W_parts": 81,
@@ -2791,13 +5375,13 @@
      "SN74LVC08APWR": 6
     },
     "port_added": {
-     "SN74LVC1G32DBVR": 1,
      "1.00k": 2,
-     "100n 50V": 7,
-     "TLV3502AIDCNR": 3,
      "100k": 1,
+     "100n 50V": 7,
+     "20.0k": 2,
      "SN74LVC1G11DBVR": 3,
-     "20.0k": 2
+     "SN74LVC1G32DBVR": 1,
+     "TLV3502AIDCNR": 3
     },
     "stretch_per_channel": 7,
     "negdet_per_channel": 4
@@ -3092,6 +5676,7 @@
     },
     "grid_SCR_range": "5 .. stiff",
     "C_dc_series_uF": 349.99999999999994,
+    "C_dc_total_uF": 409.3999999999999,
     "C_f_star": "tied to the DC midpoint"
    },
    "sampling": {
@@ -3101,7 +5686,7 @@
     "dead_time_ns": 300.0,
     "dead_time_error": "1.9 % volt-seconds -> compensate (THDi < 3 %)"
    },
-   "current_loop": "L1 current (sensor on the C_f side of L1): resonance 2.2-9.4 kHz is below f_s/6 = 10.7 kHz, where converter-current feedback with 1.5 T_s delay is inherently damped; keep the bandwidth <= 1.00 kHz (below f_res(SCR 5)/2), resonant terms at h5/h7/h11/h13; grid current for PF/THD = i_L1 - C_f dv_Cf/dt; passive R_d-C_d branch as the fallback damping",
+   "current_loop": "L1 current (sensor on the C_f side of L1): resonance 2.2-9.4 kHz is below f_s/6 = 10.7 kHz, where converter-current feedback with 1.5 T_s delay is inherently damped.  The filter was sized for a loop of at least 1.00 kHz (resonance at SCR 5 above twice it): that is the lower edge of the usable crossover band, not a ceiling - the control study (sim/out/pcs_control/pcs_control_spec.json current_loop) finds 1.0-3.25 kHz meeting PM >= 40 deg / GM >= 6 dB from stiff to SCR 5 and takes 1.75 kHz on the stiff grid; a weak grid lowers the closed loop to about 0.3 kHz (SCR 5); resonant terms h5/h7 (h11/h13 fit at no admissible crossover); grid current for PF/THD = i_L1 - C_f dv_Cf/dt; the passive R_d-C_d branch is required (active damping from the C_f voltage fails at the stiff grid in that study)",
    "pll": "on the C_f (or terminal) voltages, 400 V +-15 %, 50/60 Hz, SCR 5..stiff, unbalance and LVRT/HVRT (EN 50549-1 / GB/T 34120)",
    "modulation": "two-level, sinusoidal where m <= 0.98, min-max zero sequence above (V_dc < ~680 V at 400 V, < ~780 V at 460 V)",
    "midpoint": "no control (two-level); firmware plausibility of the half voltages; C_f-star 150 Hz current <= 9 A rms, ripple <= 19 V pp",
@@ -3114,11 +5699,12 @@
    }
   },
   "board_designers": {
+   "device_acceptance": "R_DS(on) of the six devices of one switch within +/-5 % of their mean at V_GS 18 V, I_D 38 A pulsed (< 200 us), T_J 25 C (incoming measurement or the maker's bin; the data sheet allows 40 typ / 52 max mOhm) - bounds the conduction share at k <= 1.086; V_GS(th) within +/-0.25 V (V_DS = V_GS, I_D 12 mA, 25 C; data-sheet spread 2.5-4.0 V) for the switching share; one lot per switch",
    "power_stage": "3 two-level legs (4 for four-wire): 6 x SG2M040170HJ per switch (TO-247-4L, Kelvin source), Al2O3 pads on one earthed section per leg; per device pair 3 x 2.2 uF / 1300 V film at the pins + RC damper (2 x 4.7 nF 2 kV C0G, 6 x 15 ohm 2512); DC link 5 + 5 x C3D1U147 in two series halves, midpoint to the C_f star",
-   "gate_drive": "6 channels (8 four-wire): NSI6651ASC + NPN/PNP buffer per channel driving 6 gates, R_G,on 8.75 / R_G,off 7.5 ohm per device, R_KS 0.5 ohm, per-gate clamp FET, DESAT 100 ohm + 3 x US1MH, booster, RC dead-time stretch and negative-rail detector (stretch=True, neg_det=True - new '6 x SG2M040170HJ' preset needed), rails +18 / -3.5 V; bias: one SN6505B transformer per phase (2 secondaries); default-off pull-downs; EN from the external stop (wired-AND); FLT/RDY to the latch and the trip zone (D-050)",
-   "control_board": "PV-CTL as drawn (gen/pv_ctrl.py), PV-P75 assembly for three-wire, PV-P100/110 assembly for four-wire: discrete window comparators for each phase current (ladders re-valued for +-450 A on +-500 A TMR), DC over-voltage 1050 V, over-temperature and open probe, the set-dominant latch, heartbeat watchdog, AND gating of 6 (8) PWM, EN, K_DC, K_PRE, K_AC1 and K_AC2 (a spare LVC08 gate); the controller's CMPSS / ADC limits / trip zone as the second layer",
+   "gate_drive": "6 channels (8 four-wire): NSI6651ASC + NPN/PNP buffer per channel driving 6 gates, R_G,on 8.75 / R_G,off 7.5 ohm per device, R_KS 0.5 ohm, per-gate clamp FET, DESAT 100 ohm + 2 x US1MH (PCM-07), booster, RC dead-time stretch and negative-rail detector (stretch=True, neg_det=True - new '6 x SG2M040170HJ' preset needed), rails +18 / -3.5 V; bias: one SN6505B transformer per phase (2 secondaries); default-off pull-downs; EN from the external stop (wired-AND); FLT/RDY to the latch and the trip zone (D-050)",
+   "control_board": "PV-CTL as drawn (gen/pv_ctrl.py), PV-P75 assembly for three-wire, PV-P100/110 assembly for four-wire: discrete window comparators for each phase current (ladders re-valued for +-450 A on the STK-250HO/4), DC over-voltage 1050 V, over-temperature and open probe, the set-dominant latch, heartbeat watchdog, AND gating of 6 (8) PWM, EN, K_DC, K_PRE, K_AC1 and K_AC2 (a spare LVC08 gate); the controller's CMPSS / ADC limits / trip zone as the second layer",
    "sensing": {
-    "phase_current": "3 (4) open-loop TMR +-500 A on the C_f side of L1, bandwidth >= 100 kHz for the CMPSS window at +-450 A",
+    "phase_current": "3 (4) Sinomags STK-250HO/4 (open-loop Hall, I_PN 250 A, +-625 A, 3.2 mV/A around its Uref pin, 200 kHz, <= 2 us step response; pcs_spec phase_current_sensor, PCM-20) on the C_f side of L1, the busbar through its aperture; windows at +-450 A",
     "grid_voltage": "terminal and C_f nodes, L1-L3 (+N), dividers to DC-: signal V_dc/2 +-375 V peak + 20 % surge headroom",
     "dc": "V_DC+ - V_DC-, V_mid, terminal (bipolar, polarity), shunt 2 x 200 uOhm (25 mV at 250 A), ADC limit trips 400 A / 1050 V",
     "residual_current": "type-B fluxgate over L1-L3 (+N), 30 mA resolution, 1.25 A continuous range",
@@ -3127,13 +5713,123 @@
    "ports": "DC: HFE82V-300C/1000, 2 x aR 400 A, precharge 220 ohm, gen/port.py lean_port interlocks='full', oc_trip=True (hold-off, polarity and precharge-dV interlocks, over-current window, all discrete); AC: 2 x 3-pole contactor in series (4-pole four-wire), coil drivers with economiser gated by the latch, type II SPD, CM choke >= 150 uH (3 nanocrystalline cores)"
   },
   "firmware_requirements": [
+   "firmware practice adopted from the Wolfspeed firmware cross-check (docs/requirements/REFERENCE-LESSONS.md section 6, R-WS-1..9, 2026-10-05): range-checked bus/service inputs (no writable switching frequency or dead time in operation); ramp to zero and stop on communication loss (grid-following: fallback to zero power; grid-forming keeps forming); lock-out after the third hazard trip of a class within 10 min (assumed) and at once when hardware and firmware both see an over-voltage; explicit recovery threshold, dwell and restart-rate limit per non-latched limit; every exception path forces the one-shot trip and stops the heartbeat, clock-fail and emulation-stop trips enabled; the start-up self-test fires each fault line alone and the 10 ms read-back covers the trip routing; no bus-reachable mode disables a protection, parameter writes only in SERVICE with authorisation and timeout; redundant range-checked calibration whose failed load blocks the start",
    "second layer of every discrete trip (D-050): CMPSS phase windows +-450 A (digital filter <= 0.5 us), ADC limits I_dc 400 A and V_dc 1050 V, heatsink / L1 over-temperature from the NTCs, the DC-port polarity and precharge-dV conditions re-checked before any coil command, trip zone forcing all PWM low; the hardware latch is cleared by firmware only with no source active",
    "start-up self-test of every trip path, hardware and controller (inject through the ladders / DACs, read the latch and FLT/RDY), heartbeat to the discrete watchdog, read-back and lock of PWM, dead-band (300 ns, the gate-drive stretch is the floor) and trip configuration",
    "sequencing: DC precharge (polarity, |V_bank - V_bat| <= 10 V - also enforced in hardware), discharge through the precharge path on stop; insulation test (IMD) before every connection with the contactors open; inverter forms the grid voltage on C_f, synchronises (|dV| <= 5 %, 5 deg), runs the relay test (each contactor alone, voltage across the open one), closes; opens only at zero current",
    "grid protection EN 50549-1 / GB/T 34120: U/f windows and times, ROCOF / vector shift, active anti-islanding where IEC 62116 applies, LVRT / HVRT with reactive current, P(f), Q(U), cos phi(P) (settings by country)",
    "residual current (type-B sensor): 30 / 60 / 150 mA step trips within 0.3 / 0.15 / 0.04 s and the continuous limit per code (from memory - verify), sensor self-test",
    "current limit 1.2 x 216 A for <= 200 ms then trip; 120 % for <= 2 min; device thermal model; inlet-temperature derating (fan limit 60 C); fan speed control; open / shorted NTC plausibility",
-   "monitoring and non-hazard edge cases: dead-time compensation, the modulation policy (sinusoidal where m <= 0.98), half-voltage plausibility, varistor and contactor feedback, unsynchronised-close prevention (a stressed unit, not a hazard: no extra hardware)"
+   "monitoring and non-hazard edge cases: dead-time compensation, the modulation policy (sinusoidal where m <= 0.98), half-voltage plausibility, varistor and contactor feedback, unsynchronised-close prevention (a stressed unit, not a hazard: no extra hardware)",
+   "upper DC-link half (VB - VA) and half imbalance: VB - VA >= 540 V (527-553 V with 0.6 % per channel, ASSUMED) = the hardware VA trip's nominal; VA < 0.25 VB or VB - VA < 0.25 VB (a shorted half); |VA - VB/2| > 0.07 VB for 1 s (the worst static split of +/-10 % halves is 0.05 VB) - ADC VA (ADC-A) and VB (ADC-B), converted together every <= 10 us, difference in the outer loop -> trip: one-shot on all ePWM, K_B_M, K_A_M and K_AC2_M low (DC contactor releases in <= 10 ms unless HOLD), cause logged, no automatic restart; slow imbalance -> controlled stop, then the same",
+   "modulation-index limiter and operating map: pcs_spec operating_map (5 % loop headroom kept); e.g. rated current at PF 0, Q > 0 needs 643 V DC at 400 V, 737 V at 460 V - control ISR: m = sqrt(2)|V_c*| / (V_dc/2) clamped at 1.0990 (0.98 x 2/sqrt(3) less 2 t_d f_sw dead-time compensation); current references held inside the operating map's admissible current at the measured V_dc / V_ac / f (P or Q priority by setting) before the clamp is reached",
+   "AC contactor closing permissive: V_dc >= 1.02 x sqrt(2) x V_LL,rms(measured) + 10 V and >= the map's V_dc for the commanded P / Q: 624 V at 400 V, 718 V at 460 V (no load) - VB against the line-to-line peak of VG1-3 (terminal side) before K_A_M / K_AC2_M go high - through the relay test and the final close; otherwise no close (the bridge would rectify into the battery)",
+   "V_dc below the rectification threshold while running: meanwhile the body-diode rectifier drives 846 A peak / 730 A mean DC (460 V AC on 590 V, stiff grid, L1 saturation and R not modelled; 113 / 98 A at SCR 5) for <= 50 ms (AC contactor release, ASSUMED); above 387-413 A DC the port window opens the DC contactor first (<= 10 ms release) - outer loop: V_dc < 1.05 x sqrt(2) x V_LL,rms(measured) (the map's no-load limit without the loop headroom) -> controlled stop (current to zero within one grid period, both AC contactors open at zero current); V_dc < sqrt(2) x V_LL,rms + 5 V (the body diodes conduct) -> one-shot on all ePWM, K_A_M and K_AC2_M low (both break the pulsed diode current at its zeros), K_B kept unless the port's hardware over-current window (387-413 A) opens it",
+   "current limit and overload tiers: 110 % continuous 198 A = 117 / 137 / 158 kVA at 340 / 400 / 460 V; 120 % 2 min 216 A = 127 / 150 / 172 kVA at 340 / 400 / 460 V; 200 ms limit (1.2 x 216 A) 259 A = 153 / 180 / 206 kVA at 340 / 400 / 460 V; at 60 C inlet: 120 % 2 min 216 A, 200 ms 246 A - rms of IL1-3 over each grid period, one timer / I2t per tier; reference limited to min(tier, 150 kVA / (sqrt(3) V_ac), the operating map); inlet above 45 C: derated tiers",
+   "contactor coil sequencing (live 24 V budget, PCS-PWR): settled = pull-in window (AC coil module: ASSUMED <= 100 ms) + 100 ms; budget and limits in the PCS-PWR design check - K_PRE_M, K_B_M, K_A_M, K_AC2_M: never two coils pulling in at once; the DC contactor pulls in at the end of the precharge with the gates idle; the second AC contactor only after the first has settled on its economiser; a coil that does not reach its state (relay test VG / VC, the bank following the terminal) is released and retried after >= 10 s (ASSUMED: coil module and aux recovery), at most 3 attempts per start, then lock-out with the cause logged until a reset; a welded contact found by the relay test locks out at once; the DC precharge keeps the port's 3 attempts / 30 s lock-out (port_spec precharge)"
+  ],
+  "firmware_limits": [
+   {
+    "item": "upper DC-link half (VB - VA) and half imbalance",
+    "peripheral": "ADC VA (ADC-A) and VB (ADC-B), converted together every <= 10 us, difference in the outer loop -> trip: one-shot on all ePWM, K_B_M, K_A_M and K_AC2_M low (DC contactor releases in <= 10 ms unless HOLD), cause logged, no automatic restart; slow imbalance -> controlled stop, then the same",
+    "threshold": "VB - VA >= 540 V (527-553 V with 0.6 % per channel, ASSUMED) = the hardware VA trip's nominal; VA < 0.25 VB or VB - VA < 0.25 VB (a shorted half); |VA - VB/2| > 0.07 VB for 1 s (the worst static split of +/-10 % halves is 0.05 VB)",
+    "filter": "2 consecutive outer-loop results (1 s for the imbalance)",
+    "latency": "<= 72 us (31.25 us outer loop x 2 + one 10 us conversion)",
+    "self_test": "power-up: |VA - VB/2| <= 0.07 VB and VB - VA < 540 V at the precharged bank, else no start"
+   },
+   {
+    "item": "modulation-index limiter and operating map",
+    "peripheral": "control ISR: m = sqrt(2)|V_c*| / (V_dc/2) clamped at 1.0990 (0.98 x 2/sqrt(3) less 2 t_d f_sw dead-time compensation); current references held inside the operating map's admissible current at the measured V_dc / V_ac / f (P or Q priority by setting) before the clamp is reached",
+    "threshold": "pcs_spec operating_map (5 % loop headroom kept); e.g. rated current at PF 0, Q > 0 needs 643 V DC at 400 V, 737 V at 460 V",
+    "filter": "-",
+    "latency": "every control period (15.6 us)",
+    "self_test": "-"
+   },
+   {
+    "item": "AC contactor closing permissive",
+    "peripheral": "VB against the line-to-line peak of VG1-3 (terminal side) before K_A_M / K_AC2_M go high - through the relay test and the final close; otherwise no close (the bridge would rectify into the battery)",
+    "threshold": "V_dc >= 1.02 x sqrt(2) x V_LL,rms(measured) + 10 V and >= the map's V_dc for the commanded P / Q: 624 V at 400 V, 718 V at 460 V (no load)",
+    "filter": "one grid period",
+    "latency": "-",
+    "self_test": "-"
+   },
+   {
+    "item": "V_dc below the rectification threshold while running",
+    "peripheral": "outer loop: V_dc < 1.05 x sqrt(2) x V_LL,rms(measured) (the map's no-load limit without the loop headroom) -> controlled stop (current to zero within one grid period, both AC contactors open at zero current); V_dc < sqrt(2) x V_LL,rms + 5 V (the body diodes conduct) -> one-shot on all ePWM, K_A_M and K_AC2_M low (both break the pulsed diode current at its zeros), K_B kept unless the port's hardware over-current window (387-413 A) opens it",
+    "threshold": "meanwhile the body-diode rectifier drives 846 A peak / 730 A mean DC (460 V AC on 590 V, stiff grid, L1 saturation and R not modelled; 113 / 98 A at SCR 5) for <= 50 ms (AC contactor release, ASSUMED); above 387-413 A DC the port window opens the DC contactor first (<= 10 ms release)",
+    "filter": "2 outer-loop results",
+    "latency": "<= 72 us + the contactor release",
+    "self_test": "-"
+   },
+   {
+    "item": "current limit and overload tiers",
+    "peripheral": "rms of IL1-3 over each grid period, one timer / I2t per tier; reference limited to min(tier, 150 kVA / (sqrt(3) V_ac), the operating map); inlet above 45 C: derated tiers",
+    "threshold": "110 % continuous 198 A = 117 / 137 / 158 kVA at 340 / 400 / 460 V; 120 % 2 min 216 A = 127 / 150 / 172 kVA at 340 / 400 / 460 V; 200 ms limit (1.2 x 216 A) 259 A = 153 / 180 / 206 kVA at 340 / 400 / 460 V; at 60 C inlet: 120 % 2 min 216 A, 200 ms 246 A",
+    "filter": "one grid period",
+    "latency": "per period",
+    "self_test": "-"
+   },
+   {
+    "item": "contactor coil sequencing (live 24 V budget, PCS-PWR)",
+    "peripheral": "K_PRE_M, K_B_M, K_A_M, K_AC2_M: never two coils pulling in at once; the DC contactor pulls in at the end of the precharge with the gates idle; the second AC contactor only after the first has settled on its economiser; a coil that does not reach its state (relay test VG / VC, the bank following the terminal) is released and retried after >= 10 s (ASSUMED: coil module and aux recovery), at most 3 attempts per start, then lock-out with the cause logged until a reset; a welded contact found by the relay test locks out at once; the DC precharge keeps the port's 3 attempts / 30 s lock-out (port_spec precharge)",
+    "threshold": "settled = pull-in window (AC coil module: ASSUMED <= 100 ms) + 100 ms; budget and limits in the PCS-PWR design check",
+    "filter": "-",
+    "latency": "-",
+    "self_test": "-"
+   }
   ]
+ },
+ "phase_current_sensor": {
+  "mpn": "STK-250HO/4",
+  "mfr": "Sinomags Technology",
+  "datasheet": "docs/datasheets/sensing/Sinomags-STK-HO-4.pdf",
+  "principle": "open-loop Hall, aperture 15 x 8 mm busbar, 5-pin 2 mm connector",
+  "I_PN_A": 250.0,
+  "linear_range_A": 625.0,
+  "gain_mV_per_A": 3.2,
+  "vref_V": 2.5,
+  "vref_range_V": [
+   2.48,
+   2.52
+  ],
+  "offset_mV": 8.0,
+  "offset_drift_mV": 10.0,
+  "gain_error": 0.005,
+  "gain_drift": 0.01,
+  "linearity_of_I_PM": 0.005,
+  "accuracy_25C_of_I_PN": 0.01,
+  "accuracy_m40_105C_of_I_PN": 0.03,
+  "bandwidth_Hz": 200000.0,
+  "step_response_s": 2e-06,
+  "step_response_typ_s": 1.5e-06,
+  "supply_V": [
+   4.75,
+   5.25
+  ],
+  "supply_mA": [
+   6.0,
+   10.0
+  ],
+  "r_out_ohm": [
+   10.0,
+   30.0
+  ],
+  "r_ref_ohm": [
+   5.0,
+   25.0
+  ],
+  "noise_mVpp": 4.4,
+  "ocd_x_I_PN": 2.93,
+  "ocd_tolerance": 0.1,
+  "isolation": {
+   "test_kV_rms_1min": 4.3,
+   "impulse_kV": 8.0,
+   "clearance_creepage_mm": 8.0,
+   "CTI": 600,
+   "working_voltage": "not stated by the maker"
+  },
+  "qualification": "none stated (SRC-2 gap)",
+  "lcsc": "not listed",
+  "pages": "p13 electrical, p2 isolation, p19 pins"
  }
 }

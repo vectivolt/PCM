@@ -4,6 +4,12 @@ verdict, ngspice cross-check and the schematic hand-off sim/out/dab_design/dab_s
 
     .venv/bin/python sim/dab_design.py
 
+Assembly identity (PCM-09): the results of this script are a STUDY of the device option it chooses (today D2W, 2 x
+1200 V TO-247-4 discretes per switch, NSI6651 drivers, +18 / -3.5 V) - no schematic, no BOM, DAB-12 optional track.
+The drawn board DAB60 rev B0 (gen/dab60.py, frozen, not regenerated) is module-based (2 x CBB011M12GM4T, UCC21710,
++15 / -4 V); its own evidence is hardware/DAB60/outputs/DAB60_design_check.txt, computed from the earlier module-round
+dab_spec.json.  dab_spec.json 'assembly' says which result belongs to which device set.
+
 Model conventions (all calculated, nothing bench-validated):
   * n = N1/N2. Series inductance L (leakage + external) lumped on the primary side; magnetising inductance Lm
     across the ideal transformer after L, so Lm sees the secondary voltage referred to the primary.
@@ -89,9 +95,12 @@ A = {
     'L_loop_disc': ({2: 15e-9, 3: 13e-9}, 'H commutation loop of the discrete layout per paralleling count: the '
                                           'Infineon IMZA120R020M1H TO-247-4 DPT loop is 15 nH (DS p5) - ASSUMPTION '
                                           'that our two-device layout matches it and three devices reach 13 nH'),
-    'k_os': (1.63, 'overshoot factor of the capacitive-commutation rule for discretes (dv_os): ngspice die '
-                    'overshoots at 950 V / 119 A and 238 A (277 / 689 V, first scratch run of this round) divided by '
-                    '1.47 (deck vs datasheet on the GM4) = 188 / 469 V = 1.63 / 0.91 x the I^2 law - the larger is used'),
+    'k_os': (2.47, 'overshoot factor of the capacitive-commutation I^2 rule (dv_os) - option SCREENING only, the same '
+                    'for every discrete/module option: the harsh ngspice deck at 950 V / 119 A with the CRD terminal '
+                    'network (10 x 47 nF) is 2.47 x L_loop I^2 / Q_leg (report section 7; selfcheck ties it to the '
+                    'deck). The earlier 1.63 divided the deck by its 1.47x harshness on the GM4 MODULE (another '
+                    'device) - withdrawn as a clearance (PCM-11). The chosen option\'s admitted map uses the deck '
+                    'envelope itself (deck_calibration(), report section 7)'),
     'xfmr_unit_mismatch': (0.05, 'current-sharing error between the two paralleled transformer units = their leakage '
                                  'matching tolerance (design_dab_transformer.json: matched within +/-5 %); the hotter '
                                  'unit carries (1 + 0.05)^2 of half the copper loss'),
@@ -103,6 +112,12 @@ A = {
     'desat_vds_trip': ((5.52, 7.01, 8.28), 'V device V_DS at the DESAT trip for n = 2 US1M + 1.5 kOhm (asia_drivers.md '
                                            'sec. 7.2, calculated there with the NSI limits)'),
     'tsc_hot_factor': (0.7, 'short-circuit withstand at 150 C start relative to 25 C (ASSUMPTION; no maker data)'),
+    'i_sc_dev_factor': (2.0, 'short-circuit current per device at V_GS(on) = this x the pulsed I_D rating - ASSUMPTION (no '
+                             'SC data from either maker), the same rule as the gen/gdrv.py SC14 / IV3Q presets; the '
+                             'energy RATIO chain / withstand does not depend on it (both at the same current)'),
+    'r_desat_pu': (10e3, 'ohm VCC2-to-DESAT pull-up, evaluated as a DR-05 lever only (not fitted)'),
+    't_booster': (50e-9, 's booster trigger chain MMBT3904 -> MMBT3906 -> AO3400A gate (gen/gdrv.py rev 5) - ASSUMED, '
+                         'DR-05 lever only'),
     't_dead_hw': ((0.0, 0.0), 's (min, max) gate-level window of the hardware shoot-through guard; set by the DR-02 '
                               'decision in dead_time_decision()'),
 }
@@ -112,22 +127,22 @@ def a(key):
     return A[key][0]
 
 
-# Magnetics corrections from the independent verification (MAG-1; gen/data/review_magnetics.csv when forwarded).
-# Factors multiply the modelled losses; 1.0 = our own calculation unchanged.
+# Factors multiply our own (reference-construction) magnetics loss terms; they stay 1.0: the magnetics design files
+# below replace those terms in evaluate() (only the CRD calibration keeps its own measured R_w / R_c).
 MAG_CORR = dict(k_core_xfmr=1.0, k_cu_xfmr=1.0, k_core_ind=1.0, k_cu_ind=1.0, src='none applied yet')
-# Independent ('own') figures of the magnetics verification for the PM 114/93 reference construction at 800 V / 873 V
-# 60 kW (sim/out/magnetics/report.md sec. 3.2, 3.3; findings MG-01, MG-03, MG-05).  Used until the magnetics
-# engineer's design files sim/out/magnetics/design_dab_transformer.json / design_dab_series_inductor.json exist.
-MAG_IND = dict(xfmr_cu_W=337.22, xfmr_core_W=18.09, ind_cu_W=163.08, ind_core_W=5.17, v1=800.0, v2=800.0 * 12 / 11,
-               p=60e3, check_v2low=dict(v1=700.0, v2=400.0, p=37.5e3, xfmr_cu_W=400.81, xfmr_core_W=2.09),
-               xfmr_core_set_limit_factor=3.1,
-               src='sim/out/magnetics/report.md sec. 3.2 / 3.3 (own model = independent figures, 2026-10-04)')
 MAG_FILES = ('sim/out/magnetics/design_dab_transformer.json', 'sim/out/magnetics/design_dab_series_inductor.json')
-MAGD = None        # magnetics design data (the two files above) once they exist
+MAGD = None        # magnetics design data (the two files above), loaded by calibrate_magnetics()
+
+
+def need(path, producer):
+    """Input file of this study: stop with a clear message instead of substituting built-in values (PCM-23)."""
+    if not os.path.exists(path):
+        raise SystemExit(f'{path} not found - it is an input of sim/dab_design.py; run {producer} first')
+    return path
 
 
 def MAG_SRC():
-    return MAGD['src'] if MAGD else 'independent figures of the magnetics verification (' + MAG_IND['src'] + ')'
+    return MAGD['src']
 
 
 def _r_h(w, h):
@@ -162,26 +177,19 @@ def mag_losses(o, s, h, hl, a2, v2):
 
 
 def calibrate_magnetics(D):
-    """Scale our magnetics loss terms so that they reproduce the independent figures at the reference point (SPS,
-    800 / 873 V, 60 kW); the harmonic law F_r(h) = 1 + (F_r1 - 1) h^2 keeps the shape over the map."""
+    """Load the magnetics engineer's design files (loss model, thermal, leakage split).  Missing files or files made
+    for another n / L / L_m stop the run (PCM-23: no built-in substitute figures)."""
     global MAGD
-    if all(os.path.exists(f) for f in MAG_FILES):
-        MAGD = dict(xfmr=json.load(open(MAG_FILES[0])), ind=json.load(open(MAG_FILES[1])))
-        MAGD['src'] = ('magnetics design files rev %s / %s (%s; %s)' % (MAGD['xfmr']['revision'], MAGD['ind']['revision'],
-                                                                     MAG_FILES[0], MAG_FILES[1]))
-        MAG_CORR['src'] = MAGD['src']
-        return MAG_CORR
-    MAGD = None
-    for k in ('k_core_xfmr', 'k_cu_xfmr', 'k_core_ind', 'k_cu_ind'):
-        MAG_CORR[k] = 1.0
-    m = MAG_IND
-    r = evaluate([m['v1']], [m['v2']], [m['p']], D, iters=1, mod=MOD_GM4)
-    MAG_CORR.update(k_cu_xfmr=m['xfmr_cu_W'] / r['p_cu'][0], k_core_xfmr=m['xfmr_core_W'] / r['p_core'][0],
-                    k_cu_ind=m['ind_cu_W'] / r['pl_cu'][0], k_core_ind=m['ind_core_W'] / r['pl_core'][0],
-                    src=m['src'])
-    c = m['check_v2low']
-    r2 = evaluate([c['v1']], [c['v2']], [c['p']], D, iters=1, mod=MOD_GM4)
-    MAG_CORR['check_v2low_cu_W'] = (float(r2['p_cu'][0]), c['xfmr_cu_W'])
+    MAGD = dict(xfmr=json.load(open(need(MAG_FILES[0], 'sim/magnetics.py'))),
+                ind=json.load(open(need(MAG_FILES[1], 'sim/magnetics.py'))))
+    ex = MAGD['xfmr']['electrical']
+    for key, val in (('n', D['n']), ('L_m_H', D['Lm']), ('L_total_H', D['L'])):
+        if abs(ex[key] / val - 1) > 1e-3:
+            raise SystemExit(f'{MAG_FILES[0]} is stale: electrical {key} = {ex[key]:.6g}, this design (D-014) {val:.6g} '
+                             '- rerun sim/magnetics.py on the current dab_spec.json')
+    MAGD['src'] = ('magnetics design files rev %s / %s (%s; %s)' % (MAGD['xfmr']['revision'], MAGD['ind']['revision'],
+                                                                 MAG_FILES[0], MAG_FILES[1]))
+    MAG_CORR['src'] = MAGD['src']
     return MAG_CORR
 
 
@@ -551,7 +559,7 @@ def evaluate(v1, v2, p, D, a1=0.0, a2=0.0, tdead=None, t_in=None, vgs18=False, c
     WORST-CASE (longest) gate-level value hw[1] is used for the losses (DR-02); a number = fixed dead time, no guard.
     mod: switch-option profile (None = DESIGN); extra = (k0 [W], k1 [W/W], 'modules' | 'magnetics'): pessimistic
     unexplained loss k0 + k1*|p| added to the efficiency and to the heat of the chosen components; k_cu scales the
-    magnetics copper loss; hw = (min, max) guard window [s] (None = the option's, else A['t_dead_hw'])."""
+    magnetics copper loss; hw = (min, max) guard window [s] (None = the option's own hw_dt)."""
     mod = DESIGN if mod is None else mod
     if mod['kind'] == 'pair':                       # worse of the two makers at every point
         kw_ = dict(a1=a1, a2=a2, tdead=tdead, t_in=t_in, vgs18=vgs18, cap1=cap1, cap2=cap2, iters=iters,
@@ -574,7 +582,7 @@ def evaluate(v1, v2, p, D, a1=0.0, a2=0.0, tdead=None, t_in=None, vgs18=False, c
     npos = 4 * npar                                          # switch positions (or devices) sharing a bridge's loss
     qf, ef, cnd = _qe(mod)
     k_i, k_c, k_s = share(mod)
-    hw = (mod.get('hw_dt') or a('t_dead_hw')) if hw is None else hw
+    hw = mod['hw_dt'] if hw is None else hw
     l_bus = mod.get('l_bus') or a('L_bus')
     tj1 = np.full(v1.shape, 90.0)
     tj2 = tj1.copy()
@@ -710,13 +718,18 @@ def window_points(powers=(20e3, 40e3, 60e3)):
     return v1.ravel(), v2.ravel(), p.ravel()
 
 
+V_DS_LIM = 1200.0     # V: die-level peak limit = V_DSS of every option; no maker publishes a repetitive overvoltage or
+                      # avalanche rating, so the absolute rating is also the repetitive limit (no margin)
+
+
 def dv_os(i, l_loop=None, mod=None, v=800.0):
     """Turn-off overshoot at the dies [V] for the switch-position turn-off current i at bus voltage v.  Incumbent:
     implied by DS Fig. 19 (1200 V minus the V_DD limit at I_off, vector data), scaled from the 24 nH test loop to
-    l_loop.  Other parts (no switching-SOA curve published): in a ZVS turn-off the channel stops within the delay
-    and the leg current commutates capacitively, di/dt = I / t_swing with t_swing = Q_leg(v) / I, so
-    dV = k_os x L_loop x I^2 / Q_leg(v), Q_leg = 2 Q_oss,position(v) + C_node v; k_os calibrated to the ngspice decks
-    divided by their known harshness against a datasheet SOA (1.47 on the GM4, see I_CH_MAX)."""
+    l_loop.  Other parts (no switching-SOA curve published): screening rule - in a ZVS turn-off the leg current
+    commutates capacitively, di/dt = I / t_swing with t_swing = Q_leg(v) / I, so dV = k_os x L_loop x I^2 / Q_leg(v),
+    Q_leg = 2 Q_oss,position(v) + C_node v, k_os fitted to the harsh deck (no credit for its harshness).  The chosen
+    option, once deck_calibration() has run (mod['dv_env']), uses the harsh-deck envelope itself, scaled with
+    L_loop / its deck loop; above the deck's highest current the I^2 law adds its own increment (PCM-11)."""
     mod = DESIGN if mod is None else mod
     if mod['kind'] == 'gm4':
         l_ = a('L_loop') if l_loop is None else l_loop
@@ -724,7 +737,12 @@ def dv_os(i, l_loop=None, mod=None, v=800.0):
     l_ = mod['l_loop'] if l_loop is None else l_loop
     qf, _, cn = _qe(mod)
     q_leg = 2 * qf(np.asarray(v, float)) + cn * np.asarray(v, float)
-    return a('k_os') * l_ * np.asarray(i, float) ** 2 / q_leg
+    i_ = np.asarray(i, float)
+    law = lambda x: a('k_os') * l_ * x ** 2 / q_leg
+    if 'dv_env' not in mod:
+        return law(i_)
+    ie, de, l0 = mod['dv_env']
+    return np.interp(i_, ie, de) * l_ / l0 + np.maximum(law(i_) - law(ie[-1]), 0.0)
 
 
 def current_ok(r, mod=None):
@@ -770,13 +788,22 @@ TPS_GRID = np.radians([0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 75, 90])
 
 
 def ssoa_ok(r, l_loop=None, mod=None):
-    """Turn-off SOA: V_bus + dv_os(I_off) <= 1200 V on both bridges (incumbent: datasheet Fig. 19)."""
-    return np.maximum(r['v1'] + dv_os(r['ioff1'], l_loop, mod, r['v1']),
-                      r['v2'] + dv_os(r['ioff2'], l_loop, mod, r['v2'])) <= 1200.0
+    """Turn-off SOA: V_bus + dv_os(I_off) <= V_DS_LIM on both bridges (incumbent: datasheet Fig. 19).  Asian options
+    also turn-on: V_bus + v_res <= V_DS_LIM - a partial or hard turn-on with v_res still across the incoming switch rings
+    the opposite switch by up to that step (lossless LC bound; the harsh deck gives 0.67-0.75 x at 800-950 V, section
+    15), so no hard turn-on above 600 V and no SPS at light load above 800 V (PCM-11)."""
+    mod = DESIGN if mod is None else mod
+    off = np.maximum(r['v1'] + dv_os(r['ioff1'], l_loop, mod, r['v1']),
+                     r['v2'] + dv_os(r['ioff2'], l_loop, mod, r['v2'])) <= V_DS_LIM
+    if mod['kind'] == 'gm4' or mod.get('rule_2026_10_04'):         # the incumbent / the withdrawn rule: turn-off only
+        return off
+    return off & (np.maximum(r['v1'] + r['vres1'], r['v2'] + r['vres2']) <= V_DS_LIM)
 
 
-def best_modulation(v1, v2, p, D, grid=TPS_GRID, **kw):
-    """Minimum-loss inner shifts (a1, a2) per point among those that respect the turn-off SSOA."""
+def best_modulation(v1, v2, p, D, grid=TPS_GRID, retry=None, **kw):
+    """Minimum-loss inner shifts (a1, a2) per point among those that respect the SSOA (turn-off and turn-on).  retry: a
+    finer grid on which the points without an SSOA-feasible entry are evaluated again (the LUT's TPS_MAP), so that an
+    admission decision is not lost to the coarse grid."""
     v1, v2, p = np.broadcast_arrays(*[np.asarray(x, float).ravel() for x in (v1, v2, p)])
     g1, g2 = np.meshgrid(grid, grid, indexing='ij')
     g1, g2 = g1.ravel(), g2.ravel()
@@ -785,6 +812,13 @@ def best_modulation(v1, v2, p, D, grid=TPS_GRID, **kw):
     cost = np.where(ssoa_ok(r, mod=kw.get('mod')), cost, cost + 1e6)   # SSOA violation only if unavoidable
     k = np.argmin(cost, -1)
     pick = {key: (val[np.arange(len(k)), k] if np.ndim(val) == 2 else val) for key, val in r.items()}
+    bad = np.where(cost[np.arange(len(k)), k] >= 1e6)[0] if retry is not None else []
+    if len(bad):
+        r2 = best_modulation(v1[bad], v2[bad], p[bad], D, grid=retry, **kw)
+        for key, val in r2.items():
+            if np.ndim(pick[key]) == 1 and len(pick[key]) == len(k):
+                pick[key] = np.array(pick[key], dtype=np.result_type(pick[key], val))
+                pick[key][bad] = val
     return pick
 
 
@@ -895,7 +929,7 @@ def study_dead_time(D):
     v1, v2, p = window_points((10e3, 20e3, 40e3, 60e3))
     out = {}
     cases = (('firmware LUT only (50-300 ns, no guard)', None, (0.0, 0.0)),
-             ('LUT + decided hardware guard', None, DESIGN.get('hw_dt') or a('t_dead_hw')),
+             ('LUT + decided hardware guard', None, DESIGN['hw_dt']),
              ('LUT + guard as drawn on DAB60 rev B (104-354 ns)', None, (104e-9, 354e-9)),
              ('fixed 200 ns (CRD firmware)', 200e-9, None),
              ('fixed 400 ns (ST STSW-DABBIDIR)', 400e-9, None))
@@ -951,30 +985,38 @@ def cosmic_table():
 
 
 def ssoa_current_limit(v, l_loop=None, mod=None):
+    """Largest turn-off current [A] with v + dv_os <= V_DS_LIM (dv_os is non-decreasing in the current)."""
     ig = np.linspace(0, 600, 6001)
-    return float(np.interp(1200.0 - v, dv_os(ig, l_loop, mod, v), ig))
+    ok = v + dv_os(ig, l_loop, mod, v) <= V_DS_LIM
+    return float(ig[ok][-1]) if ok[0] else 0.0
 
 
 def derating_map(D, v1s, v2s, p_levels=np.arange(10e3, 60.01e3, 2.5e3), sign=1.0, **kw):
-    """Largest power (<= 60 kW) meeting Tj, per-position RMS, SSOA and port-current limits, best modulation."""
+    """Largest power (<= 60 kW) meeting Tj, per-position RMS, SSOA and port-current limits at every level from 10 kW
+    up, best modulation on the coarse grid with a retry on the LUT grid (TPS_MAP) where the coarse grid has no SSOA-
+    feasible entry - the map admits what the LUT can do.  Only points still admitted are evaluated at the next level."""
     V1, V2 = np.meshgrid(v1s, v2s, indexing='ij')
-    pmax = np.full(V1.shape, np.nan)
-    alive = np.ones(V1.shape, bool)
-    why = np.full(V1.shape, '', dtype=object)
+    v1f, v2f = V1.ravel(), V2.ravel()
+    pmax = np.full(v1f.shape, np.nan)
+    alive = np.ones(v1f.shape, bool)
+    why = np.full(v1f.shape, '', dtype=object)
     for pl in p_levels:
-        r = best_modulation(V1.ravel(), V2.ravel(), sign * pl + 0 * V1.ravel(), D, grid=TPS_COARSE, **kw)
+        idx = np.where(alive)[0]
+        if not idx.size:
+            break
+        r = best_modulation(v1f[idx], v2f[idx], sign * pl + 0 * v1f[idx], D, grid=TPS_COARSE, retry=TPS_MAP, **kw)
         ok_t = (np.maximum(r['tj1'], r['tj2']) <= a('Tj_max_design'))
         ok_x = ~(r['t_xfmr'] > a('T_xfmr_hs_max'))            # no limit while the construction is pending
         ok_i = current_ok(r, kw.get('mod'))
         ok_s = ssoa_ok(r, mod=kw.get('mod'))
         ok_p = (np.abs(r['I1']) <= I_PORT_MAX[1]) & (np.abs(r['I2']) <= I_PORT_MAX[2]) & np.isfinite(r['phi'])
-        ok = (ok_t & ok_i & ok_s & ok_p & ok_x).reshape(V1.shape)
+        ok = ok_t & ok_i & ok_s & ok_p & ok_x
         reason = np.where(~ok_p, 'port current', np.where(~ok_s, 'SSOA', np.where(~ok_t, 'Tj',
-                          np.where(~ok_x, 'magnetics hot spot', np.where(~ok_i, 'RMS', ''))))).reshape(V1.shape)
-        why = np.where(alive & ~ok & (why == ''), reason, why)
-        alive &= ok
-        pmax = np.where(alive, pl, pmax)
-    return V1, V2, pmax, why
+                          np.where(~ok_x, 'magnetics hot spot', np.where(~ok_i, 'RMS', '')))))
+        why[idx[~ok]] = reason[~ok]
+        alive[idx[~ok]] = False
+        pmax[idx[ok]] = pl
+    return V1, V2, pmax.reshape(V1.shape), why.reshape(V1.shape)
 
 
 # ---------------------------------------------------------------------------------------------------------
@@ -1182,13 +1224,61 @@ def spice_compare(name, v1, v2, p, D, tdead, tj=80.0, snub=None, hf='default', k
                           il_an=il_an))
 
 
+# Harsh-deck calibration points (SPS, snubber model): ZVS turn-off on both bridges over 10-180 A at 550-950 V buses
+CAL_POINTS = ((950.0, 900.0, 60e3), (950.0, 900.0, 50e3), (950.0, 900.0, 42.5e3), (950.0, 900.0, 35e3),
+              (900.0, 900.0, 60e3), (900.0, 800.0, 60e3), (850.0, 800.0, 60e3), (800.0, 900.0, 60e3),
+              (800.0, 873.0, 30e3), (700.0, 550.0, 52.5e3))
+I_CLEAN = 10.0        # A: both bridges must turn off at least this - below it the deck's fixed 150 ns dead time leaves a
+                      # partial hard turn-on, which belongs to the turn-on rule, not to this envelope
+
+
+def deck_calibration(D, mod):
+    """PCM-11: the admitted map must not lean on the deck's harshness measured on another device (1.47x on the GM4
+    module).  Harsh decks (finite-di/dt channel, charge-equivalent C_oss, terminal network of the CRD: 10 x 47 nF - fewer
+    HF capacitors than fitted, so conservative) at CAL_POINTS; per bridge the die overshoot vs its turn-off current; the
+    monotone upper envelope over the clean samples becomes the chosen option's turn-off rule in dv_os().  Decks kept as
+    sim/spice/dab_cal_*.cir."""
+    rows = []
+    for v1, v2, p in CAL_POINTS:
+        r = evaluate([v1], [v2], [p], D, iters=1, mod=mod)
+        q = spice_compare('cal_%d_%d_%d' % (v1, v2, p / 100), v1, v2, p, D, 150e-9, hf='default', keep_csv=False,
+                          model='snub')
+        clean = bool(min(r['ioff1'][0], r['ioff2'][0]) >= I_CLEAN)
+        for b, vb in ((1, v1), (2, v2)):
+            rows.append(dict(V1=v1, V2=v2, P=p, bridge=b, V_bus=vb, I_off=float(r['ioff%d' % b][0]),
+                             V_die_pk=float(q['v_die_pk'][b - 1]), overshoot=float(q['v_die_pk'][b - 1] - vb),
+                             clean=clean))
+    s = sorted((q['I_off'], q['overshoot']) for q in rows if q['clean'])
+    ie = np.array([x[0] for x in s])
+    de = np.maximum.accumulate(np.array([x[1] for x in s]))
+    mod['dv_env'] = (ie, de, mod['l_loop'])
+    ref = next(q for q in rows if q['V1'] == 950.0 and q['P'] == 60e3 and q['bridge'] == 1)
+    qf, _, cn = _qe(mod)
+    k_ref = ref['overshoot'] / (mod['l_loop'] * ref['I_off'] ** 2 / (2 * qf(950.0) + cn * 950.0))
+    pk = {}                                     # 950 / 900 V row: highest die peak of either bridge per deck power
+    for q in rows:
+        if (q['V1'], q['V2']) == (950.0, 900.0):
+            pk[q['P']] = max(pk.get(q['P'], 0.0), q['V_die_pk'])
+    pp = np.array(sorted(pk))
+    vv = np.array([pk[x] for x in pp])
+    over = vv > V_DS_LIM
+    j = int(np.argmax(over))
+    p_lim = float(pp[-1]) if not over.any() else (float('nan') if over[0] else          # nan: below the lowest deck
+                                                   float(np.interp(V_DS_LIM, vv[j - 1:j + 1], pp[j - 1:j + 1])))
+    return dict(rows=rows, env_I_A=ie.tolist(), env_dV_V=de.tolist(), l_loop_H=mod['l_loop'], k_os_deck_950=float(k_ref),
+                hf_network=list(a('hf_caps')), src='sim/spice/dab_cal_*.cir',
+                row_950_900={'P_kW': (pp / 1e3).tolist(), 'die_peak_V': vv.tolist(),
+                             'P_at_limit_kW_interpolated': p_lim / 1e3})
+
+
 # ---------------------------------------------------------------------------------------------------------
 # Main: design, maps, specifications, outputs
 # ---------------------------------------------------------------------------------------------------------
 MAP_V1 = np.array([600.0, 700.0, 800.0, 900.0, 950.0])
 MAP_V2 = np.arange(400.0, 900.1, 50.0)
 MAP_P = np.array([2.5, 5, 7.5, 10, 15, 20, 30, 40, 50, 60]) * 1e3
-TPS_MAP = np.radians([0, 10, 20, 30, 40, 50, 60, 75, 90])
+TPS_MAP = np.radians([0, 10, 20, 30, 40, 50, 60, 75, 90, 105, 120, 135, 150])   # the LUT: inner shifts beyond 90 deg
+                                        # keep ZVS and bound the circulating current at light load and large V1/(n V2)
 
 
 def _csv(path, rows):
@@ -1241,6 +1331,7 @@ def main():
     DESIGN = [o for o in OPTIONS if o['short'] == pick['option']][0]
     A['t_dead_hw'] = (DESIGN['hw_dt'], 's (min, max) gate-level window of the hardware shoot-through guard of the '
                                        'chosen devices and driver (DR-02 decision, dead_time_window())')
+    R['deck_cal'] = deck_calibration(D0, DESIGN)     # PCM-11: the admitted map follows the harsh deck from here on
     # 1. selection of n and L (continuous sweep with best modulation), then integer turns
     sweep = sweep_n_L_tps()
     _csv(os.path.join(OUT, 'selection_n_L.csv'), [{k: v for k, v in s.items() if k != 'bad'} for s in sweep])
@@ -1283,7 +1374,8 @@ def main():
                          P_sw=best['psw1'][i] + best['psw2'][i], P_xfmr=best['p_xfmr'][i],
                          P_ind=best['p_ind'][i], P_cap=best['p_cap'][i], P_bus=best['p_bus'][i],
                          IC1=best['IC1'][i], IC2=best['IC2'][i], B_pk=best['b_pk'][i],
-                         eta_SPS=sps['eta'][i], zvs1_SPS=int(sps['zvs1'][i]), zvs2_SPS=int(sps['zvs2'][i])))
+                         eta_SPS=sps['eta'][i], zvs1_SPS=int(sps['zvs1'][i]), zvs2_SPS=int(sps['zvs2'][i]),
+                         V_res1=best['vres1'][i], V_res2=best['vres2'][i]))
     _csv(os.path.join(OUT, 'efficiency_map.csv'), rows)
     R['map'] = dict(best=best, sps=sps, ok=ok)
     # derating (forward and reverse)
@@ -1538,9 +1630,11 @@ def build_options():
     Asian half-bridge modules.  Cost per bridge = power semiconductors + their insulators at the highest price break
     <= 1000 pcs; drivers and bias are the same count (4 per bridge) in every option and are left out."""
     DI, DSC, DB = dev.DISC['IV3Q12013T4Z'], dev.DISC['SG2M014120LJ'], dev.DISC['B3M013C120Z']
+    hw_gm4 = dead_time_window((42e-9 + dev.TDOFF_RG_SLOPE * a('RG_off')) * 1.1, 0.8 * 100 / 9.06e9 * 1.1, 20e-9,
+                              dev.UCC21710['tsk_pp'])
+    for m_ in (MOD_GM4, MOD_GM4x2, MOD_FM3):       # module levers keep their own UCC21710 guard (PCM-09: no mixing)
+        m_['hw_dt'] = hw_gm4
     gm4 = dict(MOD_GM4, short='GM4', roles='incumbent (today)',
-               hw_dt=dead_time_window((42e-9 + dev.TDOFF_RG_SLOPE * a('RG_off')) * 1.1, 0.8 * 100 / 9.06e9 * 1.1,
-                                      20e-9, dev.UCC21710['tsk_pp']),
                cost=dict(usd_per_bridge=dev.PRICES['CBB011M12GM4T'][0],
                          basis='1 x CBB011M12GM4T, ' + dev.PRICES['CBB011M12GM4T'][1]))
     ins = dev.INSULATOR
@@ -1605,7 +1699,7 @@ def device_options(D):
                          soa_ok=bool(q['ok_s'][full].all()),
                          I_dev_or_term_max_A=float(np.max(np.maximum(r['idev1'], r['idev2'])) if o['thermal'] ==
                                                    'discrete' else np.max(np.maximum(r['IL'], r['Is'])) / o['npar']),
-                         dead_time_hw_ns=[round(x * 1e9) for x in (o.get('hw_dt') or a('t_dead_hw'))],
+                         dead_time_hw_ns=[round(x * 1e9) for x in o['hw_dt']],
                          p_body_diode_800_60kW_W=float(q['e8']['pdio1'][0] + q['e8']['pdio2'][0]),
                          zvs_min_power_800_800_W=q['zvs_min_800_W'],
                          cost_usd_per_bridge=o['cost']['usd_per_bridge'], cost_basis=o['cost']['basis']))
@@ -1652,8 +1746,8 @@ def stress(R, D):
     st['tj_max'] = float(np.max(np.maximum(b['tj1'], b['tj2'])[k]))
     i = int(np.argmax(np.where(k, np.maximum(b['tj1'], b['tj2']), -np.inf)))       # NaN-safe
     st['tj_max_at'] = (float(b['v1'][i]), float(b['v2'][i]), float(b['p'][i]))
-    st['vds_pk'] = float(np.max(np.maximum(b['v1'] + dv_os(b['ioff1'], v=b['v1']),
-                                           b['v2'] + dv_os(b['ioff2'], v=b['v2']))[k]))
+    st['vds_pk'] = float(np.max(np.maximum.reduce([b['v1'] + dv_os(b['ioff1'], v=b['v1']), b['v1'] + b['vres1'],
+                                                   b['v2'] + dv_os(b['ioff2'], v=b['v2']), b['v2'] + b['vres2']])[k]))
     st['t_xfmr_max'] = float(np.max(b['t_xfmr'][k]))
     st['q_cool_max'] = float(np.max(b['q_cool'][k]))
     st['I1_max'] = float(np.max(np.abs(b['I1'][k])))
@@ -1668,8 +1762,19 @@ def stress(R, D):
     st['below_988_win'] = [(float(b['v1'][i]), float(b['v2'][i]), float(b['p'][i]), float(b['eta'][i]))
                            for i in np.where(m20 & w & (b['eta'] < 0.988))[0]]
     st['n_20_win'] = int((m20 & w).sum())
-    st['infeasible_win_60k'] = [(float(b['v1'][i]), float(b['v2'][i]), float(b['p'][i]))
-                                for i in np.where(~ok & w & (np.abs(b['p']) == 60e3))[0]]
+    miss = np.where(~ok & w & (np.abs(b['p']) == 60e3))[0]
+    st['infeasible_win_60k'] = [(float(b['v1'][i]), float(b['v2'][i]), float(b['p'][i])) for i in miss]
+    rules = (('port current', (np.abs(b['I1']) > I_PORT_MAX[1]) | (np.abs(b['I2']) > I_PORT_MAX[2]) |
+              ~np.isfinite(b['phi'])),
+             ('turn-off SOA', np.maximum(b['v1'] + dv_os(b['ioff1'], v=b['v1']),
+                                         b['v2'] + dv_os(b['ioff2'], v=b['v2'])) > V_DS_LIM),
+             ('turn-on rule', (np.maximum(b['v1'] + b['vres1'], b['v2'] + b['vres2']) > V_DS_LIM) &
+              (DESIGN['kind'] != 'gm4')),
+             ('Tj', np.maximum(b['tj1'], b['tj2']) > a('Tj_max_design')), ('device RMS', ~current_ok(b)))
+    st['infeasible_win_60k_why'] = {}
+    for i in miss:
+        k_ = ' + '.join(nm for nm, m_ in rules if m_[i]) or 'other'
+        st['infeasible_win_60k_why'][k_] = st['infeasible_win_60k_why'].get(k_, 0) + 1
     # nominal points
     nom = evaluate([800.0, 800.0, 800.0, 800.0], [800.0, 800.0, 800 / D['n'], 800 / D['n']],
                    [60e3, 30e3, 60e3, 30e3], D)
@@ -1746,7 +1851,7 @@ def verdict_950(R, D):
     v['ioff_limit'] = {f'{int(x)}V': {'24nH': float(ssoa_current_limit(x)),
                                       '18nH': float(ssoa_current_limit(x, 18e-9 if DESIGN['kind'] == 'gm4' else
                                                                        0.75 * DESIGN['l_loop']))}
-                       for x in (800.0, 900.0, 950.0, 1000.0)}
+                       for x in (800.0, 850.0, 900.0, 950.0, 1000.0)}
     V1g, V2g, pmax, why = R['derating']['charge']
     i950 = list(V1g[:, 0]).index(950.0)
     v['pmax_950'] = {int(V2g[i950, j]): float(pmax[i950, j]) for j in range(V2g.shape[1])}
@@ -1759,18 +1864,42 @@ def verdict_950(R, D):
     v['overshoot_crd_fig21'] = dev.CRD['snubber_overshoot_sim']
     R['v950'] = v
     if DESIGN['kind'] != 'gm4':
+        v['ioff_limit_basis'] = ('harsh-deck envelope at the assumed %.0f nH loop / the same with 0.75 x the loop (key '
+                                 '24nH = design loop, 18nH = 0.75 x; names kept for gen/dab60.py-era readers)'
+                                 % (DESIGN['l_loop'] * 1e9))
+        v['window_60kW'] = window_compare(R, D)
         c950 = [c for c in v['cosmic'] if c['v'] == 950.0][0]
+        dc = R['deck_cal']
+        pl = lambda x: 'not admitted at >= 10 kW' if np.isnan(x) else f'{x/1e3:.1f} kW'
+        wc = v['window_60kW']
+        hv = [q for q in dc['rows'] if q['clean'] and q['V_bus'] >= 800.0]
+        hi_i = [q for q in hv if q['I_off'] >= 55.0]
+        lo_i = [q for q in hv if q['I_off'] < 55.0]
+        r9 = dc['row_950_900']
         R['v950_text'] = (
-            f"ACCEPTABLE WITH DERATING, cosmic-ray risk NOT quantified: (1) cosmic ray: neither {DESIGN['parts'][0]['mpn']} "
-            f"nor {DESIGN['parts'][-1]['mpn']} has a published FIT-vs-DC-voltage curve; 950 V is "
-            f"{950 / 1200 * 100:.0f} % of V_DSS. For scale only, Wolfspeed's curves give {c950['fit_gen4_bridge_sea']:.1f} "
-            f"FIT (Gen 4) to {c950['fit_gen3_bridge_sea']:.0f} FIT (Gen 3) per bridge at 950 V at sea level for "
-            f"{dev.COSMIC['die_area_cm2']} cm2 per switch - the makers' curve is a release condition. (2) switching "
-            f"SOA: no switching-SOA curve for the discretes; with the assumed {DESIGN['l_loop'] * 1e9:.0f} nH loop and "
-            f"t_f {DESIGN['tf'] * 1e9:.0f} ns the turn-off current at 950 V must stay below "
-            f"{v['ioff_limit']['950V']['24nH']:.0f} A per switch position (V_DS,peak <= 1200 V); P_max at 950 V: "
-            f"{v['pmax_950'][900]/1e3:.1f} kW at V2=900 V, {v['pmax_950'][800]/1e3:.1f} kW at 800 V, "
-            f"{v['pmax_950'][700]/1e3:.1f} kW at 700 V. (3) the loop inductance is the critical assumption: verify by DPT.")
+            f"NOT ADMITTED AT POWER until a double-pulse test calibrates the deck; cosmic-ray risk NOT quantified: (1) "
+            f"cosmic ray: neither {DESIGN['parts'][0]['mpn']} nor {DESIGN['parts'][-1]['mpn']} has a published "
+            f"FIT-vs-DC-voltage curve; 950 V is {950 / 1200 * 100:.0f} % of V_DSS. For scale only, Wolfspeed's curves give "
+            f"{c950['fit_gen4_bridge_sea']:.1f} FIT (Gen 4) to {c950['fit_gen3_bridge_sea']:.0f} FIT (Gen 3) per bridge at "
+            f"950 V at sea level for {dev.COSMIC['die_area_cm2']} cm2 per switch - the makers' curve is a release "
+            f"condition. (2) switching SOA: no switching-SOA curve for the discretes; the admitted map now follows the "
+            f"harsh ngspice deck itself ({sum(q['clean'] for q in dc['rows'])} clean samples, section 7): at 800-950 V "
+            f"buses its die overshoot is {min(q['overshoot'] for q in hi_i):.0f}-{max(q['overshoot'] for q in hi_i):.0f} V "
+            f"for every clean ZVS turn-off of {min(q['I_off'] for q in hi_i):.0f}-{max(q['I_off'] for q in hi_i):.0f} A "
+            f"(set by the deck's 10 A/ns channel, it does not fall with the current) and "
+            f"{min(q['overshoot'] for q in lo_i):.0f}-{max(q['overshoot'] for q in lo_i):.0f} V at "
+            f"{min(q['I_off'] for q in lo_i):.0f}-{max(q['I_off'] for q in lo_i):.0f} A; at 950 / 900 V the SPS decks give "
+            + ', '.join(f'{y:.0f} V at {x:.1f} kW' for x, y in zip(r9['P_kW'], r9['die_peak_V'])) +
+            f" - the peak does not fall to {V_DS_LIM:.0f} V at any deck power. So at 950 V the turn-off current must stay "
+            f"below {v['ioff_limit']['950V']['24nH']:.0f} A (900 V: {v['ioff_limit']['900V']['24nH']:.0f} A) per switch "
+            f"position (V_DS,peak <= {V_DS_LIM:.0f} V). P_max at 950 V: {pl(v['pmax_950'][900])} at V2 = 900 V, "
+            f"{pl(v['pmax_950'][800])} at 800 V, {pl(v['pmax_950'][700])} at 700 V (2026-10-04 claim on the I^2 rule "
+            f"with the 1.47x GM4 credit: 60 / 52.5 / 35 kW). Full-power window at 60 kW: {len(wc['deck'])} of "
+            f"{wc['n']} points admitted (I^2 screening rule without the credit: {len(wc['screen'])}; the withdrawn "
+            f"rule: {len(wc['withdrawn'])}). (3) The deck (15 nH, 10 A/ns channel, linear charge-equivalent C_oss) "
+            f"is an assumption, not a measurement: a double-pulse test on the real layout with the real R_G is the "
+            f"release condition that can restore the 900-950 V rows; the 1.47x found on the GM4 module is information "
+            f"only, never a pass criterion.")
         return
     c950 = [c for c in v['cosmic'] if c['v'] == 950.0][0]
     c1000 = [c for c in v['cosmic'] if c['v'] == 1000.0][0]
@@ -1787,6 +1916,80 @@ def verdict_950(R, D):
         f"dV(I_off) x L_loop/24 nH <= 1200 V with dV(I) = 1200 V - V_DD,max(I) from DS Fig. 19 (vector data, "
         f"~2.1-2.4 V/A) and FIT from WP Fig. 4. A 1700 V device is not needed if the port-1 hardware OV trip is "
         f"<= 1000 V and the loop inductance is verified <= 24 nH by DPT.")
+
+
+P_IDLE = (1.5e3, 2.5e3)   # W: gates off below the first, back on above the second (hysteresis); the second is the
+                          # LUT's lowest power row (MAP_P) - below it the LUT has no entry (PCM-12)
+
+
+def light_load(R, D):
+    """PCM-12: zero and light power with a large V1 / (n V2) mismatch.  SPS at phi = 0 with both bridges switching
+    circulates the whole mismatch current; the LUT (best of TPS_MAP, turn-on rule included) bounds it where switching is
+    admitted; below its lowest power the bridges idle with the gates off (P_IDLE hysteresis)."""
+    b, ok = R['map']['best'], R['map']['ok']
+    n, L = D['n'], D['L']
+    corners = []
+    for v1, v2 in ((950.0, 400.0), (590.0, 400.0), (950.0, 900.0), (590.0, 900.0), (800.0, 873.0)):
+        s = stats(dict(v1=v1, v2=v2, n=n, L=L, Lm=D['Lm'], a1=0.0, a2=0.0, phi=0.0))
+        corners.append(dict(V1=v1, V2=v2, mismatch=v1 / (n * v2), sps_phi0_IL_rms_A=float(s['IL']),
+                            sps_phi0_IL_pk_A=float(s['ILpk']), sps_phi0_Im_pk_A=float(s['Impk']),
+                            sps_P_max_kW=float(p_sps(v1, v2, n, L, PI / 2)) / 1e3))
+    lut = [dict(P_kW=0.0, mode='idle: gates off on both bridges (P < P_on, hysteresis to P_off)', IL_rms_A=0.0,
+                IL_pk_A=0.0)]
+    for pp in (2.5e3, 5e3, 10e3, -2.5e3, -5e3, -10e3):
+        k = int(np.where((b['v1'] == 950.0) & (b['v2'] == 400.0) & (b['p'] == pp))[0][0])
+        lut.append(dict(P_kW=pp / 1e3, mode='LUT', feasible=bool(ok[k]), a1_deg=float(np.degrees(b['a1'][k])),
+                        a2_deg=float(np.degrees(b['a2'][k])), phi_deg=float(np.degrees(b['phi'][k])),
+                        IL_rms_A=float(b['IL'][k]), IL_pk_A=float(b['ILpk'][k]), I_off_A=[float(b['ioff1'][k]),
+                        float(b['ioff2'][k])], V_res_V=[float(b['vres1'][k]), float(b['vres2'][k])],
+                        loss_W=float(b['ploss'][k]), eta=float(b['eta'][k])))
+    p_on = P_IDLE[1]
+    at_on = (np.abs(np.abs(b['p']) - p_on) < 1.0)
+    bad_on = [(float(x), float(y), float(z)) for x, y, z, o in zip(b['v1'][at_on], b['v2'][at_on], b['p'][at_on],
+                                                                  ok[at_on]) if not o]
+    good = at_on & ok
+    mm = b['v1'] / (n * b['v2'])
+    feas = ok & (np.abs(b['p']) <= 10e3)
+    v1d = R['derating']['charge'][0][:, 0]
+    i590, i400 = list(v1d).index(590.0), list(MAP_V2).index(400.0)
+    p_min = []                                  # (V1, V2, direction) whose lowest feasible LUT row is above P_on
+    for v1_ in MAP_V1:
+        for v2_ in MAP_V2:
+            for sg in (1.0, -1.0):
+                f_ = np.abs(b['p'][(b['v1'] == v1_) & (b['v2'] == v2_) & (np.sign(b['p']) == sg) & ok])
+                if not f_.size or f_.min() > p_on + 1.0:
+                    p_min.append(dict(V1=float(v1_), V2=float(v2_), direction='charge' if sg > 0 else 'discharge',
+                                      P_min_feasible_kW=float(f_.min()) / 1e3 if f_.size else None))
+    return dict(
+        P_off_W=P_IDLE[0], P_on_W=p_on, corners=corners, lut_950_400=lut, infeasible_at_P_on=bad_on,
+        min_switching_power=p_min,
+        mismatch_feasible_at_P_on=[float(mm[good].min()), float(mm[good].max())] if good.any() else None,
+        mismatch_window=[590.0 / (n * 900.0), 950.0 / (n * 400.0)],
+        IL_rms_max_light_A=float(np.max(b['IL'][feas])), IL_pk_max_light_A=float(np.max(b['ILpk'][feas])),
+        v2_400_row={'P_max_590_400_kW': float(R['derating']['charge'][2][i590, i400]) / 1e3,
+                    'sps_ceiling_590_400_kW': float(p_sps(590.0, 400.0, n, L, PI / 2)) / 1e3,
+                    'port2_limit_kW': I_PORT_MAX[2] * 400.0 / 1e3,
+                    'P_max_row_kW': {int(x): (None if np.isnan(y) else float(y) / 1e3) for x, y in
+                                     zip(v1d, R['derating']['charge'][2][:, i400])}})
+
+
+def window_compare(R, D):
+    """PCM-11 bookkeeping: the 20 full-power window points (60 kW, charge) admitted by the derating map (deck rule,
+    'deck'), by the I^2 screening rule of the option table (k_os, no harshness credit, coarse grid) and by the withdrawn
+    I^2 rule of 2026-10-04 (k_os 1.63 = deck / 1.47 from the GM4, turn-off only - as committed then)."""
+    v1, v2, p = window_grid((60e3,))
+    V1g, V2g, pmax, _ = R['derating']['charge']
+    adm = {(float(x), float(y)) for x, y, q in zip(V1g.ravel(), V2g.ravel(), pmax.ravel()) if q >= 60e3}
+    scr = {k: v for k, v in DESIGN.items() if k != 'dv_env'}
+    out = {'n': int(v1.size), 'deck': [[float(x), float(y)] for x, y in zip(v1, v2) if (x, y) in adm]}
+    k0 = A['k_os']
+    for name, mod, k in (('screen', scr, k0[0]), ('withdrawn', dict(scr, rule_2026_10_04=True), 1.63)):
+        A['k_os'] = (k, k0[1])
+        r = best_modulation(v1, v2, p, D, grid=TPS_COARSE, mod=mod)
+        ok = (np.maximum(r['tj1'], r['tj2']) <= a('Tj_max_design')) & current_ok(r, mod) & ssoa_ok(r, mod=mod)
+        out[name] = [[float(x), float(y)] for x, y, o in zip(v1, v2, ok) if o]
+    A['k_os'] = k0
+    return out
 
 
 def sensitivities(R, D):
@@ -1816,16 +2019,23 @@ SNUB_ALT = (6, 6.8, 2.2e-9)
 
 
 def snub_points(D, R):
-    """The four terminal-network study points: highest-voltage full-power point, highest turn-off current (SPS at
-    full power, SOA-feasible), and two hard-switched light-load points."""
+    """The four terminal-network study points: the highest-voltage admitted point at its highest admitted power among
+    those where SPS is ZVS on both bridges (the SPS deck there checks the admitted map against the harsh deck; at light
+    load the map relies on TPS, which an SPS deck cannot represent), the highest turn-off current (SPS at full power,
+    SOA-feasible), and two SPS hard-switched light-load points (the cases the turn-on rule excludes)."""
     V1g, V2g, pmax, _ = R['derating']['charge']
-    cand = [(V1g[i, 0], V2g[0, j], pmax[i, j]) for i in range(V1g.shape[0]) for j in range(V2g.shape[1])
-            if np.isfinite(pmax[i, j]) and pmax[i, j] >= 50e3]
+    fin = [(V1g[i, 0], V2g[0, j], pmax[i, j]) for i in range(V1g.shape[0]) for j in range(V2g.shape[1])
+           if np.isfinite(pmax[i, j])]
+    fv1, fv2, fp = (np.array(x, float) for x in zip(*fin))
+    rf = evaluate(fv1, fv2, fp, D, iters=1)                       # SPS at the admitted power
+    cl = np.isfinite(rf['phi']) & rf['zvs1'] & rf['zvs2'] & (np.minimum(rf['ioff1'], rf['ioff2']) >= I_CLEAN)
+    vm = max((q for q, c in zip(fin, cl) if c), key=lambda q: (q[0], q[2], q[1]))
+    cand = [q for q in fin if q[2] >= 50e3]
     cv1, cv2, cp = (np.array(x, float) for x in zip(*cand))
     rs = evaluate(cv1, cv2, cp, D, iters=1)                       # SPS at full power, SOA-feasible only
     okk = np.isfinite(rs['phi']) & ssoa_ok(rs)
     k = int(np.argmax(np.where(okk, np.maximum(rs['ioff1'], rs['ioff2']), -1)))
-    return [('v1max', 950.0, 900.0, float(pmax[list(V1g[:, 0]).index(950.0), list(V2g[0]).index(900.0)])),
+    return [('v1max', float(vm[0]), float(vm[1]), float(vm[2])),
             ('ioffmax', float(cv1[k]), float(cv2[k]), float(cp[k])),
             ('hard_b1', 800.0, 900.0, 10e3), ('hard_b2', 950.0, 850.0, 5e3)]
 
@@ -2067,10 +2277,19 @@ def protection_numbers(R, D, mod=None):
     oc = float(np.ceil(1.15 * st['ILpk'] / 10) * 10)
     band = (oc - 10.0, oc + 10.0)
     slope = (1000.0 + D['n'] * 950.0) / D['L']            # A/s: both bridges at their hardware OV trip, opposing
-    q_down = n * (d['qg'] - d['qgs'] - d['qgd'])            # gate charge from +18 V down to the Miller plateau end
-    t_inj = a('t_trip_logic') + drv['t_fil'][2] + drv['t_off'][2]
-    t_ramp = q_down / drv['i_sto'][0]
+    t_inj = a('t_trip_logic') + 1.25 * drv['t_leb'] + drv['t_off'][2]   # trip inside a turn-on LEB (worst case);
+                                                            # t_DESAT_OFF contains the deglitch (T_DESAT_OFF_SRC)
+    # per maker (the composite would mix one maker's Q_g with the other's Q_gd and I_DM): +18 V down to the Miller
+    # plateau at I_STO, the fault peak at the end of it, and that maker's devices against their own I_DM
+    per_mk = {}
+    for p_ in mod['parts']:
+        t_r = n * (p_['qg'] - p_['qgs'] - p_['qgd']) / drv['i_sto'][0]
+        i_p = band[1] + slope * (t_inj + t_r)
+        per_mk[p_['mpn']] = dict(t_soft_ramp_us=t_r * 1e6, I_peak_fault_A=i_p, I_per_device_peak_A=i_p / n * share(mod)[0],
+                                 I_DM_A=p_['i_dm'], ratio_to_I_DM=i_p / n * share(mod)[0] / p_['i_dm'])
+    t_ramp = max(q['t_soft_ramp_us'] for q in per_mk.values()) * 1e-6
     t_resp = t_inj + t_ramp
+    mk_dm = max(per_mk, key=lambda k: per_mk[k]['ratio_to_I_DM'])
     # PWM-bounded peak: the largest SPS current the modulator can command with the 60 deg phase clamp at the trip
     # voltages (a control fault cannot push the current beyond it without a hardware fault)
     vv1, vv2 = np.meshgrid([590.0, 800.0, 1000.0], [400.0, 700.0, 950.0], indexing='ij')
@@ -2092,32 +2311,151 @@ def protection_numbers(R, D, mod=None):
                    'is a normal fast turn-off (NSI datasheet p28) and is used only AFTER the soft turn-off, '
                    '>= 3 us later, to latch the state'),
         t_inject_us=t_inj * 1e6, t_soft_ramp_us=t_ramp * 1e6, t_response_us=t_resp * 1e6,
-        I_peak_fault_A=i_pk, I_peak_pwm_bounded_A=i_pwm, I_per_device_peak_A=i_pk / n * share(mod)[0],
-        I_DM_device_A=d['i_dm'], soft_turn_off_fall_ns=t_fall * 1e9, overshoot_soft_V=dv_soft,
+        I_peak_fault_A=i_pk, I_peak_pwm_bounded_A=i_pwm, I_per_device_peak_A=per_mk[mk_dm]['I_per_device_peak_A'],
+        I_DM_device_A=per_mk[mk_dm]['I_DM_A'], I_DM_check_maker=mk_dm, per_maker=per_mk,
+        soft_turn_off_fall_ns=t_fall * 1e9, overshoot_soft_V=dv_soft,
         V_peak_soft_V=1000.0 + dv_soft, inductor_I_sat_100C_A=i_sat_l,
         hard_path_as_drawn={'t_us': t_hard * 1e6, 'I_peak_A': i_hard, 'V_peak_V': 1000.0 + float(dv_os(i_hard, v=1000.0))},
         ov_trip_turn_off={'I_A': OVX['port1']['I_off_SSOA_limit_at_peak_A'] if 'port1' in OVX else None})
     out['inductor_note'] = ('series inductor saturates at about %.0f A (0.41 T, 100 C) against a fault peak of %.0f A: '
                             'the I_sat_min requirement is raised to %.0f A (1.1 x fault peak)'
                             % (i_sat_l, i_pk, 1.1 * i_pk)) if i_sat_l < 1.1 * i_pk else 'inductor I_sat covers the peak'
-    # DR-05: DESAT budget (blanking from the internal LEB and the DESAT-pin capacitance; no external C_blk)
-    blank = drv['t_leb'] * 1.25 + a('c_desat') * drv['v_desat'][2] / drv['i_chg'][0]
-    t_gate = blank + drv['t_fil'][2] + drv['t_off'][2]
-    t_off_sc = t_gate + t_ramp
-    tsc = {p_['mpn']: p_['tsc'] for p_ in mod['parts']}
-    tsc_hot_1000 = {k: v * 800.0 / 1000.0 * a('tsc_hot_factor') for k, v in tsc.items()}
-    out['desat'] = dict(blanking_ns_max=blank * 1e9, to_gate_falling_ns_max=t_gate * 1e9,
-                        to_plateau_end_ns_max=t_off_sc * 1e9, tsc_assumed_us_800V_25C=tsc,
-                        tsc_assumed_us_1000V_150C={k: round(v * 1e6, 2) for k, v in tsc_hot_1000.items()},
-                        required_ns=0.5 * min(tsc_hot_1000.values()) * 1e9,
-                        margin=min(tsc_hot_1000.values()) / t_off_sc,
-                        v_ds_trip_V=[round(x, 2) for x in a('desat_vds_trip')],
+    out['desat'] = desat_chain(mod)
+    out['desat'].update(v_ds_trip_V=[round(x, 2) for x in a('desat_vds_trip')],
                         i_trip_A_hot_min=a('desat_vds_trip')[0] / (float(dev.g_rds(d, 175.0)) / n),
                         i_trip_A_cold_max=a('desat_vds_trip')[2] / (float(dev.g_rds(d, 25.0)) / n))
     return out
 
 
-COSTED_BOM = 'bom/DAB-D60_costed_BOM.csv'
+# gen/gdrv.py rev 5 short-circuit booster as preset there for this device pair (SC14 = 2 x SG2M014120LJ per switch:
+# r_sb 56 ohm, sized there for the 0.85 x 1200 V turn-off overshoot at 950 V), ROH_EFF = 15 V / 11 A, R_KS, trigger =
+# BZX84-B10 max + 0.75 V on the DESAT pin - copied for the DR-05 lever study only (nothing is fitted in this study)
+GDRV_BOOSTER = dict(r_sb=56.0, roh_eff=15.0 / 11.0, r_ks=0.5, v_trig=10.95, src='gen/gdrv.py SC14 preset r_sb, ROH_EFF, '
+                    'R_KS, booster trigger thr[1]')
+T_DESAT_OFF_SRC = ('t_DESAT_OFF (DESAT sense to OUT(L) 90 %) is timed from the V_DESAT_TH crossing and contains the '
+                   'deglitch filter t_DESAT_FIL: both intervals start at the same instant in NSI66x1A Fig. 8.10 (p23) and '
+                   'NSI66x1A-Q1 Fig. 8.8 (p25); typ 200 ns filter inside 250 ns')
+
+
+def desat_chain(mod, v_bus=1000.0):
+    """DR-05 (PCM-10): NSI6651 industrial worst-case DESAT chain of a hard short at v_bus (switching into a shorted leg:
+    the blanking runs first), per maker.  Gate falling (OUT 90 %) = LEB + C_pin V_DESAT,max / I_CHG,min +
+    t_DESAT_OFF,max, which already contains the deglitch (T_DESAT_OFF_SRC).  Then the soft turn-off I_STO, shared by the
+    npar gates, discharges C_iss: in a short V_DS stays at the bus, so there is no Miller charge (the same model as the
+    gen/gdrv.py SC check); V_GS falls linearly.  Short-circuit current I_sc0 ((V_GS - V_th) / (V_on - V_th))^2 - square
+    law, ASSUMED.  t_eq = integral of I / I_sc0 dt is the energy-equivalent full-current time: the quantity to compare
+    with a withstand measured at full gate voltage (t_SC), and times V_bus I_sc0 with an SC energy.  Levers evaluated
+    with the worse maker; none is fitted."""
+    drv, n = dev.NSI6651, mod['npar']
+    v_on, v_off = DESIGN_RAIL
+    tsc_hot = min(p_['tsc'] for p_ in mod['parts']) * 800.0 / v_bus * a('tsc_hot_factor')
+    leb = drv['t_leb'] * 1.25                              # typical-only in the datasheet: +25 % ASSUMED (as gen/gdrv.py)
+
+    def chain(p_, c_pin=None, i_pu=0.0, i_sto=None, booster=False, miller=False):
+        c_pin = a('c_desat') if c_pin is None else c_pin
+        i_sto = drv['i_sto'][0] if i_sto is None else i_sto
+        blank = leb + c_pin * drv['v_desat'][2] / (drv['i_chg'][0] + i_pu)
+        t_gate = blank + drv['t_off'][2]
+        vth, vpl = p_['vth_175'], p_['v_plateau']
+        x2 = lambda vg: np.clip((np.asarray(vg) - vth) / (v_on - vth), 0, None) ** 2
+        if miller:              # sensitivity only: datasheet Q_g curve to the plateau, then Q_gs / 2 - Miller charge that
+            t1 = n * (p_['qg'] - p_['qgs'] - p_['qgd']) / i_sto     # a short does not have (V_DS never falls)
+            t2 = n * 0.5 * p_['qgs'] / i_sto
+            xb = float(np.sqrt(x2(vpl)))
+            return dict(t_gate=t_gate, t_plateau=t_gate + t1, t_vth=t_gate + t1 + t2, blank=blank,
+                        t_eq=t_gate + t1 * (1 + xb + xb * xb) / 3 + t2 * xb * xb / 3)
+        if not booster:
+            k = n * p_['ciss'] / i_sto                      # s per volt of gate swing
+            t_d = k * (v_on - vth)
+            return dict(t_gate=t_gate, t_plateau=t_gate + k * (v_on - vpl), t_vth=t_gate + t_d, t_eq=t_gate + t_d / 3,
+                        blank=blank)
+        b = GDRV_BOOSTER        # two-level gate while OUTH still drives, then R_sb + R_G,int discharge (I_STO ignored)
+        t_fire = leb + c_pin * b['v_trig'] / (drv['i_chg'][0] + i_pu) + a('t_booster')
+        r_up = mod['rg_on'] + b['r_ks'] + n * b['roh_eff']
+        vg2 = v_off + (v_on - v_off) * b['r_sb'] / (b['r_sb'] + r_up)
+        tau = (b['r_sb'] + p_['rg_int']) * p_['ciss']
+        t_f = tau * np.log((vg2 - v_off) / (vth - v_off))
+        tt = np.linspace(0.0, t_f, 401)
+        x = x2(v_off + (vg2 - v_off) * np.exp(-tt / tau))
+        t_eq = min(t_fire, t_gate) + max(t_gate - t_fire, 0.0) * float(x2(vg2)) + float(np.trapezoid(x, tt))
+        return dict(t_gate=t_gate, t_plateau=None, t_vth=t_gate + t_f, t_eq=t_eq, blank=blank, t_fire=t_fire,
+                    vg2=vg2)
+
+    per = {p_['mpn']: chain(p_) for p_ in mod['parts']}
+    worst_mpn = max(per, key=lambda k: per[k]['t_eq'])
+    pw = next(p_ for p_ in mod['parts'] if p_['mpn'] == worst_mpn)
+    base = per[worst_mpn]
+    qg_curve = chain(pw, miller=True)
+    i_sc0 = a('i_sc_dev_factor') * pw['i_dm']
+    i_pu = (v_on - drv['v_desat'][2]) / a('r_desat_pu')          # smallest pull-up current over the pin's charge
+    # minimum blanking: ZVS turn-ons have no V_DS step; the turn-on rule admits a partial step V_res <= 1200 V - V_bus,
+    # whose fall and the ring of the commutation loop (L_loop with the charge-equivalent C_oss of a position + node, at
+    # 800 V) must end inside the blanking - the LEB alone (no external C_blk) is compared with 5 ring periods
+    qf, _, cn = _qe(mod)
+    f_ring = 1.0 / (2 * PI * np.sqrt(mod['l_loop'] * (qf(800.0) / 800.0 + cn)))
+    blank_min = dict(f_ring_MHz=f_ring / 1e6, t_5_periods_ns=5e9 / f_ring, LEB_typ_ns=drv['t_leb'] * 1e9,
+                     LEB_min_assumed_ns=0.75 * drv['t_leb'] * 1e9,
+                     verdict='no external C_blk needed: the LEB (%.0f ns typ, %.0f ns assumed minimum) covers the '
+                             'partial-hard-turn-on V_DS fall and 5 ring periods (%.0f ns at %.0f MHz); the pin charge '
+                             'C_pin x V_DESAT / I_CHG on top of it is pure delay - keep C_pin as small as the HV diode '
+                             'string allows' % (drv['t_leb'] * 1e9, 0.75 * drv['t_leb'] * 1e9, 5e9 / f_ring,
+                                                f_ring / 1e6))
+    levers = [('as studied: no external C_blk, C_pin %.0f pF, soft turn-off I_STO %.2f A (industrial min)'
+               % (a('c_desat') * 1e12, drv['i_sto'][0]), base),
+              ('DESAT pull-up %.0f kOhm from VCC2 (+%.2f mA charge; the on-state DESAT level rises by up to %.1f V, '
+               'i.e. the V_DS trip falls by that much - the string must be re-sized)'
+               % (a('r_desat_pu') / 1e3, i_pu * 1e3, v_on / a('r_desat_pu') * 1.5e3), chain(pw, i_pu=i_pu)),
+              ('DESAT-pin capacitance halved (%.1f pF: one low-capacitance HV diode, tight layout - ASSUMED achievable)'
+               % (a('c_desat') * 0.5e12), chain(pw, c_pin=0.5 * a('c_desat'))),
+              ('DESAT comparator (internal to the NSI6651: the deglitch, %.0f ns max, runs inside t_DESAT_OFF, %.0f ns '
+               'max; the -Q1 grade is slower, 360 ns) - no lever' % (drv['t_fil'][2] * 1e9, drv['t_off'][2] * 1e9),
+               base),
+              ('soft turn-off at the typical I_STO %.2f A (part spread, not a design choice)' % drv['i_sto'][1],
+               chain(pw, i_sto=drv['i_sto'][1])),
+              ('gen/gdrv.py booster (R_sb %.0f ohm per gate, SC14 preset): fires on the DESAT pin, two-level gate, then '
+               'R_sb discharge' % GDRV_BOOSTER['r_sb'], chain(pw, booster=True)),
+              ('booster + DESAT pull-up', chain(pw, i_pu=i_pu, booster=True))]
+    rows = [dict(lever=k, t_gate_ns=v['t_gate'] * 1e9, t_eq_ns=v['t_eq'] * 1e9, ratio_to_assumed_hot_withstand=
+                 v['t_eq'] / tsc_hot, meets_2x_rule=bool(2 * v['t_eq'] <= tsc_hot)) for k, v in levers]
+    fixed = leb + drv['t_off'][2]
+    best = min(rows, key=lambda q: q['t_eq_ns'])
+    return dict(
+        blanking_ns_max=base['blank'] * 1e9, to_gate_falling_ns_max=base['t_gate'] * 1e9,
+        to_plateau_voltage_ns_max=base['t_plateau'] * 1e9, to_vth_ns_max=base['t_vth'] * 1e9,
+        t_eq_ns=base['t_eq'] * 1e9, worst_maker=worst_mpn, t_desat_off_basis=T_DESAT_OFF_SRC,
+        gate_model='C_iss discharge at I_STO (V_DS stays at the bus in a short: no Miller charge), as gen/gdrv.py',
+        t_eq_qg_curve_ns=qg_curve['t_eq'] * 1e9, to_vth_qg_curve_ns=qg_curve['t_vth'] * 1e9,
+        per_maker_ns={k: {kk: (None if vv is None else round(vv * 1e9)) for kk, vv in v.items()} for k, v in per.items()},
+        tsc_assumed_us_800V_25C={p_['mpn']: p_['tsc'] * 1e6 for p_ in mod['parts']},
+        tsc_assumed_us_1000V_150C=round(tsc_hot * 1e6, 3),
+        ratio_t_eq_to_withstand=base['t_eq'] / tsc_hot,
+        ratio_gate_falling_to_withstand=base['t_gate'] / tsc_hot,
+        ratio_plateau_to_withstand=base['t_plateau'] / tsc_hot,
+        ratio_vth_to_withstand=base['t_vth'] / tsc_hot,
+        required_withstand_us_1000V_150C=2 * base['t_eq'] * 1e6,
+        required_withstand_us_800V_25C_equiv=2 * base['t_eq'] / (800.0 / v_bus * a('tsc_hot_factor')) * 1e6,
+        i_sc_assumed_A_per_device=i_sc0,
+        energy_chain_J_per_device=v_bus * i_sc0 * base['t_eq'],
+        energy_assumed_withstand_J_per_device=v_bus * i_sc0 * tsc_hot,
+        energy_required_J_per_device=2 * v_bus * i_sc0 * base['t_eq'],
+        fixed_internal_ns=fixed * 1e9, levers=rows, blanking_minimum=blank_min,
+        endpoint=('energy, not an instant: in a short V_DS stays at the bus, so there is no Miller plateau that holds '
+                  'the current - the current follows V_GS down from the gate-falling instant to V_th. The gate-falling '
+                  'instant understates the stress, the plateau-voltage or V_th instant with full current assumed to it '
+                  'overstates it; t_eq integrates I / I_sc0 over the whole turn-off'),
+        release_block=('No lever within the NSI6651 channel meets the 2x rule (t_eq <= %.0f ns): its fixed internal delays '
+                       '(LEB %.0f + t_DESAT_OFF %.0f = %.0f ns worst case, the deglitch included) already take %.0f %% of '
+                       'that, before any pin charge or gate discharge; the best combination (%s) reaches %.0f ns = %.2f x '
+                       'the assumed hot withstand. Release needs the makers\' t_SC >= %.2f us at %.0f V / 150 C start / '
+                       '%+.0f V (E_SC >= %.2f J per device at the assumed %.0f A; %.1f us at 800 V / 25 C on the same '
+                       'scaling), or a short-circuit test on samples, or a device with a published withstand of that size'
+                       % (0.5 * tsc_hot * 1e9, leb * 1e9, drv['t_off'][2] * 1e9, fixed * 1e9, fixed / (0.5 * tsc_hot) * 100,
+                          best['lever'].split(' (')[0], best['t_eq_ns'], best['ratio_to_assumed_hot_withstand'],
+                          2 * base['t_eq'] * 1e6, v_bus, v_on, 2 * v_bus * i_sc0 * base['t_eq'], i_sc0,
+                          2 * base['t_eq'] / (800.0 / v_bus * a('tsc_hot_factor')) * 1e6)))
+
+
+COSTED_BOM = 'bom/DAB-D60-FULL_costed_BOM.csv'   # the drawn module-based platform (DAB60 rev B + port boards)
 MY_LINES = {   # costed-BOM value/MPN -> group (the parts this design owns; port parts are the port engineer's)
     'CBB011M12GM4T': 'switches', 'DD600N16K': 'reverse clamp', 'Transformer 11:12 (CUSTOM)': 'transformer',
     '2.12 uH series L (CUSTOM)': 'series inductor', '47n 1.5kV C0G': 'HF capacitors', '1.1n 2kV C0G': 'snubber',
@@ -2126,12 +2464,16 @@ MY_LINES = {   # costed-BOM value/MPN -> group (the parts this design owns; port
 
 
 def cost_before():
-    """USD per module of this design's parts in the costed BOM (gen/cost.py run of 2026-10-04)."""
+    """USD per module of this design's parts in the costed BOM of the drawn module-based platform (gen/cost.py).  A
+    group missing from that BOM stops the run instead of counting as zero (PCM-23)."""
     out = {}
-    for r_ in csv.DictReader(open(COSTED_BOM)):
+    for r_ in csv.DictReader(open(need(COSTED_BOM, 'gen/cost.py'))):
         key = next((k for k in MY_LINES if k in (r_['MPN'], r_['Value'])), None)
         if key:
             out[MY_LINES[key]] = out.get(MY_LINES[key], 0.0) + float(r_['ext_cost_usd'])
+    miss = sorted(set(MY_LINES.values()) - set(out))
+    if miss:
+        raise SystemExit(f'{COSTED_BOM} has no line for {miss} - the BOM no longer matches MY_LINES in sim/dab_design.py')
     return out
 
 
@@ -2255,8 +2597,10 @@ def plots(R, D):
                     fontsize=7)
     ax.add_patch(plt.Rectangle((675, 575), 250, 350, fill=False, ec='b', lw=1.5))
     ax.set(xlabel='V2 battery [V]', ylabel='V1 DC bus [V]',
-           title='Max power [kW] (charge), limits: Tj<=140 C @50 C coolant, I_pos<=90 A, SSOA 24 nH, I_port; '
-                 'blue = DAB-10/11 full-power window')
+           title=('Max power [kW] (charge), limits: Tj<=140 C @50 C coolant, I_pos<=90 A, SSOA 24 nH, I_port; '
+                  'blue = DAB-10/11 full-power window' if DESIGN['kind'] == 'gm4' else
+                  'STUDY %s: max power [kW] (charge); Tj<=140 C @50 C, device RMS, turn-off = harsh-deck envelope, '
+                  'turn-on V+V_res<=1200 V, I_port; blue = DAB-10/11 full-power window (calculated)' % R['pick']['option']))
     ax.title.set_fontsize(8)
     fig.colorbar(im, label='P_max [kW]')
     fig.tight_layout()
@@ -2315,8 +2659,8 @@ PORT_SPEC = 'sim/out/port_design/port_spec.json'
 
 
 def port_numbers():
-    """The port block is the authority for precharge, fuses and contactors (gen/port.py writes port_spec.json)."""
-    ps = json.load(open(PORT_SPEC))
+    """The port block is the authority for precharge, fuses and contactors (sim/port_design.py writes port_spec.json)."""
+    ps = json.load(open(need(PORT_SPEC, 'sim/port_design.py')))
     v = ps['variants']['135']
     return dict(R_ohm=ps['precharge']['R_ohm'], dV_ok_V=ps['precharge']['dV_ok_V'], fuse_mpn=v['fuse_mpn'],
                 fuse_In_A=v['fuse_In_A'], contactor=ps['contactor']['type'])
@@ -2351,6 +2695,7 @@ def handoff(R, D):
     SNB, PORT, OVX = snubber_decision(R), port_numbers(), ov_excursion(R, D)
     R['prot'] = protection_numbers(R, D)
     R['ttrip'] = temperature_trips(R, D)
+    R['light'] = light_load(R, D)
     R['clamps'] = clamp_options(R, D)
     priced = [c for c in R['clamps'] if c['feasible'] and c['cost_usd_per_module'] is not None]
     cp = min(priced, key=lambda c: c['cost_usd_per_module'])
@@ -2639,6 +2984,8 @@ def magnetics_requirements(R, D):
             if p is None:
                 V1g, V2g, pmax, _ = R['derating']['charge']
                 p = float(pmax[list(V1g[:, 0]).index(v1), list(V2g[0]).index(v2)])
+                if not np.isfinite(p):                    # corner not admitted at >= 10 kW: no requirement from it
+                    continue
             r_ = best_modulation([v1], [v2], [p], D, grid=TPS_COARSE)
             a1, a2 = float(r_['a1'][0]), float(r_['a2'][0])
         o = dict(v1=v1, v2=v2, n=D['n'], L=D['L'], Lm=D['Lm'], a1=a1, a2=a2, phi=0.0)
@@ -2652,6 +2999,57 @@ def magnetics_requirements(R, D):
                         winding_Vs_half_period_primary_referred=float(D['n'] * v2 * (PI - a2) / W),
                         f_sw_Hz=F))
     return out
+
+
+def assembly_block(R):
+    """PCM-09: which assembly every result of this run belongs to.  The study is not the drawn board."""
+    o = DESIGN
+    return {
+        'this_file': 'STUDY of the device option chosen in report section 0 - not the drawn board; values here are not '
+                     'its acceptance evidence and the drawn board\'s checks are not evidence for this study',
+        'study': {'id': '%s - %s' % (R['pick']['option'], o['name']), 'makers': o['roles'],
+                  'driver': 'NOVOSENSE NSI6651ASC-DSWR (industrial), UCC14241-Q1 bias, %+.0f / %+.1f V, R_G,on / R_G,off '
+                            '%g / %g ohm per device' % (DESIGN_RAIL[0], DESIGN_RAIL[1], o['rg_on'], o['rg_off']),
+                  'magnetics': 'D-014 values (11:12, 6.50 uH, 150 uH); construction rev M1 of sim/out/magnetics '
+                               '(leakage %.2f + external %.2f uH)' % (MAGD['xfmr']['electrical']['L_leak_H'] * 1e6,
+                                                                     MAGD['ind']['electrical']['L_H'] * 1e6),
+                  'schematic': None, 'bom': None,
+                  'status': 'calculated study; no schematic, no BOM, no revision letter. DAB-12: hardware only against '
+                            'a customer need - drawing a board for it (new generator, new revision identity, own build '
+                            'checks) is an owner decision'},
+        'drawn_board': {'id': 'DAB60 rev B0 (2026-10-04)', 'generator': 'gen/dab60.py - frozen, not regenerated '
+                        '(gen/build_all.py FROZEN); its design_check asserts modules/bridge*/mpn == CBB011M12GM4T, so it '
+                        'stops on this file',
+                        'devices': '2 x Wolfspeed CBB011M12GM4T (one full-bridge module per bridge)',
+                        'driver': 'TI UCC21710 + UCC14241-Q1, +15 / -4 V, R_G,on / R_G,off 1 / 0.27 ohm',
+                        'magnetics': 'D-014 values with the earlier split: leakage 4.38 + external 2.12 uH',
+                        'evidence': 'hardware/DAB60/outputs/DAB60_design_check.txt and DAB60_report.json, computed against '
+                                    'the earlier module-round dab_spec.json (that file is not kept in git)',
+                        'bom': 'bom/DAB60_BOM.csv; costed as the earlier platform in bom/DAB-D60-FULL_costed_BOM.csv'},
+        'results': {
+            'report 0 option table': 'all options on the same D-014 magnetics; row GM4 re-evaluates the drawn board\'s '
+                                     'module with today\'s rules (comparison only, not its acceptance evidence)',
+            'report 0.1-0.4 (DR-01..07, dead time, trip turn-off, DESAT chain, reverse clamp, cost "after", efficiency '
+            'claim)': 'study',
+            'report 0.3 cost "before"': 'drawn module-based platform (bom/DAB-D60-FULL_costed_BOM.csv)',
+            'loss / efficiency map and LUT (efficiency_map.csv), derating maps (derating_map.csv, derating_charge_W), '
+            'pessimistic maps, stresses, banks, magnetics requirements, 950 V verdict, light-load policy': 'study',
+            'commutation decks (snubber_study.csv, sim/spice/dab_snub_*.cir, dab_cal_*.cir, dab_matched / v2low / '
+            'light)': 'study: composite worst-case C_oss and R_DS(on) of the two makers, %.0f nH discrete loop + %.1f nH '
+                      'bussing' % (o['l_loop'] * 1e9, a('L_bus') * 1e9),
+            'fault-timing chain (gate_drive.desat, protection.trip_turn_off)': 'study: NSI6651 industrial grade with the '
+                                                                             'two makers\' gate charge',
+            'CRD calibration (report 1, 5; crd_calibration.png)': 'Wolfspeed CRD60DD12N-GMB reference (CBB011M12GM4T) - '
+                                                                 'model check only',
+            'design levers (report 5c, design_levers.csv)': 'module family of the drawn board (CBB011M12GM4T / '
+                                                           'CAB011M12FM3) with their own UCC21710 dead-time guard - '
+                                                           'reference only',
+            'control study (sim/dab_control.py, sim/out/dab_control)': 'study plant: n, L, L_m and banks (D-014, common '
+                                                                       'to both), R_loop / OC trip / dead-time guard of '
+                                                                       'the study devices; SPS, ideal edges; its '
+                                                                       'PCS-P125 link cases read the PCS outputs'},
+        'acceptance_rule': 'no mixed-generation claims: nothing in this file is acceptance evidence for DAB60 rev B, '
+                           'and DAB60_design_check.txt is no evidence for the study'}
 
 
 def spec_update(spec, R, D):
@@ -2727,20 +3125,39 @@ def spec_update(spec, R, D):
               'dvdt_off_V_per_ns': float(0.8 * 800.0 / (o['tf'] * 1e9) * 0.5),
               'Qg_C': o['npar'] * d['qg'], 'P_gate_per_switch_W': o['npar'] * d['qg'] * (DESIGN_RAIL[0] - DESIGN_RAIL[1]) * F,
               'P_bias_per_switch_W': o['npar'] * d['qg'] * (DESIGN_RAIL[0] - DESIGN_RAIL[1]) * F + 0.35})
-    g['desat'].update({'V_DS_trip_V': prot['desat']['v_ds_trip_V'][1], 'blanking_ns': prot['desat']['blanking_ns_max'],
-                       'response_total_ns_max': prot['desat']['to_plateau_end_ns_max'],
-                       'response_basis': 'NSI6651 industrial: LEB 200 ns (+25 %%) + C_pin %.0f pF x 9.8 V / 430 uA + '
-                                         'deglitch 265 + DESAT->OUT 300 ns + soft turn-off to the plateau at 0.25 A'
-                                         % (a('c_desat') * 1e12),
-                       'soft_turn_off_A': dev.NSI6651['i_sto'][0], 't_sc_assumed_us': min(
-                           prot['desat']['tsc_assumed_us_1000V_150C'].values()),
-                       't_sc_basis': ('ASSUMPTION per device (no Chinese maker publishes one): %s us at <= 800 V / 25 C '
-                                      'start, x 800/1000 x %.1f for 1000 V / 150 C; ROHM SCT4018KR, the only Asian part '
-                                      'with a rating, states 4.0 us typ at 18 V / 800 V (p3)' % (
-                                          prot['desat']['tsc_assumed_us_800V_25C'], a('tsc_hot_factor'))),
-                       'margin_vs_assumed_tsc': prot['desat']['margin'],
-                       'residual_risk': 'withstand unknown for both makers; a short-circuit test on samples at 950 V / '
-                                        '150 C is a release condition, and the makers must supply t_SC'})
+    ds = prot['desat']
+    g['desat'] = {'V_DS_trip_V': ds['v_ds_trip_V'][1], 'blanking_ns': ds['blanking_ns_max'],
+                  'to_gate_falling_ns_max': ds['to_gate_falling_ns_max'],
+                  'to_plateau_voltage_ns_max': ds['to_plateau_voltage_ns_max'], 'to_vth_ns_max': ds['to_vth_ns_max'],
+                  'response_total_ns_max': ds['to_vth_ns_max'], 't_eq_energy_equivalent_ns': ds['t_eq_ns'],
+                  'worst_maker': ds['worst_maker'], 'per_maker_ns': ds['per_maker_ns'],
+                  'response_basis': 'NSI6651 industrial: LEB 200 ns (+25 %%) + C_pin %.0f pF x 9.8 V / 430 uA + '
+                                    't_DESAT_OFF 300 ns (deglitch included); then the soft turn-off at 0.25 A '
+                                    'discharging n x C_iss to V_th, per maker (the composite would mix two makers\' '
+                                    'data)' % (a('c_desat') * 1e12),
+                  't_DESAT_OFF_basis': ds['t_desat_off_basis'], 'gate_model': ds['gate_model'],
+                  't_eq_with_Qg_curve_ns': ds['t_eq_qg_curve_ns'], 'blanking_minimum': ds['blanking_minimum'],
+                  'soft_turn_off_A': dev.NSI6651['i_sto'][0], 't_sc_assumed_us': ds['tsc_assumed_us_1000V_150C'],
+                  't_sc_basis': ('ASSUMPTION per device (no Chinese maker publishes one): %s us at <= 800 V / 25 C '
+                                 'start, x 800/1000 x %.1f for 1000 V / 150 C; ROHM SCT4018KR, the only Asian part '
+                                 'with a rating, states 4.0 us typ at 18 V / 800 V (p3)' % (
+                                     ds['tsc_assumed_us_800V_25C'], a('tsc_hot_factor'))),
+                  'endpoint': ds['endpoint'],
+                  'ratio_t_eq_to_assumed_withstand': ds['ratio_t_eq_to_withstand'],
+                  'ratio_gate_falling_to_assumed_withstand': ds['ratio_gate_falling_to_withstand'],
+                  'ratio_plateau_to_assumed_withstand': ds['ratio_plateau_to_withstand'],
+                  'ratio_vth_to_assumed_withstand': ds['ratio_vth_to_withstand'],
+                  'acceptance': {'rule': '2x: the withstand must be at least twice the chain, in time (t_SC >= 2 t_eq) '
+                                         'and in energy (E_SC >= 2 E_chain) at 1000 V / 150 C start / +18 V',
+                                 't_SC_required_us_1000V_150C': ds['required_withstand_us_1000V_150C'],
+                                 't_SC_required_us_800V_25C_same_scaling': ds['required_withstand_us_800V_25C_equiv'],
+                                 'E_chain_J_per_device_1000V': ds['energy_chain_J_per_device'],
+                                 'E_SC_required_J_per_device_1000V': ds['energy_required_J_per_device'],
+                                 'E_assumed_withstand_J_per_device_1000V': ds['energy_assumed_withstand_J_per_device'],
+                                 'I_sc_assumed_A_per_device': ds['i_sc_assumed_A_per_device'],
+                                 'I_sc_basis': A['i_sc_dev_factor'][1]},
+                  'levers': ds['levers'], 'fixed_internal_ns': ds['fixed_internal_ns'],
+                  'release_block': ds['release_block']}
     pr = spec['protection']
     pr.update({'I_xfmr_oc_trip_A': prot['oc_trip_A'], 'I_xfmr_oc_trip_band_A': prot['oc_band_A'],
                'trip_turn_off': {k: v_ for k, v_ in prot.items() if k not in ('desat',)},
@@ -2749,6 +3166,10 @@ def spec_update(spec, R, D):
                                                  'OC protection; with soft turn-off its level need not depend on the '
                                                  'bus voltage (overshoot %.0f V)' % prot['overshoot_soft_V']),
                'module_ntc_trip_C': None, 'trip_temperatures': tt,
+               'I_xfmr_oc_trip_vs_V': ('fixed window +/-%.0f A (band %.0f-%.0f A) at every bus voltage: with the soft '
+                                       'turn-off the level need not follow V_bus (I_xfmr_oc_vdep_implementation); the '
+                                       'Fig. 19 rule of the module round does not apply to the study devices'
+                                       % (prot['oc_trip_A'], prot['oc_band_A'][0], prot['oc_band_A'][1])),
                'bridge_cross_trip': {'required_us': 1.0,
                                      'rule': 'any trip, RDY/UVLO loss, missing +24 V or an unplugged/unpowered bridge '
                                              'board stops BOTH bridges in hardware within 1 us (common TRIP_N/LATCH '
@@ -2808,16 +3229,20 @@ def spec_update(spec, R, D):
                'note': 'discretes: R_th j-c + AlN/grease stack + cold-plate footprint per device; hottest device '
                        'carries the sharing factors'})
     ws = spec['worst_case_stresses']
-    ws['module_V_peak_rule'] = ('V_bus + L_loop x 0.8 I_off / t_f at the worst feasible point (L_loop %.0f nH ASSUMED for '
-                                'the discrete layout, t_f %.0f ns at the design R_G,off, hot)' % (o['l_loop'] * 1e9,
-                                                                                                    o['tf'] * 1e9))
+    ws['module_V_peak_rule'] = ('max of V_bus + dV_deck(I_off) (harsh-deck envelope, %.0f nH loop ASSUMED for the '
+                                'discrete layout, report section 7) and V_bus + V_res (partial / hard turn-on) at the '
+                                'worst admitted point' % (o['l_loop'] * 1e9))
     ws['I_device_rms_hottest_A'] = max(st['idev1'], st['idev2'])
     hs = {q['point']: q for q in R['snub'] if q['cfg'] == 'rc_hf'}
     spec['power_stage']['hard_switching'] = {
         'die_peak_V_ngspice': {k: max(q['V_die1_pk'], q['V_die2_pk']) for k, q in hs.items()},
-        'rule': 'no hard turn-on at >= 800 V: TPS LUT keeps ZVS; firmware blocks SPS below the LUT\'s ZVS boundary and '
-                'checks the LUT integrity at start; the decks overstate the overshoot (~1.5x on the GM4) - DPT on the '
-                'real layout with R_G,on is a release condition'}
+        'rule': 'turn-on: V_bus + V_res <= %.0f V at every edge of every LUT entry (no hard turn-on above 600 V, no SPS '
+                'at light load above 800 V); turn-off: V_bus + dV_deck(I_off) <= %.0f V with the harsh-deck envelope; '
+                'both built into the LUT (efficiency_map.csv columns V_res1/V_res2, I_off1/I_off2) and re-checked by '
+                'firmware at start (FW-DAB-2). The deck harshness found on the GM4 module (~1.47x) is information only, '
+                'never a pass criterion; DPT on the real layout with the real R_G is the release condition'
+                % (V_DS_LIM, V_DS_LIM),
+        'deck_calibration': {k: v_ for k, v_ in R['deck_cal'].items()}}
     spec['device_options'] = {'rows': R['options'], 'choice': pk['option'], 'rule': 'cheapest option meeting Tj and '
                               'current rules with primary AND alternate Asian maker, efficiency not worse than the '
                               'incumbent (window mean and 800/800 V 60 kW), designed for the worse maker',
@@ -2830,7 +3255,70 @@ def spec_update(spec, R, D):
                              '(dab_design.py)'}
     spec['st_crosscheck_inputs'] = {'E_turn_on_zero_current_800V_J': R['e_zcs_800']}
     spec['meta']['round'] = ('2026-10-04 Asian device re-selection (SRC-1..4) and DAB60 review findings DR-01..07, '
-                             'IC-08, cost re-opening')
+                             'IC-08, cost re-opening; 2026-10-05 review PCM-09..12, PCM-23')
+    spec['assembly'] = assembly_block(R)
+    spec['audit']['applies_to'] = ('CBB011M12GM4T data only (the drawn board\'s module: option row GM4, design levers, '
+                                   'CRD calibration) - the study devices are read from sim/data/dab_discrete_curves.py')
+    spec['thermal']['flow_order'] = 'port-2 bridge first (UG p49), then port-1 bridge, then transformer/inductor plate'
+    spec['meta']['identity'] = ('STUDY of option %s (not drawn, no schematic or BOM); the drawn board DAB60 rev B0 is '
+                                'module-based - see key assembly' % R['pick']['option'])
+    spec['sensing']['NTC'] = {'part': 'plate NTC per bridge (discretes have no internal NTC)',
+                              'readout': 'hardware comparator + ADC, see protection.trip_temperatures (DR-06)'}
+    dt['lut_rule'] = ('dead time = t_d(off) - t_d(on) + predicted ZVS transition + 20 ns, never below the hardware guard '
+                      '(hw_guard_ns, study devices at R_G,off %g ohm)' % o['rg_off'])
+    spec['design_levers']['note'] = ('reference only: the module family of the drawn board (CBB011M12GM4T, DAB-02) re-run '
+                                     'with today\'s model; not the study\'s option set (device_options)')
+    ll = R['light']
+    spec['power_stage']['light_load'] = ll
+    spec['firmware_requirements'] = {
+        'FW-DAB-1 modulation': 'only from the offline LUT: efficiency_map.csv rows with feasible = 1 (a1, a2, phi vs V1, '
+                               'V2, P; inner shifts up to %.0f deg); interpolate only between feasible neighbours; outside '
+                               'the feasible set the gates stay off' % np.degrees(TPS_MAP.max()),
+        'FW-DAB-2 LUT integrity': 'at start and after every LUT write: CRC over the table, and for every entry V_bus + '
+                                  'V_res <= %.0f V and V_bus + dV_deck(I_off) <= %.0f V from its stored columns (no hard '
+                                  'turn-on above 600 V, no SPS at light load above 800 V); a failed check keeps the gates '
+                                  'off and reports' % (V_DS_LIM, V_DS_LIM),
+        'FW-DAB-3 idle': 'gates off on both bridges while |P_ref| < %.1f kW; switching resumes at |P_ref| >= %.1f kW (the '
+                         'LUT\'s lowest row), or at the lowest feasible row where that row has none (power_stage.'
+                         'light_load.min_switching_power); in between the last state holds, switching with the %.1f kW '
+                         'entry\'s a1 / a2 and the current-loop phase' % (P_IDLE[0] / 1e3, P_IDLE[1] / 1e3, P_IDLE[1] / 1e3),
+        'FW-DAB-4 never zero-phase SPS': 'SPS at phi ~ 0 with both bridges switching circulates the whole mismatch current '
+                                         '(%.0f A rms / %.0f A peak at 950 / 400 V, above the %.0f A OC trip): SPS only '
+                                         'where |V1 - n V2| <= %.0f V (zero-phase peak <= 50 A, the range sim/dab_control.py '
+                                         'covers), the LUT\'s TPS entry from the first switching period elsewhere'
+                                         % (ll['corners'][0]['sps_phi0_IL_rms_A'], ll['corners'][0]['sps_phi0_IL_pk_A'],
+                                            prot['oc_trip_A'], 50.0 * 4 * F * D['L']),
+        'FW-DAB-5 power reversal': 'through the idle band (gates off for |P_ref| < %.1f kW), re-entering on the LUT entry '
+                                   'of the new direction; sim/dab_control.py reversal scenario' % (P_IDLE[0] / 1e3),
+        'FW-DAB-6 operating window': 'P <= derating_charge_W(V1, V2) (charge and discharge maps) and the LUT feasible flag; '
+                                     'port 2 at 400 V is a derated corner (DAB-11: full power >= 700 V)',
+        'FW-DAB-7 flux balance': 'flux-balance loop and the 5 A DC trip stay active in every switching state; at idle the '
+                                 'magnetising current decays through the body diodes and the loop restarts from zero',
+        'FW-DAB-8 power ramp into the PCS-P125 link': 'every change of the power reference into a DC link the PCS holds '
+                                 '(start, stop, step, reversal) at or below the PCS control study\'s DC/DC ramp rule (system '
+                                 'total, shared /N_alive by the system controller; sim/out/pcs_control/report.md firmware '
+                                 'table); numbers in sim/out/dab_control/report.md, PCS-P125 DC link',
+        'FW-DAB-9 stops and trips on the PCS-P125 link': 'non-hazard stops ramp to zero at the FW-DAB-8 rate before the gates '
+                                 'go off; hazard trips gate off at once and report on the module bus; port contactors open '
+                                 'only at zero current; the PCS removes the step through its measured DC current',
+        'FW-DAB-10 off-grid bus forming': 'CV on port 1 at the control study\'s crossover, setpoint above the PCS UV stop by '
+                                 'the full-load step dip (sim/out/dab_control/report.md); the port-1 OV trip stays below the '
+                                 'PCS DC OV trip so that the DAB stops first on a PCS trip',
+        'FW-DAB-11 sensor-offset nulling': 'at power-up and at every idle the transformer-current and branch-current sensor '
+                                 'offsets are nulled over >= 64 samples with the gates off; a null outside +/-4.0 A is a sensor '
+                                 'fault that blocks the start; voltage channels are never auto-zeroed. Reason: the flux-balance '
+                                 'loop (FW-DAB-7) nulls the MEASURED DC, so an un-nulled sensor offset of the +/-4 A the DAB60 check '
+                                 'allows becomes a real DC bias of up to about 32 mT that the 5 A trip cannot see (Wolfspeed CRD-60DD12N-K '
+                                 'firmware cross-check, REFERENCE-LESSONS section 6, R-WS-5, 2026-10-05)',
+        'FW-DAB-12 firmware practice (reference cross-check)': 'the module adopts R-WS-1..R-WS-9 of '
+                                 'docs/requirements/REFERENCE-LESSONS.md section 6 (range-checked bus/service inputs; ramp to zero and '
+                                 'stop on communication loss, assumed 30 ms on the module CAN; lock-out after the third hazard trip of a '
+                                 'class within 10 min and at once when hardware and firmware both see an over-voltage; explicit recovery '
+                                 'threshold, dwell and restart-rate limit for every non-latched limit; exception paths force the one-shot '
+                                 'trip and stop the heartbeat first, clock-fail and emulation-stop trips enabled; start-up self-test fires '
+                                 'each fault line alone and the 10 ms read-back covers the trip routing; no bus-reachable mode disables a '
+                                 'protection, parameter writes only in SERVICE with authorisation and timeout; redundant range-checked '
+                                 'calibration, a failed load blocks the start)'}
     return spec
 
 
@@ -2845,7 +3333,8 @@ def _f(x, fmt='%.1f', none='RFQ'):
 def report_devices(R, D, spec, w):
     """Section 0: the SRC-1..4 device study, the decision and how each DAB60 review finding was resolved."""
     pick, rows = R['pick'], R['options']
-    w('## 0. Asian device re-selection and review findings (2026-10-04, REQUIREMENTS.md section 7, D-031)')
+    w('## 0. Asian device re-selection and review findings (2026-10-04, REQUIREMENTS.md section 7, D-031; review '
+      'PCM-09..12 and PCM-23, 2026-10-05)')
     w('')
     w('Decision rule (coordinator): the cheapest option that meets the junction-temperature and current rules with a '
       'primary AND an alternate Asian maker and whose efficiency is not worse than today\'s; designed for the worse of '
@@ -2877,11 +3366,14 @@ def report_devices(R, D, spec, w):
       'point is the worse of the two makers, with one gate design and one dead-time guard for both. "rules" = the '
       'decision rule (Tj and current); the turn-off SOA (V_DS peak <= 1200 V with the overshoot) is applied as a power '
       'limit in the derating map, as D-014 did for the incumbent above 900 V. Modules cannot be ranked on cost (no '
-      'public price).')
+      'public price). The "full-power pts ok" column is the SCREENING rule, the same for every option (I^2 law with '
+      'k_os %.2f fitted to the harsh deck without any harshness credit, plus the turn-on rule); the chosen option\'s '
+      'admitted map (section 6) follows the harsh deck itself and keeps %d of %d (section 7).'
+      % (a('k_os'), len(R['v950']['window_60kW']['deck']), R['v950']['window_60kW']['n']))
     if up is not None and up is not pick and pick['full_power_points_ok'] < pick['full_power_points']:
-        w(f'Consequence of the choice: {pick["option"]} keeps full power at {pick["full_power_points_ok"]} of '
-          f'{pick["full_power_points"]} full-power window points (the rest are SOA-limited, derating map); {up["option"]} '
-          f'keeps all {up["full_power_points_ok"]} for {_f(up["cost_usd_per_bridge"] and 2 * (up["cost_usd_per_bridge"] - pick["cost_usd_per_bridge"]), "+%.0f")} '
+        w(f'Consequence of the choice (screening rule): {pick["option"]} keeps full power at {pick["full_power_points_ok"]} of '
+          f'{pick["full_power_points"]} full-power window points; {up["option"]} '
+          f'keeps {up["full_power_points_ok"]} for {_f(up["cost_usd_per_bridge"] and 2 * (up["cost_usd_per_bridge"] - pick["cost_usd_per_bridge"]), "+%.0f")} '
           f'USD per module and runs cooler (Tj {up["Tj_max_full_C"]:.0f} C) - owner\'s choice if the full window is required.')
     w('')
     prot, tt, hf, cl, cal, cost = R['prot'], R['ttrip'], R['hf'], R['clamp_pick'], R['claim'], R['cost']
@@ -2905,19 +3397,39 @@ def report_devices(R, D, spec, w):
       f'(+{drawn["loss_800_60k_W"]-ours["loss_800_60k_W"]:.0f} W) |')
     w(f'| DR-03 trip turn-off | {prot["mechanism"]} | response {prot["t_response_us"]:.2f} us; fault peak '
       f'{prot["I_peak_fault_A"]:.0f} A (PWM-bounded {prot["I_peak_pwm_bounded_A"]:.0f} A), {prot["I_per_device_peak_A"]:.0f} A '
-      f'per device vs I_DM {prot["I_DM_device_A"]:.0f} A; overshoot {prot["overshoot_soft_V"]:.0f} V -> '
-      f'{prot["V_peak_soft_V"]:.0f} V; as drawn (fast turn-off after 0.78 us): {prot["hard_path_as_drawn"]["I_peak_A"]:.0f} A, '
+      f'per device vs I_DM {prot["I_DM_device_A"]:.0f} A ({prot["I_DM_check_maker"]}, the tighter maker; each maker with '
+      f'its own gate charge and I_DM: ' + ', '.join(f'{k} {q["I_per_device_peak_A"]:.0f} / {q["I_DM_A"]:.0f} A'
+                                                   for k, q in prot['per_maker'].items()) +
+      f'); overshoot {prot["overshoot_soft_V"]:.0f} V -> '
+      f'{prot["V_peak_soft_V"]:.0f} V; the drawn DAB60 rev B fast turn-off path (0.78 us) applied to the study devices '
+      f'(why the soft turn-off is required): {prot["hard_path_as_drawn"]["I_peak_A"]:.0f} A, '
       f'{prot["hard_path_as_drawn"]["V_peak_V"]:.0f} V; {prot["inductor_note"]} |')
     ds = prot['desat']
-    tsc0 = ', '.join(f'{k} {v*1e6:.1f}' for k, v in ds['tsc_assumed_us_800V_25C'].items())
-    tsc1 = min(ds['tsc_assumed_us_1000V_150C'].values())
+    tsc0 = ', '.join(f'{k} {v:.1f}' for k, v in ds['tsc_assumed_us_800V_25C'].items())
+    tsc1 = ds['tsc_assumed_us_1000V_150C']
+    lv = ds['levers']
+    bm = ds['blanking_minimum']
     w(f'| DR-05 short circuit | t_SC ASSUMED per device (no maker publishes one): {tsc0} us at 800 V / 25 C start, '
-      f'x 0.8 x {a("tsc_hot_factor")} -> {tsc1:.2f} us at 1000 V / 150 C. Required: gate falling within 50 % of that, '
-      f'i.e. a withstand of >= 2 x {ds["to_gate_falling_ns_max"]/1e3:.2f} = {2*ds["to_gate_falling_ns_max"]/1e3:.1f} us at '
-      f'1000 V / 150 C to be confirmed by the makers or a test | NSI6651 industrial worst case: blanking '
-      f'{ds["blanking_ns_max"]:.0f} ns, gate falling after {ds["to_gate_falling_ns_max"]:.0f} ns, Miller plateau left after '
-      f'{ds["to_plateau_end_ns_max"]:.0f} ns: {tsc1*1e3/ds["to_gate_falling_ns_max"]:.2f}x the assumed hot withstand - NOT '
-      f'enough; residual risk: a leg shoot-through at 1000 V / 150 C may destroy the devices (fuse clears) |')
+      f'x 0.8 x {a("tsc_hot_factor")} -> {tsc1:.2f} us at 1000 V / 150 C. Endpoint: '
+      f'{ds["endpoint"]}. Rule (2x): withstand >= 2 x the chain, i.e. t_SC >= '
+      f'{ds["required_withstand_us_1000V_150C"]:.2f} us at 1000 V / 150 C / +18 V ({ds["required_withstand_us_800V_25C_equiv"]:.1f} us '
+      f'at 800 V / 25 C on the same scaling) and E_SC >= {ds["energy_required_J_per_device"]:.2f} J per device. Correction '
+      f'(review PCM-10): the 2026-10-04 row added the deglitch to t_DESAT_OFF, which already contains it ({ds["t_desat_off_basis"]}), '
+      f'took the gate charge from the Q_g curve (Miller charge a short does not have) and printed withstand / chain (0.97) as '
+      f'"x the assumed hot withstand" - inverted: its own chain was 1.03 x (gate falling, 1157 ns) and 1.58 x (plateau, '
+      f'1765 ns) the withstand | NSI6651 industrial worst case, worse maker {ds["worst_maker"]}: blanking '
+      f'{ds["blanking_ns_max"]:.0f} ns, gate falling (OUT 90 %) after {ds["to_gate_falling_ns_max"]:.0f} ns '
+      f'({ds["ratio_gate_falling_to_withstand"]:.2f} x the assumed hot withstand), gate at the plateau voltage after '
+      f'{ds["to_plateau_voltage_ns_max"]:.0f} ns ({ds["ratio_plateau_to_withstand"]:.2f} x), at V_th after '
+      f'{ds["to_vth_ns_max"]:.0f} ns ({ds["ratio_vth_to_withstand"]:.2f} x); energy-equivalent full-current time t_eq '
+      f'{ds["t_eq_ns"]:.0f} ns = **{ds["ratio_t_eq_to_withstand"]:.2f} x the assumed hot withstand** (the 2x rule needs <= '
+      f'0.50; with the Q_g-curve gate model {ds["t_eq_qg_curve_ns"]:.0f} ns); fault energy at 1000 V '
+      f'{ds["energy_chain_J_per_device"]:.2f} J per device against {ds["energy_assumed_withstand_J_per_device"]:.2f} J '
+      f'assumed withstand (I_sc {ds["i_sc_assumed_A_per_device"]:.0f} A ASSUMED). Minimum blanking: {bm["verdict"]}. '
+      f'Levers (t_eq / ratio): '
+      + '; '.join(f'{q["lever"].split(" (")[0]}: {q["t_eq_ns"]:.0f} ns / {q["ratio_to_assumed_hot_withstand"]:.2f}'
+                  for q in lv[1:]) + '. **Release block:** ' + ds['release_block'] + '; until then a leg shoot-through at '
+      '1000 V / 150 C may destroy the devices (the fuse clears) |')
     w(f'| DR-06 over-temperature | plate NTC per bridge between the hottest positions into the hardware trip chain at '
       f'{tt["plate_trip_C"]:.0f} C (normal worst plate + 20 K; Tj-based ceiling {tt["plate_trip_Tj_based_ceiling_C"]:.0f} C '
       f'from Tj limit {tt["tj_limit_for_trip_C"]:.0f} C minus the {tt["offset_plate_to_tj_pessimistic_K"]:.0f} K offset at the '
@@ -2931,12 +3443,20 @@ def report_devices(R, D, spec, w):
       f'A rms per part (rule {hf["I_rms_rule_A"]:.1f} A), {hf["I_pk_per_cap_max_A"]:.0f} A peak, '
       f'{hf["P_per_cap_max_W"]:.2f} W per part (ESR assumed) |')
     hs = {q['point']: q for q in R['snub'] if q['cfg'] == 'rc_hf'}
-    w(f'| die overshoot (ngspice, harsh channel model) | full power at 950 V: {hs["v1max"]["V_die1_pk"]:.0f} V; highest '
-      f'turn-off current point {hs["ioffmax"]["V1"]:.0f}/{hs["ioffmax"]["V2"]:.0f} V: {hs["ioffmax"]["V_die1_pk"]:.0f} V; SPS '
-      f'HARD turn-on at light load (800/900 V 10 kW, 950/850 V 5 kW): {hs["hard_b1"]["V_die1_pk"]:.0f} / '
-      f'{hs["hard_b2"]["V_die2_pk"]:.0f} V | the decks overstate the GM4 datasheet overshoot by ~1.5x; even so hard '
-      f'turn-on at >= 800 V must not happen in operation: the TPS LUT keeps ZVS there and firmware must block SPS at '
-      f'light load (LUT integrity check); DPT with the real R_G,on and layout is a release condition |')
+    dc, wc = R['deck_cal'], R['v950']['window_60kW']
+    w(f'| die overshoot (ngspice, harsh channel model) | the admitted map now follows the harsh deck itself: envelope of '
+      f'{sum(q["clean"] for q in dc["rows"])} clean ZVS samples (section 7) - turn-off limit '
+      f'{R["v950"]["ioff_limit"]["950V"]["24nH"]:.0f} A at 950 V, {R["v950"]["ioff_limit"]["900V"]["24nH"]:.0f} A at 900 V, '
+      f'{R["v950"]["ioff_limit"]["850V"]["24nH"]:.0f} A at 850 V; turn-on V_bus + V_res <= {V_DS_LIM:.0f} V built into the '
+      f'LUT. Full-power window: {len(wc["deck"])} of {wc["n"]} points (the 2026-10-04 rule with the 1.47x GM4 credit: '
+      f'{len(wc["withdrawn"])}). Check decks: highest admitted voltage point {hs["v1max"]["V1"]:.0f}/{hs["v1max"]["V2"]:.0f} V '
+      f'{hs["v1max"]["P"]/1e3:.1f} kW {max(hs["v1max"]["V_die1_pk"], hs["v1max"]["V_die2_pk"]):.0f} V; highest turn-off '
+      f'current point {hs["ioffmax"]["V1"]:.0f}/{hs["ioffmax"]["V2"]:.0f} V: {max(hs["ioffmax"]["V_die1_pk"], hs["ioffmax"]["V_die2_pk"]):.0f} V; '
+      f'SPS HARD turn-on at light load (800/900 V 10 kW, 950/850 V 5 kW): {hs["hard_b1"]["V_die1_pk"]:.0f} / '
+      f'{hs["hard_b2"]["V_die2_pk"]:.0f} V | hard turn-on is excluded from the LUT (no SPS at light load above 800 V; '
+      f'FW-DAB-2 re-checks it at start). The deck\'s harshness against the GM4 datasheet (~1.47x) is information only, '
+      f'never a pass criterion; a DPT with the real R_G and layout is the release condition that can restore the '
+      f'900-950 V rows |')
     w('| IC-08 magnetics insulation | levels written into transformer.isolation and series_inductor.isolation of '
       'dab_spec.json | port 1 - port 2 basic 1850 V DC, PD <= 10 pC at 3149 Vpk, 3323 V rms, 6 kV; windings to core '
       'basic, PD at 1799 / 1724 Vpk, 2200 V rms |')
@@ -2984,6 +3504,53 @@ def report_devices(R, D, spec, w):
           cg['gate_drive_if_counted_W'][0], cg['sensing_if_counted_W'][0], cg['share_with_hysteresis_and_aux'] * 100,
           min(cg['residual_gap_W']), max(cg['residual_gap_W']), R['sens']['crd_gap_fit'][0]))
     w('')
+    ll = R['light']
+    w('### 0.5 Zero and light power with a large voltage mismatch (review PCM-12)')
+    w('')
+    w('SPS at zero phase with both bridges switching (lossless, L_m included; calculated):')
+    w('')
+    w('| V1 / V2 V | V1 / (n V2) | I_L rms A | I_L peak A | i_m peak A | SPS ceiling n V1 V2 / (8 f L) kW |')
+    w('|---|---|---|---|---|---|')
+    for c in ll['corners']:
+        w(f'| {c["V1"]:.0f} / {c["V2"]:.0f} | {c["mismatch"]:.2f} | {c["sps_phi0_IL_rms_A"]:.2f} | '
+          f'{c["sps_phi0_IL_pk_A"]:.2f} | {c["sps_phi0_Im_pk_A"]:.2f} | {c["sps_P_max_kW"]:.2f} |')
+    w('')
+    w(f'At 950 / 400 V that is above the {R["prot"]["oc_trip_A"]:.0f} A OC trip, and the secondary turns on with the wrong '
+      'current polarity (hard). What the LUT commands there instead (inner shifts up to '
+      f'{np.degrees(TPS_MAP.max()):.0f} deg, turn-on rule included):')
+    w('')
+    w('| P kW | mode | feasible | a1 / a2 / phi deg | I_L rms / peak A | I_off b1 / b2 A | V_res b1 / b2 V | loss W | eta |')
+    w('|---|---|---|---|---|---|---|---|---|')
+    for q in ll['lut_950_400']:
+        if q['mode'] != 'LUT':
+            w(f'| {q["P_kW"]:+.1f} | {q["mode"]} | - | - | 0 / 0 | - | - | 0 | - |')
+            continue
+        w(f'| {q["P_kW"]:+.1f} | LUT | {"yes" if q["feasible"] else "NO"} | {q["a1_deg"]:.0f} / {q["a2_deg"]:.0f} / '
+          f'{q["phi_deg"]:.1f} | {q["IL_rms_A"]:.1f} / {q["IL_pk_A"]:.1f} | {q["I_off_A"][0]:.0f} / {q["I_off_A"][1]:.0f} | '
+          f'{q["V_res_V"][0]:.0f} / {q["V_res_V"][1]:.0f} | {q["loss_W"]:.0f} | {q["eta"]*100:.1f} % |')
+    w('')
+    mf = ll['mismatch_feasible_at_P_on']
+    w(f'Policy (firmware requirements FW-DAB-1..7 in `dab_spec.json`): the bridges idle with the gates off while |P_ref| '
+      f'< {ll["P_off_W"]/1e3:.1f} kW and switch again at |P_ref| >= {ll["P_on_W"]/1e3:.1f} kW (the LUT\'s lowest row); '
+      f'switching only on feasible LUT entries; SPS only where |V1 - n V2| <= {50.0 * 4 * F * D["L"]:.0f} V. At '
+      f'{ll["P_on_W"]/1e3:.1f} kW the LUT is feasible over V1 / (n V2) = '
+      + (f'{mf[0]:.2f}-{mf[1]:.2f}' if mf else 'nowhere') + f' (the port window spans {ll["mismatch_window"][0]:.2f}-'
+      f'{ll["mismatch_window"][1]:.2f}), so no separate mismatch limit is needed: the LUT\'s feasible set is the limit. '
+      'Where the P_on row has no feasible entry the gates stay off up to the lowest feasible row (V1/V2 V, direction: '
+      'lowest feasible kW; "none" = no feasible row up to 60 kW): '
+      + (', '.join(f'{q["V1"]:.0f}/{q["V2"]:.0f} {q["direction"][0]} '
+                   + ('none' if q['P_min_feasible_kW'] is None else f'{q["P_min_feasible_kW"]:.1f}')
+                   for q in ll['min_switching_power']) or 'none')
+      + f'. Light-load circulating current of the feasible LUT up to 10 kW: <= '
+      f'{ll["IL_rms_max_light_A"]:.0f} A rms / {ll["IL_pk_max_light_A"]:.0f} A peak. Power reversal and the start from '
+      'idle are checked in `sim/dab_control.py` (SPS plant, near-matched voltages).')
+    w('')
+    v4 = ll['v2_400_row']
+    w(f'Port 2 at 400 V is a derated corner (DAB-11: full power >= 700 V): P_max {v4["P_max_590_400_kW"]:.1f} kW at '
+      f'590 / 400 V, below the SPS ceiling {v4["sps_ceiling_590_400_kW"]:.2f} kW and the port-2 limit 100 A x 400 V = '
+      f'{v4["port2_limit_kW"]:.0f} kW (2.5 kW steps); the V2 = 400 V column of the derating map: '
+      + ', '.join(f'{k} V {"-" if x is None else f"{x:.1f}"}' for k, x in v4['P_max_row_kW'].items()) + ' kW.')
+    w('')
 
 
 def report(R, D, spec):
@@ -2999,6 +3566,16 @@ def report(R, D, spec):
     w('Generated by `sim/dab_design.py` (do not edit by hand). Everything here is CALCULATED or SIMULATED; nothing is '
       'bench-validated. Sources: `sim/dab_devices.py` (every datasheet number with file + page/figure).')
     w('')
+    asm_ = spec['assembly']
+    w(f'**Assembly identity (read first).** This report is a **study** of option {asm_["study"]["id"]} '
+      f'({asm_["study"]["driver"]}): no schematic, no BOM, no revision letter - DAB-12 makes the DAB an optional track '
+      'and drawing a board for this study is an owner decision. The **drawn board** is DAB60 rev B0 (`gen/dab60.py`, '
+      'frozen): 2 x CBB011M12GM4T modules, UCC21710 drivers, +15 / -4 V; its evidence is '
+      '`hardware/DAB60/outputs/DAB60_design_check.txt`, computed against the earlier module-round spec. Nothing below '
+      'is acceptance evidence for that board. Exceptions inside this report: section 2 and the CRD table of section 5 '
+      'are Wolfspeed\'s reference design, section 5c and the "before" cost of section 0.3 are the module family of the '
+      'drawn board. Per-result attribution: `dab_spec.json` key `assembly`.')
+    w('')
     report_devices(R, D, spec, w)
     w('## 1. Summary')
     w('')
@@ -3008,7 +3585,7 @@ def report(R, D, spec):
       f'{R["frozen"]["J"]-R["frozen"]["J_opt"]:+.1f} W mean loss ({(R["frozen"]["J"]/R["frozen"]["J_opt"]-1)*100:+.2f} %) '
       f'against the current sweep optimum {R["frozen"]["opt"][0]}:{R["frozen"]["opt"][1]}, {R["frozen"]["opt"][2]*1e6:.1f} uH '
       f'(continuous optimum n = {bc["n"]:.2f}, L = {bc["L"]*1e6:.1f} uH), so D-014 stands.')
-    w('* **Refinement round (2026-10-04):** device curves replaced by the independent audit\'s PDF vector-data values '
+    w('* **Module-round history (CBB011M12GM4T, the drawn board\'s device - not this study), refinement 2026-10-04:** device curves replaced by the independent audit\'s PDF vector-data values '
       '(E_on at 600 V was up to 21 % high, E_rr at 800 V up to 13 % high, C_oss ~3 % high), V_SD now a Fig. 7 table '
       '(the linear model was up to 11 % low at 25-50 A), switching SOA now the Fig. 19 polyline, transformer hot spot '
       'added as a derating limit (withdrawn 2026-10-04, MG-02). Pessimistic case, design levers and the '
@@ -3021,7 +3598,8 @@ def report(R, D, spec):
       f'(UG p55 Fig. 57). Measured loss is {np.min(pm*(1/em-1)/rc["ploss"]):.1f}-{np.max(pm*(1/em-1)/rc["ploss"]):.1f}x the '
       f'model. The 99.2 % / >98.8 % figures are web-page claims; the user guide only shows 97.0-97.6 %. '
       f'If the unexplained CRD loss ({sens["crd_gap_fit"][0]:.0f} W + {sens["crd_gap_fit"][1]*1e3:.1f} W/kW, fitted) is intrinsic, '
-      f'our 800 V/800 V efficiency becomes {sens["eta_crd_adjusted"][0]*100:.2f} % at 60 kW and {sens["eta_crd_adjusted"][1]*100:.2f} % at 30 kW: '
+      f'our 800 V/800 V efficiency with SPS becomes {sens["eta_crd_adjusted"][0]*100:.2f} % at 60 kW and '
+      f'{sens["eta_crd_adjusted"][1]*100:.2f} % at 30 kW (the LUT\'s TPS figure, the claim, is in section 0.4): '
       f'**neither target would be met**. Resolving this gap is the first bench task.')
     w(f'* **Worst junction temperature {st["tj_max"]:.0f} C** at {_fmt_pt(st["tj_max_at"])} with 50 C coolant inlet (design '
       f'ceiling 140 C, datasheet 150 C).')
@@ -3034,12 +3612,15 @@ def report(R, D, spec):
       f'{len(pg_["full_power_points_surviving"])} points; {pg_["fix"]}. Section 5b.')
     w(f'* **950 V on 1200 V devices:** {R["v950_text"]}')
     w(f'* **Full-power window misses** (DAB-10 x DAB-11 at 60 kW, either direction): '
-      + (', '.join(_fmt_pt(t) for t in st['infeasible_win_60k']) or 'none') + '. Root cause: switching SOA of the '
-      'bridge on the 900 V side (turn-off current too high at that voltage). This challenges assumption DAB-10/11: '
-      'either accept derating at the window corners, or run the PCS DC bus at V1 ~ n*V2 (then d ~ 1, ZVS everywhere).')
+      + (', '.join(_fmt_pt(t) for t in st['infeasible_win_60k']) or 'none') + '. Rule failed there (LUT grid of '
+      'efficiency_map.csv): ' + (', '.join(f'{k} {v}' for k, v in st['infeasible_win_60k_why'].items()) or '-') +
+      '. This challenges assumption DAB-10/11: either accept derating at the window corners, or run the PCS DC bus at '
+      'V1 ~ n*V2 (then d ~ 1, ZVS everywhere).')
     w('* **ZVS:** with SPS, bridge 1 loses ZVS at light load when V1 < n*V2 and bridge 2 when V1 > n*V2 '
-      '(`zvs_map_sps.png`). EPS/DPS/TPS from an offline LUT restores most of it and is required for light load and '
-      'for the 950 V operating range; SPS alone is adequate only near V1 = n*V2 above ~30 % load.')
+      '(`zvs_map_sps.png`). The offline TPS LUT (inner shifts up to %.0f deg) is required for light load and large '
+      'V1 / (n V2); every feasible LUT entry meets the turn-on rule V_bus + V_res <= %.0f V (no hard turn-on above '
+      '600 V); SPS alone is adequate only near V1 = n*V2 above ~30 %% load. Below %.1f kW the bridges idle (section 0.5).'
+      % (np.degrees(TPS_MAP.max()), V_DS_LIM, P_IDLE[1] / 1e3))
     w('* **DC flux walk:** open loop is not viable (a 5 ns pulse-width error gives ~%.0f A DC). Baseline: firmware flux-balance '
       'loop + gapped transformer + hardware trip; series blocking capacitor kept as a bolted-link provision.'
       % spec['flux_balance']['open_loop_5ns_skew_I_dc_A'])
@@ -3063,8 +3644,9 @@ def report(R, D, spec):
     w('* TI TIDA-010054 cross-check (TIDUES0F): 10 kW, 100 kHz, L = 35 uH, n = 1.6, phase <= 0.44 rad, DC-blocking caps sized '
       'C >= 100/(4 pi^2 f^2 L) (Eq. 20), leakage sized for ZVS only down to 1/2-1/3 load, EPS in firmware - same conclusions '
       'as ours on light-load ZVS.')
-    w('* **ST STDES-DABBIDIR / STSW-DABBIDIR cross-check: OPEN.** The documents could not be downloaded (st.com '
-      'bot-blocked); nothing in this report is checked against them.')
+    w('* **ST STDES-DABBIDIR / STSW-DABBIDIR cross-check (DAB-08):** in `sim/out/dab_control/report.md`, from a static '
+      'decode of ST\'s firmware constants (`sim/data/st_dab_firmware_params.csv`); nothing in this design report '
+      'depends on it.')
     w('* Datasheet inconsistencies found: (a) Fig. 8 C_oss is half of Fig. 9 at the same label voltage; it matches Fig. 9 if '
       'its axis is read x4 -> Fig. 9 + table used. (b) DPT E_off(20 A, 800 V) = 0.10 mJ < E_oss(800 V) = 0.17 mJ from Fig. 9, '
       'so DPT E_off is used as the full ZVS turn-off loss (no E_oss subtraction).')
@@ -3075,8 +3657,8 @@ def report(R, D, spec):
     w('|---|---|---|')
     w(f'| n = N1:N2 | {D["N1"]}:{D["N2"]} ({D["n"]:.4f}) | centres d = n V2/V1 on the 600-900 V x 700-900 V window; `selection_turns.csv` |')
     w(f'| L total | {D["L"]*1e6:.2f} uH +/-5 % | min mean loss; 60 kW at every window point except the SOA-limited corners |')
-    w(f'| leakage / external | {D["Llk"]*1e6:.2f} / {D["Lext"]*1e6:.2f} uH | leakage estimated from PM 114/93 geometry with '
-      f'{a("b_iso")*1e3:.0f} mm insulation; external inductor trims the set to +/-5 % |')
+    w(f'| leakage / external | {D["Llk"]*1e6:.2f} / {D["Lext"]*1e6:.2f} uH | split of the magnetics design files '
+      f'({MAG_SRC()}); the external inductor trims the set to +/-5 % |')
     w(f'| L_m | {D["Lm"]*1e6:.0f} uH +/-10 % | loss tie with 300 uH ({R["jlm"][150e-6]:.1f} vs {R["jlm"][300e-6]:.1f} W mean); '
       'halves DC flux per amp of residual DC current |')
     w('| dead time | adaptive 50-300 ns (transition + 20 ns) | mean loss: ' + ', '.join(
@@ -3087,7 +3669,8 @@ def report(R, D, spec):
     w('## 4. Power transfer, modulation, ZVS')
     w('')
     w('SPS power P = n V1 V2 phi (pi - |phi|) / (2 pi^2 f L) (`power_vs_phase.png`). ZVS is evaluated per leg transition by '
-      'integrating the inductor energy against the real C_oss(V) charge of the module (Fig. 9), a 150 pF node capacitance and '
+      'integrating the inductor energy against the real C_oss(V) charge of the chosen devices (worst of the two makers), '
+      'the node capacitance (winding + insulator tabs) and '
       'the opposing bridge voltage. Incomplete transitions dissipate the residual capacitive energy; wrong-polarity '
       'transitions are hard switched (DPT E_on + E_rr). `zvs_map_sps.png` shows SPS; `efficiency_map.csv` gives the chosen '
       'a1/a2/phi and ZVS flags of the best modulation at every point.')
@@ -3177,17 +3760,38 @@ def report(R, D, spec):
     w('## 6. Derating map (`derating_map.png`, `derating_map.csv`)')
     w('')
     V1g, V2g, pmax, why = R['derating']['charge']
-    w('Max charge power [kW] (rows V1, columns V2), limits: Tj <= 140 C at 50 C coolant, per-switch RMS <= 90 A, '
-      'switching SOA (Fig. 19 polyline, 24 nH), port currents 102/100 A, transformer hot spot 130 C at 0.40 K/W:')
+    if DESIGN['kind'] == 'gm4':
+        w('Max charge power [kW] (rows V1, columns V2), limits: Tj <= 140 C at 50 C coolant, per-switch RMS <= 90 A, '
+          'switching SOA (Fig. 19 polyline, 24 nH), port currents 102/100 A, transformer hot spot 130 C at 0.40 K/W:')
+    else:
+        w(f'Max charge power [kW] (rows V1, columns V2; the admitted map of the study, "-" = not admitted at >= 10 kW), '
+          f'limits: Tj <= {a("Tj_max_design"):.0f} C at {a("T_coolant_in"):.0f} C coolant inlet, hottest device RMS <= '
+          f'{a("I_term_frac")*100:.0f} % of its lead rating, turn-off V_bus + dV_deck(I_off) <= {V_DS_LIM:.0f} V (harsh-deck '
+          f'envelope, section 7), turn-on V_bus + V_res <= {V_DS_LIM:.0f} V, port currents {I_PORT_MAX[1]:.0f}/'
+          f'{I_PORT_MAX[2]:.0f} A, transformer hot spot {a("T_xfmr_hs_max"):.0f} C per the magnetics design file:')
     w('')
     w('| V1 \\ V2 | ' + ' | '.join(f'{x:.0f}' for x in V2g[0]) + ' |')
     w('|---|' + '---|' * V2g.shape[1])
     for i in range(V1g.shape[0]):
         w(f'| {V1g[i,0]:.0f} | ' + ' | '.join('-' if np.isnan(x) else f'{x/1e3:.1f}' for x in pmax[i]) + ' |')
     w('')
-    w('Reading: full power is available for V2 >= 650-700 V while V1 stays within ~0.75..1.1 x n V2; below ~600 V of V2 the '
-      '100 A port-2 limit and Tj derate toward 35-37.5 kW at 400 V, in line with the CRD statement. Discharge is within '
-      '2.5 kW of charge everywhere.')
+    lim = {}
+    for i in range(V1g.shape[0]):
+        for j in range(V1g.shape[1]):
+            k_ = why[i, j] or 'none (60 kW)'
+            lim[k_] = lim.get(k_, 0) + 1
+    dch = R['derating']['discharge'][2]
+    both = np.isfinite(dch) & np.isfinite(pmax)
+    dd_ = float(np.max(np.abs(dch - pmax)[both])) if both.any() else 0.0
+    one = int(np.sum(np.isfinite(dch) ^ np.isfinite(pmax)))
+    wc = R['v950']['window_60kW']
+    lost = [q for q in wc['withdrawn'] if q not in wc['deck']]
+    w('Reading: the first limit met per point (charge): ' + ', '.join(f'{k} {v}' for k, v in sorted(lim.items())) +
+      f'. Discharge differs from charge by up to {dd_/1e3:.1f} kW where both are admitted; {one} points are admitted in '
+      f'one direction only. Full-power window (V1 600-900 x V2 700-900 V, 60 kW): '
+      f'{len(wc["deck"])} of {wc["n"]} points admitted; against the 2026-10-04 rule (I^2 law with the 1.47x GM4 credit, '
+      f'{len(wc["withdrawn"])} points) the deck rule loses ' + (', '.join(f'{x:.0f}/{y:.0f} V' for x, y in lost) or 'none')
+      + '. Port 2 at 400 V stays a derated corner (section 0.5).')
     w('')
     w('## 7. 950 V verdict')
     w('')
@@ -3196,14 +3800,47 @@ def report(R, D, spec):
     for c in v9['cosmic']:
         w(f'| {c["v"]:.0f} | {c["fit_gen4_bridge_sea"]:.2g} | {c["fit_gen4_bridge_2000m"]:.2g} | {c["fit_gen3_bridge_sea"]:.2g} |')
     w('')
-    w('Turn-off current limit from DS Fig. 19 (Tvj 150 C, RG(off) 0): ' + ', '.join(
-        f'{k}: {v["24nH"]:.0f} A (24 nH) / {v["18nH"]:.0f} A (18 nH)' for k, v in v9['ioff_limit'].items()) + '.')
+    if DESIGN['kind'] == 'gm4':
+        w('Turn-off current limit from DS Fig. 19 (Tvj 150 C, RG(off) 0): ' + ', '.join(
+            f'{k}: {v["24nH"]:.0f} A (24 nH) / {v["18nH"]:.0f} A (18 nH)' for k, v in v9['ioff_limit'].items()) + '.')
+    else:
+        w('Turn-off current limit of the admitted map (V_bus + dV_deck(I) <= %.0f V; harsh-deck envelope at the assumed '
+          '%.0f nH loop / at 0.75 x that loop): ' % (V_DS_LIM, DESIGN['l_loop'] * 1e9) + ', '.join(
+              f'{k}: {v["24nH"]:.0f} A / {v["18nH"]:.0f} A' for k, v in v9['ioff_limit'].items()) + '.')
+        dc = R['deck_cal']
+        w('')
+        w(f'Harsh-deck calibration (`sim/spice/dab_cal_*.cir`; SPS, snubber-model decks with the CRD terminal network '
+          f'{dc["hf_network"][0]} x {dc["hf_network"][1]*1e9:.0f} nF - fewer HF capacitors than fitted, conservative; '
+          f'"clean" = both bridges turn off >= {I_CLEAN:.0f} A, i.e. true ZVS edges inside the deck\'s fixed 150 ns dead time):')
+        w('')
+        w('| V1 / V2 / P | bridge | V_bus V | I_off A | die peak V | overshoot V | clean |')
+        w('|---|---|---|---|---|---|---|')
+        for q in dc['rows']:
+            w(f'| {q["V1"]:.0f} / {q["V2"]:.0f} / {q["P"]/1e3:.1f} kW | {q["bridge"]} | {q["V_bus"]:.0f} | {q["I_off"]:.1f} | '
+              f'{q["V_die_pk"]:.0f} | {q["overshoot"]:.0f} | {"yes" if q["clean"] else "no"} |')
+        w('')
+        w('Envelope used by the admitted map (monotone upper bound over the clean samples, linear in between, the I^2 '
+          'law\'s increment above the highest sample): ' + ', '.join(f'{x:.0f} A -> {y:.0f} V' for x, y in
+                                                                       zip(dc['env_I_A'], dc['env_dV_V'])) +
+          f'. At 950 V / {dc["rows"][0]["I_off"]:.0f} A the deck is {dc["k_os_deck_950"]:.2f} x the I^2 law with k = 1 - '
+          f'the screening rule of section 0 uses k_os {a("k_os"):.2f}.')
+        r9 = dc['row_950_900']
+        w('')
+        w('950 / 900 V row (review PCM-11), SPS decks: die peak ' + ', '.join(
+            f'{x:.1f} kW {y:.0f} V' for x, y in zip(r9['P_kW'], r9['die_peak_V'])) + '; %s. The admitted map (LUT '
+          'turn-off currents on the envelope) gives P_max(950, 900) = %s.'
+          % ('the deck peak stays below %.0f V at every deck power' % V_DS_LIM if max(r9['die_peak_V']) <= V_DS_LIM else
+             'the deck peak stays above %.0f V at every deck power (%.0f-%.0f kW): no interpolation inside them'
+             % (V_DS_LIM, min(r9['P_kW']), max(r9['P_kW'])) if np.isnan(r9['P_at_limit_kW_interpolated']) else
+             'the deck peak reaches %.0f V at %.1f kW (linear between the decks)'
+             % (V_DS_LIM, r9['P_at_limit_kW_interpolated']),
+             '-' if np.isnan(v9['pmax_950'][900]) else '%.1f kW' % (v9['pmax_950'][900] / 1e3)))
     w('')
     w(R['v950_text'])
     w('')
-    w(f'Margin note: the derating boundary is placed ON the datasheet switching-SOA line (no extra margin); the worst '
-      f'feasible point reaches {st["vds_pk"]:.0f} V estimated V_DS peak. Each 50 V of margin costs about one 2.5-5 kW '
-      f'derating step in the 850-950 V rows; the 24 nH loop is an assumption to be measured by DPT.')
+    w(f'Margin note: the derating boundary is placed ON the limit line (no extra margin); the worst admitted point reaches '
+      f'{st["vds_pk"]:.0f} V estimated V_DS peak (turn-off envelope or turn-on step). The loop inductance and the deck\'s '
+      f'channel model are assumptions to be measured by DPT.')
     w('')
     w('## 8. DC-bias / flux-walk countermeasure')
     w('')
@@ -3269,9 +3906,10 @@ def report(R, D, spec):
           f'{q["il_pk_an"]:.1f}/{q["il_pk_sp"]:.1f} | {q["vres_pri_an"]:.0f}/{q["vres_pri_sp"]:.0f} | '
           f'{q["vres_sec_an"]:.0f}/{q["vres_sec_sp"]:.0f} | {q["v_bus1_pk"]:.0f} |')
     w('')
-    w('Decks: ideal S-switch with R_DS(on)(80 C) + package, body diode (V_SD ~ 3.6 V at 20 A, 5.8 V at 100 A), nonlinear '
-      'C_oss charge fit of Fig. 9, 24 nH loop + CRD snubber per bridge, ideal transformer with L_m. Negative "v at turn-on" '
-      '= body diode conducting = ZVS. Tolerances asserted: power 3 %, RMS 5 %, peak 7 %, turn-on voltage 15 % of bus.')
+    w('Decks (study devices): ideal S-switch with R_DS(on)(80 C) of the worse maker, a generic body diode, nonlinear '
+      'C_oss charge fit of the composite C_oss(V), 24 nH lumped loop + CRD snubber per bridge, ideal transformer with '
+      'L_m. Negative "v at turn-on" = body diode conducting = ZVS. Tolerances asserted: power 3 %, RMS 5 %, peak 7 %, '
+      'turn-on voltage 15 % of bus.')
     w('')
     w('**Dead-time phase drift (found by this comparison):** a bridge that does not complete its swing within the dead '
       'time changes polarity only when the incoming switch turns on, so its edge moves by up to one dead time (150 ns = '
@@ -3293,28 +3931,39 @@ def report(R, D, spec):
     w('* Explain the 2.4-2.5x loss gap against the CRD measurement (bench: calorimetric loss split, transformer AC '
       'resistance with real current shape, eddy loss in the cold plate).')
     w('* Real loop inductance by DPT on our layout (sets the 900-950 V derating).')
-    w('* Short-circuit withstand of the chosen devices: not published by either maker - see section 0.1 (DR-05).')
+    w('* Short-circuit withstand of the chosen devices: not published by either maker - the release block of DR-05 '
+      '(section 0.1, dab_spec gate_drive.desat.release_block).')
+    w('* Double-pulse test of the discrete layout with the real R_G: the admitted map follows the harsh deck until then '
+      '(the 900-950 V rows); the deck has no measured calibration for these devices.')
+    w('* Start from idle at a large V1 / (n V2) on the TPS entry: specified (FW-DAB-3/4) but not time-domain simulated '
+      '(sim/dab_control.py has an SPS plant).')
+    i_sat_file = MAGD['ind']['electrical']['I_sat_min_A']
+    if spec['series_inductor']['I_sat_min_A'] > i_sat_file:
+        w(f'* Series-inductor saturation: requirement {spec["series_inductor"]["I_sat_min_A"]:.0f} A (1.1 x the DR-03 trip '
+          f'fault peak, soft turn-off of the worse maker) against {i_sat_file:.0f} A in {MAG_FILES[1]} - the magnetics '
+          'design must be re-run on this dab_spec.json (MG-15).')
     w('* Bus ring-down (0.5 L_bus dI^2 per commutation): measure L_bus by DPT and the HF-capacitor / snubber-resistor '
       'temperatures at the full-power corners before release.')
     w('* Insulation coordination (ECO-10) to freeze hipot/PD/creepage of the transformer.')
     w('* Magnetics vendor confirmation of leakage tolerance and loss; second source.')
-    w('* ST STDES-DABBIDIR cross-check (open: download bot-blocked).')
     w('* Which allocation of the CRD calibration gap is real (section 5b decides between a cooling fix and a transformer '
       'redesign).')
     w('')
     w('## 15. Board-review round (DAB60 drawn from dab_spec.json)')
     w('')
     sd = SNB
-    w('**1. HF snubber dissipation** (`snubber_study.csv`, ngspice decks `sim/spice/dab_snub_*.cir`). The decks split the '
-      '24 nH loop as in DS Fig. 19 (7.2 nH bank-to-terminals, 16.8 nH inside the module) and use a finite-di/dt '
-      'channel (10 A/ns, calibrated: 600 V/100 A DPT overshoot ~330 V vs ~225 V implied by Fig. 19, i.e. conservative). '
+    w('**1. HF snubber dissipation** (`snubber_study.csv`, ngspice decks `sim/spice/dab_snub_*.cir`). The decks put '
+      f'{a("L_bus")*1e9:.1f} nH between the film bank and the terminal network and the {DESIGN["l_loop"]*1e9:.0f} nH '
+      'discrete commutation loop (ASSUMED) between the terminal network and the dies, with a finite-di/dt channel (10 A/ns; '
+      'on the GM4 module the same channel gave a 600 V/100 A DPT overshoot of ~330 V against ~225 V implied by its '
+      'datasheet - information only, no credit taken). '
       'Physics: every commutation reverses the bridge DC current; 0.5 L_bus dI^2 rings down in the terminal network '
       f'(map-wide worst {sd["p_ring_max"]:.0f} W per bridge, now in the loss model). Without HF ceramics the RC resistors '
-      f'take most of it ({sd["no_hf_worst_W"]:.1f} W per 1.5 W resistor at the worst simulated point); with the CRD\'s 10 x '
-      f'47 nF ceramics (missing from our earlier spec) they take <= {sd["share"]*100:.0f} %. Worst resistor '
+      f'take most of it ({sd["no_hf_worst_W"]:.1f} W per 1.5 W resistor at the worst simulated point); with the HF '
+      f'ceramics they take <= {sd["share"]*100:.0f} %. Worst resistor '
       f'{sd["worst_W"]:.2f} W -> {sd["n"]} x {sd["r"]:.2f} ohm {sd["p_rate"]:g} W (2512) + {sd["c"]*1e9:.2f} nF per bridge '
-      f'(<= 50 % rating). Overshoot it achieves: terminal ringing and die peaks in the table below; the die-level peak is '
-      'set by the module\'s internal 16.8 nH and is governed by the datasheet SOA (derating map), not by the RC.')
+      f'(<= 50 % rating). The die-level peak is set by the loop to the dies, not by the RC; the admitted map follows the '
+      'deck (section 7) and the two hard-switched rows are the cases the turn-on rule excludes.')
     w('')
     w('| point | network | V1/V2/P | res. W port 1 / 2 | terminal ringing p-p V | die peak V (model) | ring-down W b1/b2 |')
     w('|---|---|---|---|---|---|---|')
@@ -3323,7 +3972,8 @@ def report(R, D, spec):
           f'{q["P_res2_W"]:.2f} | {q["V_term1_pp"]:.0f} / {q["V_term2_pp"]:.0f} | {q["V_die1_pk"]:.0f} / '
           f'{q["V_die2_pk"]:.0f} | {q["P_ring1_an"]:.0f} / {q["P_ring2_an"]:.0f} |')
     w('')
-    w(f'**2. Gate resistors.** RG_off = {a("RG_off"):.2f} ohm (E24; sink {19.41/(0.3+0.99*a("RG_off")+1.4):.2f} A max at '
+    w(f'**2. Gate resistors of the drawn board DAB60 rev B (CBB011M12GM4T, UCC21710; the study\'s per-device values are in '
+      f'section 0 and dab_spec gate_drive).** RG_off = {a("RG_off"):.2f} ohm (E24; sink {19.41/(0.3+0.99*a("RG_off")+1.4):.2f} A max at '
       'VDD-VEE 19.41 V, ROL 0.3 + RG(int) 1.4 ohm typ, -1 % resistor; 0 ohm gave 11.4 A). E_off rises by 0.169 mJ/ohm at '
       '600 V/100 A (DS Fig. 15, scaled with I and V in the model); dv/dt_off ~60 -> ~57 V/ns (Fig. 29); di/dt_off is flat '
       'in RG (Fig. 29) so overshoot and the SOA derating are unchanged; t_d(off) +3.5 ns goes into the dead-time LUT. '
@@ -3341,9 +3991,10 @@ def report(R, D, spec):
       f'{pn["R_ohm"]*R["specs"]["caps"][1]["c"]*np.log(95):.2f} s port 1, {pn["R_ohm"]*R["specs"]["caps"][2]["c"]*np.log(90):.2f} s '
       'port 2). dab_control starts the DAB after contactor closure with the bank 10 V below the battery - consistent.')
     w('')
-    w('**6. Transformer current sensor.** LEM HOB 130-P: +/-250 A, 1 MHz, t_D90 <= 200 ns (HOB-P p9) - meets the >= 1 '
-      'MHz requirement; range is enough: peak operating 177 A, control transients <= 182 A with the split phase update, '
-      'OC trip 210 A (200-220 A) = 88 % of range; required >= 242 A. A naive (unsplit) phase step would add ~47 A and '
+    w(f'**6. Transformer current sensor.** LEM HOB 130-P: +/-250 A, 1 MHz, t_D90 <= 200 ns (HOB-P p9) - meets the >= 1 '
+      f'MHz requirement; range is enough: peak operating {st["ILpk"]:.0f} A (admitted map), OC trip {R["prot"]["oc_trip_A"]:.0f} A '
+      f'({R["prot"]["oc_band_A"][0]:.0f}-{R["prot"]["oc_band_A"][1]:.0f} A) = {R["prot"]["oc_band_A"][1]/250*100:.0f} % of range; '
+      f'required >= {1.1*R["prot"]["oc_band_A"][1]:.0f} A. A naive (unsplit) phase step would add ~47 A (dab_control) and '
       'reach the trip band at the corners - the split update is mandatory.')
     w('')
     ox = OVX
@@ -3455,9 +4106,31 @@ def selfcheck(R, D):
             assert abs(rr['p_core'][0] + rr['p_cu'][0] - lt[name]['P_total_W']) <= 0.1 * lt[name]['P_total_W'], name
     # decision rule held: the chosen option meets the rules and is not less efficient than the incumbent
     assert R['pick']['rules_ok'] and R['pick']['eta_not_worse']
+    # PCM-11: every feasible LUT entry meets both SOA rules; the screening k_os is the deck's own ratio; the check decks
+    # of the admitted map (ZVS points, fitted HF network) stay below the limit
+    b, ok = R['map']['best'], R['map']['ok']
+    assert np.all(np.maximum(b['v1'] + b['vres1'], b['v2'] + b['vres2'])[ok] <= V_DS_LIM)
+    assert np.all(np.maximum(b['v1'] + dv_os(b['ioff1'], v=b['v1']), b['v2'] + dv_os(b['ioff2'], v=b['v2']))[ok] <=
+                  V_DS_LIM + 1e-6)
+    assert abs(a('k_os') / R['deck_cal']['k_os_deck_950'] - 1) < 0.03, 'k_os no longer the deck ratio - update A'
+    for q in R['snub']:
+        if q['cfg'] == 'rc_hf' and q['point'] in ('v1max', 'ioffmax'):
+            assert max(q['V_die1_pk'], q['V_die2_pk']) <= V_DS_LIM, f'admitted point {q["point"]} above the limit in the deck'
+    # PCM-10: chain bookkeeping (energy-equivalent time between the gate-falling instant and V_th)
+    ds = R['prot']['desat']
+    assert ds['to_gate_falling_ns_max'] < ds['t_eq_ns'] < ds['to_vth_ns_max']
+    assert abs(ds['to_gate_falling_ns_max'] - ds['blanking_ns_max'] - dev.NSI6651['t_off'][2] * 1e9) < 1e-6, \
+        'deglitch counted twice: t_DESAT_OFF already contains it (T_DESAT_OFF_SRC)'
+    assert not any(q['meets_2x_rule'] for q in ds['levers']), 'a lever meets the 2x rule - rewrite the DR-05 release block'
+    assert abs(ds['ratio_t_eq_to_withstand'] * ds['tsc_assumed_us_1000V_150C'] * 1e3 - ds['t_eq_ns']) < 1.0
+    # PCM-12: zero-phase SPS circulating current = closed form (|V1 - n V2| T/4 / L peak, triangle RMS = peak / sqrt 3)
+    for c in R['light']['corners']:
+        ipk = abs(c['V1'] - D['n'] * c['V2']) / (4 * F * D['L'])
+        assert abs(c['sps_phi0_IL_pk_A'] - ipk) < 0.01 and abs(c['sps_phi0_IL_rms_A'] - ipk / np.sqrt(3)) < 0.01
     # HF capacitors inside their current rule; trip peak inside the raised inductor saturation requirement
     assert R['hf']['I_rms_per_cap_max_A'] <= dev.HF_CAP['i_rms_rule'] * 1.0001
     assert R['prot']['V_peak_soft_V'] < 1200.0
+    assert all(q['ratio_to_I_DM'] <= 1.0 for q in R['prot']['per_maker'].values()), 'DR-03 trip peak above I_DM'
     # ring-down bookkeeping: analytic f*L_bus*dI^2 at 800/800 V 60 kW SPS
     rr = evaluate([800.0], [800.0], [60e3], D, iters=1)
     i0 = rr['ioff1'][0]

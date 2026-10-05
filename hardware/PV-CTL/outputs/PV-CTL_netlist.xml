@@ -2,7 +2,7 @@
 <export version="E">
   <design>
     <source>hardware/PV-CTL/PV-CTL.kicad_sch</source>
-    <date>2026-10-05T06:35:58</date>
+    <date>2026-10-05T22:44:21</date>
     <tool>Eeschema 10.0.6</tool>
     <textvar name="REV">A1</textvar>
     <sheet number="1" name="/" tstamps="/">
@@ -5371,8 +5371,8 @@
       </units>
     </comp>
     <comp ref="R417">
-      <value>2.10k</value>
-      <description>Resistor 2.10k 0.1% 0603 25 ppm/K</description>
+      <value>2.05k</value>
+      <description>Resistor 2.05k 0.1% 0603 25 ppm/K</description>
       <fields>
         <field name="Manufacturer"/>
         <field name="MPN"/>
@@ -5381,7 +5381,7 @@
         <field name="Domain">LIVE</field>
         <field name="Footprint"/>
         <field name="Datasheet"/>
-        <field name="Description">Resistor 2.10k 0.1% 0603 25 ppm/K</field>
+        <field name="Description">Resistor 2.05k 0.1% 0603 25 ppm/K</field>
       </fields>
       <libsource lib="dcdc" part="R" description="Resistor"/>
       <property name="Manufacturer" value=""/>
@@ -5405,8 +5405,8 @@
       </units>
     </comp>
     <comp ref="R418">
-      <value>11.8k</value>
-      <description>Resistor 11.8k 0.1% 0603 25 ppm/K</description>
+      <value>11.3k</value>
+      <description>Resistor 11.3k 0.1% 0603 25 ppm/K</description>
       <fields>
         <field name="Manufacturer"/>
         <field name="MPN"/>
@@ -5415,7 +5415,7 @@
         <field name="Domain">LIVE</field>
         <field name="Footprint"/>
         <field name="Datasheet"/>
-        <field name="Description">Resistor 11.8k 0.1% 0603 25 ppm/K</field>
+        <field name="Description">Resistor 11.3k 0.1% 0603 25 ppm/K</field>
       </fields>
       <libsource lib="dcdc" part="R" description="Resistor"/>
       <property name="Manufacturer" value=""/>
@@ -9020,20 +9020,20 @@
     </comp>
     <comp ref="D701">
       <value>SMBJ36A</value>
-      <datasheet>docs/datasheets/protection/SMBJ_Bourns.pdf</datasheet>
+      <datasheet>docs/datasheets/protection/MDD-SMBJ-series.pdf</datasheet>
       <description>TVS 600 W unidirectional, VRWM 36 V (SELV 24 V input)</description>
       <fields>
-        <field name="Manufacturer">Bourns</field>
+        <field name="Manufacturer">MDD (Microdiode Semiconductor)</field>
         <field name="MPN">SMBJ36A</field>
         <field name="Package">SMB</field>
         <field name="Sourcing">ORDERABLE</field>
         <field name="Domain">SELV</field>
         <field name="Footprint"/>
-        <field name="Datasheet">docs/datasheets/protection/SMBJ_Bourns.pdf</field>
+        <field name="Datasheet">docs/datasheets/protection/MDD-SMBJ-series.pdf</field>
         <field name="Description">TVS 600 W unidirectional, VRWM 36 V (SELV 24 V input)</field>
       </fields>
       <libsource lib="dcdc" part="SMBJ36A" description="Zener diode"/>
-      <property name="Manufacturer" value="Bourns"/>
+      <property name="Manufacturer" value="MDD (Microdiode Semiconductor)"/>
       <property name="MPN" value="SMBJ36A"/>
       <property name="Package" value="SMB"/>
       <property name="Sourcing" value="ORDERABLE"/>
@@ -9159,20 +9159,20 @@
     </comp>
     <comp ref="D705">
       <value>SMBJ58CA</value>
-      <datasheet>docs/datasheets/protection/SMBJ_Bourns.pdf</datasheet>
+      <datasheet>docs/datasheets/protection/MDD-SMBJ-series.pdf</datasheet>
       <description>TVS 600 W bidirectional, VRWM 58 V (SELV 0 V to PE)</description>
       <fields>
-        <field name="Manufacturer">Bourns</field>
+        <field name="Manufacturer">MDD (Microdiode Semiconductor)</field>
         <field name="MPN">SMBJ58CA</field>
         <field name="Package">SMB</field>
         <field name="Sourcing">ORDERABLE</field>
         <field name="Domain">CROSSING</field>
         <field name="Footprint"/>
-        <field name="Datasheet">docs/datasheets/protection/SMBJ_Bourns.pdf</field>
+        <field name="Datasheet">docs/datasheets/protection/MDD-SMBJ-series.pdf</field>
         <field name="Description">TVS 600 W bidirectional, VRWM 58 V (SELV 0 V to PE)</field>
       </fields>
       <libsource lib="dcdc" part="SMBJ58CA" description="Bidirectional transient-voltage-suppression diode"/>
-      <property name="Manufacturer" value="Bourns"/>
+      <property name="Manufacturer" value="MDD (Microdiode Semiconductor)"/>
       <property name="MPN" value="SMBJ58CA"/>
       <property name="Package" value="SMB"/>
       <property name="Sourcing" value="ORDERABLE"/>
@@ -11133,7 +11133,7 @@
       <pins>
         <pin num="1" name="IO1" type="passive"/>
         <pin num="2" name="IO2" type="passive"/>
-        <pin num="3" name="COM" type="passive"/>
+        <pin num="3" name="GND" type="passive"/>
       </pins>
     </libpart>
     <libpart lib="dcdc" part="SMBJ36A">
@@ -12618,7 +12618,7 @@
       <node ref="C720" pin="2" pintype="passive"/>
       <node ref="C721" pin="1" pintype="passive"/>
       <node ref="D601" pin="3" pinfunction="GND_3" pintype="passive"/>
-      <node ref="D602" pin="3" pinfunction="COM_3" pintype="passive"/>
+      <node ref="D602" pin="3" pinfunction="GND_3" pintype="passive"/>
       <node ref="D701" pin="2" pinfunction="A_2" pintype="passive"/>
       <node ref="D702" pin="2" pinfunction="A_2" pintype="passive"/>
       <node ref="D703" pin="2" pinfunction="A_2" pintype="passive"/>

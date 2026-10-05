@@ -14,8 +14,8 @@ STAGES DONE / TODO (each DONE stage builds and passes every check of gen/dcdclib
           gates, dead-time stretch 3.65k/100p), 2 channels per leg (per device Ron 8.75 / Roff 7.5 ohm, Kelvin R 0.5 ohm,
           10 k + 1 nF at the pins, per-gate Miller clamp, DESAT + booster, negative-rail detector), per-phase bias
           (SN6505B + T_BIAS4, 2 of its 4 secondaries), 3.3 -> 5 V command buffers
-  3 DONE  legs b, c; phase-current sensors (RFQ: no +/-500 A, >= 100 kHz open-loop part with a data sheet found)
-          between L1 and the C_f node, references ILnR to PCS_PC; L1 / L2 (chassis, CUSTOM, design files of
+  3 DONE  legs b, c; phase-current sensors Sinomags STK-250HO/4 (since PCM-20; rev A0 drew an RFQ line) on
+          L1's output busbar to the C_f node, references ILnR to PCS_PC; L1 / L2 (chassis, CUSTOM, design files of
           sim/magnetics.py) with board studs; C_f 2 x 25 uF per phase to the star M, damping branch R_d + C_d; AC
           dividers at the C_f nodes (VC1-3) and at the terminal taps (VG1-3)
   4 DONE  DC port: gen/port.py lean_port 'battery' (HFE82V-300C contactor, HIITIO HCHVF1000-400A-38R aR per pole,
@@ -31,25 +31,31 @@ STAGES DONE / TODO (each DONE stage builds and passes every check of gen/dcdclib
           legs b, c on +5V_GD; heatsink NTC lug probe per section (NTC1-3), L1 winding NTC leads (NTC5-7), DC-link NTC
           (NTC9); heatsink sections; budgets, trip bands, discharge times, ranges and domains in design_check(). Fans: the
           three 120 mm fans hang on PV-CTL's SELV fan headers, as on the PV module (no fan connector on this board)
-OPEN: (1) DESAT trips at V_DS 5.4-8.3 V (3 x US1M): the on-state voltage at the 200 ms overload peak (1.2 x 216 A + ripple,
-      ~66 A per device) at 160-175 C is 5.0-5.7 V - a nuisance trip is possible in that overload; conservative choice kept
-      (DESAT as designed); fix with 2 x US1M or a Zener in the string after a measurement. (2) The hardware dead time at
+REVIEW (PCM-03/04/06/07/14/15/20/25, rev A0 kept): bus capacitance = bank + leg films (pcs_spec dc_link C_total), bleeder 4 x
+      93.1 k per half from the whole discharge network incl. C_f + C_d and the aux bulk; upper DC-link half by firmware (pcs_spec
+      upper_half); DESAT string 2 x US1M (gdrv DESAT_PCS); device acceptance rule on the SG2M040170HJ line (pcs_spec
+      device_acceptance) and its Al2O3 pad named there; live 24 V pull-in sequence and hold-up; DC-port fault coordination
+      computed (port_spec pcs_port); phase-current sensor frozen to the STK-250HO/4 (datasheet values in STK4).
+OPEN: (1) closed (PCM-07): the DESAT line of the design check. (2) The hardware dead time at
       the gates is 185-510 ns (six gates need >= 157 ns): a firmware dead band below ~430 ns is extended by the hardware -
-      dead-time compensation must use the measured value, not the hand-over's 300 ns. (3) Phase-current sensor is an RFQ
-      line: Sinomags STK-HO/A 200 stops at +/-375 A, the STK-BS/S1 and CHIPSENSE HS1V / AS1V busbar sensors reach
-      25-60 kHz only (data sheets read 2026-10-05, not filed); C_f, C_d and R_d are RFQ lines (no AC film capacitor or
-      power resistor with a data sheet on file). (4) DC fuse HCHVF1000-400A-38R: its coordination with the contactor
-      (hold-off band, installation band, OC latency) is not computed - sim/port_design.py covers the 250 A HPE501 only
-      (the PCS engineer's 'aR >= 333 A, 400 A class' is met; 37 W per link at 230 A). (5) AC contactors and the RCM sensor
+      dead-time compensation must use the measured value, not the hand-over's 300 ns. (3) Phase-current sensor frozen
+      (PCM-20): STK-250HO/4; still open as stated in the design check - the maker gives no working voltage / PD / dv/dt
+      immunity (bench item) and no qualification statement (SRC-2 gap). C_f, C_d and R_d are RFQ lines (no AC film
+      capacitor or power resistor with a data sheet on file). (4) closed (PCM-15): the DC-port coordination is computed in
+      sim/port_design.py section 14 - the 400 A links protect the contactor only between about 2.0 and 7.4 kA; 0.97-2.0 kA
+      and above about 7.5 kA prospective are installation requirements (design check). (5) AC contactors and the RCM sensor
       are RFQ lines (no data sheet on file: CHINT NXC-225 / Delixi CJX2s-185 class; type-B RCM for 3 x 250 A); the
       economiser is required inside the contactor's DC coil module - a board economiser like the HFE82V's cannot be
       sized without coil data. The AC varistors are not monitored (their MON leads are wired to test points).
       (6) PV-CTL gates K_A with HEALTHY OR HOLD (DC hold-off); on the PCS, K_A drives AC contactor 1 and the PCS assembly
       must gate it with HEALTHY alone. (7) No AC-side start-up tap (the hand-over's 6-diode AC tap is not drawn): the aux
-      starts from the battery terminal (B_T+) or the DC link only. (8) Aux live winding: 23 W of its 24 W design rating
-      (gate bias of six 6-device channels + 3 contactor coils; the AC coils' 4 W hold is an RFQ assumption).
+      starts from the battery terminal (B_T+) or the DC link only. (8) Aux live winding: about 23 W of its 24 W design rating
+      (gate bias of six 6-device channels + 3 contactor coils; the AC coils' 4 W hold is an RFQ assumption); the synchronised
+      AC-contactor close with the PWM running exceeds the 32 W live peak with the RFQ's assumed 20 W pull-in (design check:
+      the remedy, not drawn).
 Usage: .venv/bin/python gen/pcs_power.py
 """
+import hashlib
 import json
 import math
 import os
@@ -65,7 +71,8 @@ import pvcell
 
 PROJECT, REV, DATE = "PCS-PWR", "A0", "2026-10-05"
 DS = "docs/datasheets/"
-SPEC = json.load(open(os.path.join(L.REPO, "sim", "out", "pcs_design", "pcs_spec.json")))
+SPEC_PATH = os.path.join(L.REPO, "sim", "out", "pcs_design", "pcs_spec.json")
+SPEC = json.load(open(SPEC_PATH))
 CG = SPEC["commutation_and_gate_drive"]
 DCL = SPEC["dc_link"]
 LIM = SPEC["handover"]["control_engineer"]["limits"]
@@ -81,7 +88,8 @@ PARTS = {
     "C3D1U147": dict(mfr="Xiamen Faratronic", mpn="C3D1U147+M0A", prefix="C", pkg="4-pin 57 x 65 x 45 mm, P1 52.5 / P2 20.3",
                      ds=DS + "passives-capacitors/Faratronic-C3D.pdf", stock=("Device", "C"),
                      desc="DC-link PP film 140 uF, 600 VDC (70 C) / 500 VDC (85 C), ESR 3.0 mOhm, Imax 40.2 A (10 kHz, "
-                          "70 C), 4 pins (split DC link, one half)"),
+                          "70 C), 4 pins (split DC link, one half); ORDER tolerance code K (+/-10 %, the 9th character, '+' "
+                          "above): every bus figure uses +10 %"),
     "PAD_AL2O3": dict(mfr="", mpn="", prefix="P", pkg="ceramic pad 0.635 mm, TO-247", ds="", sourcing="CUSTOM",
                       desc="TO-247 heatsink INSULATOR Al2O3 0.635 mm + spring clip + grease, basic DC-PE (pcs_spec "
                            "board_designers power_stage; sim/pcs_design.py cost basis); one earthed heatsink section per leg",
@@ -97,6 +105,11 @@ PARTS["HEATSINK_PCS"] = dict(mfr="", mpn="", prefix="HS", pkg="Al extrusion sect
                              desc="CHASSIS CUSTOM heatsink section per leg (12 x TO-247 on Al2O3 pads), EARTHED (two PE bonds), "
                                   "sized by sim/pcs_design.py thermal_and_losses.heatsink", pins={"left": ["1 PE p"]})
 CATALOG = {**pv_power.CATALOG, **{k: pvcell.CATALOG[k] for k in ("SG2M040170HJ", "R_DAMP", "NETTIE", "AHCT1G08")}, **PARTS}
+_d = pvcell.CATALOG["SG2M040170HJ"]["desc"]
+assert _d.endswith("Mount on PAD_ALN"), "pvcell SG2M040170HJ text changed: re-check the PCS override (PCM-25)"
+DEV_RULE = SPEC["handover"]["board_designers"]["device_acceptance"]        # PCM-06: bounds conduction and switching share
+CATALOG["SG2M040170HJ"] = dict(pvcell.CATALOG["SG2M040170HJ"], desc=_d[:-len("PAD_ALN")] + "PAD_AL2O3 (0.635 mm Al2O3, "
+                               "pcs_spec R_cs). ACCEPTANCE per switch: " + DEV_RULE)
 
 MAGF = {k: json.load(open(os.path.join(L.REPO, "sim", "out", "magnetics", "design_pcs_%s.json" % k)))
         for k in ("l1", "l2", "cm_choke")}                                   # read at build time (sim/magnetics.py)
@@ -106,9 +119,23 @@ def mag_desc(k, what):
     m = MAGF[k]
     return ("CHASSIS-MOUNTED CUSTOM %s rev %s (sim/out/magnetics/design_pcs_%s.json, winding sheet spec_pcs_%s.md): %s; "
             "%.1f kg; %s. %s" % (what, m["revision"], k, k, m["construction"][:150], m["mass_kg"], m["status"],
-                                 str(m["insulation"].get("system", ""))[:120]))
+                                 str(m["insulation"]["system"])[:120]))         # a design file without it stops the build (PCM-23)
 
 
+# phase-current sensor (PCM-20): the data-sheet values live in pcs_spec 'phase_current_sensor' (sim/pcs_design.py PH_SENSOR, Sinomags
+# STK-250HO/4 Ver 1.0: printed p13 electrical at Vcc 5 V / 25 C, p2 isolation, p19 pins); renamed here for the checks below
+_ps = SPEC["phase_current_sensor"]
+STK4 = dict(mpn=_ps["mpn"], ipn=_ps["I_PN_A"], ipm=_ps["linear_range_A"], g=_ps["gain_mV_per_A"] * 1e-3, vref=tuple(_ps["vref_range_V"]),
+            voe=_ps["offset_mV"] * 1e-3, t_res=(_ps["step_response_typ_s"], _ps["step_response_s"]), bw=_ps["bandwidth_Hz"],
+            icc=tuple(x * 1e-3 for x in _ps["supply_mA"]), vcc=tuple(_ps["supply_V"]), r_out=tuple(_ps["r_out_ohm"]),
+            r_ref=tuple(_ps["r_ref_ohm"]), noise_pp=_ps["noise_mVpp"] * 1e-3, ocd=_ps["ocd_x_I_PN"],
+            ud=_ps["isolation"]["test_kV_rms_1min"] * 1e3, uw=_ps["isolation"]["impulse_kV"] * 1e3,
+            creep=_ps["isolation"]["clearance_creepage_mm"], cti=_ps["isolation"]["CTI"])
+assert STK4["mpn"] == "STK-250HO/4", "the pin-audit ledger and the CS_PH symbol below are for the STK-250HO/4"
+STK4_CONTRACT = ("STK-250HO/4: %.3f mV/A around Uref %.2f-%.2f V (pin 4), Voe +/-%.0f mV, R_out %.0f-%.0f ohm, R_ref %.0f-%.0f ohm, "
+                 "linear +/-%.0f A, response %.1f us max" % (STK4["g"] * 1e3, STK4["vref"][0], STK4["vref"][1], STK4["voe"] * 1e3,
+                                                              STK4["r_out"][0], STK4["r_out"][1], STK4["r_ref"][0], STK4["r_ref"][1],
+                                                              STK4["ipm"], STK4["t_res"][1] * 1e6))   # gen/pcs_ctrl.py checks this text
 PARTS.update({
     "L1_PCS": dict(mfr="", mpn="", prefix="L", pkg="chassis, 2 power terminals + NTC leads + core bond", ds="",
                    sourcing="CUSTOM", desc=mag_desc("l1", "LCL inductor L1 %.0f uH" % (MAGF["l1"]["electrical"]["L_H"] * 1e6)),
@@ -116,13 +143,18 @@ PARTS.update({
     "L2_PCS": dict(mfr="", mpn="", prefix="L", pkg="chassis, 2 power terminals + core bond", ds="", sourcing="CUSTOM",
                    desc=mag_desc("l2", "LCL inductor L2 %.0f uH" % (MAGF["l2"]["electrical"]["L_H"] * 1e6)),
                    pins={"left": ["1 A p"], "right": ["2 B p", "3 CORE p"]}),
-    # no +/-500 A open-loop sensor with >= 100 kHz and a data sheet was found (OPEN 3): RFQ with the hand-over's needs
-    "CS_PH": dict(mfr="", mpn="", prefix="CS", pkg="PCB mount, integrated primary bar 250 A rms", ds="", sourcing="RFQ",
-                  desc="RFQ open-loop (TMR / Hall) current sensor: measuring range >= +/-500 A, I_PN >= 216 A rms (250 A "
-                       "continuous primary), 5 V supply, Vout = Vref + G x I with the reference on its own pin (Vref 2.5 V), "
-                       "G 3.5-4.0 mV/A, bandwidth >= 100 kHz, response <= 1 us, accuracy +/-2 % after calibration, primary-"
-                       "secondary basic for 1000 V DC + 400 V AC (OVC III), -40..105 C (pcs_spec sensing.phase_current)",
-                  pins={"left": ["5 IP+ p", "6 IP- p"], "right": ["1 +UC pi", "2 GND pi", "3 UOUT o", "4 UREF o"]}),
+    # Sinomags STK-HO/4 series Ver 1.0 (sensing/Sinomags-STK-HO-4.pdf, PCM-20): printed p13 (PDF p14) STK-250HO/4 data; printed p19
+    # (PDF p20) 'Connection': 1 +Uc, 2 GND-or 0V, 3 Uout, 4 Uref (OUT), 5 OCD (open drain, R1 5.1k to Uref in the maker's drawing;
+    # C1-C3 inside the sensor). No primary pins: the busbar (<= 15 x 8 mm) passes the aperture - drawn as pin P (pin_audit 'aperture'
+    # rule). Body screwed down (two M4, 1 N m), signals on its 5-pin 2 mm connector (assembly methods 1-3, p19-21): harness = mechanics
+    "CS_PH": dict(mfr="Sinomags Technology", mpn=STK4["mpn"], prefix="CS",
+                  pkg="screw mount 40.8 x 32.1 mm, aperture 15 x 8 mm busbar, 5-pin 2 mm connector",
+                  ds=DS + "sensing/Sinomags-STK-HO-4.pdf",
+                  desc="Open-loop Hall current sensor, I_PN %.0f A rms, I_PM +/-%.0f A, %.1f mV/A around Uref 2.5 V (own pin) at "
+                       "Vcc 5 V, %.0f kHz, step response <= %.0f us; %.1f kV rms / %.0f kV impulse, > %.0f mm, CTI %d (L1 -> C_f "
+                       "busbar)" % (STK4["ipn"], STK4["ipm"], STK4["g"] * 1e3, STK4["bw"] / 1e3, STK4["t_res"][1] * 1e6,
+                                    STK4["ud"] / 1e3, STK4["uw"] / 1e3, STK4["creep"], STK4["cti"]),
+                  pins={"left": ["P P p"], "right": ["1 +UC pi", "2 GND pi", "3 UOUT o", "4 UREF o", "5 OCD oc"]}),
     "CF_25U": dict(mfr="", mpn="", prefix="C", pkg="chassis or board, M6 / 4-pin", ds="", sourcing="RFQ", stock=("Device", "C"),
                    desc="RFQ AC filter capacitor MKP 25 uF 10 %, 450 V AC (rated for the phase-to-midpoint voltage incl. "
                         "the 150 Hz zero sequence), >= 15 A rms, self-healing, overpressure disconnector (C_f, 2 per phase)"),
@@ -141,13 +173,15 @@ PARTS["HCHVF400"] = dict(mfr="Zhejiang HIITIO New Energy", mpn="HCHVF1000-400A-3
                          desc="CHASSIS-MOUNTED aR fuse 400 A 1000 VDC, 50 kA (L/R 2.5 ms), 112 W at In, UL E533379: DC port")
 CATALOG["HCHVF400"] = PARTS["HCHVF400"]
 ACC = SPEC["ports_and_common_mode"]["ac_contactor"]
+AC_COIL = dict(pull_W=20.0, t_pull_s=0.1, hold_W=4.0)     # RFQ coil module of KAC3: ASSUMED pull-in <= 20 W for <= 100 ms, hold <= 4 W
 VY1_VDC_PCS = 1500.0                                        # Vishay VY1 p1: Y1 500 V AC / 1500 V DC
 PARTS.update({
     "KAC3": dict(mfr="", mpn="", prefix="K", pkg="chassis, 3 main poles M8 + coil connector", ds="", sourcing="RFQ",
                  desc="CHASSIS-MOUNTED RFQ 3-pole AC contactor (CHINT NXC-225 / Delixi CJX2s-185 class): AC-1 >= %.0f A at "
-                      "400-460 V AC, Ui %d V, Uimp %d kV, 24 V DC coil WITH integrated economiser (pull-in <= 20 W, hold <= 4 W), "
-                      "coil-contact Ui >= 1000 V, mechanical life >= 1e6; 2 in series per phase set (relay test)" %
-                      (ACC["Ie_AC1_A_min"], ACC["Ui_V"], ACC["Uimp_kV"]),
+                      "400-460 V AC, Ui %d V, Uimp %d kV, 24 V DC coil WITH integrated economiser (pull-in <= %.0f W for <= %.0f "
+                      "ms, hold <= %.0f W), coil-contact Ui >= 1000 V, mechanical life >= 1e6; 2 in series per phase set (relay "
+                      "test)" % (ACC["Ie_AC1_A_min"], ACC["Ui_V"], ACC["Uimp_kV"], AC_COIL["pull_W"], AC_COIL["t_pull_s"] * 1e3,
+                                 AC_COIL["hold_W"]),
                  pins={"left": ["1 L1 p", "3 L2 p", "5 L3 p", None, "7 A1 p"], "right": ["2 T1 p", "4 T2 p", "6 T3 p", None,
                                                                                     "8 A2 p"]}),
     "CM_PCS": dict(mfr="", mpn="", prefix="L", pkg="chassis, cores over the 3 phase busbars", ds="", sourcing="CUSTOM",
@@ -172,8 +206,10 @@ V_DC_MAX = LIM["V_dc_trip_V"]                  # hardware DC over-voltage trip (
 V_HALF_TRIP = DCL["voltage_use"]["OV_trip_per_half_V"]
 BL_N = 4                                       # bleeder elements per half (1210, 200 V working each)
 BL_R = DCL["bleeder"]["R_per_half_ohm"] / BL_N
-LABEL_MIN = 15.0                               # enclosure label 'wait 15 min' (the DC link alone; checked worst case)
+LABEL_MIN = DCL["bleeder"]["label_min"]        # enclosure label 'wait 15 min' (pcs_spec: the whole discharge network, worst case)
 T_BOARD = pvcell.T_BOARD
+T_IN_AIR = 45.0                                # C, inlet air of the rated corner (AC-02: full power to 45 C); the DESAT string is >= it
+M_DESAT = (1.05, 1.00, 1.10)                   # stated margins lowest trip / on-state: predicted junction, 175 C rating, coldest inlet
 HSK = SPEC["thermal_and_losses"]["heatsink"]
 GD = gdrv.SC40X6                               # gate-drive preset: one channel, 6 x SG2M040170HJ (gen/gdrv.py)
 GATE_V = GD["gate_v"]
@@ -292,8 +328,8 @@ def sheet_leg(B, ph, st):
     for sw_, (drain, source) in (("H", (dcp, sw)), ("L", (sw, dcn))):
         B.block("Leg %s %s switch: %d x SG2M040170HJ" % (ph.lower(), "high" if sw_ == "H" else "low", N_PAR),
                 "Per device: own gate net G_%s<k> and Kelvin net KS_%s<k> (gate network on the gate-drive sheet). BOM NOTE:\n"
-                "one lot per switch, V_GS(th) binned to +/-0.25 V or a sharing test at incoming inspection\n"
-                "(crosscheck_wolfspeed.md claim 5)." % (ph + sw_, ph + sw_))
+                "R_DS(on) of the six within +/-5 %% (V_GS 18 V, 38 A, 25 C), V_GS(th) within +/-0.25 V, one lot per switch\n"
+                "(pcs_spec device_acceptance, PCM-06)." % (ph + sw_, ph + sw_))
         for k in range(1, N_PAR + 1):
             t = dev_tag(ph, sw_, k)
             st["xing"].add(B.part("SG2M040170HJ", {"1": drain, "5": drain, "2": source, "3": "KS_" + t,
@@ -332,7 +368,7 @@ def sheet_gd(B, ph, st):
                           source=tuple("KS_" + dev_tag(ph, sw_, k) for k in range(1, N_PAR + 1)), drain=drain,
                           vdd="VDD_" + t, vee="VEE_" + t, interlock=other + "_5V", vin="+24V", vcc="+5V", gnd="GND",
                           gate_v=GATE_V, r_on=GD["r_gate"][0], r_off=GD["r_gate"][1], vclass=GD["vclass"], r_sb=GD["r_sb"],
-                          v_peak=V_PEAK, deadtime=GD["deadtime"], bias="ext", neg_det=True,
+                          v_peak=V_PEAK, deadtime=GD["deadtime"], desat=GD["desat"], bias="ext", neg_det=True,
                           sink_buffer=GD["sink_buffer"], inv=GD["inv"], rel=GD["rel"], c_gs=GD["c_gs"])
         st["gd"].update({n: "GD_" + t for n in ch.sec})
         st["iso"] |= set(ch.iso)
@@ -350,27 +386,29 @@ def sheet_gd(B, ph, st):
 
 
 def sheet_filter(B, ph, st):
-    """Phase ph: switch node to L1 (chassis), L1 out through the phase-current sensor to the C_f node F, C_f (2 x 25 uF)
-    and the damping branch to the star M, F to L2 (chassis); studs for the chassis leads."""
+    """Phase ph: switch node to L1 (chassis), L1's output busbar through the phase-current sensor's aperture to the C_f node F,
+    C_f (2 x 25 uF) and the damping branch to the star M, F to L2 (chassis); studs for the chassis leads."""
     n = "ABC".index(ph) + 1
-    sw, f, lo, l2o = "SW_" + ph, "F_" + ph, "L1O_" + ph, "L2O_" + ph
+    sw, f, l2o = "SW_" + ph, "F_" + ph, "L2O_" + ph
+    lo = f                                  # L1's output busbar passes the sensor aperture and lands on the C_f node (one node)
     st["sheet"] += 1
     B.new_sheet("%02d_filt%s" % (st["sheet"], ph.lower()), "Phase %s LCL filter, current sensor" % ph.lower(),
                 "Switch node -> L1 (chassis) -> sensor -> C_f node F_%s: C_f 2 x 25 uF + R_d-C_d\n"
                 "to the star M (DC midpoint) -> L2 (chassis) -> AC port" % ph)
     B.block("Phase %s: L1 and L2 (chassis, CUSTOM) and their studs" % ph.lower(),
-            "Board studs (REDCUBE press-fit, 100 A each): 3 x switch node to L1, 3 x L1 out, 3 x C_f node to L2,\n"
-            "3 x L2 out (to AC contactor K1 on the port sheet). Cores bonded to PE.")
+            "Board studs (REDCUBE press-fit, 100 A each): 3 x switch node to L1, 3 x L1 out (C_f node, its busbar through the\n"
+            "sensor), 3 x C_f node to L2, 3 x L2 out (to AC contactor K1 on the port sheet). Cores bonded to PE.")
     st["iso"].add(B.part("L1_PCS", {"1": sw, "2": lo, "3": "NTC%d" % (4 + n), "4": "AGND", "5": "PE"},
                          value="L1 %.0fu (CUSTOM)" % (LCL["L1"] * 1e6)).ref)
     st["iso"].add(B.part("L2_PCS", {"1": f, "2": l2o, "3": "PE"}, value="L2 %.0fu (CUSTOM)" % (LCL["L2"] * 1e6)).ref)
     for net in (sw, lo, f, l2o):
         for _ in range(3):
             B.part("STUD", {"1": net})
-    B.block("Phase %s current sensor (C_f side of L1)" % ph.lower(),
-            "IL%d = Vref + G x I (I + = L1 -> C_f), IL%dR = its Vref: 100R + 1 nF each at the source (as PV-PWR).\n"
-            "The primary sits between L1 and the C_f node (a 50 Hz-smooth node, not the switch node)." % (n, n))
-    B.part("CS_PH", {"5": lo, "6": f, "1": "+5V", "2": "AGND", "3": "IL%d_S" % n, "4": "IL%dR_S" % n}, value="CS +/-500A RFQ")
+    B.block("Phase %s current sensor STK-250HO/4 (C_f side of L1)" % ph.lower(),
+            "IL%d = Uref + 3.2 mV/A x I (I + = L1 -> C_f: body arrow, verify at incoming inspection), IL%dR = its Uref pin; 100R + 1 nF\n"
+            "each at the source (as PV-PWR). Primary = L1's output busbar through the aperture (a 50 Hz-smooth node, not the switch\n"
+            "node). OCD (open drain, 2.93 x I_PN = 732 A +/-10 %%) not used: above both IL windows and the L1 limit." % (n, n))
+    B.part("CS_PH", {"P": lo, "1": "+5V", "2": "AGND", "3": "IL%d_S" % n, "4": "IL%dR_S" % n, "5": None}, value="STK-250HO/4")
     B.C("100n", "+5V", "AGND")
     for x in ("IL%d" % n, "IL%dR" % n):
         B.R("100R", x + "_S", x)
@@ -574,24 +612,29 @@ def design_check(B, st):
         c_half * 1e6, c_half / 2 * 1e6, u_w, V_HALF_TRIP, 1.15 * F_DC["un85"], DCL["I_per_cap_A"],
         100 * DCL["I_per_cap_A"] / F_DC["imax"], F_DC["imax"], DCL["life"]["45C_950V"]["life_h"] / 1e3)
 
-    # ---- bleeders: discharge time (worst case), element stress, balance
+    # ---- bleeders and everything that stays charged (pcs_spec dc_link bleeder: the whole network, PCM-03), element stress
+    bl = DCL["bleeder"]
     r_el = e96(BL_R)
-    r_half = BL_N * r_el
-    r_div = 6e6 + 4.99e3
-    c_total = c_half / 2
-    r_tot_wc = 1 / (1 / (2 * r_half * 1.01) + 1 / r_div)                # R +1 %, C +10 %, the V(DC+) divider in parallel
-    t60 = r_tot_wc * c_total * 1.1 * math.log(V_DC_MAX / 60.0) / 60.0
-    t60_nom = 2 * r_half * c_total * math.log(V_DC_MAX / 60.0) / 60.0
+    nets = B.D.nets()
+    c_bulk = sum(1 for p_ in parts if key(p_) == "C4AQ_3U3" and "AUX_HV_BULK" in p_.pins.values()) * 3.3e-6
+    assert abs(r_el - bl["R_elem_ohm"]) < 1.0 and BL_N == bl["n_elem"], "bleeder element vs pcs_spec"
+    assert {"B_VBD_1", "D_VAD_1"} <= set(nets) and all("VC%d_D_1" % k in nets for k in (1, 2, 3)), "dividers pcs_spec credits"
+    assert abs(c_bulk * 1e6 - bl["C_aux_bulk_uF"]) < 0.01 and abs(2 * 25e-6 + LCL["Cd"] - bl["C_f_plus_C_d_per_phase_uF"] * 1e-6) < 1e-9
+    assert abs(n_leg * 9 * F22["c"] * 1e6 - DCL["C_local_films_uF"]) < 0.01, "leg films on the bus vs pcs_spec"
     v_el, p_lim = V_HALF_TRIP / BL_N, 0.5 * (155.0 - T_BOARD) / (155.0 - 70.0)
     p_el = v_el ** 2 / r_el
-    p_950 = 950.0 ** 2 / (2 * r_half)
-    assert t60 <= LABEL_MIN and v_el <= 200.0 and p_el <= p_lim, "bleeder"
-    say("Bleeders: %d x %s 1210 per half = %s (pcs_spec %s); DC link %.0f uF: %.0f -> 60 V in %.1f min nominal, %.1f min "
-        "worst case (R +1 %%, C +10 %%, V(DC+) divider in parallel) <= label 'wait %.0f min'; element %.0f V at the %.0f V "
-        "per-half trip (200 V working), %.3f W vs %.2f W derated to %.0f C; %.2f W at 950 V; the equal strings balance "
-        "the halves statically (no midpoint control, two-level)", BL_N, pv_power.gdrv.ohm(r_el), pv_power.gdrv.ohm(r_half),
-        pv_power.gdrv.ohm(DCL["bleeder"]["R_per_half_ohm"]), c_total * 1e6, V_DC_MAX, t60_nom, t60, LABEL_MIN, v_el,
-        V_HALF_TRIP, p_el, p_lim, T_BOARD, p_950)
+    assert bl["t60_worst_min"] <= LABEL_MIN and v_el <= 200.0 and p_el <= p_lim, "bleeder"
+    say("Bleeders: %d x %s 1210 per half = %s (pcs_spec, PCM-03); bus %.1f uF = %.0f uF bank + %.1f uF leg films (worst +10 %%); with "
+        "the DC contactor and both AC contactor sets open, bank, films, C_f + C_d (%.0f uF per phase, star on M) and the aux input "
+        "bulk (%.1f uF) fall below 60 V between any two conductors after %.1f min worst case (%.1f nominal; R +1 %%, C +10 %%, the five "
+        "6 M dividers VB / VA / VC1-3 credited, from %.0f V with C_f at the 460 V AC peak) <= label 'wait %.0f min' (4 x 110 k of rev "
+        "A0: %.1f min); the C_f discharge through their VC dividers and, via the body diodes, the bus bleeders - never above the bus, "
+        "and the AC terminals sit behind open contactors, so no bleeder of their own; element %.0f V at the %.0f V per-half trip (200 "
+        "V working), %.3f W vs %.2f W derated to %.0f C; %.2f W at 950 V (+%.2f W standby against 4 x 110 k); the equal strings "
+        "balance the halves statically (no midpoint control, two-level)", BL_N, pv_power.gdrv.ohm(r_el),
+        pv_power.gdrv.ohm(BL_N * r_el), DCL["C_total_uF"], DCL["C_series_uF"], DCL["C_local_films_uF"],
+        bl["C_f_plus_C_d_per_phase_uF"], bl["C_aux_bulk_uF"], bl["t60_worst_min"], bl["t60_nominal_min"], V_DC_MAX, LABEL_MIN,
+        bl["t60_worst_rev_A0_440k_min"], v_el, V_HALF_TRIP, p_el, p_lim, T_BOARD, bl["P_W_950V"], bl["P_W_950V"] - bl["P_W_950V_rev_A0"])
 
     # ---- DC-link dividers into PCS_PC VB / VA
     vmid = (3.0 * 0.998 * 16.35 / 29.8 * 0.999, 3.0 * 1.002 * 16.35 / 29.8 * 1.001)   # lean_refs ladder (gen/port.py)
@@ -612,12 +655,22 @@ def design_check(B, st):
     dev = pvcell.DEV
     v_pk = CG["worst_1050V_450A_30nH"]["v_pk"]
     assert v_pk <= CG["chosen"]["v_limit_V"] <= 0.85 * dev["vdss"], "device peak"
+    sh = SPEC["thermal_and_losses"]["sharing_population"]                # pcs_spec, sim/pcs_design.py sharing() (PCM-06)
+    pops = list(sh["populations"].values())
+    ds_, rule_ = pops[0], pops[1]
+    assert sh["bounded_by_rule"] and DEV_RULE == sh["acceptance_rule"], "acceptance rule vs pcs_spec sharing analysis"
+    share_txt = ("with it the hottest device carries k <= %.3f (thermal model %.2f): every 45 C tier at its nominal current; at 60 C "
+                 "inlet the firmware's overload tiers are %s; the data-sheet population (one 40 among five 52 mOhm) would take k %.2f and "
+                 "%.0f C in the 45 C 200 ms tier (175 C rating)" % (
+                     max(v["k"] for v in rule_["tiers"].values()), sh["model_k"],
+                     ", ".join("%s %.0f A" % kv for kv in sh["derated_60C_A"].items()), max(v["k"] for v in ds_["tiers"].values()),
+                     ds_["tiers"]["45C 200 ms"]["tj_hot_at_nominal_C"]))
     say("Power stage (as drawn, %d of 3 legs): %d x SG2M040170HJ (%d per switch) on Al2O3 pads; per device 10 k + 1 nF "
         "gate-source at the pins; per leg %d x FCSA3DS225 (%.1f uF, pcs_spec %.1f uF) and %d dampers (%.2f ohm / %.2f nF "
         "per leg, pcs_spec %.2f ohm / %.2f nF); worst turn-off peak %.0f V at 1050 V / 450 A (pcs_spec commutation deck) "
-        "<= %.0f V = 0.85 x 1700 V. BOM NOTE: one lot per switch, V_GS(th) binned +/-0.25 V or an incoming sharing test",
+        "<= %.0f V = 0.85 x 1700 V. Device acceptance (BOM line, pcs_spec, PCM-06): %s; %s",
         n_leg, n_dev, N_PAR, lg["decoupling_parts"], n_dec / n_leg * F22["c"] * 1e6, lg["c_dec"] * 1e6, N_SUB, r_d,
-        c_d * 1e9, lg["r_damp"], lg["c_damp"] * 1e9, v_pk, CG["chosen"]["v_limit_V"])
+        c_d * 1e9, lg["r_damp"], lg["c_damp"] * 1e9, v_pk, CG["chosen"]["v_limit_V"], DEV_RULE, share_txt)
     # ---- gate drive (gdrv preset SC40X6 checks + this board's rails, dead time at +5V, DESAT against the PCS currents)
     import contextlib, io
     with contextlib.redirect_stdout(io.StringIO()):
@@ -640,12 +693,34 @@ def design_check(B, st):
     dt = (t_lo + pvcell.LVC17_5V["tpd"][0] - skew, t_hi + pvcell.LVC17_5V["tpd"][1] + skew)
     t_eng = float(g_out["mclamp" + gk].split("clamps on <= ")[1].split(" ns")[0]) * 1e-9
     assert dt[0] >= max(GD["t_off"] + 20e-9, t_eng), "hardware dead time at +5V below turn-off / clamp engagement"
-    (tr_lo, tr_hi), _, (bl_lo, bl_hi) = gdrv.desat_numbers(gdrv.DESAT_CLASS[GD["vclass"]])
+    ds = GD["desat"]                                                    # the PCS string (gdrv DESAT_PCS, PCM-07)
+    (tr_lo, tr_hi), _, (bl_lo, bl_hi) = gdrv.desat_numbers(ds)
+    on = CG["desat"]["onstate_200ms_overload"]                         # pcs_spec: V_DS at the 200 ms overload peak (thermal model)
+    assert on["inlet_C"] == T_IN_AIR, "rated inlet vs pcs_spec"
+    vf45 = ds["vf"][1] + ds["vf_tc"] * (T_IN_AIR - ds["vf_t"][0])            # highest V_F with the string at least at the inlet air
+    tr_45 = gdrv.NSI["vdesat"][0] - gdrv.NSI["ichg"][2] * ds["rs"] * 1.01 - ds["n_dhv"] * vf45
     v_trip = CG["desat"]["V_DS_at_OC_trip_V"]
-    i_ol = (1.2 * 216.0 * math.sqrt(2) + SPEC["design"].get("ripple_pk_A", 31.0)) / N_PAR      # 200 ms overload peak
-    v_ol = i_ol * GD["v_on_ohm175"] if "v_on_ohm175" in GD else i_ol * 3.13 / 36.2           # SC40: 3.13 V at 36.2 A, 175 C
+    # margins: at the junction the model predicts (rated 45 C inlet: the string is at >= 45 C), at the 175 C rating (a hotter junction
+    # needs at least that inlet), and from the coldest inlet (string at -30 C = the lowest trip, junction 75 K cooler)
+    m_tj, m_175, m_cold = (tr_45 / on["V_DS_typ_at_tj_V"], tr_45 / on["V_DS_typ_175C_V"], tr_lo / on["V_DS_typ_cold_V"])
+    v_dyn = CG["chosen"]["v_limit_V"] * 1.2 / (0.8 + 1.2)              # turn-off peak split by the two junction capacitances (+/-20 %)
+    t_bst = float(g_out["boost" + gk].split("detection to off ")[1].split(" us")[0]) * 1e-6
+    v_os = float(g_out["boost" + gk].split(" V vs 0.85 x")[0].rsplit("= ", 1)[1])       # gdrv booster turn-off peak
+    r25 = on["R_25C_vs_I_mohm"]                                        # Fig. 5 25 C (+ its slope beyond the last point)
+    (i_a, r_a), (i_b, r_b) = r25[-2], r25[-1]
+    i_det = max(i for i in range(int(i_b), 400) if i * (r_b + (r_b - r_a) / (i_b - i_a) * (i - i_b)) * 1e-3 <= tr_hi)
     dvdt = CG["worst_1050V_450A_30nH"]["dvdt_V_per_ns"]
     assert gdrv.NSI["cmti"] >= 1.2 * dvdt and bl_lo >= GD["blank"][0], "CMTI / blanking"
+    assert m_tj >= M_DESAT[0] and m_175 >= M_DESAT[1] and m_cold >= M_DESAT[2] and tr_lo > v_trip, \
+        "DESAT threshold vs the 200 ms overload on-state (PCM-07)"
+    # short-circuit acceptance: the DAB study's DR-05 rule as gdrv prints it for this preset (release block, risk C2) - no
+    # comparison with the assumed withstand at 25 C any more (rev A0 accepted 1 x the assumed 2 us)
+    sc_rb = "SC ACCEPTANCE " + g_out["boost" + gk].split("SC ACCEPTANCE ", 1)[1].strip()
+    assert "RELEASE BLOCK" in sc_rb and "not shown to be covered" in sc_rb, "gdrv no longer states the SC release block"
+    assert i_det <= min(pvcell.DEV["idm"], GD["i_sc"]) and v_os <= CG["chosen"]["v_limit_V"], \
+        "short circuit: fault-under-load current, booster turn-off peak"
+    assert ds["n_dhv"] * gdrv.US1M_VRRM >= 1.3 * CG["chosen"]["v_limit_V"] and v_dyn <= gdrv.US1M_VRRM \
+        and gdrv.US1M_VRRM / V_DC_MAX >= 0.9, "DESAT string blocking vs the device peak limit and its static / dynamic sharing"
     say("Gate drive (gdrv preset '%s', bias 'ext'): %d channels on %d x bias_phase (T_BIAS4 1:%g, 2 of 4 secondaries); "
         "per channel %.2f W regulated (gate charge %.0f nC x %.1f V x %.0f kHz = %.2f W, pcs_spec %.2f W; 6 x 10k, driver) "
         "-> VGS on %.2f-%.2f V in %.1f-%.1f V, off -%.2f..-%.2f V; bias input %.2f W per phase from +5V. %s; %s",
@@ -659,12 +734,30 @@ def design_check(B, st):
         "below %.0f ns is extended by the hardware (hand-over: 300 ns) - OPEN (2)", gdrv.ohm(GD["deadtime"][0]),
         gdrv.farad(GD["deadtime"][1]), pv_power.V5[0], pv_power.V5[1], skew * 1e9, dt[0] * 1e9, dt[1] * 1e9,
         GD["t_off"] * 1e9, t_eng * 1e9, (t_hi + pvcell.LVC17_5V["tpd"][1]) * 1e9)
-    say("DESAT (3 x US1M, Rs 100R): trips at V_DS %.2f-%.2f V, blanking %.0f-%.0f ns; V_DS at the +/-450 A trip %.2f V "
-        "(pcs_spec, 75 A per device, 175 C) - DESAT is the layer above the comparator window; at the 200 ms overload peak "
-        "(1.2 x 216 A x 1.41 + ripple = %.0f A per device) the on-state voltage is about %.1f V at 175 C (SC40 3.13 V at "
-        "36.2 A, linear): lowest trip / on-state = %.2f, a trip in that overload is possible: OPEN (1). CMTI 150 V/ns vs %.0f V/ns "
-        "(pcs_spec worst turn-off)",
-        tr_lo, tr_hi, bl_lo * 1e9, bl_hi * 1e9, v_trip, i_ol, v_ol, tr_lo / v_ol, dvdt)
+    say("DESAT (%d x US1MH, Rs 100R; gdrv preset DESAT_PCS, PCM-07 - rev A0 had 3: 5.43-8.27 V, below the overload on-state): "
+        "trips at V_DS %.2f-%.2f V (V_F %.2f-%.2f V per diode at 0.35-0.65 mA over %.0f..%.0f C: the US1M / drawn US1MH typical curves "
+        "extrapolated, +/-10 %%, -2 mV/K ASSUMED, gdrv DESAT_PCS), %.2f V lowest with the string at >= %.0f C (the rated inlet); blanking "
+        "%.0f-%.0f ns. 200 ms overload peak (pcs_spec, %.1f A per device, all six at the hottest junction the thermal model predicts at "
+        "%.0f C inlet, %.0f C; typical R_DS(on) x the Fig. 5 current factor): %.2f V -> margin %.2f (>= %.2f stated); at the 175 C "
+        "rating %.2f V -> %.2f (string >= %.0f C; >= %.2f); from a %.0f C inlet (junction about %.0f C) %.2f V against the lowest trip "
+        "%.2f V -> %.2f (>= %.2f). A switch of six data-sheet-maximum parts "
+        "(52 mOhm, inside the acceptance rule) would reach %.2f V at %.0f C: a nuisance trip of the 200 ms tier only, a protective stop "
+        "(residual, stated: the maximum R_DS(on) is not screened). V_DS at the +/-450 A trip %.2f V (pcs_spec) < %.2f V: DESAT stays the "
+        "layer above the comparator window. Short circuit: a hard short is detected after <= %.0f ns blanking and the gates are off "
+        "%.2f us later (booster; DESAT-to-OUT max 360 ns of the -Q1 grade, the deglitch inside it) = %.2f us from its start - %s; "
+        "fault under load detected at <= %d A per device (25 C, Fig. 5 extended) <= I_DM %.0f A and <= the "
+        "preset's %.0f A short-circuit current, so the booster's two-level turn-off (gdrv: %.0f V vs %.0f V) still bounds the overshoot. "
+        "String blocking %d x %.0f V vs the %.0f V device limit (x%.2f): no balancing resistor needed - statically one diode may carry "
+        "%.0f %% of the %.0f V trip bus, dynamically the turn-off peak splits by the junction capacitances (+/-20 %%) to <= %.0f V. "
+        "CMTI 150 V/ns vs %.0f V/ns (pcs_spec worst turn-off)",
+        ds["n_dhv"], tr_lo, tr_hi, ds["vf"][0], ds["vf"][1], ds["vf_t"][0], ds["vf_t"][1], tr_45, T_IN_AIR, bl_lo * 1e9,
+        bl_hi * 1e9, on["I_pk_per_device_A"], on["inlet_C"], on["tj_200ms_hottest_C"], on["V_DS_typ_at_tj_V"], m_tj, M_DESAT[0],
+        on["V_DS_typ_175C_V"], m_175, T_IN_AIR, M_DESAT[1], on["inlet_cold_C"], on["tj_cold_C"], on["V_DS_typ_cold_V"], tr_lo,
+        m_cold, M_DESAT[2],
+        on["V_DS_max_rds_at_tj_V"], on["tj_200ms_hottest_C"], v_trip, tr_lo, bl_hi * 1e9, t_bst * 1e6, (bl_hi + t_bst) * 1e6,
+        sc_rb, i_det, pvcell.DEV["idm"], GD["i_sc"], v_os, CG["chosen"]["v_limit_V"], ds["n_dhv"], gdrv.US1M_VRRM,
+        CG["chosen"]["v_limit_V"],
+        ds["n_dhv"] * gdrv.US1M_VRRM / CG["chosen"]["v_limit_V"], 100 * gdrv.US1M_VRRM / V_DC_MAX, V_DC_MAX, v_dyn, dvdt)
     # ---- LCL filter and phase-current sensing (stage 3)
     l1, l2 = MAGF["l1"]["electrical"], MAGF["l2"]["electrical"]
     assert abs(l1["L_H"] - LCL["L1"]) < 1e-9 and abs(l2["L_H"] - LCL["L2"]) < 1e-9, "inductor design files vs pcs_spec"
@@ -676,12 +769,29 @@ def design_check(B, st):
     i_trip = LIM["I_phase_trip_A"]
     say("LCL filter (pcs_spec lcl, chassis inductors from sim/magnetics.py): L1 %.0f uH rev %s (%.1f kg, at -10 %% tolerance "
         "%.0f uH at %s A >= the %.0f uH required there), L2 %.0f uH rev %s; C_f 2 x 25 uF MKP per phase = %.0f uF, star on M; "
-        "damping R_d %.0f ohm + C_d %.0f uF per phase (fallback damping, pcs_spec); resonance %.1f kHz stiff / %.1f kHz at "
-        "SCR 5 (pcs_spec). Phase-current sensor (RFQ, OPEN 3): +/-500 A, >= 100 kHz, between L1 and C_f, the window "
-        "+/-%.0f A sits at 0.9 of its range; IL1-3 and IL1R-3R through 100R + 1 nF (0.13 us) to PCS_PC",
-        LCL["L1"] * 1e6, MAGF["l1"]["revision"], MAGF["l1"]["mass_kg"], l1["L_inc_at_minus10pct_part_H"]["450 A"] * 1e6,
-        "450", l1["L_min_required_H"]["450 A"] * 1e6, LCL["L2"] * 1e6, MAGF["l2"]["revision"], LCL["Cf"] * 1e6,
-        LCL["Rd"], LCL["Cd"] * 1e6, SPEC["lcl"]["f_res_Hz"]["stiff"] / 1e3, SPEC["lcl"]["f_res_Hz"]["SCR 5"] / 1e3, i_trip)
+        "damping R_d %.0f ohm + C_d %.0f uF per phase (pcs_spec; required - the control study finds no active damping that holds "
+        "at the stiff grid); resonance %.1f kHz stiff / %.1f kHz at "
+        "SCR 5 (pcs_spec)", LCL["L1"] * 1e6, MAGF["l1"]["revision"], MAGF["l1"]["mass_kg"],
+        l1["L_inc_at_minus10pct_part_H"]["450 A"] * 1e6, "450", l1["L_min_required_H"]["450 A"] * 1e6, LCL["L2"] * 1e6,
+        MAGF["l2"]["revision"], LCL["Cf"] * 1e6, LCL["Rd"], LCL["Cd"] * 1e6, SPEC["lcl"]["f_res_Hz"]["stiff"] / 1e3,
+        SPEC["lcl"]["f_res_Hz"]["SCR 5"] / 1e3)
+    # ---- phase-current sensor STK-250HO/4 (PCM-20, datasheet printed p13): range, delay, supply, insulation
+    rc_s = (STK4["r_out"][1] + 100.0) * 1e-9                              # sensor R_out max + 100R into 1 nF
+    i_2min = SPEC["inductors"]["L1"]["current"]["fundamental_rms_A"]["2_min"]
+    assert i_trip <= 0.75 * STK4["ipm"] and STK4["ocd"] * STK4["ipn"] * 0.9 > 1.2 * i_trip, \
+        "phase-current window vs the STK-250HO/4 measuring range and its OCD level"
+    assert pv_power.V5[0] >= STK4["vcc"][0] and pv_power.V5[1] <= STK4["vcc"][1] and i_2min <= STK4["ipn"], "sensor supply / I_PN"
+    say("Phase-current sensor (PCM-20, rev A0 an RFQ line): %s; I_PN %.0f A rms >= the %.0f A rms 2-min tier; the +/-%.0f A window "
+        "at %.2f of I_PM; BW %.0f kHz typ, step %.1f / %.1f us typ / max + RC %.2f us; noise %.1f mVpp = %.1f A pp; between L1 and "
+        "C_f on L1's output busbar (aperture 15 x 8 mm); IL1-3 and IL1R-3R through 100R + 1 nF (0.13 us) to PCS_PC; OCD (pin 5, "
+        "open drain, %.2f x I_PN = %.0f A +/-10 %%) left open - above both IL windows and the L1 limit, so it adds no protection. "
+        "Insulation (p2): %.1f kV rms 1 min, %.0f kV 1.2/50 us, clearance / creepage > %.0f mm, CTI %d; primary at the C_f node, "
+        "V_dc/2 +/- 375 V x 1.2 against AGND (<= %.0f V), inside the LIVE domain (functional). STILL OPEN (stated, not blocking): "
+        "the maker states no working voltage, partial-discharge level or dv/dt immunity (bench item, as the PV sensor STK-HO/A 75 "
+        "at the switch node in the PV-PWR check); no qualification statement on file (SRC-2 gap, risk A2 class)",
+        STK4_CONTRACT, STK4["ipn"], i_2min, i_trip, i_trip / STK4["ipm"], STK4["bw"] / 1e3, STK4["t_res"][0] * 1e6,
+        STK4["t_res"][1] * 1e6, rc_s * 1e6, STK4["noise_pp"] * 1e3, STK4["noise_pp"] / STK4["g"], STK4["ocd"],
+        STK4["ocd"] * STK4["ipn"], STK4["ud"] / 1e3, STK4["uw"] / 1e3, STK4["creep"], STK4["cti"], V_DC_MAX)
     v_ac = 1.2 * 375.0
     hi = vmid[1] + (V_DC_MAX / 2 + v_ac) / 1203.0
     assert hi <= 3.0 and vmid[0] - 1985.0 / 1203.0 >= -0.01, "AC divider range"
@@ -696,22 +806,42 @@ def design_check(B, st):
     i_fuse = SPEC["ports_and_common_mode"]["dc_port"]
     p_link = FUSE["p_in"] * (230.0 / FUSE["In"]) ** 2
     pre = SPEC["ports_and_common_mode"]["precharge"]
-    e_short = 950.0 ** 2 / lp["precharge"]["R_ohm"] * (1.1 * pre["tau_s"] + 30e-3)
-    assert ct["ith_85C"] >= I_DC and 230.0 <= 0.75 * FUSE["In"] and FUSE["i2t_clr"] <= ct["sc_I2t_min"], "contactor / fuse"
-    assert pre["E_J_950V"] <= 180.0 and e_short <= 600.0 and pre["t_to_10V_s"] < 1.0, "precharge resistor (RPRE_AL rating)"
+    rr = port.RPRE_RATING
+    duty = port.rpre_duty(pre["C_eq_uF"] * 1e-6, V_DC_MAX)          # the same rule as pcs_spec: C +10 %, R -/+5 %, from the trip
+    assert all(abs(a - b) <= 1e-3 * b for a, b in zip(duty, (pre["E_J_max"], pre["tau_max_s"], pre["E_short_J"], pre["t_short_s"]))), \
+        "precharge duty: pcs_spec vs port.rpre_duty"
+    assert abs(pre["C_eq_uF"] - DCL["C_total_uF"]) < 1e-6 and rr["R"] == lp["precharge"]["R_ohm"], "precharge on the whole bus"
+    assert duty[0] <= rr["e_charge_J"] and duty[1] <= rr["tau_s"] and duty[2] <= rr["e_short_J"] and duty[3] <= rr["t_short_s"] \
+        and pre["t_to_10V_max_s"] < 1.0, "precharge resistor (RPRE_AL rating)"
+    assert ct["ith_85C"] >= I_DC and 230.0 <= 0.75 * FUSE["In"], "contactor / fuse current rating"
+    pp = port.S["pcs_port"]                                             # sim/port_design.py section 14 (PCM-15)
+    assert pp["fuse"]["mpn"] == PARTS["HCHVF400"]["mpn"] and pp["contactor"]["mpn"] == ct["mpn"] \
+        and pp["hold_off_band_A"] == lp["contactor"]["hold_off_band_A"] and pp["oc_band_A"] == lp["port_oc_trip_A"], \
+        "port_spec pcs_port must be for these parts and windows"
     r_sh = lp["shunt"]["R_ohm"]
     assert I_DC ** 2 * r_sh / 2 <= 0.5 * 12.0, "shunt element above 50 % of its 12 W"
     say("DC port (gen/port.py lean_port 'battery', interlocks full, OC trip on): HFE82V-300C %.0f A at 85 C vs %.0f A port "
         "(largest study DC current %.0f A); HCHVF1000-400A-38R per pole: 230 A continuous = %.0f %% of In (<= 75 %%), %.0f W "
-        "per link, clearing I2t %.0f kA2s <= the contactor's %.0f kA2s; precharge %.0f ohm on %.0f uF: tau %.0f ms, 10 V in "
-        "%.2f s, %.0f J at 950 V, shorted bank %.0f J (RPRE_AL: >= 180 J at 80 ms, 600 J); shunt 2 x 200 uOhm: %.1f W at "
-        "%.0f A; port OC window %d-%d A on FLT_N, hold-off %d-%d A, polarity enable %d-%d V, precharge dV %.1f-%.1f V "
-        "(port_spec lean); bleeder of the port left out (the DC link has its own). OPEN (4): fuse coordination not computed",
-        ct["ith_85C"], I_DC, i_cont, 100 * 230.0 / FUSE["In"], p_link, FUSE["i2t_clr"] / 1e3, ct["sc_I2t_min"] / 1e3,
-        lp["precharge"]["R_ohm"], DCL["C_series_uF"], pre["tau_s"] * 1e3, pre["t_to_10V_s"], pre["E_J_950V"], e_short,
-        I_DC ** 2 * r_sh, I_DC, lp["port_oc_trip_A"][0], lp["port_oc_trip_A"][1], lp["contactor"]["hold_off_band_A"][0],
-        lp["contactor"]["hold_off_band_A"][1], lp["polarity_enable_V"][0], lp["polarity_enable_V"][1],
-        lp["precharge"]["dV_enable_V"][0], lp["precharge"]["dV_enable_V"][1])
+        "per link; precharge %.0f ohm on %.1f uF (bank + leg films): tau %.0f ms, 10 V in %.2f s, %.0f J at 950 V; worst (C +10 %%, "
+        "R 5 %%, from %.0f V) %.0f J at tau %.0f ms, shorted bank %.0f J in %.2f s <= RPRE_AL %.0f J at %.0f ms / %.0f J in %.2f s "
+        "(the same rating covers the PV ports, gen/port.py RPRE_RATING); shunt 2 x 200 uOhm: %.1f W at %.0f A; port OC window "
+        "%d-%d A on FLT_N, hold-off %d-%d A, polarity enable %d-%d V, precharge dV %.1f-%.1f V (port_spec lean); bleeder of the "
+        "port left out (the DC link has its own)",
+        ct["ith_85C"], I_DC, i_cont, 100 * 230.0 / FUSE["In"], p_link, lp["precharge"]["R_ohm"], pre["C_eq_uF"],
+        pre["tau_s"] * 1e3, pre["t_to_10V_s"], pre["E_J_950V"], V_DC_MAX, duty[0], duty[1] * 1e3, duty[2], duty[3],
+        rr["e_charge_J"], rr["tau_s"] * 1e3, rr["e_short_J"], rr["t_short_s"], I_DC ** 2 * r_sh, I_DC, lp["port_oc_trip_A"][0],
+        lp["port_oc_trip_A"][1], lp["contactor"]["hold_off_band_A"][0], lp["contactor"]["hold_off_band_A"][1],
+        lp["polarity_enable_V"][0], lp["polarity_enable_V"][1], lp["precharge"]["dV_enable_V"][0], lp["precharge"]["dV_enable_V"][1])
+    say("DC-port fault coordination (port_spec pcs_port, sim/port_design.py section 14, PCM-15 - replaces rev A0's I2t-only "
+        "comparison, the former open item 4): up to the hold-off band the contactor breaks (port OC window %d-%d A, %.1f openings at "
+        "%d A, 1000 V, L/R <= 1 ms); %d-%d A nothing clears quickly (contactor held, fuse below its breaking range / slower than the "
+        "contactor's 180 C curve); the 400 A links clear first only %d-%d A; above %d A prospective the contactor's short-circuit "
+        "capacity (8 kA 6 ms, 10 kA 1.5 ms) is exceeded and the let-through peak reaches the bounce region (>= 6 kA from %d A, "
+        ">= 8 kA from %d A; at 50 kA %d A by the cut-off chart, %d-%d A DC at the melting I2t). INSTALLATION REQUIREMENT: %s",
+        pp["oc_band_A"][0], pp["oc_band_A"][1], pp["openings_at_band_top"], pp["contactor_breaks_up_to_A"],
+        pp["installation_band_A"][0], pp["installation_band_A"][1], pp["coordinated_A"][0], pp["coordinated_A"][1],
+        pp["not_coordinated_above_A"], pp["bounce_from_prospective_A"][0], pp["bounce_from_prospective_A"][1],
+        pp["peak_at_50kA_A"]["cut_off_chart"], pp["peak_at_50kA_A"]["tau 2.5 ms"], pp["peak_at_50kA_A"]["tau 1.0 ms"], pp["statement"])
     # ---- AC port (stage 5)
     cm = MAGF["cm_choke"]["electrical"]
     assert cnt("KAC3") == 2 and cm["L_min_H"] >= cm["L_required_H"] and cnt("MOV_TVT25") >= 3 and cnt("RCM_B") == 1
@@ -727,10 +857,10 @@ def design_check(B, st):
     IQ, V5_, V33_ = pv_power.IQ, pv_power.V5, pv_power.V33
     p_bias = e["p_in"]                                                   # per phase at the bias primary (above)
     n_ahct5, n_ch_ = 2 + 2 * n_leg, 2 * n_leg
-    i_rcm, i_cs = 50e-3, 20e-3                                           # RFQ sensors: ASSUMED supply currents
+    i_rcm, i_cs = 50e-3, STK4["icc"][1]                                  # RCM: RFQ, ASSUMED; STK-250HO/4 Icc <= 10 mA (p13)
     i5 = {"gate bias leg a": p_bias / V5_[0], "SN6505B": IQ["sn6505"], "NSI6651 VCC1": n_ch_ * gdrv.NSI["icc1"],
           "AHCT1G08": n_ahct5 * (IQ["ahct"] + 2 * IQ["ahct_d"]), "pull-downs": (n_ahct5 + 1) * V5_[1] / 10e3,
-          "phase-current sensors (ASSUMED 20 mA)": n_leg * i_cs, "RCM sensor (ASSUMED 50 mA)": i_rcm,
+          "STK-250HO/4 x 3 (10 mA max)": n_leg * i_cs, "RCM sensor (ASSUMED 50 mA)": i_rcm,
           "REF3030E + ladders": IQ["ref3030"] + 3.0 / 29.8e3 + 3.0 / 30.2e3, "IMD SSR LEDs (test)": 2 * (V5_[1] - 1.2) / 330.0}
     i33 = {"OPA2388 x %d" % cnt("OPA2388"): 2 * cnt("OPA2388") * IQ["opa2388"],
            "TLV3502 x %d" % cnt("TLV3502"): 2 * cnt("TLV3502") * IQ["tlv3502"], "LVC gates": 12 * IQ["lvc"],
@@ -742,12 +872,12 @@ def design_check(B, st):
     assert s5 <= 0.8 * 2.0 and s5g <= 0.8 * 2.0 and s33 <= 0.8 * 3.0, "5 V / 3.3 V converter load above 80 %"
     p5_out = (s5 + s5g) * V5_[1]
     ec = pv_power.ECON
-    p_coils = ec["hold_W_max"] + 2 * 4.0                                 # DC contactor economised + 2 AC coils (RFQ <= 4 W)
+    p_coils = ec["hold_W_max"] + 2 * AC_COIL["hold_W"]                    # DC contactor economised + 2 AC coils (RFQ)
     p_live = p5_out / 0.85 + p_coils
     rt = pv_power.aux_rating(4)       # the aux hardware is one design for both PV builds; its full set is the '4 phases' one
     p_selv = 3 * 12.85 * 1.1 + 0.6                                       # 3 fans x 12 W rated + fan buck 10 % + SELV logic
     over = p_live > rt["live_W"]
-    say("Supplies (datasheet maxima; RFQ sensors ASSUMED): +5V (LMR38020, 2 A) %.2f A = %.0f %% (%s); +5V_GD %.2f A = %.0f %% "
+    say("Supplies (datasheet maxima; the RCM sensor ASSUMED): +5V (LMR38020, 2 A) %.2f A = %.0f %% (%s); +5V_GD %.2f A = %.0f %% "
         "(%s); +3V3 (TPS62130, 3 A) %.0f mA = %.0f %%. Live 24 V from the aux: 5 V outputs %.1f W / 0.85 + DC contactor on "
         "its economiser %.2f W + 2 AC contactor coils (RFQ hold <= 4 W each) = %.1f W against the aux block's live rating "
         "%.1f W (aux75_spec, the design's full set '4 phases'): %s; SELV: 3 fans + fan buck + logic %.1f W vs %.1f W; "
@@ -758,18 +888,58 @@ def design_check(B, st):
         "gate bias, two AC coils) or the AC coils moved to the SELV side" % (p_live - rt["live_W"]) if over else
         "inside at %.0f %% - OPEN (8): the AC coils' hold power is an RFQ assumption" % (100 * p_live / rt["live_W"]),
         p_selv, rt["selv_W"], p_live + p_selv, rt["total_W"])
+    # ---- live 24 V through the start-up sequence (PCM-14): one coil pulls in at a time (pcs_spec firmware_limits)
+    r_c = 24.0 ** 2 / ec["pull_in_W_at_24V"]                             # HFE82V coil 96 ohm (24 V, 6 W, p1)
+    cold = 0.85 * (1 - 0.00393 * 63.0)                                   # coil R -15 % ASSUMED at -40 C copper (as PV-PWR)
+    pull_dc = pv_power.V24[1] ** 2 / (r_c * cold)                        # DC contactor at full voltage for 100-152 ms
+    g7l = pv_power.V24[1] * 0.0958 * 1.15 / (1 - 0.00393 * 63.0)         # G7L-2A-X DC24 95.8 mA +/-15 % (p2) at -40 C
+    p_bucks = p5_out / 0.85
+    e_idle = gdrv.ext_bias_numbers(GATE_V, p_ch=p_ch - GD["qg"] * N_PAR * vt_r[1] * f_sw, n_ch=2)   # bias on, gates idle
+    p_idle = p_bucks - n_leg * (e["p_in"] - e_idle["p_in"]) / 0.85
+    steps = [("DC contactor pulls in at the end of the precharge, precharge relay on, gates idle", p_idle + g7l + pull_dc),
+             ("relay test, AC contactor 1 alone (DC held, gates idle)", p_idle + ec["hold_W_max"] + AC_COIL["pull_W"]),
+             ("relay test, AC contactor 2 alone (AC 1 released, gates idle)", p_idle + ec["hold_W_max"] + AC_COIL["pull_W"]),
+             ("synchronised close: the second AC contactor (AC 1) with the PWM running, AC 2 and DC held",
+              p_bucks + ec["hold_W_max"] + AC_COIL["hold_W"] + AC_COIL["pull_W"]),
+             ("running, every coil on its economiser", p_live)]
+    worst = max(steps, key=lambda s_: s_[1])
+    room = rt["live_peak_W"] - (p_bucks + ec["hold_W_max"] + AC_COIL["hold_W"])     # AC pull-in the synchronised close allows
+    hold = pv_power.S75["holdup"]                                        # the aux's live hold-up capacitance (aux75_spec)
+    t_hold = hold["c_uF"] * 1e-6 * (pv_power.V24[0] ** 2 - hold["v_end"] ** 2) / (2 * p_live) * 1e3
+    need_live, need_peak = p_live / 0.8, worst[1] * 1.1                  # 20 % continuous / 10 % peak reserve (ASSUMED rule)
+    say("Live 24 V through the start-up sequence (PCM-14; firmware rule in pcs_spec firmware_limits: one coil pulls in at a time, "
+        "the second AC contactor only after the first has settled on its economiser, retries >= 10 s apart, <= 3 per start; AC coil "
+        "module RFQ, ASSUMED pull-in %.0f W for <= %.0f ms, hold %.0f W; DC contactor %.1f W pull-in at a -40 C coil, precharge relay "
+        "%.1f W; gate bias idle %.2f W per phase): %s. Live peak rating %.0f W (aux75_spec): %s. Steady %.1f W of %.1f W: reserve "
+        "%.1f W (%.0f %%) - %s. Hold-up of the aux's %.0f uF at %.1f W: %.0f ms from %.1f V "
+        "to %.0f V. Cheapest remedy, named, not drawn: re-allocate AUX-T1's live / SELV split in sim/aux_hv_design.py to >= %.0f W "
+        "live continuous and >= %.0f W live peak (this module needs %.0f W of the %.0f W SELV; same core and total, no BOM cost); "
+        "until then the AC coil module must be specified at <= %.1f W pull-in (what the synchronised close allows today); moving "
+        "the AC coils to the SELV supply would need an isolated gating path on both boards",
+        AC_COIL["pull_W"], AC_COIL["t_pull_s"] * 1e3, AC_COIL["hold_W"], pull_dc, g7l, e_idle["p_in"],
+        "; ".join("%s %.1f W" % s_ for s_ in steps), rt["live_peak_W"],
+        ("OVER by %.1f W at '%s'" % (worst[1] - rt["live_peak_W"], worst[0])) if worst[1] > rt["live_peak_W"] else "inside",
+        p_live, rt["live_W"], rt["live_W"] - p_live, 100 * (rt["live_W"] - p_live) / rt["live_W"],
+        "adequate" if rt["live_W"] - p_live >= 0.2 * rt["live_W"] else "not adequate for an RFQ assumption (OPEN 8)", hold["c_uF"],
+        p_live, t_hold,
+        pv_power.V24[0], hold["v_end"], need_live, need_peak, p_selv, rt["selv_W"], room)
     # ---- trip bands and responses this board provides (the control board's ladders are re-valued for the PCS)
     say("Trip sources on this board: DESAT per channel (%.1f-%.1f V, booster); DC-port over-current %d-%d A (TLV3502 window on "
         "the shunt, open drain on FLT_N, no firmware); hold-off %d-%d A (HOLD); RDY low on a missing bias rail, +5V / +5V_GD "
         "below 4.52-4.69 V or the aux live 24 V outside its window. On the control board (PCS assembly, its ladders "
-        "re-valued): phase windows +/-%.0f A on IL1-3 (sensor gain RFQ), DC OV %.0f V on VB and %.0f V on VA, heatsink and "
+        "re-valued): phase windows +/-%.0f A on IL1-3 (STK-250HO/4, 3.2 mV/A), DC OV %.0f V on VB and %.0f V on VA, heatsink and "
         "L1 OT, open probe, heartbeat, ENABLE; CMPSS / ADC limits as the second layer (pcs_spec firmware requirements)",
         tr_lo, tr_hi, lp["port_oc_trip_A"][0], lp["port_oc_trip_A"][1], lp["contactor"]["hold_off_band_A"][0],
         lp["contactor"]["hold_off_band_A"][1], LIM["I_phase_trip_A"], V_DC_MAX, V_HALF_TRIP)
+    assert "Al2O3" in HSK["insulator"] and cnt("PAD_AL2O3") == n_dev and cnt("PAD_ALN") == 0, "pad drawn = pad of the thermal model"
     say("Thermal inputs: NTC1-3 lug probes on the earthed heatsink sections (%d x R_sa %.3f K/W at %.0f m3/h, pcs_spec), "
         "NTC5-7 in the L1 windings, NTC9 at the DC-link bank (Murata NCP15, 10 k 1 %%); three 120 mm fans on PV-CTL's SELV "
-        "headers (%s)", HSK["sections"], HSK["R_sa_K_per_W_per_section"], HSK["flow_m3h_per_section"], HSK["fans"])
+        "headers (%s); device to heatsink as drawn and as the thermal model uses it: %s", HSK["sections"],
+        HSK["R_sa_K_per_W_per_section"], HSK["flow_m3h_per_section"], HSK["fans"], HSK["insulator"])
     say("Pending PCS_PC / PCS_X nets (test points until their stage): %s", ", ".join(st["todo"]) or "none")
+    say("Inputs read at this build (gen/pcs_ctrl.py refuses a stale copy): pcs_spec.json sha256 %s; port_spec.json sha256 %s",
+        hashlib.sha256(open(SPEC_PATH, "rb").read()).hexdigest()[:16],
+        hashlib.sha256(open(port.SPEC_PATH, "rb").read()).hexdigest()[:16])
     return out
 
 

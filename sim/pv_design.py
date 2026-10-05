@@ -62,7 +62,7 @@ def gdrv_check():
     vt, v3, v2 = gdrv.rails(dev["gate_v"])
     dtc = dev.get("deadtime", gdrv.DEADTIME_CLASS[dev["vclass"]])
     ms = gdrv.MILLER_SIM[GDRV_PRESET]
-    fw_dt = dev.get("fw_dt", 200e-9)
+    fw_dt = dev.get("fw_dt", 200e-9)          # ASSUMED firmware dead band: the PV preset (gen/gdrv.py) states none (labelled, PCM-23)
     _GD = {"von": (round(v2[0], 2), round(v2[1], 2)), "voff": (-round(v3[1], 2), -round(v3[0], 2)),
            "i_src": round(rec["ipk"][0], 2), "i_snk": round(rec["ipk"][1], 2), "r_ks": gdrv.R_KS,
            "trip": (round(rec["trip"][0], 2), round(rec["trip"][1], 2)), "trip_nom": round(0.5 * sum(rec["trip"]), 2),
@@ -96,25 +96,31 @@ def set_dead_time():
     return tr.T_DEAD
 
 
-def choose(role="primary"):
-    set_dead_time()
-    g = json.load(open(os.path.join(tr.OUT, "gate0b.json")))
-    assert g["stay_2L"], "Gate-0b: the best 3-level candidate is > 15 % cheaper - the 2-level cell does not stand (coordinator)"
-    dev, npar = DEVICES[role]
-    des = tr.build_design(FROZEN["cand"], dev, npar, FROZEN["fsw"], FROZEN["ripple"])
-    if tr.IND_DESIGN:            # the magnetics engineer's construction replaces the catalogue-core inductor (rev M1+)
-        des["ind"] = tr.ind_ocp_fields(tr.inductor_from_design(), des["i_ocp"])
-        des["caps"] = tr.size_caps(des)
-    m_on, r = tr.transient_check(des)
-    assert m_on is not None, f"{dev}: fails the device peak-voltage rule at every R_G,on step"
-    des["rg_on_mult"] = m_on
-    des["role"] = role
-    # hand-off margin on the port banks: >= PORT_CAPS_MIN parts per port and ripple <= 50 % of the summed rating
+def size_port_caps(des):
+    """hand-off margin on the port banks: >= PORT_CAPS_MIN parts per port and ripple <= 50 % of the summed rating (the cell's per-phase
+    count that gen/pv_power.py draws; sim/gdrv_miller.py uses it too, so that its leg deck has the same bank)"""
     for port in "AB":
         c = des["caps"][port]
         part = dv.C4AQ[c["part"]]
         n = max(PORT_CAPS_MIN, math.ceil(c["irms_worst"] / (0.5 * part["irms"])), c["n"])
         c.update({"n": n, "C": n * part["C"], "irms_rating": n * part["irms"]})
+
+
+def choose(role="primary"):
+    set_dead_time()
+    if not tr.IND_DESIGN:      # pv_tradeoff then falls back to its 'interim review figures' (catalogue core, 54 W / 75 K): fail closed instead
+        raise SystemExit("sim/out/magnetics/design_pv_inductor.json is missing: generate it with .venv/bin/python sim/magnetics.py")
+    g = json.load(open(os.path.join(tr.OUT, "gate0b.json")))
+    assert g["stay_2L"], "Gate-0b: the best 3-level candidate is > 15 % cheaper - the 2-level cell does not stand (coordinator)"
+    dev, npar = DEVICES[role]
+    des = tr.build_design(FROZEN["cand"], dev, npar, FROZEN["fsw"], FROZEN["ripple"])
+    des["ind"] = tr.ind_ocp_fields(tr.inductor_from_design(), des["i_ocp"])   # the magnetics engineer's construction (rev M1+), never the catalogue core
+    des["caps"] = tr.size_caps(des)
+    m_on, r = tr.transient_check(des)
+    assert m_on is not None, f"{dev}: fails the device peak-voltage rule at every R_G,on step"
+    des["rg_on_mult"] = m_on
+    des["role"] = role
+    size_port_caps(des)
     des["rg_ks"] = gdrv_check()["r_ks"]          # Kelvin-source resistor per device (gate-driver design): in E_on/E_off via R_G
     des["dec"] = DEC_CHOICE
     des["damp"] = damper_table(des)               # RC-damper energy per edge -> loss 'damp' in tr.cell_losses
@@ -135,6 +141,7 @@ def device_block(role, des, spec, corners, peak, worst, dpt_w, mil, brc):
             "eta_corner_min": min(corners[k]["eff"] for k in ("550->950", "950->550", "550->550", "950->950")),
             "eta_corners": {k: round(v["eff"], 5) for k, v in corners.items()}, "eta_peak": round(peak["eff"], 5),
             "Tj_max_45C_C": round(worst["tj"], 1), "VDS_peak_V": round(tr.V_OVP + dpt_w["dv_os"], 0),
+            "VDS_peak_physical_leg_V": round(mil["worst"]["v_pk"], 0),
             "turn_on_dvdt_V_per_ns": round(dpt_w["dvdt_on"] / 1e9, 0), "miller_die_peak_V": mc["V_GS_die_peak_V"],
             "miller_limit_V": mc["limits_V"]["V_th_min_175C"], "rails_V": list(RAILS[des["dev"]]),
             "dead_time_at_gates_ns": [round(tr.T_DEAD_MIN * 1e9), round(tr.T_DEAD * 1e9)],
@@ -177,11 +184,11 @@ def gate_spec(spec, drq, gd):
 def protection_update(spec, drq, gd=None):
     """DESAT / short-circuit entries for the NSI6651 (keys kept)"""
     pr = spec["protection"]
-    pr.update({"desat_threshold_range_V": list(NSI["desat_th"]), "desat_VDS_threshold_V": 9.26,
+    pr.update({"desat_threshold_range_V": list(NSI["desat_th"]), "desat_VDS_threshold_V": 9.3,     # = gen/gdrv.py NSI vdesat typical (two-grade envelope, PCM-07/10); gen/pvcell.py asserts equality
                "desat_blanking_ns": round((NSI["leb"] + NSI["filt"]) * 1e9), "desat_blanking_range_ns": [150 + 200, 265 + 200],
                "short_circuit_detect_to_off_us": gd["t_sc"] if gd else round(drq["sc_response_us_worst"]["industrial"], 2),
                "short_circuit_withstand_us_typ": T_SC_ASSUMED * 1e6,
-               "desat_basis": "NSI6651 DESAT pin threshold 8.5/9.26/9.8 V, LEB 200 ns + filter 150-265 ns, DESAT to OUT <= 300 ns "
+               "desat_basis": "NSI6651 DESAT pin threshold 8.5/9.3/10.0 V (envelope of the drawn -Q1 grade and the industrial alternate, gen/gdrv.py NSI), LEB 200 ns, DESAT to OUT <= 360 ns (contains the deglitch filter) "
                               "(sim/data/asia_drivers.md); V_DS(on) at the trip current, 175 C: " +
                               ", ".join(f"{v['mpn']} {v['vds_on_at_trip_175C_V']:.1f} V (margin {v['desat_margin']:.1f}x)"
                                         for v in drq["per_device"].values()) +
@@ -437,9 +444,21 @@ def spice_compare(des, a_fit, dpt_res, rg, rg_on):
 # decoupling -> rest of the commutation loop -> device pins, with the RC damper (R301-R304, C303-C308) at the pins.
 DAMPER = {"r_el": 4.99, "n_r": 2, "c_el": 4.7e-9, "n_c": 2, "c_el_V": 2000.0}
 L_BUS_BULK = 15e-9
-L_REST = tr.L_LOOP["2L"] - dv.C4AQ_DEC["C4AQUBU4100A1WJ"]["esl"] / 2    # board + devices: the 20 nH loop less the drawn 2 x 1 uF ESL
-DEC_OPTIONS = [("C4AQUBU4100A1WJ", 2), ("C4AQUBU4100A1WJ", 4), ("C4AQUBU4220A1YJ", 3), ("C4AQUBU4180A1XJ", 4), ("C4AQUBU4220A1YJ", 4)]
-DEC_CHOICE = ("C4AQUBU4220A1YJ", 3)   # result of decoupling_study() (asserted in run()); the damper table uses it
+L_REST = tr.L_LOOP["2L"] - dv.C4AQ_DEC["C4AQUBU4100A1WJ"]["esl"] / 2    # board + devices: the 20 nH loop budget less the 2 x 1 uF ESL it assumed
+# PCM-18 (R-08 closed): the capacitors AS DRAWN on PV-PWR / PV-PWR-4 (gen/pv_power.py FILM45 / FILM2U2, cross-checked there against the
+# 'capacitors_drawn' block of cell_spec): Jianghai CBB138 DS class A3, docs/datasheets/passives-capacitors/Jianghai-JE26-Film.pdf p.30
+# (v2026.2), columns: Imax <= 85 C / <= 70 C at 10 kHz, peak current, ESR typ at 70 C / 10 kHz, Ls typ at 25 C / 1 MHz. The leg deck ran the
+# KEMET C4AQ values before (bank 19 nH / 3.1 mOhm per capacitor, decoupling 24 nH / 16 mOhm); 'irms' keeps the 70 C value like the KEMET table.
+# The data sheet has no ESR or Ls at the 50-100 MHz of the commutation ringing: the 10 kHz / 1 MHz values are used (ESTIMATE: ESR rises, so
+# the ringing is slightly better damped than simulated).
+JIANGHAI = {
+    "FCSA3DS456": {"mpn": "FCSA3DS456K050H8F9DE3", "C": 45e-6, "vndc": 1300, "vop85": 1100, "esl": 35e-9, "esr": 4.0e-3, "ipkr": 900.0,
+                   "irms": 29.0, "irms85": 22.1, "rth": 6.0, "src": "Jianghai CBB138 DS p.30 (v2026.2)"},
+    "FCSA3DS225": {"mpn": "FCSA3DS225K050IC90BE3", "C": 2.2e-6, "vndc": 1300, "vop85": 1100, "esl": 25e-9, "esr": 22.5e-3, "ipkr": 176.0,
+                   "irms": 5.2, "irms85": 3.9, "rth": 33.0, "src": "Jianghai CBB138 DS p.30 (v2026.2)"}}
+DEC_PARTS = dict(dv.C4AQ_DEC, FCSA3DS225=JIANGHAI["FCSA3DS225"])
+DEC_OPTIONS = [("FCSA3DS225", 2), ("FCSA3DS225", 3), ("FCSA3DS225", 4)]
+DEC_CHOICE = ("FCSA3DS225", 3)        # = gen/pv_power.py DEC_N per leg; decoupling_study() must choose it (asserted in run())
 DEC_MARGIN = 1.2                      # peak per capacitor <= Ipkr / 1.2 (VDMOS, Qoss) and <= Ipkr with the recovery surrogate
 DEC_TON = (0.6e-6, 1.0e-6, 1.5e-6, 2.2e-6, 3.0e-6)   # on-times: the decoupling-bulk resonance can add to the second edge
 DAMP_V = [250.0, 550.0, 800.0, 1000.0, 1100.0]
@@ -447,10 +466,12 @@ DAMP_I = [2.0, 20.0, 45.0]            # + the hardware trip current
 
 
 def leg_net(des, dec=None, c_rr=0.0):
+    """the leg as drawn on PV-PWR: this phase's share of the port-A bank (the cell's per-phase count of Jianghai FCSA3DS456), the 15 nH
+    bus, the leg decoupling (default: the drawn 3 x FCSA3DS225), board + devices, the RC damper; ESL / ESR from the Jianghai data sheet"""
     part, nd = dec or des["dec"]
-    p, cb = dv.C4AQ_DEC[part], des["caps"]["A"]
-    cbp = dv.C4AQ[cb["part"]]
-    return {"c_bulk": cb["C"], "esl_bulk": cbp["esl"] / cb["n"], "esr_bulk": cbp["esr"] / cb["n"], "l_bus": L_BUS_BULK,
+    p, cb = DEC_PARTS[part], des["caps"]["A"]
+    cbp = JIANGHAI["FCSA3DS456"]
+    return {"c_bulk": cb["n"] * cbp["C"], "esl_bulk": cbp["esl"] / cb["n"], "esr_bulk": cbp["esr"] / cb["n"], "l_bus": L_BUS_BULK,
             "c_dec": nd * p["C"], "esl_dec": p["esl"] / nd, "esr_dec": p["esr"] / nd, "l_rest": L_REST,
             "r_damp": DAMPER["n_r"] * DAMPER["r_el"], "c_damp": DAMPER["c_el"] / DAMPER["n_c"], "c_rr": c_rr}
 
@@ -458,7 +479,11 @@ def leg_net(des, dec=None, c_rr=0.0):
 # cost-first boards (hardware/PV-PWR + PV-CTL design checks, D-044..D-052): per-phase OC comparator band (A) and response,
 # controller (CMPSS) backup band and response, hardware OV trip band (V) and response. TRIP_HW = PV-CTL rev A1 (D-056: window
 # referenced to each sensor's Uref; rev A0 66.2-79.9 A); PV-CTL's design check fails if this record differs from the board
-TRIP_HW, TRIP_BACKUP, OV_HW = (68.9, 79.9, 1.95e-6), (81.1, 101.9, 1.21e-6), (1058.0, 1110.0, 47e-6)
+TRIP_HW, TRIP_BACKUP, OV_HW = (67.9, 80.5, 1.52e-6), (81.1, 101.9, 1.21e-6), (1039.0, 1110.0, 47e-6)
+# PCM-19: PV-CTL's design check now includes the TLV9024 common-mode error (CMRR >= 50 dB, the lower of its 5 V / 1.8 V guarantees) in every
+# band and the data-sheet comparator delay (before: 68.9-79.9 A / 1.95 us and 1058-1110 V); the OV ladder was re-valued so that the OV band
+# top stays 1110 V (the load-rejection bank study of sim/pv_module.py rests on it). The IL window 67.9-80.5 A does NOT meet the 68.5 A floor
+# (1.10 x the normal peak): no ladder value can, see PV-CTL's [OPEN] item. PV-CTL fails its build while these records differ from its bands.
 
 
 def trip_band(des):
@@ -539,7 +564,7 @@ def decoupling_study(des):
     esl_max = dv.C4AQ_DEC["C4AQUBU4100A1WJ"]["esl"] / 2
     rows, choice = [], None
     for part, nd in DEC_OPTIONS:
-        p = dv.C4AQ_DEC[part]
+        p = DEC_PARTS[part]
         rs = []
         for t in DEC_TON:        # a solver dead spot at one on-time drops that point, not the option
             try:
@@ -553,7 +578,8 @@ def decoupling_study(des):
             continue
         w = max(rs, key=lambda r: r["i_dec_pk"])
         row = {"part": part, "n": nd, "esl_nH": p["esl"] / nd * 1e9, "C_uF": nd * p["C"] * 1e6, "ipkr": p["ipkr"],
-               "pk_cap": w["i_dec_pk"] / nd, "rms_cap": math.sqrt(w["i_dec_sq"] * des["fsw"]) / nd, "v_pk": w["v_pk"],
+               "pk_cap": w["i_dec_pk"] / nd, "v_pk": w["v_pk"],
+               "rms_cap": max(math.sqrt(r["i_dec_sq"] * des["fsw"]) for r in rs) / nd,   # worst over the on-times (PCM-18: was the worst-PEAK run's)
                "e_damp": w["e_damp_on"] + w["e_damp_off"], "pk_cap_rr": None}
         row["ok"] = row["pk_cap"] <= p["ipkr"] / DEC_MARGIN and p["esl"] / nd <= esl_max + 1e-12
         if row["ok"] and choice is None:
@@ -615,26 +641,36 @@ def port_loop(ncell):
     rep = open(PORT_REPORT).read()
     ps = json.load(open(PORT_SPEC))
     var = ps["variants"][str(int(ncell * tr.I_MAX))]
-    l_loop = float(re.search(r"\| A_L_LOOP \| ([0-9.e+-]+) \|", rep).group(1))
-    r_x = float(re.search(r"\| A_R_LOOP_X \| ([0-9.e+-]+) \|", rep).group(1))
+
+    def rd(pat, what):          # every number is read from the port report: a missing one means a stale report, never a built-in value
+        m = re.search(pat, rep)
+        if not m:
+            raise SystemExit("%s not found in %s: regenerate it with .venv/bin/python sim/port_design.py" % (what, PORT_REPORT))
+        return m
+
+    l_loop = float(rd(r"\| A_L_LOOP \| ([0-9.e+-]+) \|", "A_L_LOOP").group(1))
+    r_x = float(rd(r"\| A_R_LOOP_X \| ([0-9.e+-]+) \|", "A_R_LOOP_X").group(1))
     r_fuse = var["fuse_loss_W"] / var["fuse_In_A"] ** 2            # cold fuse link P/In^2, as the port design uses
-    m5 = re.search(r"\| PV %d cells \| [0-9.]+ \| [0-9.]+ \| [0-9.]+ \| [0-9.]+ \| \w+ \| [0-9.]+ \| \w+ \| ([0-9.]+) \|" % ncell, rep)
-    melt = {160.0: 19e3, 250.0: 80e3}[var["fuse_In_A"]]            # port report 6.6: minimum melting I2t of the 160 / 250 A links
+    m5 = rd(r"\| PV %d cells \| [0-9.]+ \| [0-9.]+ \| [0-9.]+ \| [0-9.]+ \| \w+ \| [0-9.]+ \| \w+ \| ([0-9.]+) \|" % ncell,
+            "the %d-cell row of the 5 kA loop table" % ncell)
+    mm = rd(r"minimum melting I2t: (\d+) kA2s \(160 A link\), (\d+) kA2s \(250 A link\)", "the fuse melting I2t")
+    melt = {160.0: float(mm.group(1)) * 1e3, 250.0: float(mm.group(2)) * 1e3}[var["fuse_In_A"]]   # port report 6.6: 160 / 250 A links
     return {"L": l_loop, "R": r_x + 2 * r_fuse, "r_x": r_x, "r_fuse": r_fuse, "fuse": var["fuse_mpn"], "melt_i2t": melt,
-            "L_for_5kA": float(m5.group(1)) * 1e-6 if m5 else None}
+            "L_for_5kA": float(m5.group(1)) * 1e-6}
 
 
-def dump_run(des, ncell, port, v0, n_clamp, l_cl=None, l_main=None, tag=None, part=CLAMP_PART, l_stray=None):
+def dump_run(des, ncell, port, v0, n_clamp, l_cl=None, l_main=None, tag=None, part=CLAMP_PART, l_stray=None, bank=None):
     """bolted short at a port terminal: the N cell banks of that port discharge through the port-board loop.  Per-cell
     equivalent of N identical cells (shared loop x N).  Branches across the bank terminals: the leg's two series body-
     diode positions (npar devices each, MSC035 Fig.1-9 fit) behind L_LEG_BRANCH, and the clamp group (n_clamp rectifiers)
     behind l_cl.  l_stray: the clamp sits on the port board instead, shared by the N cells, l_stray (per cell) away from
-    each bank.  Writes sim/spice/pv_dump_<tag>.cir."""
+    each bank.  bank: the capacitor AS DRAWN (JIANGHAI entry; same count, ESR / ESL from the data sheet) instead of the C4AQ design basis
+    of des['caps'] (PCM-18 side check, drawn_bank_check).  Writes sim/spice/pv_dump_<tag>.cir."""
     d, n = des["d"], des["npar"]
     lp = port_loop(ncell)
     cap = des["caps"][port]
-    cp = dv.C4AQ[cap["part"]]
-    c, esr, esl = cap["C"], cp["esr"] / cap["n"], cp["esl"] / cap["n"]
+    cp = bank or dv.C4AQ[cap["part"]]
+    c, esr, esl = (cap["n"] * cp["C"] if bank else cap["C"]), cp["esr"] / cap["n"], cp["esl"] / cap["n"]
     lm = (lp["L"] if l_main is None else l_main) * ncell
     rm = lp["R"] * ncell
     bi, bn, brs, _ = diode_fit([(2.0, 2.9)] + d["body_iv_25"])
@@ -642,7 +678,7 @@ def dump_run(des, ncell, port, v0, n_clamp, l_cl=None, l_main=None, tag=None, pa
     l_cl = L_DEV_CLAMP / max(n_clamp, 1) if l_cl is None else l_cl
     ci = 10.0 / math.exp(rc["vf_to_150"] / 0.03)                    # sharp knee at V_F(TO), slope r_t of the p2 table
     m_cl = n_clamp / ncell if l_stray else n_clamp                  # shared port clamp: per-cell equivalent 1/N of it
-    tag = tag or f"{ncell}c_{port}_{v0:.0f}V_n{n_clamp}"
+    tag = tag or f"{ncell}c_{port}_{v0:.0f}V_n{n_clamp}" + ("_drawn" if bank else "")
     cjo = 0.5 * (d["coss"] - d["crss"]) * (1 + d["c_at"] / 3.0) ** 0.5
     lines = [f"* PVCELL port-{port} terminal short, {ncell} cells, bank {v0:.0f} V, clamp {n_clamp} x {part}"
              f"{' (none)' if n_clamp == 0 else ''}{' on the port board' if l_stray else ''}, per-cell equivalent of the shared loop. "
@@ -752,6 +788,24 @@ def bus_reverse_clamp(des):
     return {"cases": cases, "sweep": sweep, "n": n_cl, "lsweep": lsw, "l_max": l_max, "alt": alt, "module": mod}
 
 
+def drawn_bank_check(des, brc):
+    """PCM-18 side check: the clamp study runs on the C4AQ design basis of des['caps'] (the same 2 x 45 uF per port and cell as drawn, so the
+    same energy); the worst bolted port short of each build (port A, OVP-trip bus, the chosen clamp group) is re-run with the bank AS DRAWN
+    (Jianghai FCSA3DS456: ESR / ESL of leg_net) and printed next to it. Calculated (ngspice), not measured."""
+    out = {}
+    for ncell in (3, 4):
+        b = brc["cases"][(ncell, "A", tr.V_OVP, brc["n"])]
+        r = dump_run(des, ncell, "A", tr.V_OVP, brc["n"], bank=JIANGHAI["FCSA3DS456"])
+        row = lambda x: {"module_peak_kA": round(x["i_total_pk"] / 1e3, 2), "clamp_per_device_peak_A": round(x["clamp_dev_pk"]),
+                         "clamp_per_device_I2t_A2s": round(x["clamp_dev_i2t"]), "allowed_I2t_at_t95_A2s": round(clamp_allowed_i2t(x["t95"])),
+                         "t95_ms": round(x["t95"] * 1e3, 2), "body_diode_peak_A": round(x["body_pk"]),
+                         "bank_internal_min_V": round(x["vc_min"])}
+        out[f"{ncell}_cells"] = {"design_basis_C4AQ": row(b), "as_drawn_FCSA3DS456": row(r), "deck": r["deck"]}
+        assert r["clamp_dev_i2t"] <= 0.5 * clamp_allowed_i2t(r["t95"]) and r["body_pk"] <= des["d"]["idm"], \
+            ("the clamp group chosen on the C4AQ basis fails with the bank as drawn", ncell)
+    return out
+
+
 # ------------------------------------------------------------------------------------------------ main
 def run(role="primary", write=True, alt=None):
     os.makedirs(OUT, exist_ok=True)
@@ -832,6 +886,7 @@ def run(role="primary", write=True, alt=None):
     assert immun[(False, d["vgs_off"])]["vgs_off_peak"] > immun[(True, d["vgs_off"])]["vgs_off_peak"], "the clamp lowers the gate peak"
     assert abs(tr.T_DEAD_MIN - gd["dt_gates"][0]) < 1e-12 and abs(tr.T_DEAD - gd["dt_gates"][1] - TURN_ON_DELAY) < 1e-12, "dead time = gdrv"
     assert dec["choice"] is not None, "no leg-decoupling option meets the peak-current rule"
+    assert dec["choice"] == DEC_CHOICE, "decoupling_study chose %s, the board draws %s (gen/pv_power.py DEC_N)" % (dec["choice"], DEC_CHOICE)
     assert mil["worst"]["v_pk"] <= dv.V_PK_FRAC * d["vdss"], "physical-leg deck: device peak within the 0.85 x V_DSS rule"
     # Miller / own-channel results are design VERDICTS (reported in cell_spec gate_drive.miller_check), not self-check physics
     assert mil["worst"]["v_pk"] > tr.V_OVP, "physical-leg deck returned the device peak"
@@ -858,7 +913,11 @@ def run(role="primary", write=True, alt=None):
         assert r_["body_pk"] > d["idm"] and r_["q"] > 0.5, "a 5 kA DM inductance alone still reverses the bank"
 
     spec = cell_spec(des, rec, worst, at, vu, dpt_w, mod, caps, ind, i_sat50, ts_trip, peak, corners, tj60_full, tj60_der, a_fit, gd)
+    spec["ov_trip_costfirst"] = {"band_V": [OV_HW[0], OV_HW[1]], "response_us": OV_HW[2] * 1e6,
+                                 "basis": "PV-CTL hardware OV comparators on VA / VB (TLV9024) as built: band bottom / top and the time from the "
+                                          "true crossing of the band top to gates off (sim/pv_design.py OV_HW, checked by gen/pv_ctrl.py)"}
     spec["bus_reverse_clamp"] = clamp_spec(des, brc, dpt_w)
+    spec["bus_reverse_clamp"]["drawn_bank_check"] = drawn_bank_check(des, brc)
     leg_spec(spec, des, env, dec, mil, gd, immun)
     gate_spec(spec, drq, gd)
     protection_update(spec, drq, gd)
@@ -1050,7 +1109,7 @@ def damper_leg_power(des, r):
 # NOVOSENSE NSI6651ASC (D-035), sim/data/asia_drivers.md (NSI6651 DS p7-9, Q1 DS p9): output ROH 2.2 / ROL 0.3 ohm, 11/12 A
 # peak; Miller clamp threshold 1.5/2.0/2.5 V above VEE2, VEE2 + 0.8 V at 1 A; DESAT 8.5/9.26/9.8 V, LEB 200 ns typ, filter
 # 150-265 ns, DESAT to OUT 150-300 ns; soft turn-off 100 (Q1) / 250 (industrial) mA min; delay 70-110 ns, PWD <= 30 ns
-NSI = {"roh": 2.2, "rol": 0.3, "i_pk": 11.0, "vclmpth_min": 1.5, "v_clamp_1a": 0.8, "t_dclmp": 50e-9, "desat_th": (8.5, 9.8),
+NSI = {"roh": 2.2, "rol": 0.3, "i_pk": 11.0, "vclmpth_min": 1.5, "v_clamp_1a": 0.8, "t_dclmp": 50e-9, "desat_th": (8.5, 10.0),   # -Q1 / industrial envelope as gen/gdrv.py NSI (2026-10-05)
        "leb": 200e-9, "filt": 265e-9, "desat_to_out": 300e-9, "isto_min": {"Q1": 0.10, "industrial": 0.25}}
 T_SC_ASSUMED = 2.0e-6    # s: NO Chinese datasheet states a short-circuit withstand time (MSC035SMA170B4 3.1 us typ at 1200 V/20 V,
                          # ROHM SCT4036KRHR 4 us): ASSUMED 2.0 us at 1100 V, +18 V - to be confirmed by the maker or a SC test
@@ -1097,20 +1156,22 @@ def leg_spec(spec, des, env, dec, mil, gd, immun):
     v_el = i_pk * DAMPER["r_el"]
     part, nd = dec["choice"]
     row = next(r for r in dec["rows"] if (r["part"], r["n"]) == dec["choice"])
-    drawn = next(r for r in dec["rows"] if (r["part"], r["n"]) == ("C4AQUBU4100A1WJ", 2))
-    p = dv.C4AQ_DEC[part]
+    p = DEC_PARTS[part]
+    jb = JIANGHAI["FCSA3DS456"]
     spec["decoupling"]["suggested"] = (f"{nd} x {part} ({p['C']*1e6:.1f} uF / {p['vndc']} V, Ipkr {p['ipkr']:.0f} A, ESL {p['esl']*1e9:.0f} nH, "
-                                       f"C4AQ p.14) per leg")
+                                       f"{p.get('src', 'C4AQ p.14')}) per leg")
     spec["decoupling"].update({
         "mpn": part, "count_per_leg": nd, "C_per_leg_uF": nd * p["C"] * 1e6, "ESL_per_leg_nH": round(p["esl"] / nd * 1e9, 2),
         "peak_current_per_cap_A": round(row["pk_cap"], 1),
         "peak_current_per_cap_with_recovery_A": None if row["pk_cap_rr"] is None else round(row["pk_cap_rr"], 1),
         "Ipkr_per_cap_A": p["ipkr"], "peak_margin": round(p["ipkr"] / row["pk_cap"], 2), "rms_per_cap_A": round(row["rms_cap"], 2),
-        "Irms_70C_per_cap_A": p["irms"], "V_op_85C_V": p["vop85"],
+        "Irms_70C_per_cap_A": p["irms"], "Irms_85C_per_cap_A": p.get("irms85"), "V_op_85C_V": p["vop85"],
         "basis": f"physical-leg deck (sim/spice/pv_dpt_leg_dec.cir): {tr.V_OVP:.0f} V, {des['i_ocp']:.1f} A trip current, worst of "
                  f"on-times {', '.join(f'{t*1e6:.1f}' for t in DEC_TON)} us (decoupling-bulk resonance); rule: peak <= Ipkr/{DEC_MARGIN} "
                  f"(VDMOS, Q_oss) and <= Ipkr with the Q_rr surrogate, ESL <= {dec['esl_max_nH']:.1f} nH so the {tr.L_LOOP['2L']*1e9:.0f} nH "
-                 f"loop holds. Drawn 2 x C4AQUBU4100A1WJ: {drawn['pk_cap']:.0f} A per capacitor vs Ipkr 28 A (PVR-03)",
+                 f"loop holds. Capacitors as drawn on PV-PWR (PCM-18): {des['caps']['A']['n']} x FCSA3DS456 per phase and port (Ls "
+                 f"{jb['esl']*1e9:.0f} nH, ESR {jb['esr']*1e3:.1f} mOhm each) and {nd} x {part} per leg (Ls {p['esl']*1e9:.0f} nH, ESR "
+                 f"{p['esr']*1e3:.1f} mOhm each), Jianghai CBB138 DS p.30; the deck ran the KEMET C4AQ values before",
         "rejected": [f"{r['n']} x {r['part']}: {r['pk_cap']:.0f} A per cap vs Ipkr {r['ipkr']:.0f} A" for r in dec["rows"]
                      if not r["ok"] and r["pk_cap_rr"] is None]})
     spec["damper"] = {
@@ -1164,6 +1225,38 @@ def leg_spec(spec, des, env, dec, mil, gd, immun):
                                f"die {die:+.2f} V vs V_th(min, 175 C) {d['vth_175_min']} V: " +
                                ("within the 0.5 V design margin" if die <= d["vth_175_min"] - 0.5 else
                                 "below V_th(min) but inside the 0.5 V margin" if die < d["vth_175_min"] else "FAIL"))}})
+    # PCM-18: the physical leg with the capacitors as drawn, at the admitted corners (bus 1000 V / the OVP trip 1100 V, each at the normal
+    # peak and at the hardware trip current); the board's worst-case device peak is the larger of this and the lumped 20 nH deck
+    ws = spec["worst_case_stresses"]
+    lg = leg_net(des)
+    corners = []
+    for v in (1000.0, tr.V_OVP):
+        for i, case in ((ws["inductor_I_peak_A"], "normal peak"), (des["i_ocp"], "hardware trip")):
+            r = leg_run(des, v, i, f"leg_c{v:.0f}_{i:.0f}")
+            corners.append({"V": v, "I_A": round(i, 2), "case": case, "device_peak_V": round(r["v_pk"], 1),
+                            "turnoff_overshoot_V": round(r["dv_os_off"], 1), "turnon_complementary_overshoot_V": round(r["dv_os_on"], 1),
+                            "turnon_dvdt_V_per_ns": round(r["dvdt_on"] / 1e9, 1), "decoupling_peak_per_cap_A": round(r["i_dec_pk"] / nd, 1),
+                            "decoupling_rms_per_cap_A": round(math.sqrt(r["i_dec_sq"] * fsw) / nd, 2),
+                            "vgs_off_pin_peak_V_lumped_clamp": round(r["vgs_off_peak"], 2),
+                            "vgs_off_die_peak_V_lumped_clamp": round(r["vgs_off_peak_die"], 2), "deck": r["deck"]})
+    lump = ws["device_VDS_peak_V"]
+    ws.update({"device_VDS_peak_lumped_deck_V": round(lump, 1), "device_VDS_peak_physical_leg_V": round(wr["v_pk"], 1),
+               "device_VDS_peak_V": max(lump, wr["v_pk"]), "device_VDS_peak_frac": max(lump, wr["v_pk"]) / d["vdss"],
+               "device_VDS_peak_basis": "larger of the lumped 20 nH deck (loop estimate, no capacitor model) and the physical-leg deck "
+                                        "with the Jianghai capacitors as drawn (PCM-18), both at the OVP trip 1100 V and the hardware trip current"})
+    spec["capacitors_drawn"] = {
+        "basis": "Jianghai CBB138 DS p.30 (v2026.2), class A3; as drawn on PV-PWR / PV-PWR-4; read by gen/pv_power.py (asserted equal to its "
+                 "FILM45 / FILM2U2 data) and used by the leg deck (leg_net)",
+        "bank": dict(JIANGHAI["FCSA3DS456"], count_per_phase_and_port=des["caps"]["A"]["n"]),
+        "decoupling": dict(p, count_per_leg=nd, mpn=p["mpn"])}
+    spec["leg_commutation"] = {
+        "network": {"bank_C_uF": round(lg["c_bulk"] * 1e6, 1), "bank_ESL_nH": round(lg["esl_bulk"] * 1e9, 2),
+                    "bank_ESR_mOhm": round(lg["esr_bulk"] * 1e3, 2), "bus_nH": L_BUS_BULK * 1e9, "decoupling_C_uF": round(lg["c_dec"] * 1e6, 2),
+                    "decoupling_ESL_nH": round(lg["esl_dec"] * 1e9, 2), "decoupling_ESR_mOhm": round(lg["esr_dec"] * 1e3, 2),
+                    "board_and_devices_nH": round(L_REST * 1e9, 2), "damper_ohm": lg["r_damp"], "damper_nF": round(lg["c_damp"] * 1e9, 2)},
+        "device_peak_limit_V": round(dv.V_PK_FRAC * d["vdss"], 0), "corners": corners,
+        "result": "device peak " + ", ".join(f"{c['device_peak_V']:.0f} V ({c['V']:.0f} V / {c['I_A']:.1f} A)" for c in corners) +
+                  f" against {dv.V_PK_FRAC * d['vdss']:.0f} V (calculated, ngspice VDMOS)"}
     spec["spice"]["leg_deck"] = "sim/spice/pv_dpt_leg.cir"
     spec["efficiency"]["note"] = (f"power stage incl. gate drive, driver bias, sensing and the leg RC dampers; dead time at its "
                                   f"{tr.T_DEAD*1e9:.0f} ns maximum; excludes fans/controller")
@@ -1274,7 +1367,10 @@ def cell_spec(des, rec, worst, at, vu, dpt_w, mod, caps, ind, i_sat50, ts_trip, 
                     "heatsink_temperature": {"range_C": [-40, 150]}, "inductor_temperature": {"range_C": [-40, 180]}},
         "protection": {"inductor_overcurrent_hw_trip_A": round(des["i_ocp"], 1), "current_limit_avg_A": tr.I_MAX,
                        "overvoltage_hw_trip_port_A_V": tr.V_OVP, "overvoltage_hw_trip_port_B_V": tr.V_OVP,
-                       "overvoltage_sw_limit_V": 1050.0, "undervoltage_stop_V": 240.0,
+                       "overvoltage_sw_limit_V": min(1050.0, OV_HW[0] - 5.0),   # controlled stop 5 V below the worst-case bottom of the
+                       #   drawn hardware OV band (PV-CTL rev A1 with the comparator common-mode term, PCM-19): 1034 V, was a fixed 1050 V
+                       #   that the 1039 V band bottom could pre-empt with a latched trip
+                       "undervoltage_stop_V": 240.0,
                        "desat_VDS_threshold_V": gd["trip_nom"], "desat_blanking_ns": gd["blank"][1],
                        "desat_threshold_range_V": list(gd["trip"]), "desat_blanking_range_ns": list(gd["blank"]),
                        "short_circuit_detect_to_off_us": gd["t_sc"], "short_circuit_withstand_us_typ": gd["scwt"],
@@ -1332,11 +1428,22 @@ def leg_report(a, des, gd, immun, dec, mil, spec):
     d = des["d"]
     mc, dp, dc = spec["gate_drive"]["miller_check"], spec["damper"], spec["decoupling"]
     tab, wr = des["damp"], mil["worst"]
-    a(f"- **Physical leg deck** (`sim/spice/pv_dpt_leg*.cir`, PVR-01/02/03): port bank {des['caps']['A']['n']} x {des['caps']['A']['part']} "
-      f"-> {L_BUS_BULK*1e9:.0f} nH bus (layout requirement of gen/pvcell.py) -> leg decoupling -> {L_REST*1e9:.1f} nH (board + devices) -> "
+    jb, nd_ = JIANGHAI["FCSA3DS456"], des["caps"]["A"]["n"]
+    a(f"- **Physical leg deck** (`sim/spice/pv_dpt_leg*.cir`, PVR-01/02/03; PCM-18: Jianghai capacitors as drawn): port bank {nd_} x FCSA3DS456 "
+      f"({jb['esl']*1e9:.0f} nH / {jb['esr']*1e3:.1f} mOhm each) -> {L_BUS_BULK*1e9:.0f} nH bus (layout requirement of gen/pvcell.py) -> leg "
+      f"decoupling ({dc['suggested']}) -> {L_REST*1e9:.1f} nH (board + devices) -> "
       f"device pins with the drawn RC damper ({dp['per_leg']}); Kelvin-source {des['rg_ks']} ohm in every gate loop; clamp engaged. "
       f"At {tr.V_OVP:.0f} V / {des['i_ocp']:.1f} A: device peak {wr['v_pk']:.0f} V (lumped deck {tr.V_OVP + spec['worst_case_stresses']['turnoff_overshoot_V']:.0f} V), "
       f"turn-on dv/dt {wr['dvdt_on']/1e9:.0f} V/ns.")
+    lc = spec["leg_commutation"]
+    a("\n| leg deck corner | device peak [V] (limit %.0f) | turn-off overshoot [V] | complementary turn-on overshoot [V] | dv/dt [V/ns] | "
+      "decoupling peak / rms per capacitor [A] |" % lc["device_peak_limit_V"])
+    a("|---|---|---|---|---|---|")
+    for c in lc["corners"]:
+        a(f"| {c['V']:.0f} V, {c['I_A']:.1f} A ({c['case']}) | {c['device_peak_V']:.0f} | {c['turnoff_overshoot_V']:.0f} | "
+          f"{c['turnon_complementary_overshoot_V']:.0f} | {c['turnon_dvdt_V_per_ns']:.0f} | {c['decoupling_peak_per_cap_A']:.1f} / "
+          f"{c['decoupling_rms_per_cap_A']:.2f} |")
+    a("")
     a(f"- **Miller check (rev-5 gate network, {mc['source']})**: pin {mc['V_GS_pin_peak_V']} V, die {mc['V_GS_die_peak_V']} V "
       f"(ideal clamp loop {mc['V_GS_die_ideal_clamp_loop_V']} V) at {mc['miller_current_per_device_A_peak']} A per device; limits "
       f"{mc['limits_V']}; {mc['result']}. Without any clamp the lumped deck's pin reaches "
@@ -1543,7 +1650,18 @@ def write_report(des, rec, sel, pick, target, env, worst, at, corners, peak, swe
     a(f"- **Where:** {cs['placement']}. Tolerated clamp-branch inductance {cs['branch_inductance_max_nH']} nH (body diodes reach I_DM "
       f"beyond it; sweep below), estimated {cs['branch_inductance_assumed_nH']} nH for {cs['devices_per_bank']} TO-247 in parallel. "
       f"The film capacitors' own ESL makes their internal voltage reverse to {cs['film_bank_internal_reversal_V']:.0f} V for "
-      f"microseconds - ask KEMET for the C4AQ reversal allowance.")
+      f"microseconds on the C4AQ design basis (the same 2 x 45 uF per port and cell as drawn); with the bank as drawn (Jianghai FCSA3DS456, "
+      f"35 nH / 4.0 mOhm per part, table below) {min(v['as_drawn_FCSA3DS456']['bank_internal_min_V'] for v in cs['drawn_bank_check'].values()):.0f} V. "
+      f"Neither data sheet gives a reversal allowance (Jianghai CBB138 defines a surge current, 50 ms / 1000 occurrences, but lists no value): "
+      f"ask the capacitor maker.")
+    a("\n**Bolted short, port A, 1100 V, the chosen clamp group: C4AQ design basis vs the bank as drawn** (ngspice, calculated; `drawn_bank_check`)\n")
+    a("| cells | bank | module peak [kA] | clamp per device: peak [A] / I2t [A2s] (allowed at t95) | t95 [ms] | body diode peak [A] | bank internal min [V] |")
+    a("|---|---|---|---|---|---|---|")
+    for nc_, v_ in cs["drawn_bank_check"].items():
+        for k_, lab_ in (("design_basis_C4AQ", "C4AQ (design basis)"), ("as_drawn_FCSA3DS456", "FCSA3DS456 (as drawn)")):
+            x_ = v_[k_]
+            a(f"| {nc_.split('_')[0]} | {lab_} | {x_['module_peak_kA']:.1f} | {x_['clamp_per_device_peak_A']:.0f} / {x_['clamp_per_device_I2t_A2s']:.0f} "
+              f"({x_['allowed_I2t_at_t95_A2s']:.0f}) | {x_['t95_ms']:.2f} | {x_['body_diode_peak_A']:.0f} | {x_['bank_internal_min_V']:.0f} |")
     a("\n| clamp branch [nH] | " + " | ".join(f"{l*1e9:.2f}" for l in sorted(brc["lsweep"])) + " |")
     a("|---|" + "---|" * len(brc["lsweep"]))
     a("| body diode peak per device [A] | " + " | ".join(f"{brc['lsweep'][l]['body_pk']:.0f}" for l in sorted(brc["lsweep"])) + " |")

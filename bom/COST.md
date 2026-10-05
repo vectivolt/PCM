@@ -10,46 +10,46 @@
 
 | module | rated kW | BOM catalogue USD | USD/kW | BOM at 5000 units USD | USD/kW | 5k total REAL % | 5k total ASSUMED % | catalogue total on engineering estimates % | unpriced lines | BOM + outside, catalogue USD/kW | BOM + outside, 5000 units USD/kW |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| PV-P75 | 75 | 951.88 | 12.7 | 796.12 | 10.6 | 16 | 84 | 78 | 1 | 17.6 | 14.7 |
-| PV-P100-110 | 100 | 1135.02 | 11.4 | 949.00 | 9.5 | 15 | 85 | 77 | 2 | 15.6 | 13.1 |
-| PV-P100-110 | 110 | 1135.02 | 10.3 | 949.00 | 8.6 | 15 | 85 | 77 | 2 | 14.2 | 11.9 |
-| PCS-P125 | 125 | 1521.10 | 12.2 | 1291.55 | 10.3 | 9 | 91 | 88 | 1 | 14.5 | 12.3 |
-| PV-P75-FULL (old platform, for contrast) | 75 | 2811.88 | 37.5 | 2254.31 | 30.1 | 17 | 83 | 55 | 7 | 42.2 | 34.0 |
-| PV-P100-110-FULL (old platform, for contrast) | 100 | 3348.07 | 33.5 | 2664.46 | 26.6 | 17 | 83 | 55 | 7 | 37.5 | 30.0 |
-| PV-P100-110-FULL (old platform, for contrast) | 110 | 3348.07 | 30.4 | 2664.46 | 24.2 | 17 | 83 | 55 | 7 | 34.1 | 27.3 |
-| DAB-D60-FULL (old platform, for contrast) | 60 | 3614.52 | 60.2 | 2926.84 | 48.8 | 12 | 88 | 48 | 3 | 65.6 | 53.3 |
+| PV-P75 | 75 | 975.97 | 13.0 | 817.10 | 10.9 | 15 | 85 | 66 | 1 | 17.9 | 15.0 |
+| PV-P100-110 | 100 | 1167.09 | 11.7 | 976.90 | 9.8 | 15 | 85 | 64 | 2 | 16.0 | 13.4 |
+| PV-P100-110 | 110 | 1167.09 | 10.6 | 976.90 | 8.9 | 15 | 85 | 64 | 2 | 14.5 | 12.2 |
+| PCS-P125 | 125 | 1557.01 | 12.5 | 1322.37 | 10.6 | 9 | 91 | 77 | 1 | 14.8 | 12.6 |
+| PV-P75-FULL (old platform, for contrast) | 75 | 2835.80 | 37.8 | 2275.27 | 30.3 | 17 | 83 | 51 | 7 | 42.5 | 34.3 |
+| PV-P100-110-FULL (old platform, for contrast) | 100 | 3379.94 | 33.8 | 2692.32 | 26.9 | 16 | 84 | 51 | 7 | 37.8 | 30.3 |
+| PV-P100-110-FULL (old platform, for contrast) | 110 | 3379.94 | 30.7 | 2692.32 | 24.5 | 16 | 84 | 51 | 7 | 34.4 | 27.5 |
+| DAB-D60-FULL (old platform, for contrast) | 60 | 3614.70 | 60.2 | 2927.30 | 48.8 | 12 | 88 | 48 | 3 | 65.6 | 53.3 |
 
 Unpriced lines carry no cost, so the totals of these modules are lower bounds: PV-P75: 1 line(s), 5 parts; PV-P100-110: 2 line(s), 7 parts; PCS-P125: 1 line(s), 5 parts; PV-P75-FULL (old platform, for contrast): 7 line(s), 67 parts; PV-P100-110-FULL (old platform, for contrast): 7 line(s), 84 parts; DAB-D60-FULL (old platform, for contrast): 3 line(s), 5 parts (listed under each module).
 
 ## PV-P75
 
-Total BOM cost **951.88 USD at catalogue prices = 12.7 USD per kW at 75 kW**; **796.12 USD at a 5000-unit build = 10.6 USD per kW at 75 kW**. Lines: 309 (302 purchased-part lines; 7 NOPART lines such as test points and net ties are not costed).
+Total BOM cost **975.97 USD at catalogue prices = 13.0 USD per kW at 75 kW**; **817.10 USD at a 5000-unit build = 10.9 USD per kW at 75 kW**. Lines: 309 (302 purchased-part lines; 7 NOPART lines such as test points and net ties are not costed).
 
 ### Evidence behind the catalogue total
 
 | basis | lines | parts | USD | share of the costed total |
 |---|---|---|---|---|
-| real price of the part (looked up) | 78 | 528 | 175.28 | 18.4 % |
-| chip-passive class rule (price of a real LCSC example part of the same class) | 165 | 1268 | 35.37 | 3.7 % |
-| engineering estimate with stated basis | 58 | 351 | 741.24 | 77.9 % |
+| real price of the part (looked up) | 80 | 553 | 297.08 | 30.4 % |
+| chip-passive class rule (price of a real LCSC example part of the same class) | 165 | 1268 | 35.37 | 3.6 % |
+| engineering estimate with stated basis | 56 | 326 | 643.52 | 65.9 % |
 | no price at all (UNPRICED, not in the total) | 1 | 5 | not known | not in the total |
 
 ### The 5000-unit view
 
 | basis of the 5000-unit price | lines | USD at 5000 units | share of the 5000-unit total |
 |---|---|---|---|
-| REAL: a published price at a break >= 1000 pieces | 236 | 124.08 | 15.6 % |
-| ASSUMED: catalogue price x factor of volume_factors.csv | 65 | 672.04 | 84.4 % |
+| REAL: a published price at a break >= 1000 pieces | 237 | 124.67 | 15.3 % |
+| ASSUMED: catalogue price x factor of volume_factors.csv | 64 | 692.43 | 84.7 % |
 
-The 5000-unit total is 83.6 % of the catalogue total.
+The 5000-unit total is 83.7 % of the catalogue total.
 
 | factor class used | factor | lines | catalogue USD | USD at 5000 units | confidence |
 |---|---|---|---|---|---|
-| asia_part_estimate | 0.85 | 34 | 259.49 | 220.56 | low |
 | protection_estimate | 0.80 | 9 | 217.11 | 173.69 | low |
+| short_table | 0.85 | 5 | 168.37 | 143.11 | medium |
+| asia_part_estimate | 0.85 | 32 | 161.77 | 137.50 | low |
 | custom_magnetic_large | 0.85 | 2 | 143.30 | 121.81 | low |
 | custom_mech | 0.85 | 9 | 79.50 | 67.58 | low |
-| short_table | 0.85 | 4 | 46.67 | 39.67 | medium |
 | single_piece_list | 0.52 | 2 | 36.34 | 18.90 | medium |
 | ceramic_pad | 0.70 | 1 | 24.00 | 16.80 | low |
 | custom_magnetic_small | 0.67 | 2 | 15.34 | 10.28 | low |
@@ -62,18 +62,18 @@ Groups are assigned by rule from the line's description and the board that carri
 
 | group | catalogue USD | % of BOM | USD at 5000 units | lines | of which estimated |
 |---|---|---|---|---|---|
-| protection (fuses, contactors, SPD, TVS) | 257.45 | 27.0 | 208.48 | 22 | 13 |
-| magnetics | 164.62 | 17.3 | 137.16 | 9 | 8 |
-| capacitors | 107.22 | 11.3 | 94.54 | 56 | 56 |
-| power semiconductors | 100.18 | 10.5 | 85.15 | 2 | 2 |
-| thermal | 87.92 | 9.2 | 71.13 | 5 | 3 |
-| gate drive | 80.66 | 8.5 | 60.36 | 31 | 8 |
-| connectors + harness | 45.12 | 4.7 | 38.26 | 11 | 6 |
-| control + communications | 42.42 | 4.5 | 41.58 | 27 | 5 |
-| sensing | 34.46 | 3.6 | 29.29 | 8 | 5 |
-| resistors + other board parts | 17.23 | 1.8 | 16.02 | 119 | 116 |
+| protection (fuses, contactors, SPD, TVS) | 257.40 | 26.4 | 208.43 | 22 | 13 |
+| magnetics | 164.62 | 16.9 | 137.16 | 9 | 8 |
+| power semiconductors | 124.20 | 12.7 | 105.57 | 2 | 1 |
+| capacitors | 107.22 | 11.0 | 94.54 | 56 | 56 |
+| thermal | 87.92 | 9.0 | 71.13 | 5 | 3 |
+| gate drive | 80.79 | 8.3 | 60.97 | 31 | 7 |
+| connectors + harness | 45.12 | 4.6 | 38.26 | 11 | 6 |
+| control + communications | 42.42 | 4.3 | 41.58 | 27 | 5 |
+| sensing | 34.46 | 3.5 | 29.29 | 8 | 5 |
+| resistors + other board parts | 17.22 | 1.8 | 16.01 | 119 | 116 |
 | auxiliary supply | 14.61 | 1.5 | 14.14 | 11 | 1 |
-| **total BOM** | **951.88** | 100 | **796.12** | 301 | |
+| **total BOM** | **975.97** | 100 | **817.10** | 301 | |
 | PCB / mechanics outside the BOM (rough, not in the BOM total) | 366.47 | | 308.97 | | all assumed |
 
 ### Outside the BOM (rough figures, not part of the BOM total)
@@ -85,33 +85,33 @@ Groups are assigned by rule from the line's description and the board that carri
 | board assembly (2131 placements, 2 boards) | 50.62 | 40.50 | 0.020 USD per placement + 4.0 USD per board |
 | enclosure / sheet metal / packaging | 90.00 | 76.50 | see cost_estimates.csv outside:enclosure |
 | final assembly, test and burn-in | 55.00 | 46.75 | see cost_estimates.csv outside:final_assembly_test |
-| **BOM + outside, rough** | **1318.35** (17.6 USD per kW at 75 kW) | **1105.09** (14.7 USD per kW at 75 kW) | |
+| **BOM + outside, rough** | **1342.44** (17.9 USD per kW at 75 kW) | **1126.06** (15.0 USD per kW at 75 kW) | |
 
 ### Top 25 cost lines (catalogue)
 
 | # | BOM item | qty | value / MPN | unit USD | ext USD | % of BOM | unit USD at 5000 | basis at 5000 units | basis (catalogue) | conf |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 1 | 6 | 3 | L_CELL 224uH (CUSTOM) | 40.5 | 121.50 | 12.8 | 34.42 | ASSUMED x0.85 [custom_magnetic_large] | estimate L_CELL 224uH (CUSTOM): ESTIMATE (sim/magnetics.py design_pv_inductor.js | low |
-| 2 | 208 | 2 | HFE82V-300C/1000-24-H-C5-1 | 57.5 | 115.00 | 12.1 | 46 | ASSUMED x0.80 [protection_estimate] | estimate HFE82V-300C/1000-24-H-C5-1: ESTIMATE: no price for the 1000 V / 24 V va | low |
-| 3 | 256 | 24 | SG2M040170HJ | 4.07 | 97.68 | 10.3 | 3.459 | ASSUMED x0.85 [asia_part_estimate] | estimate SG2M040170HJ: ESTIMATE (sim/out/pv_design/cell_spec.json device_primary | low |
-| 4 | 214 | 13 | FCSA3DS456K050H8F9DE3 | 5.4 | 70.20 | 7.4 | 4.59 | ASSUMED x0.85 [asia_part_estimate] | estimate FCSA3DS456K050H8F9DE3: ESTIMATE (architect's list 5.40): Jianghai CBB-t | low |
-| 5 | 202 | 3 | AFB1224SHE-F00 | 12.85 | 38.55 | 4.0 | 10.92 | ASSUMED x0.85 [short_table] | Master Electronics (web-search result; page not read)  @504+ (2026-10-04) | medium |
-| 6 | 209 | 2 | HPE501/000B100-250 | 18 | 36.00 | 3.8 | 14.4 | ASSUMED x0.80 [protection_estimate] | estimate HPE501/000B100-250: ESTIMATE: Hongfa HPE501 size-000 aR 250 A 1000 V DC | low |
-| 7 | 219 | 12 | NSI6651ASC-Q1SWR | 2.978 | 35.73 | 3.8 | 1.548 | ASSUMED x0.52 [single_piece_list] | LCSC C33959952 @1+ (2026-10-04) single-piece price | high |
-| 8 | 11 | 1 | heatsink 24 x TO-247 (CUSTOM) | 24.3 | 24.30 | 2.6 | 20.66 | ASSUMED x0.85 [custom_mech] | estimate heatsink 24 x TO-247 (CUSTOM): ESTIMATE: one Al extrusion of about 3.6  | low |
+| 1 | 256 | 24 | SG2M040170HJ | 5.071 | 121.70 | 12.5 | 4.31 | ASSUMED x0.85 [short_table] | LCSC C42456100 @90+ (2026-10-04) | high |
+| 2 | 6 | 3 | L_CELL 224uH (CUSTOM) | 40.5 | 121.50 | 12.4 | 34.42 | ASSUMED x0.85 [custom_magnetic_large] | estimate L_CELL 224uH (CUSTOM): ESTIMATE (sim/magnetics.py design_pv_inductor.js | low |
+| 3 | 205 | 2 | HFE82V-300C/1000-24-H-C5-1 | 57.5 | 115.00 | 11.8 | 46 | ASSUMED x0.80 [protection_estimate] | estimate HFE82V-300C/1000-24-H-C5-1: ESTIMATE: no price for the 1000 V / 24 V va | low |
+| 4 | 211 | 13 | FCSA3DS456K050H8F9DE3 | 5.4 | 70.20 | 7.2 | 4.59 | ASSUMED x0.85 [asia_part_estimate] | estimate FCSA3DS456K050H8F9DE3: ESTIMATE (architect's list 5.40): Jianghai CBB-t | low |
+| 5 | 199 | 3 | AFB1224SHE-F00 | 12.85 | 38.55 | 3.9 | 10.92 | ASSUMED x0.85 [short_table] | Master Electronics (web-search result; page not read)  @504+ (2026-10-04) | medium |
+| 6 | 206 | 2 | HPE501/000B100-250 | 18 | 36.00 | 3.7 | 14.4 | ASSUMED x0.80 [protection_estimate] | estimate HPE501/000B100-250: ESTIMATE: Hongfa HPE501 size-000 aR 250 A 1000 V DC | low |
+| 7 | 219 | 12 | NSI6651ASC-Q1SWR | 2.978 | 35.73 | 3.7 | 1.548 | ASSUMED x0.52 [single_piece_list] | LCSC C33959952 @1+ (2026-10-04) single-piece price | high |
+| 8 | 11 | 1 | heatsink 24 x TO-247 (CUSTOM) | 24.3 | 24.30 | 2.5 | 20.66 | ASSUMED x0.85 [custom_mech] | estimate heatsink 24 x TO-247 (CUSTOM): ESTIMATE: one Al extrusion of about 3.6  | low |
 | 9 | 8 | 24 | PAD AlN 1 mm (CUSTOM) | 1 | 24.00 | 2.5 | 0.7 | ASSUMED x0.70 [ceramic_pad] | estimate PAD AlN 1 mm (CUSTOM): ESTIMATE: AlN ceramic insulator 15.9 x 20.9 mm + | low |
-| 10 | 205 | 4 | 002637115 | 6 | 24.00 | 2.5 | 4.8 | ASSUMED x0.80 [protection_estimate] | estimate 002637115: ESTIMATE: ETI CH14x51 gPV 36 A 1000 V d.c. fuse link (varist | low |
-| 11 | 249 | 2 | N-C-644025 | 10.9 | 21.80 | 2.3 | 9.265 | ASSUMED x0.85 [custom_magnetic_large] | estimate N-C-644025: ESTIMATE (sim/magnetics.py design_port_cm_choke.json rev M2 | low |
-| 12 | 245 | 72 | PMEG4010CEJ | 0.3026 | 21.79 | 2.3 | 0.3026 | REAL: LCSC C50704 @1000+ break (annual qty 360000) | LCSC C50704 @1000+ (2026-10-04) | high |
-| 13 | 9 | 4 | busbar (CUSTOM) | 5 | 20.00 | 2.1 | 4.25 | ASSUMED x0.85 [custom_mech] | estimate busbar (CUSTOM): ESTIMATE: copper busbar terminal-to-board for 135 A, 1 | low |
-| 14 | 303 | 18 | 7461057 | 1.1 | 19.80 | 2.1 | 0.935 | ASSUMED x0.85 [asia_part_estimate] | estimate 7461057: ESTIMATE: Wurth REDCUBE press-fit M3 terminal 100 A, no readab | low |
-| 15 | 257 | 3 | STK-HO/A 75 | 5 | 15.00 | 1.6 | 4.25 | ASSUMED x0.85 [asia_part_estimate] | estimate STK-HO/A 75: ESTIMATE (architect's list, STK-HO/A 130 RFQ estimate 5.00 | low |
+| 10 | 202 | 4 | 002637115 | 6 | 24.00 | 2.5 | 4.8 | ASSUMED x0.80 [protection_estimate] | estimate 002637115: ESTIMATE: ETI CH14x51 gPV 36 A 1000 V d.c. fuse link (varist | low |
+| 11 | 249 | 2 | N-C-644025 | 10.9 | 21.80 | 2.2 | 9.265 | ASSUMED x0.85 [custom_magnetic_large] | estimate N-C-644025: ESTIMATE (sim/magnetics.py design_port_cm_choke.json rev M2 | low |
+| 12 | 245 | 72 | PMEG4010CEJ | 0.3026 | 21.79 | 2.2 | 0.3026 | REAL: LCSC C50704 @1000+ break (annual qty 360000) | LCSC C50704 @1000+ (2026-10-04) | high |
+| 13 | 9 | 4 | busbar (CUSTOM) | 5 | 20.00 | 2.0 | 4.25 | ASSUMED x0.85 [custom_mech] | estimate busbar (CUSTOM): ESTIMATE: copper busbar terminal-to-board for 135 A, 1 | low |
+| 14 | 303 | 18 | 7461057 | 1.1 | 19.80 | 2.0 | 0.935 | ASSUMED x0.85 [asia_part_estimate] | estimate 7461057: ESTIMATE: Wurth REDCUBE press-fit M3 terminal 100 A, no readab | low |
+| 15 | 257 | 3 | STK-HO/A 75 | 5 | 15.00 | 1.5 | 4.25 | ASSUMED x0.85 [asia_part_estimate] | estimate STK-HO/A 75: ESTIMATE (architect's list, STK-HO/A 130 RFQ estimate 5.00 | low |
 | 16 | 248 | 1 | G7L-2A-X DC24 | 12.71 | 12.71 | 1.3 | 10.17 | ASSUMED x0.80 [protection_estimate] | estimate G7L-2A-X DC24: ESTIMATE: no price for the -X variant; DigiKey G7L-2A-BU | low |
 | 17 | 264 | 7 | OPA2388IDR | 1.475 | 10.32 | 1.1 | 1.475 | REAL: TI.com OPA2388IDR @1000+ break (annual qty 35000) | TI.com OPA2388IDR @1000+ (2026-10-04) | high |
-| 18 | 276 | 7 | TLV3502AIDCNR | 1.448 | 10.14 | 1.1 | 1.448 | REAL: LCSC C48618 @1000+ break (annual qty 35000) | LCSC C48618 @1000+ (2026-10-04) | high |
+| 18 | 276 | 7 | TLV3502AIDCNR | 1.448 | 10.14 | 1.0 | 1.448 | REAL: LCSC C48618 @1000+ break (annual qty 35000) | LCSC C48618 @1000+ (2026-10-04) | high |
 | 19 | 309 | 2 | X 2.2u 1300V RFQ | 4.5 | 9.00 | 0.9 | 3.6 | ASSUMED x0.80 [protection_estimate] | estimate X 2.2u 1300V RFQ: ESTIMATE: same value, voltage and pitch as KEMET C4AQ | low |
 | 20 | 12 | 1 | AUX-T1 75 W (CUSTOM) | 8.8 | 8.80 | 0.9 | 5.896 | ASSUMED x0.67 [custom_magnetic_small] | estimate AUX-T1 75 W (CUSTOM): ESTIMATE (sim/magnetics.py design_aux75_transform | low |
-| 21 | 212 | 18 | FCSA3DS225K050IC90BE3 | 0.45 | 8.10 | 0.9 | 0.3825 | ASSUMED x0.85 [asia_part_estimate] | estimate FCSA3DS225K050IC90BE3: ESTIMATE (architect's list 0.45): Jianghai 2.2 u | low |
+| 21 | 209 | 18 | FCSA3DS225K050IC90BE3 | 0.45 | 8.10 | 0.8 | 0.3825 | ASSUMED x0.85 [asia_part_estimate] | estimate FCSA3DS225K050IC90BE3: ESTIMATE (architect's list 0.45): Jianghai 2.2 u | low |
 | 22 | 1 | 1 | DC terminal A+ 135 A (CUSTOM) | 8 | 8.00 | 0.8 | 6.8 | ASSUMED x0.85 [custom_mech] | estimate DC terminal * 135 A (CUSTOM): ESTIMATE: M8 copper stud feed-through 200 | low |
 | 23 | 2 | 1 | DC terminal A- 135 A (CUSTOM) | 8 | 8.00 | 0.8 | 6.8 | ASSUMED x0.85 [custom_mech] | estimate DC terminal * 135 A (CUSTOM): ESTIMATE: M8 copper stud feed-through 200 | low |
 | 24 | 3 | 1 | DC terminal B+ 135 A (CUSTOM) | 8 | 8.00 | 0.8 | 6.8 | ASSUMED x0.85 [custom_mech] | estimate DC terminal * 135 A (CUSTOM): ESTIMATE: M8 copper stud feed-through 200 | low |
@@ -121,14 +121,14 @@ Groups are assigned by rule from the line's description and the board that carri
 
 | BOM item | qty | value / MPN | ext USD | % of BOM | conf | basis |
 |---|---|---|---|---|---|---|
-| 6 | 3 | L_CELL 224uH (CUSTOM) | 121.50 | 12.8 | low | L_CELL 224uH (CUSTOM): ESTIMATE (sim/magnetics.py design_pv_inductor.json rev M2, design to cost D-044 / D-048): 2 x POCO NPC290026 16 + 0.54 kg solid |
-| 208 | 2 | HFE82V-300C/1000-24-H-C5-1 | 115.00 | 12.1 | low | HFE82V-300C/1000-24-H-C5-1: ESTIMATE: no price for the 1000 V / 24 V variant; the same HFE82V-300C is 57.50 USD at 10 in a made-in-china.com listing ( |
-| 256 | 24 | SG2M040170HJ | 97.68 | 10.3 | low | SG2M040170HJ: ESTIMATE (sim/out/pv_design/cell_spec.json device_primary.price_source; architect's list 4.07): Sichain RFQ pending, not on LCSC; scaled |
-| 214 | 13 | FCSA3DS456K050H8F9DE3 | 70.20 | 7.4 | low | FCSA3DS456K050H8F9DE3: ESTIMATE (architect's list 5.40): Jianghai CBB-type 45 uF 1300 VDC, no Chinese price found; Faratronic C3D1X505KB00C00 0.557 US |
-| 209 | 2 | HPE501/000B100-250 | 36.00 | 3.8 | low | HPE501/000B100-250: ESTIMATE: Hongfa HPE501 size-000 aR 250 A 1000 V DC square-body fuse, no public price; taken as the cost-first BOM estimate (gen/d |
-| 11 | 1 | heatsink 24 x TO-247 (CUSTOM) | 24.30 | 2.6 | low | heatsink 24 x TO-247 (CUSTOM): ESTIMATE: one Al extrusion of about 3.6 kg for 24 devices (R_sa <= 0.06 K/W at 400 m3/h, ARCHITECTURE-COSTFIRST section |
+| 6 | 3 | L_CELL 224uH (CUSTOM) | 121.50 | 12.4 | low | L_CELL 224uH (CUSTOM): ESTIMATE (sim/magnetics.py design_pv_inductor.json rev M2, design to cost D-044 / D-048): 2 x POCO NPC290026 16 + 0.54 kg solid |
+| 205 | 2 | HFE82V-300C/1000-24-H-C5-1 | 115.00 | 11.8 | low | HFE82V-300C/1000-24-H-C5-1: ESTIMATE: no price for the 1000 V / 24 V variant; the same HFE82V-300C is 57.50 USD at 10 in a made-in-china.com listing ( |
+| 211 | 13 | FCSA3DS456K050H8F9DE3 | 70.20 | 7.2 | low | FCSA3DS456K050H8F9DE3: ESTIMATE (architect's list 5.40): Jianghai CBB-type 45 uF 1300 VDC, no Chinese price found; Faratronic C3D1X505KB00C00 0.557 US |
+| 206 | 2 | HPE501/000B100-250 | 36.00 | 3.7 | low | HPE501/000B100-250: ESTIMATE: Hongfa HPE501 size-000 aR 250 A 1000 V DC square-body fuse, no public price; taken as the cost-first BOM estimate (gen/d |
+| 11 | 1 | heatsink 24 x TO-247 (CUSTOM) | 24.30 | 2.5 | low | heatsink 24 x TO-247 (CUSTOM): ESTIMATE: one Al extrusion of about 3.6 kg for 24 devices (R_sa <= 0.06 K/W at 400 m3/h, ARCHITECTURE-COSTFIRST section |
 | 8 | 24 | PAD AlN 1 mm (CUSTOM) | 24.00 | 2.5 | low | PAD AlN 1 mm (CUSTOM): ESTIMATE: AlN ceramic insulator 15.9 x 20.9 mm + overhang, 1.0 mm: sim/out/pv_design/cell_spec.json cost_usd insulators 8.0 USD |
-| 205 | 4 | 002637115 | 24.00 | 2.5 | low | 002637115: ESTIMATE: ETI CH14x51 gPV 36 A 1000 V d.c. fuse link (varistor branch fuse); ETI publishes no prices; engineering estimate for a 14x51 PV.. |
+| 202 | 4 | 002637115 | 24.00 | 2.5 | low | 002637115: ESTIMATE: ETI CH14x51 gPV 36 A 1000 V d.c. fuse link (varistor branch fuse); ETI publishes no prices; engineering estimate for a 14x51 PV.. |
+| 249 | 2 | N-C-644025 | 21.80 | 2.2 | low | N-C-644025: ESTIMATE (sim/magnetics.py design_port_cm_choke.json rev M2, D-048): cased flat-mu nanocrystalline ring, 0.27 kg at 20 USD/kg 6.93 + case. |
 
 ### Lines with no price
 
@@ -138,33 +138,33 @@ Groups are assigned by rule from the line's description and the board that carri
 
 ## PV-P100-110
 
-Total BOM cost **1135.02 USD at catalogue prices = 11.4 USD per kW at 100 kW / 10.3 USD per kW at 110 kW**; **949.00 USD at a 5000-unit build = 9.5 USD per kW at 100 kW / 8.6 USD per kW at 110 kW**. Lines: 308 (301 purchased-part lines; 7 NOPART lines such as test points and net ties are not costed).
+Total BOM cost **1167.09 USD at catalogue prices = 11.7 USD per kW at 100 kW / 10.6 USD per kW at 110 kW**; **976.90 USD at a 5000-unit build = 9.8 USD per kW at 100 kW / 8.9 USD per kW at 110 kW**. Lines: 308 (301 purchased-part lines; 7 NOPART lines such as test points and net ties are not costed).
 
 ### Evidence behind the catalogue total
 
 | basis | lines | parts | USD | share of the costed total |
 |---|---|---|---|---|
-| real price of the part (looked up) | 78 | 656 | 214.47 | 18.9 % |
-| chip-passive class rule (price of a real LCSC example part of the same class) | 163 | 1522 | 43.68 | 3.8 % |
-| engineering estimate with stated basis | 58 | 417 | 876.86 | 77.3 % |
+| real price of the part (looked up) | 80 | 689 | 376.82 | 32.3 % |
+| chip-passive class rule (price of a real LCSC example part of the same class) | 163 | 1522 | 43.68 | 3.7 % |
+| engineering estimate with stated basis | 56 | 384 | 746.59 | 64.0 % |
 | no price at all (UNPRICED, not in the total) | 2 | 7 | not known | not in the total |
 
 ### The 5000-unit view
 
 | basis of the 5000-unit price | lines | USD at 5000 units | share of the 5000-unit total |
 |---|---|---|---|
-| REAL: a published price at a break >= 1000 pieces | 234 | 146.17 | 15.4 % |
-| ASSUMED: catalogue price x factor of volume_factors.csv | 65 | 802.83 | 84.6 % |
+| REAL: a published price at a break >= 1000 pieces | 235 | 146.87 | 15.0 % |
+| ASSUMED: catalogue price x factor of volume_factors.csv | 64 | 830.02 | 85.0 % |
 
-The 5000-unit total is 83.6 % of the catalogue total.
+The 5000-unit total is 83.7 % of the catalogue total.
 
 | factor class used | factor | lines | catalogue USD | USD at 5000 units | confidence |
 |---|---|---|---|---|---|
-| asia_part_estimate | 0.85 | 34 | 320.37 | 272.32 | low |
+| short_table | 0.85 | 5 | 221.78 | 188.52 | medium |
 | protection_estimate | 0.80 | 9 | 217.11 | 173.69 | low |
+| asia_part_estimate | 0.85 | 32 | 190.10 | 161.58 | low |
 | custom_magnetic_large | 0.85 | 2 | 183.80 | 156.23 | low |
 | custom_mech | 0.85 | 9 | 103.26 | 87.77 | low |
-| short_table | 0.85 | 4 | 59.52 | 50.59 | medium |
 | single_piece_list | 0.52 | 2 | 48.25 | 25.09 | medium |
 | ceramic_pad | 0.70 | 1 | 32.00 | 22.40 | low |
 | custom_magnetic_small | 0.67 | 2 | 17.52 | 11.74 | low |
@@ -177,18 +177,18 @@ Groups are assigned by rule from the line's description and the board that carri
 
 | group | catalogue USD | % of BOM | USD at 5000 units | lines | of which estimated |
 |---|---|---|---|---|---|
-| protection (fuses, contactors, SPD, TVS) | 269.45 | 23.7 | 218.68 | 22 | 13 |
-| magnetics | 207.30 | 18.3 | 173.05 | 9 | 8 |
-| power semiconductors | 132.74 | 11.7 | 112.83 | 2 | 2 |
-| capacitors | 131.56 | 11.6 | 116.01 | 56 | 56 |
-| thermal | 115.87 | 10.2 | 93.69 | 5 | 3 |
-| gate drive | 106.37 | 9.4 | 79.48 | 31 | 8 |
-| connectors + harness | 51.78 | 4.6 | 43.91 | 11 | 6 |
-| control + communications | 44.37 | 3.9 | 43.50 | 29 | 5 |
-| sensing | 40.02 | 3.5 | 34.02 | 8 | 5 |
-| resistors + other board parts | 20.02 | 1.8 | 18.78 | 115 | 114 |
-| auxiliary supply | 15.53 | 1.4 | 15.06 | 11 | 1 |
-| **total BOM** | **1135.02** | 100 | **949.00** | 299 | |
+| protection (fuses, contactors, SPD, TVS) | 269.40 | 23.1 | 218.63 | 22 | 13 |
+| magnetics | 207.30 | 17.8 | 173.05 | 9 | 8 |
+| power semiconductors | 164.77 | 14.1 | 140.05 | 2 | 1 |
+| capacitors | 131.56 | 11.3 | 116.01 | 56 | 56 |
+| thermal | 115.87 | 9.9 | 93.69 | 5 | 3 |
+| gate drive | 106.47 | 9.1 | 80.20 | 31 | 7 |
+| connectors + harness | 51.78 | 4.4 | 43.91 | 11 | 6 |
+| control + communications | 44.36 | 3.8 | 43.50 | 29 | 5 |
+| sensing | 40.02 | 3.4 | 34.02 | 8 | 5 |
+| resistors + other board parts | 20.02 | 1.7 | 18.78 | 115 | 114 |
+| auxiliary supply | 15.53 | 1.3 | 15.06 | 11 | 1 |
+| **total BOM** | **1167.09** | 100 | **976.90** | 299 | |
 | PCB / mechanics outside the BOM (rough, not in the BOM total) | 429.41 | | 362.02 | | all assumed |
 
 ### Outside the BOM (rough figures, not part of the BOM total)
@@ -200,33 +200,33 @@ Groups are assigned by rule from the line's description and the board that carri
 | board assembly (2577 placements, 2 boards) | 59.54 | 47.63 | 0.020 USD per placement + 4.0 USD per board |
 | enclosure / sheet metal / packaging | 100.00 | 85.00 | see cost_estimates.csv outside:enclosure |
 | final assembly, test and burn-in | 60.00 | 51.00 | see cost_estimates.csv outside:final_assembly_test |
-| **BOM + outside, rough** | **1564.42** (15.6 USD per kW at 100 kW / 14.2 USD per kW at 110 kW) | **1311.02** (13.1 USD per kW at 100 kW / 11.9 USD per kW at 110 kW) | |
+| **BOM + outside, rough** | **1596.50** (16.0 USD per kW at 100 kW / 14.5 USD per kW at 110 kW) | **1338.92** (13.4 USD per kW at 100 kW / 12.2 USD per kW at 110 kW) | |
 
 ### Top 25 cost lines (catalogue)
 
 | # | BOM item | qty | value / MPN | unit USD | ext USD | % of BOM | unit USD at 5000 | basis at 5000 units | basis (catalogue) | conf |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 1 | 6 | 4 | L_CELL 224uH (CUSTOM) | 40.5 | 162.00 | 14.3 | 34.42 | ASSUMED x0.85 [custom_magnetic_large] | estimate L_CELL 224uH (CUSTOM): ESTIMATE (sim/magnetics.py design_pv_inductor.js | low |
-| 2 | 254 | 32 | SG2M040170HJ | 4.07 | 130.24 | 11.5 | 3.459 | ASSUMED x0.85 [asia_part_estimate] | estimate SG2M040170HJ: ESTIMATE (sim/out/pv_design/cell_spec.json device_primary | low |
-| 3 | 206 | 2 | HFE82V-300C/1000-24-H-C5-1 | 57.5 | 115.00 | 10.1 | 46 | ASSUMED x0.80 [protection_estimate] | estimate HFE82V-300C/1000-24-H-C5-1: ESTIMATE: no price for the 1000 V / 24 V va | low |
-| 4 | 212 | 16 | FCSA3DS456K050H8F9DE3 | 5.4 | 86.40 | 7.6 | 4.59 | ASSUMED x0.85 [asia_part_estimate] | estimate FCSA3DS456K050H8F9DE3: ESTIMATE (architect's list 5.40): Jianghai CBB-t | low |
-| 5 | 200 | 4 | AFB1224SHE-F00 | 12.85 | 51.40 | 4.5 | 10.92 | ASSUMED x0.85 [short_table] | Master Electronics (web-search result; page not read)  @504+ (2026-10-04) | medium |
-| 6 | 217 | 16 | NSI6651ASC-Q1SWR | 2.978 | 47.64 | 4.2 | 1.548 | ASSUMED x0.52 [single_piece_list] | LCSC C33959952 @1+ (2026-10-04) single-piece price | high |
-| 7 | 207 | 2 | HPE501/000B100-250 | 18 | 36.00 | 3.2 | 14.4 | ASSUMED x0.80 [protection_estimate] | estimate HPE501/000B100-250: ESTIMATE: Hongfa HPE501 size-000 aR 250 A 1000 V DC | low |
-| 8 | 8 | 32 | PAD AlN 1 mm (CUSTOM) | 1 | 32.00 | 2.8 | 0.7 | ASSUMED x0.70 [ceramic_pad] | estimate PAD AlN 1 mm (CUSTOM): ESTIMATE: AlN ceramic insulator 15.9 x 20.9 mm + | low |
+| 1 | 254 | 32 | SG2M040170HJ | 5.071 | 162.27 | 13.9 | 4.31 | ASSUMED x0.85 [short_table] | LCSC C42456100 @90+ (2026-10-04) | high |
+| 2 | 6 | 4 | L_CELL 224uH (CUSTOM) | 40.5 | 162.00 | 13.9 | 34.42 | ASSUMED x0.85 [custom_magnetic_large] | estimate L_CELL 224uH (CUSTOM): ESTIMATE (sim/magnetics.py design_pv_inductor.js | low |
+| 3 | 203 | 2 | HFE82V-300C/1000-24-H-C5-1 | 57.5 | 115.00 | 9.9 | 46 | ASSUMED x0.80 [protection_estimate] | estimate HFE82V-300C/1000-24-H-C5-1: ESTIMATE: no price for the 1000 V / 24 V va | low |
+| 4 | 209 | 16 | FCSA3DS456K050H8F9DE3 | 5.4 | 86.40 | 7.4 | 4.59 | ASSUMED x0.85 [asia_part_estimate] | estimate FCSA3DS456K050H8F9DE3: ESTIMATE (architect's list 5.40): Jianghai CBB-t | low |
+| 5 | 197 | 4 | AFB1224SHE-F00 | 12.85 | 51.40 | 4.4 | 10.92 | ASSUMED x0.85 [short_table] | Master Electronics (web-search result; page not read)  @504+ (2026-10-04) | medium |
+| 6 | 217 | 16 | NSI6651ASC-Q1SWR | 2.978 | 47.64 | 4.1 | 1.548 | ASSUMED x0.52 [single_piece_list] | LCSC C33959952 @1+ (2026-10-04) single-piece price | high |
+| 7 | 204 | 2 | HPE501/000B100-250 | 18 | 36.00 | 3.1 | 14.4 | ASSUMED x0.80 [protection_estimate] | estimate HPE501/000B100-250: ESTIMATE: Hongfa HPE501 size-000 aR 250 A 1000 V DC | low |
+| 8 | 8 | 32 | PAD AlN 1 mm (CUSTOM) | 1 | 32.00 | 2.7 | 0.7 | ASSUMED x0.70 [ceramic_pad] | estimate PAD AlN 1 mm (CUSTOM): ESTIMATE: AlN ceramic insulator 15.9 x 20.9 mm + | low |
 | 9 | 11 | 1 | heatsink 32 x TO-247 (CUSTOM) | 31.1 | 31.10 | 2.7 | 26.43 | ASSUMED x0.85 [custom_mech] | estimate heatsink 32 x TO-247 (CUSTOM): ESTIMATE: one Al extrusion of about 4.8  | low |
-| 10 | 243 | 96 | PMEG4010CEJ | 0.3026 | 29.05 | 2.6 | 0.3026 | REAL: LCSC C50704 @1000+ break (annual qty 480000) | LCSC C50704 @1000+ (2026-10-04) | high |
+| 10 | 243 | 96 | PMEG4010CEJ | 0.3026 | 29.05 | 2.5 | 0.3026 | REAL: LCSC C50704 @1000+ break (annual qty 480000) | LCSC C50704 @1000+ (2026-10-04) | high |
 | 11 | 9 | 4 | busbar (CUSTOM) | 6 | 24.00 | 2.1 | 5.1 | ASSUMED x0.85 [custom_mech] | estimate busbar (CUSTOM)@PV-P100-110: ESTIMATE: as the 135 A busbar with 60 mm2  | low |
-| 12 | 203 | 4 | 002637115 | 6 | 24.00 | 2.1 | 4.8 | ASSUMED x0.80 [protection_estimate] | estimate 002637115: ESTIMATE: ETI CH14x51 gPV 36 A 1000 V d.c. fuse link (varist | low |
+| 12 | 200 | 4 | 002637115 | 6 | 24.00 | 2.1 | 4.8 | ASSUMED x0.80 [protection_estimate] | estimate 002637115: ESTIMATE: ETI CH14x51 gPV 36 A 1000 V d.c. fuse link (varist | low |
 | 13 | 302 | 20 | 7461057 | 1.1 | 22.00 | 1.9 | 0.935 | ASSUMED x0.85 [asia_part_estimate] | estimate 7461057: ESTIMATE: Wurth REDCUBE press-fit M3 terminal 100 A, no readab | low |
 | 14 | 247 | 2 | N-C-644025 | 10.9 | 21.80 | 1.9 | 9.265 | ASSUMED x0.85 [custom_magnetic_large] | estimate N-C-644025: ESTIMATE (sim/magnetics.py design_port_cm_choke.json rev M2 | low |
-| 15 | 255 | 4 | STK-HO/A 75 | 5 | 20.00 | 1.8 | 4.25 | ASSUMED x0.85 [asia_part_estimate] | estimate STK-HO/A 75: ESTIMATE (architect's list, STK-HO/A 130 RFQ estimate 5.00 | low |
+| 15 | 255 | 4 | STK-HO/A 75 | 5 | 20.00 | 1.7 | 4.25 | ASSUMED x0.85 [asia_part_estimate] | estimate STK-HO/A 75: ESTIMATE (architect's list, STK-HO/A 130 RFQ estimate 5.00 | low |
 | 16 | 246 | 1 | G7L-2A-X DC24 | 12.71 | 12.71 | 1.1 | 10.17 | ASSUMED x0.80 [protection_estimate] | estimate G7L-2A-X DC24: ESTIMATE: no price for the -X variant; DigiKey G7L-2A-BU | low |
-| 17 | 1 | 1 | DC terminal A+ 180 A (CUSTOM) | 11 | 11.00 | 1.0 | 9.35 | ASSUMED x0.85 [custom_mech] | estimate DC terminal * 180 A (CUSTOM): ESTIMATE: M10 stud feed-through 250 A wit | low |
-| 18 | 2 | 1 | DC terminal A- 180 A (CUSTOM) | 11 | 11.00 | 1.0 | 9.35 | ASSUMED x0.85 [custom_mech] | estimate DC terminal * 180 A (CUSTOM): ESTIMATE: M10 stud feed-through 250 A wit | low |
-| 19 | 3 | 1 | DC terminal B+ 180 A (CUSTOM) | 11 | 11.00 | 1.0 | 9.35 | ASSUMED x0.85 [custom_mech] | estimate DC terminal * 180 A (CUSTOM): ESTIMATE: M10 stud feed-through 250 A wit | low |
-| 20 | 4 | 1 | DC terminal B- 180 A (CUSTOM) | 11 | 11.00 | 1.0 | 9.35 | ASSUMED x0.85 [custom_mech] | estimate DC terminal * 180 A (CUSTOM): ESTIMATE: M10 stud feed-through 250 A wit | low |
-| 21 | 210 | 24 | FCSA3DS225K050IC90BE3 | 0.45 | 10.80 | 1.0 | 0.3825 | ASSUMED x0.85 [asia_part_estimate] | estimate FCSA3DS225K050IC90BE3: ESTIMATE (architect's list 0.45): Jianghai 2.2 u | low |
+| 17 | 1 | 1 | DC terminal A+ 180 A (CUSTOM) | 11 | 11.00 | 0.9 | 9.35 | ASSUMED x0.85 [custom_mech] | estimate DC terminal * 180 A (CUSTOM): ESTIMATE: M10 stud feed-through 250 A wit | low |
+| 18 | 2 | 1 | DC terminal A- 180 A (CUSTOM) | 11 | 11.00 | 0.9 | 9.35 | ASSUMED x0.85 [custom_mech] | estimate DC terminal * 180 A (CUSTOM): ESTIMATE: M10 stud feed-through 250 A wit | low |
+| 19 | 3 | 1 | DC terminal B+ 180 A (CUSTOM) | 11 | 11.00 | 0.9 | 9.35 | ASSUMED x0.85 [custom_mech] | estimate DC terminal * 180 A (CUSTOM): ESTIMATE: M10 stud feed-through 250 A wit | low |
+| 20 | 4 | 1 | DC terminal B- 180 A (CUSTOM) | 11 | 11.00 | 0.9 | 9.35 | ASSUMED x0.85 [custom_mech] | estimate DC terminal * 180 A (CUSTOM): ESTIMATE: M10 stud feed-through 250 A wit | low |
+| 21 | 207 | 24 | FCSA3DS225K050IC90BE3 | 0.45 | 10.80 | 0.9 | 0.3825 | ASSUMED x0.85 [asia_part_estimate] | estimate FCSA3DS225K050IC90BE3: ESTIMATE (architect's list 0.45): Jianghai 2.2 u | low |
 | 22 | 262 | 7 | OPA2388IDR | 1.475 | 10.32 | 0.9 | 1.475 | REAL: TI.com OPA2388IDR @1000+ break (annual qty 35000) | TI.com OPA2388IDR @1000+ (2026-10-04) | high |
 | 23 | 274 | 7 | TLV3502AIDCNR | 1.448 | 10.14 | 0.9 | 1.448 | REAL: LCSC C48618 @1000+ break (annual qty 35000) | LCSC C48618 @1000+ (2026-10-04) | high |
 | 24 | 143 | 16 | 4.7n 2000V | 0.6248 | 10.00 | 0.9 | 0.6248 | REAL: class example LCSC C1021538 @1000+ break (annual qty 80000) | estimate class:mlcc_2220_c0g_2kv_le100n: GENERIC class rule, reel price of a typ | high |
@@ -236,14 +236,14 @@ Groups are assigned by rule from the line's description and the board that carri
 
 | BOM item | qty | value / MPN | ext USD | % of BOM | conf | basis |
 |---|---|---|---|---|---|---|
-| 6 | 4 | L_CELL 224uH (CUSTOM) | 162.00 | 14.3 | low | L_CELL 224uH (CUSTOM): ESTIMATE (sim/magnetics.py design_pv_inductor.json rev M2, design to cost D-044 / D-048): 2 x POCO NPC290026 16 + 0.54 kg solid |
-| 254 | 32 | SG2M040170HJ | 130.24 | 11.5 | low | SG2M040170HJ: ESTIMATE (sim/out/pv_design/cell_spec.json device_primary.price_source; architect's list 4.07): Sichain RFQ pending, not on LCSC; scaled |
-| 206 | 2 | HFE82V-300C/1000-24-H-C5-1 | 115.00 | 10.1 | low | HFE82V-300C/1000-24-H-C5-1: ESTIMATE: no price for the 1000 V / 24 V variant; the same HFE82V-300C is 57.50 USD at 10 in a made-in-china.com listing ( |
-| 212 | 16 | FCSA3DS456K050H8F9DE3 | 86.40 | 7.6 | low | FCSA3DS456K050H8F9DE3: ESTIMATE (architect's list 5.40): Jianghai CBB-type 45 uF 1300 VDC, no Chinese price found; Faratronic C3D1X505KB00C00 0.557 US |
-| 207 | 2 | HPE501/000B100-250 | 36.00 | 3.2 | low | HPE501/000B100-250: ESTIMATE: Hongfa HPE501 size-000 aR 250 A 1000 V DC square-body fuse, no public price; taken as the cost-first BOM estimate (gen/d |
-| 8 | 32 | PAD AlN 1 mm (CUSTOM) | 32.00 | 2.8 | low | PAD AlN 1 mm (CUSTOM): ESTIMATE: AlN ceramic insulator 15.9 x 20.9 mm + overhang, 1.0 mm: sim/out/pv_design/cell_spec.json cost_usd insulators 8.0 USD |
+| 6 | 4 | L_CELL 224uH (CUSTOM) | 162.00 | 13.9 | low | L_CELL 224uH (CUSTOM): ESTIMATE (sim/magnetics.py design_pv_inductor.json rev M2, design to cost D-044 / D-048): 2 x POCO NPC290026 16 + 0.54 kg solid |
+| 203 | 2 | HFE82V-300C/1000-24-H-C5-1 | 115.00 | 9.9 | low | HFE82V-300C/1000-24-H-C5-1: ESTIMATE: no price for the 1000 V / 24 V variant; the same HFE82V-300C is 57.50 USD at 10 in a made-in-china.com listing ( |
+| 209 | 16 | FCSA3DS456K050H8F9DE3 | 86.40 | 7.4 | low | FCSA3DS456K050H8F9DE3: ESTIMATE (architect's list 5.40): Jianghai CBB-type 45 uF 1300 VDC, no Chinese price found; Faratronic C3D1X505KB00C00 0.557 US |
+| 204 | 2 | HPE501/000B100-250 | 36.00 | 3.1 | low | HPE501/000B100-250: ESTIMATE: Hongfa HPE501 size-000 aR 250 A 1000 V DC square-body fuse, no public price; taken as the cost-first BOM estimate (gen/d |
+| 8 | 32 | PAD AlN 1 mm (CUSTOM) | 32.00 | 2.7 | low | PAD AlN 1 mm (CUSTOM): ESTIMATE: AlN ceramic insulator 15.9 x 20.9 mm + overhang, 1.0 mm: sim/out/pv_design/cell_spec.json cost_usd insulators 8.0 USD |
 | 11 | 1 | heatsink 32 x TO-247 (CUSTOM) | 31.10 | 2.7 | low | heatsink 32 x TO-247 (CUSTOM): ESTIMATE: one Al extrusion of about 4.8 kg for 32 devices (R_sa <= 0.049 K/W): 4.8 kg x 4.7 USD/kg = 22.6 + machining 4 |
 | 9 | 4 | busbar (CUSTOM) | 24.00 | 2.1 | low | busbar (CUSTOM)@PV-P100-110: ESTIMATE: as the 135 A busbar with 60 mm2 for 180 A (architect's list: qty 4 at 6.00 USD) |
+| 200 | 4 | 002637115 | 24.00 | 2.1 | low | 002637115: ESTIMATE: ETI CH14x51 gPV 36 A 1000 V d.c. fuse link (varistor branch fuse); ETI publishes no prices; engineering estimate for a 14x51 PV.. |
 
 ### Lines with no price
 
@@ -254,32 +254,32 @@ Groups are assigned by rule from the line's description and the board that carri
 
 ## PCS-P125
 
-Total BOM cost **1521.10 USD at catalogue prices = 12.2 USD per kW at 125 kW**; **1291.55 USD at a 5000-unit build = 10.3 USD per kW at 125 kW**. Lines: 330 (323 purchased-part lines; 7 NOPART lines such as test points and net ties are not costed).
+Total BOM cost **1557.01 USD at catalogue prices = 12.5 USD per kW at 125 kW**; **1322.37 USD at a 5000-unit build = 10.6 USD per kW at 125 kW**. Lines: 329 (322 purchased-part lines; 7 NOPART lines such as test points and net ties are not costed).
 
 ### Evidence behind the catalogue total
 
 | basis | lines | parts | USD | share of the costed total |
 |---|---|---|---|---|
-| real price of the part (looked up) | 80 | 391 | 141.12 | 9.3 % |
-| chip-passive class rule (price of a real LCSC example part of the same class) | 170 | 1100 | 38.44 | 2.5 % |
-| engineering estimate with stated basis | 72 | 495 | 1341.55 | 88.2 % |
+| real price of the part (looked up) | 82 | 428 | 323.78 | 20.8 % |
+| chip-passive class rule (price of a real LCSC example part of the same class) | 169 | 1100 | 38.44 | 2.5 % |
+| engineering estimate with stated basis | 70 | 452 | 1194.79 | 76.7 % |
 | no price at all (UNPRICED, not in the total) | 1 | 5 | not known | not in the total |
 
 ### The 5000-unit view
 
 | basis of the 5000-unit price | lines | USD at 5000 units | share of the 5000-unit total |
 |---|---|---|---|
-| REAL: a published price at a break >= 1000 pieces | 243 | 114.82 | 8.9 % |
-| ASSUMED: catalogue price x factor of volume_factors.csv | 79 | 1176.73 | 91.1 % |
+| REAL: a published price at a break >= 1000 pieces | 243 | 115.21 | 8.7 % |
+| ASSUMED: catalogue price x factor of volume_factors.csv | 78 | 1207.16 | 91.3 % |
 
 The 5000-unit total is 84.9 % of the catalogue total.
 
 | factor class used | factor | lines | catalogue USD | USD at 5000 units | confidence |
 |---|---|---|---|---|---|
 | custom_mech | 0.85 | 15 | 679.56 | 577.63 | low |
-| asia_part_estimate | 0.85 | 44 | 477.74 | 406.08 | low |
+| asia_part_estimate | 0.85 | 42 | 330.98 | 281.34 | low |
+| short_table | 0.85 | 5 | 226.19 | 192.26 | medium |
 | protection_estimate | 0.80 | 9 | 155.51 | 124.41 | low |
-| short_table | 0.85 | 4 | 43.64 | 37.09 | medium |
 | single_piece_list | 0.52 | 2 | 18.47 | 9.61 | medium |
 | custom_magnetic_small | 0.67 | 2 | 15.34 | 10.28 | low |
 | custom_magnetic_large | 0.85 | 1 | 10.90 | 9.27 | low |
@@ -292,73 +292,73 @@ Groups are assigned by rule from the line's description and the board that carri
 
 | group | catalogue USD | % of BOM | USD at 5000 units | lines | of which estimated |
 |---|---|---|---|---|---|
-| resistors + other board parts | 624.09 | 41.0 | 535.00 | 148 | 133 |
-| protection (fuses, contactors, SPD, TVS) | 233.10 | 15.3 | 190.85 | 23 | 14 |
-| power semiconductors | 149.02 | 9.8 | 126.67 | 2 | 2 |
-| connectors + harness | 148.64 | 9.8 | 126.26 | 14 | 9 |
-| thermal | 125.42 | 8.2 | 106.60 | 7 | 5 |
-| capacitors | 90.73 | 6.0 | 80.64 | 56 | 56 |
-| gate drive | 42.06 | 2.8 | 30.15 | 17 | 6 |
+| resistors + other board parts | 606.35 | 38.9 | 520.09 | 146 | 130 |
+| protection (fuses, contactors, SPD, TVS) | 233.05 | 15.0 | 190.81 | 23 | 14 |
+| power semiconductors | 185.05 | 11.9 | 157.29 | 2 | 1 |
+| connectors + harness | 148.64 | 9.5 | 126.26 | 14 | 9 |
+| thermal | 125.42 | 8.1 | 106.60 | 7 | 5 |
+| capacitors | 90.73 | 5.8 | 80.64 | 56 | 56 |
+| sensing | 43.75 | 2.8 | 37.18 | 9 | 5 |
+| gate drive | 41.72 | 2.7 | 29.99 | 17 | 6 |
 | control + communications | 35.41 | 2.3 | 34.68 | 28 | 5 |
 | magnetics | 32.22 | 2.1 | 24.62 | 8 | 7 |
-| sensing | 25.75 | 1.7 | 21.88 | 8 | 4 |
-| auxiliary supply | 14.66 | 1.0 | 14.19 | 11 | 1 |
-| **total BOM** | **1521.10** | 100 | **1291.55** | 322 | |
-| PCB / mechanics outside the BOM (rough, not in the BOM total) | 295.12 | | 248.48 | | all assumed |
+| auxiliary supply | 14.66 | 0.9 | 14.19 | 11 | 1 |
+| **total BOM** | **1557.01** | 100 | **1322.37** | 321 | |
+| PCB / mechanics outside the BOM (rough, not in the BOM total) | 294.83 | | 248.24 | | all assumed |
 
 ### Outside the BOM (rough figures, not part of the BOM total)
 
 | item | catalogue USD | USD at 5000 units | assumption (see gen/data/cost_estimates.csv outside: rows) |
 |---|---|---|---|
 | bare PCB PCS-CTL-3W x1 | 8.66 | 7.36 | 296 parts per board x 0.65 cm2 = 192 cm2 x 0.045 USD/cm2 |
-| bare PCB PCS-PWR x1 | 49.02 | 41.67 | 1676 parts per board x 0.65 cm2 = 1089 cm2 x 0.045 USD/cm2 |
-| board assembly (1972 placements, 2 boards) | 47.44 | 37.95 | 0.020 USD per placement + 4.0 USD per board |
+| bare PCB PCS-PWR x1 | 48.85 | 41.52 | 1670 parts per board x 0.65 cm2 = 1086 cm2 x 0.045 USD/cm2 |
+| board assembly (1966 placements, 2 boards) | 47.32 | 37.86 | 0.020 USD per placement + 4.0 USD per board |
 | enclosure / sheet metal / packaging | 120.00 | 102.00 | see cost_estimates.csv outside:enclosure |
 | final assembly, test and burn-in | 70.00 | 59.50 | see cost_estimates.csv outside:final_assembly_test |
-| **BOM + outside, rough** | **1816.22** (14.5 USD per kW at 125 kW) | **1540.03** (12.3 USD per kW at 125 kW) | |
+| **BOM + outside, rough** | **1851.83** (14.8 USD per kW at 125 kW) | **1570.61** (12.6 USD per kW at 125 kW) | |
 
 ### Top 25 cost lines (catalogue)
 
 | # | BOM item | qty | value / MPN | unit USD | ext USD | % of BOM | unit USD at 5000 | basis at 5000 units | basis (catalogue) | conf |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 1 | 8 | 3 | L1 120u (CUSTOM) | 126.6 | 379.80 | 25.0 | 107.6 | ASSUMED x0.85 [custom_mech] | estimate L1 120u (CUSTOM)@PCS-P125: ESTIMATE (sim/out/pcs_design/pcs_costed_bom. | low |
-| 2 | 266 | 36 | SG2M040170HJ | 4.07 | 146.52 | 9.6 | 3.459 | ASSUMED x0.85 [asia_part_estimate] | estimate SG2M040170HJ: ESTIMATE (sim/out/pv_design/cell_spec.json device_primary | low |
-| 3 | 9 | 3 | L2 6u (CUSTOM) | 38.6 | 115.80 | 7.6 | 32.81 | ASSUMED x0.85 [custom_mech] | estimate L2 6u (CUSTOM)@PCS-P125: ESTIMATE (sim/out/pcs_design/pcs_costed_bom.cs | low |
-| 4 | 219 | 1 | HFE82V-300C/1000-24-H-C5-1 | 57.5 | 57.50 | 3.8 | 46 | ASSUMED x0.80 [protection_estimate] | estimate HFE82V-300C/1000-24-H-C5-1: ESTIMATE: no price for the 1000 V / 24 V va | low |
-| 5 | 313 | 48 | 7461057 | 1.1 | 52.80 | 3.5 | 0.935 | ASSUMED x0.85 [asia_part_estimate] | estimate 7461057: ESTIMATE: Wurth REDCUBE press-fit M3 terminal 100 A, no readab | low |
-| 6 | 321 | 2 | HCHVF1000-400A-38R | 25 | 50.00 | 3.3 | 20 | ASSUMED x0.80 [protection_estimate] | estimate HCHVF1000-400A-38R: ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv 'DC | low |
-| 7 | 320 | 10 | C3D1U147+M0A | 4.9 | 49.00 | 3.2 | 4.165 | ASSUMED x0.85 [asia_part_estimate] | estimate C3D1U147+M0A: ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv, the inve | low |
-| 8 | 327 | 1 | K1 AC-1 250A RFQ | 45 | 45.00 | 3.0 | 38.25 | ASSUMED x0.85 [asia_part_estimate] | estimate K1 AC-1 250A RFQ@PCS-P125: RFQ ESTIMATE (sim/out/pcs_design/pcs_costed_ | low |
-| 9 | 328 | 1 | K2 AC-1 250A RFQ | 45 | 45.00 | 3.0 | 38.25 | ASSUMED x0.85 [asia_part_estimate] | estimate K2 AC-1 250A RFQ@PCS-P125: RFQ ESTIMATE (sim/out/pcs_design/pcs_costed_ | low |
-| 10 | 211 | 3 | AFB1224SHE-F00 | 12.85 | 38.55 | 2.5 | 10.92 | ASSUMED x0.85 [short_table] | Master Electronics (web-search result; page not read)  @504+ (2026-10-04) | medium |
+| 1 | 8 | 3 | L1 120u (CUSTOM) | 126.6 | 379.80 | 24.4 | 107.6 | ASSUMED x0.85 [custom_mech] | estimate L1 120u (CUSTOM)@PCS-P125: ESTIMATE (sim/out/pcs_design/pcs_costed_bom. | low |
+| 2 | 265 | 36 | SG2M040170HJ | 5.071 | 182.55 | 11.7 | 4.31 | ASSUMED x0.85 [short_table] | LCSC C42456100 @90+ (2026-10-04) | high |
+| 3 | 9 | 3 | L2 6u (CUSTOM) | 38.6 | 115.80 | 7.4 | 32.81 | ASSUMED x0.85 [custom_mech] | estimate L2 6u (CUSTOM)@PCS-P125: ESTIMATE (sim/out/pcs_design/pcs_costed_bom.cs | low |
+| 4 | 215 | 1 | HFE82V-300C/1000-24-H-C5-1 | 57.5 | 57.50 | 3.7 | 46 | ASSUMED x0.80 [protection_estimate] | estimate HFE82V-300C/1000-24-H-C5-1: ESTIMATE: no price for the 1000 V / 24 V va | low |
+| 5 | 313 | 48 | 7461057 | 1.1 | 52.80 | 3.4 | 0.935 | ASSUMED x0.85 [asia_part_estimate] | estimate 7461057: ESTIMATE: Wurth REDCUBE press-fit M3 terminal 100 A, no readab | low |
+| 6 | 321 | 2 | HCHVF1000-400A-38R | 25 | 50.00 | 3.2 | 20 | ASSUMED x0.80 [protection_estimate] | estimate HCHVF1000-400A-38R: ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv 'DC | low |
+| 7 | 320 | 10 | C3D1U147+M0A | 4.9 | 49.00 | 3.1 | 4.165 | ASSUMED x0.85 [asia_part_estimate] | estimate C3D1U147+M0A: ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv, the inve | low |
+| 8 | 326 | 1 | K1 AC-1 250A RFQ | 45 | 45.00 | 2.9 | 38.25 | ASSUMED x0.85 [asia_part_estimate] | estimate K1 AC-1 250A RFQ@PCS-P125: RFQ ESTIMATE (sim/out/pcs_design/pcs_costed_ | low |
+| 9 | 327 | 1 | K2 AC-1 250A RFQ | 45 | 45.00 | 2.9 | 38.25 | ASSUMED x0.85 [asia_part_estimate] | estimate K2 AC-1 250A RFQ@PCS-P125: RFQ ESTIMATE (sim/out/pcs_design/pcs_costed_ | low |
+| 10 | 207 | 3 | AFB1224SHE-F00 | 12.85 | 38.55 | 2.5 | 10.92 | ASSUMED x0.85 [short_table] | Master Electronics (web-search result; page not read)  @504+ (2026-10-04) | medium |
 | 11 | 4 | 1 | CM choke (CUSTOM) | 24.8 | 24.80 | 1.6 | 21.08 | ASSUMED x0.85 [custom_mech] | estimate CM choke (CUSTOM)@PCS-P125: ESTIMATE (sim/out/pcs_design/pcs_costed_bom | low |
-| 12 | 13 | 1 | heatsink section a (CUSTOM) | 23.8 | 23.80 | 1.6 | 20.23 | ASSUMED x0.85 [custom_mech] | estimate heatsink section a (CUSTOM)@PCS-P125: ESTIMATE (sim/out/pcs_design/pcs_ | low |
-| 13 | 14 | 1 | heatsink section b (CUSTOM) | 23.8 | 23.80 | 1.6 | 20.23 | ASSUMED x0.85 [custom_mech] | estimate heatsink section b (CUSTOM)@PCS-P125: ESTIMATE (sim/out/pcs_design/pcs_ | low |
-| 14 | 15 | 1 | heatsink section c (CUSTOM) | 23.8 | 23.80 | 1.6 | 20.23 | ASSUMED x0.85 [custom_mech] | estimate heatsink section c (CUSTOM)@PCS-P125: ESTIMATE (sim/out/pcs_design/pcs_ | low |
-| 15 | 255 | 60 | PMEG4010CEJ | 0.3026 | 18.16 | 1.2 | 0.3026 | REAL: LCSC C50704 @1000+ break (annual qty 300000) | LCSC C50704 @1000+ (2026-10-04) | high |
-| 16 | 324 | 6 | 25u 450VAC RFQ | 3 | 18.00 | 1.2 | 2.55 | ASSUMED x0.85 [asia_part_estimate] | estimate 25u 450VAC RFQ@PCS-P125: RFQ ESTIMATE (sim/out/pcs_design/pcs_costed_bo | low |
-| 17 | 326 | 3 | CS +/-500A RFQ | 6 | 18.00 | 1.2 | 5.1 | ASSUMED x0.85 [asia_part_estimate] | estimate CS +/-500A RFQ@PCS-P125: RFQ ESTIMATE (sim/out/pcs_design/pcs_costed_bo | low |
-| 18 | 229 | 6 | NSI6651ASC-Q1SWR | 2.978 | 17.87 | 1.2 | 1.548 | ASSUMED x0.52 [single_piece_list] | LCSC C33959952 @1+ (2026-10-04) single-piece price | high |
+| 12 | 13 | 1 | heatsink section a (CUSTOM) | 23.8 | 23.80 | 1.5 | 20.23 | ASSUMED x0.85 [custom_mech] | estimate heatsink section a (CUSTOM)@PCS-P125: ESTIMATE (sim/out/pcs_design/pcs_ | low |
+| 13 | 14 | 1 | heatsink section b (CUSTOM) | 23.8 | 23.80 | 1.5 | 20.23 | ASSUMED x0.85 [custom_mech] | estimate heatsink section b (CUSTOM)@PCS-P125: ESTIMATE (sim/out/pcs_design/pcs_ | low |
+| 14 | 15 | 1 | heatsink section c (CUSTOM) | 23.8 | 23.80 | 1.5 | 20.23 | ASSUMED x0.85 [custom_mech] | estimate heatsink section c (CUSTOM)@PCS-P125: ESTIMATE (sim/out/pcs_design/pcs_ | low |
+| 15 | 254 | 60 | PMEG4010CEJ | 0.3026 | 18.16 | 1.2 | 0.3026 | REAL: LCSC C50704 @1000+ break (annual qty 300000) | LCSC C50704 @1000+ (2026-10-04) | high |
+| 16 | 266 | 3 | STK-250HO/4 | 6 | 18.00 | 1.2 | 5.1 | ASSUMED x0.85 [asia_part_estimate] | estimate STK-250HO/4: ESTIMATE: no LCSC listing and no published Sinomags price  | low |
+| 17 | 324 | 6 | 25u 450VAC RFQ | 3 | 18.00 | 1.2 | 2.55 | ASSUMED x0.85 [asia_part_estimate] | estimate 25u 450VAC RFQ@PCS-P125: RFQ ESTIMATE (sim/out/pcs_design/pcs_costed_bo | low |
+| 18 | 228 | 6 | NSI6651ASC-Q1SWR | 2.978 | 17.87 | 1.1 | 1.548 | ASSUMED x0.52 [single_piece_list] | LCSC C33959952 @1+ (2026-10-04) single-piece price | high |
 | 19 | 5 | 1 | DC terminal B+ 250 A (CUSTOM) | 15.5 | 15.50 | 1.0 | 13.18 | ASSUMED x0.85 [custom_mech] | estimate DC terminal B+ 250 A (CUSTOM)@PCS-P125: ESTIMATE: half of the sim/out/p | low |
 | 20 | 6 | 1 | DC terminal B- 250 A (CUSTOM) | 15.5 | 15.50 | 1.0 | 13.18 | ASSUMED x0.85 [custom_mech] | estimate DC terminal B- 250 A (CUSTOM)@PCS-P125: ESTIMATE: half of the sim/out/p | low |
 | 21 | 298 | 60 | ARHV06BTC1004A | 0.25 | 15.00 | 1.0 | 0.2125 | ASSUMED x0.85 [asia_part_estimate] | estimate ARHV06BTC1004A: ESTIMATE (architect's list gen/data/costfirst_bom.csv,  | low |
 | 22 | 11 | 36 | PAD Al2O3 0.635 mm (CUSTOM) | 0.4 | 14.40 | 0.9 | 0.34 | ASSUMED x0.85 [custom_mech] | estimate PAD Al2O3 0.635 mm (CUSTOM)@PCS-P125: ESTIMATE (sim/out/pcs_design/pcs_ | low |
-| 23 | 1 | 1 | AC terminal L1 250 A (CUSTOM) | 13 | 13.00 | 0.9 | 11.05 | ASSUMED x0.85 [custom_mech] | estimate AC terminal L1 250 A (CUSTOM)@PCS-P125: ESTIMATE: a third of the sim/ou | low |
-| 24 | 2 | 1 | AC terminal L2 250 A (CUSTOM) | 13 | 13.00 | 0.9 | 11.05 | ASSUMED x0.85 [custom_mech] | estimate AC terminal L2 250 A (CUSTOM)@PCS-P125: ESTIMATE: a third of the sim/ou | low |
-| 25 | 3 | 1 | AC terminal L3 250 A (CUSTOM) | 13 | 13.00 | 0.9 | 11.05 | ASSUMED x0.85 [custom_mech] | estimate AC terminal L3 250 A (CUSTOM)@PCS-P125: ESTIMATE: a third of the sim/ou | low |
+| 23 | 1 | 1 | AC terminal L1 250 A (CUSTOM) | 13 | 13.00 | 0.8 | 11.05 | ASSUMED x0.85 [custom_mech] | estimate AC terminal L1 250 A (CUSTOM)@PCS-P125: ESTIMATE: a third of the sim/ou | low |
+| 24 | 2 | 1 | AC terminal L2 250 A (CUSTOM) | 13 | 13.00 | 0.8 | 11.05 | ASSUMED x0.85 [custom_mech] | estimate AC terminal L2 250 A (CUSTOM)@PCS-P125: ESTIMATE: a third of the sim/ou | low |
+| 25 | 3 | 1 | AC terminal L3 250 A (CUSTOM) | 13 | 13.00 | 0.8 | 11.05 | ASSUMED x0.85 [custom_mech] | estimate AC terminal L3 250 A (CUSTOM)@PCS-P125: ESTIMATE: a third of the sim/ou | low |
 
 ### Largest estimates (where the uncertainty sits)
 
 | BOM item | qty | value / MPN | ext USD | % of BOM | conf | basis |
 |---|---|---|---|---|---|---|
-| 8 | 3 | L1 120u (CUSTOM) | 379.80 | 25.0 | low | L1 120u (CUSTOM)@PCS-P125: ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv LCL L1 row; sim/magnetics.py design_pcs_l1.json cost model, core / conducto |
-| 266 | 36 | SG2M040170HJ | 146.52 | 9.6 | low | SG2M040170HJ: ESTIMATE (sim/out/pv_design/cell_spec.json device_primary.price_source; architect's list 4.07): Sichain RFQ pending, not on LCSC; scaled |
-| 9 | 3 | L2 6u (CUSTOM) | 115.80 | 7.6 | low | L2 6u (CUSTOM)@PCS-P125: ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv LCL L2 row; sim/magnetics.py design_pcs_l2.json cost model): no quote |
-| 219 | 1 | HFE82V-300C/1000-24-H-C5-1 | 57.50 | 3.8 | low | HFE82V-300C/1000-24-H-C5-1: ESTIMATE: no price for the 1000 V / 24 V variant; the same HFE82V-300C is 57.50 USD at 10 in a made-in-china.com listing ( |
-| 313 | 48 | 7461057 | 52.80 | 3.5 | low | 7461057: ESTIMATE: Wurth REDCUBE press-fit M3 terminal 100 A, no readable price; engineering estimate |
-| 321 | 2 | HCHVF1000-400A-38R | 50.00 | 3.3 | low | HCHVF1000-400A-38R: ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv 'DC fuse aR 400 A 1000 V DC'): no public price; marketplace anchor 1000 V 350 A se |
-| 320 | 10 | C3D1U147+M0A | 49.00 | 3.2 | low | C3D1U147+M0A: ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv, the inverter study's DC-link film row): LCSC C3D1X505 0.557 USD @1000 scaled by can vol |
-| 327 | 1 | K1 AC-1 250A RFQ | 45.00 | 3.0 | low | K1 AC-1 250A RFQ@PCS-P125: RFQ ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv AC contactor row: CHINT NXC-225 / Delixi CJX2s-185 class, no OEM price, |
+| 8 | 3 | L1 120u (CUSTOM) | 379.80 | 24.4 | low | L1 120u (CUSTOM)@PCS-P125: ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv LCL L1 row; sim/magnetics.py design_pcs_l1.json cost model, core / conducto |
+| 9 | 3 | L2 6u (CUSTOM) | 115.80 | 7.4 | low | L2 6u (CUSTOM)@PCS-P125: ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv LCL L2 row; sim/magnetics.py design_pcs_l2.json cost model): no quote |
+| 215 | 1 | HFE82V-300C/1000-24-H-C5-1 | 57.50 | 3.7 | low | HFE82V-300C/1000-24-H-C5-1: ESTIMATE: no price for the 1000 V / 24 V variant; the same HFE82V-300C is 57.50 USD at 10 in a made-in-china.com listing ( |
+| 313 | 48 | 7461057 | 52.80 | 3.4 | low | 7461057: ESTIMATE: Wurth REDCUBE press-fit M3 terminal 100 A, no readable price; engineering estimate |
+| 321 | 2 | HCHVF1000-400A-38R | 50.00 | 3.2 | low | HCHVF1000-400A-38R: ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv 'DC fuse aR 400 A 1000 V DC'): no public price; marketplace anchor 1000 V 350 A se |
+| 320 | 10 | C3D1U147+M0A | 49.00 | 3.1 | low | C3D1U147+M0A: ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv, the inverter study's DC-link film row): LCSC C3D1X505 0.557 USD @1000 scaled by can vol |
+| 326 | 1 | K1 AC-1 250A RFQ | 45.00 | 2.9 | low | K1 AC-1 250A RFQ@PCS-P125: RFQ ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv AC contactor row: CHINT NXC-225 / Delixi CJX2s-185 class, no OEM price, |
+| 327 | 1 | K2 AC-1 250A RFQ | 45.00 | 2.9 | low | K2 AC-1 250A RFQ@PCS-P125: RFQ ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv AC contactor row, as K1) |
 
 ### Lines with no price
 
@@ -368,32 +368,32 @@ Groups are assigned by rule from the line's description and the board that carri
 
 ## PV-P75-FULL (old platform, for contrast)
 
-Total BOM cost **2811.88 USD at catalogue prices = 37.5 USD per kW at 75 kW**; **2254.31 USD at a 5000-unit build = 30.1 USD per kW at 75 kW**. Lines: 464 (456 purchased-part lines; 8 NOPART lines such as test points and net ties are not costed).
+Total BOM cost **2835.80 USD at catalogue prices = 37.8 USD per kW at 75 kW**; **2275.27 USD at a 5000-unit build = 30.3 USD per kW at 75 kW**. Lines: 464 (456 purchased-part lines; 8 NOPART lines such as test points and net ties are not costed).
 
 ### Evidence behind the catalogue total
 
 | basis | lines | parts | USD | share of the costed total |
 |---|---|---|---|---|
-| real price of the part (looked up) | 134 | 747 | 1214.70 | 43.2 % |
+| real price of the part (looked up) | 136 | 783 | 1336.74 | 47.1 % |
 | chip-passive class rule (price of a real LCSC example part of the same class) | 239 | 2344 | 55.60 | 2.0 % |
-| engineering estimate with stated basis | 76 | 413 | 1541.58 | 54.8 % |
+| engineering estimate with stated basis | 74 | 377 | 1443.46 | 50.9 % |
 | no price at all (UNPRICED, not in the total) | 7 | 67 | not known | not in the total |
 
 ### The 5000-unit view
 
 | basis of the 5000-unit price | lines | USD at 5000 units | share of the 5000-unit total |
 |---|---|---|---|
-| REAL: a published price at a break >= 1000 pieces | 352 | 393.45 | 17.5 % |
-| ASSUMED: catalogue price x factor of volume_factors.csv | 97 | 1860.86 | 82.5 % |
+| REAL: a published price at a break >= 1000 pieces | 353 | 394.37 | 17.3 % |
+| ASSUMED: catalogue price x factor of volume_factors.csv | 96 | 1880.90 | 82.7 % |
 
 The 5000-unit total is 80.2 % of the catalogue total.
 
 | factor class used | factor | lines | catalogue USD | USD at 5000 units | confidence |
 |---|---|---|---|---|---|
 | protection_estimate | 0.80 | 16 | 677.73 | 542.18 | low |
+| short_table | 0.85 | 10 | 538.08 | 457.37 | medium |
 | single_piece_list | 0.52 | 12 | 454.25 | 236.21 | medium |
-| short_table | 0.85 | 9 | 416.38 | 353.92 | medium |
-| asia_part_estimate | 0.85 | 45 | 392.65 | 333.75 | low |
+| asia_part_estimate | 0.85 | 43 | 294.53 | 250.35 | low |
 | custom_magnetic_large | 0.85 | 2 | 251.50 | 213.78 | low |
 | custom_mech | 0.85 | 6 | 168.40 | 143.14 | low |
 | ceramic_pad | 0.70 | 1 | 24.00 | 16.80 | low |
@@ -406,18 +406,18 @@ Groups are assigned by rule from the line's description and the board that carri
 
 | group | catalogue USD | % of BOM | USD at 5000 units | lines | of which estimated |
 |---|---|---|---|---|---|
-| protection (fuses, contactors, SPD, TVS) | 962.27 | 34.2 | 784.18 | 34 | 18 |
-| thermal | 373.50 | 13.3 | 226.75 | 4 | 3 |
-| magnetics | 284.80 | 10.1 | 237.47 | 10 | 8 |
-| sensing | 240.94 | 8.6 | 184.62 | 11 | 4 |
-| capacitors | 226.40 | 8.1 | 181.32 | 84 | 81 |
-| power semiconductors | 200.22 | 7.1 | 170.19 | 2 | 2 |
-| connectors + harness | 154.20 | 5.5 | 131.43 | 28 | 16 |
-| control + communications | 148.09 | 5.3 | 143.10 | 56 | 10 |
-| gate drive | 131.38 | 4.7 | 111.60 | 18 | 4 |
-| auxiliary supply | 67.96 | 2.4 | 64.23 | 38 | 7 |
+| protection (fuses, contactors, SPD, TVS) | 962.51 | 33.9 | 784.46 | 34 | 18 |
+| thermal | 373.50 | 13.2 | 226.75 | 4 | 3 |
+| magnetics | 284.80 | 10.0 | 237.47 | 10 | 8 |
+| sensing | 240.94 | 8.5 | 184.62 | 11 | 4 |
+| capacitors | 226.40 | 8.0 | 181.32 | 84 | 81 |
+| power semiconductors | 224.24 | 7.9 | 190.61 | 2 | 1 |
+| connectors + harness | 154.20 | 5.4 | 131.43 | 28 | 16 |
+| control + communications | 148.02 | 5.2 | 143.10 | 56 | 10 |
+| gate drive | 131.19 | 4.6 | 111.88 | 18 | 3 |
+| auxiliary supply | 67.89 | 2.4 | 64.21 | 38 | 7 |
 | resistors + other board parts | 22.10 | 0.8 | 19.42 | 164 | 162 |
-| **total BOM** | **2811.88** | 100 | **2254.31** | 449 | |
+| **total BOM** | **2835.80** | 100 | **2275.27** | 449 | |
 | PCB / mechanics outside the BOM (rough, not in the BOM total) | 351.99 | | 294.03 | | all assumed |
 
 ### Outside the BOM (rough figures, not part of the BOM total)
@@ -433,21 +433,21 @@ Groups are assigned by rule from the line's description and the board that carri
 | board assembly (3553 placements, 8 boards) | 103.06 | 82.45 | 0.020 USD per placement + 4.0 USD per board |
 | enclosure / sheet metal / packaging | 90.00 | 76.50 | see cost_estimates.csv outside:enclosure |
 | final assembly, test and burn-in | 55.00 | 46.75 | see cost_estimates.csv outside:final_assembly_test |
-| **BOM + outside, rough** | **3163.86** (42.2 USD per kW at 75 kW) | **2548.34** (34.0 USD per kW at 75 kW) | |
+| **BOM + outside, rough** | **3187.79** (42.5 USD per kW at 75 kW) | **2569.31** (34.3 USD per kW at 75 kW) | |
 
 ### Top 25 cost lines (catalogue)
 
 | # | BOM item | qty | value / MPN | unit USD | ext USD | % of BOM | unit USD at 5000 | basis at 5000 units | basis (catalogue) | conf |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 1 | 464 | 3 | 9GT1224P1S001 | 88 | 264.00 | 9.4 | 45.76 | ASSUMED x0.52 [single_piece_list] | Cyrus Industrial 9GT1224P1S001 @1+ (2026-10-04) single-piece price | high |
-| 2 | 282 | 2 | 004110760 | 123.5 | 247.00 | 8.8 | 98.8 | ASSUMED x0.80 [protection_estimate] | estimate 004110760: ESTIMATE: ETI NH1 gBat 200 A 1000 V DC fuse link, no public  | low |
-| 3 | 293 | 2 | HP10NH1GPV160 | 123.5 | 247.00 | 8.8 | 98.8 | ASSUMED x0.80 [protection_estimate] | estimate HP10NH1GPV160: ESTIMATE: no public price for the Mersen part; Siemens 3 | low |
-| 4 | 348 | 3 | B88269X7340C011 | 81.68 | 245.04 | 8.7 | 69.43 | ASSUMED x0.85 [short_table] | Mouser (web-search result; page blocked)  @100+ (2026-10-04) | medium |
+| 1 | 464 | 3 | 9GT1224P1S001 | 88 | 264.00 | 9.3 | 45.76 | ASSUMED x0.52 [single_piece_list] | Cyrus Industrial 9GT1224P1S001 @1+ (2026-10-04) single-piece price | high |
+| 2 | 282 | 2 | 004110760 | 123.5 | 247.00 | 8.7 | 98.8 | ASSUMED x0.80 [protection_estimate] | estimate 004110760: ESTIMATE: ETI NH1 gBat 200 A 1000 V DC fuse link, no public  | low |
+| 3 | 293 | 2 | HP10NH1GPV160 | 123.5 | 247.00 | 8.7 | 98.8 | ASSUMED x0.80 [protection_estimate] | estimate HP10NH1GPV160: ESTIMATE: no public price for the Mersen part; Siemens 3 | low |
+| 4 | 348 | 3 | B88269X7340C011 | 81.68 | 245.04 | 8.6 | 69.43 | ASSUMED x0.85 [short_table] | Mouser (web-search result; page blocked)  @100+ (2026-10-04) | medium |
 | 5 | 290 | 12 | C4AQUEW5450A3BJ | 10.87 | 130.44 | 4.6 | 9.239 | ASSUMED x0.85 [short_table] | Dasenic broker (web-search snippet) C4AQUEW5450A3BJ @500+ (2026-10-04) | medium |
 | 6 | 3 | 2 | CM choke 160 A (CUSTOM) | 65 | 130.00 | 4.6 | 55.25 | ASSUMED x0.85 [custom_magnetic_large] | estimate CM choke 160 A (CUSTOM): ESTIMATE: nanocrystalline toroid about 0.6 kg  | low |
-| 7 | 7 | 3 | L_CELL 224uH (CUSTOM) | 40.5 | 121.50 | 4.3 | 34.42 | ASSUMED x0.85 [custom_magnetic_large] | estimate L_CELL 224uH (CUSTOM): ESTIMATE (sim/magnetics.py design_pv_inductor.js | low |
-| 8 | 437 | 6 | C2M1000170D | 17.09 | 102.54 | 3.6 | 14.53 | ASSUMED x0.85 [asia_part_estimate] | estimate C2M1000170D: ESTIMATE: LCSC lists the part (C5713500) 'from US$17.0935' | low |
-| 9 | 344 | 24 | SG2M040170HJ | 4.07 | 97.68 | 3.5 | 3.459 | ASSUMED x0.85 [asia_part_estimate] | estimate SG2M040170HJ: ESTIMATE (sim/out/pv_design/cell_spec.json device_primary | low |
+| 7 | 344 | 24 | SG2M040170HJ | 5.071 | 121.70 | 4.3 | 4.31 | ASSUMED x0.85 [short_table] | LCSC C42456100 @90+ (2026-10-04) | high |
+| 8 | 7 | 3 | L_CELL 224uH (CUSTOM) | 40.5 | 121.50 | 4.3 | 34.42 | ASSUMED x0.85 [custom_magnetic_large] | estimate L_CELL 224uH (CUSTOM): ESTIMATE (sim/magnetics.py design_pv_inductor.js | low |
+| 9 | 437 | 6 | C2M1000170D | 17.09 | 102.54 | 3.6 | 14.53 | ASSUMED x0.85 [asia_part_estimate] | estimate C2M1000170D: ESTIMATE: LCSC lists the part (C5713500) 'from US$17.0935' | low |
 | 10 | 13 | 3 | heatsink | 27 | 81.00 | 2.9 | 22.95 | ASSUMED x0.85 [custom_mech] | estimate heatsink: ESTIMATE: Al mass 4.4 kg (base 150x300x12 mm + 30 fins 60x2x3 | low |
 | 11 | 461 | 4 | 300R RST200 RFQ | 15 | 60.00 | 2.1 | 12 | ASSUMED x0.80 [protection_estimate] | estimate 300R RST200 RFQ: ESTIMATE: Miba RST 200 aluminium-housed power resistor | low |
 | 12 | 418 | 12 | UCC14241QDWNRQ1 | 4.972 | 59.66 | 2.1 | 4.972 | REAL: TI.com UCC14241QDWNRQ1 @1000+ break (annual qty 60000) | TI.com UCC14241QDWNRQ1 @1000+ (2026-10-04) | high |
@@ -461,22 +461,22 @@ Groups are assigned by rule from the line's description and the board that carri
 | 20 | 265 | 2 | CSM2F-8518-L100J01 | 16.57 | 33.14 | 1.2 | 14.08 | ASSUMED x0.85 [short_table] | DigiKey (web-search snippet; page blocked) 9487207 @100+ (2026-10-04) | medium |
 | 21 | 460 | 2 | 220R RST200 RFQ | 15 | 30.00 | 1.1 | 12 | ASSUMED x0.80 [protection_estimate] | estimate 220R RST200 RFQ: ESTIMATE: Miba RST 200 aluminium-housed power resistor | low |
 | 22 | 324 | 2 | G7L-2A-X DC24 | 12.71 | 25.42 | 0.9 | 10.17 | ASSUMED x0.80 [protection_estimate] | estimate G7L-2A-X DC24: ESTIMATE: no price for the -X variant; DigiKey G7L-2A-BU | low |
-| 23 | 8 | 24 | PAD AlN 1 mm (CUSTOM) | 1 | 24.00 | 0.9 | 0.7 | ASSUMED x0.70 [ceramic_pad] | estimate PAD AlN 1 mm (CUSTOM): ESTIMATE: AlN ceramic insulator 15.9 x 20.9 mm + | low |
-| 24 | 281 | 4 | 002637115 | 6 | 24.00 | 0.9 | 4.8 | ASSUMED x0.80 [protection_estimate] | estimate 002637115: ESTIMATE: ETI CH14x51 gPV 36 A 1000 V d.c. fuse link (varist | low |
+| 23 | 8 | 24 | PAD AlN 1 mm (CUSTOM) | 1 | 24.00 | 0.8 | 0.7 | ASSUMED x0.70 [ceramic_pad] | estimate PAD AlN 1 mm (CUSTOM): ESTIMATE: AlN ceramic insulator 15.9 x 20.9 mm + | low |
+| 24 | 281 | 4 | 002637115 | 6 | 24.00 | 0.8 | 4.8 | ASSUMED x0.80 [protection_estimate] | estimate 002637115: ESTIMATE: ETI CH14x51 gPV 36 A 1000 V d.c. fuse link (varist | low |
 | 25 | 453 | 21 | 7461057 | 1.1 | 23.10 | 0.8 | 0.935 | ASSUMED x0.85 [asia_part_estimate] | estimate 7461057: ESTIMATE: Wurth REDCUBE press-fit M3 terminal 100 A, no readab | low |
 
 ### Largest estimates (where the uncertainty sits)
 
 | BOM item | qty | value / MPN | ext USD | % of BOM | conf | basis |
 |---|---|---|---|---|---|---|
-| 282 | 2 | 004110760 | 247.00 | 8.8 | low | 004110760: ESTIMATE: ETI NH1 gBat 200 A 1000 V DC fuse link, no public price (ETI publishes none); taken equal to the Siemens NH1 160 A 1000 V DC gP.. |
-| 293 | 2 | HP10NH1GPV160 | 247.00 | 8.8 | low | HP10NH1GPV160: ESTIMATE: no public price for the Mersen part; Siemens 3NE1224-4 (NH1, gPV, 160 A, 1000 V DC, same class) EUR 110.02 at Buerklin = USD  |
+| 282 | 2 | 004110760 | 247.00 | 8.7 | low | 004110760: ESTIMATE: ETI NH1 gBat 200 A 1000 V DC fuse link, no public price (ETI publishes none); taken equal to the Siemens NH1 160 A 1000 V DC gP.. |
+| 293 | 2 | HP10NH1GPV160 | 247.00 | 8.7 | low | HP10NH1GPV160: ESTIMATE: no public price for the Mersen part; Siemens 3NE1224-4 (NH1, gPV, 160 A, 1000 V DC, same class) EUR 110.02 at Buerklin = USD  |
 | 3 | 2 | CM choke 160 A (CUSTOM) | 130.00 | 4.6 | low | CM choke 160 A (CUSTOM): ESTIMATE: nanocrystalline toroid about 0.6 kg finished core 35 + two 160 A copper windings (about 0.3 kg Cu, 4.5 USD at LME c |
 | 7 | 3 | L_CELL 224uH (CUSTOM) | 121.50 | 4.3 | low | L_CELL 224uH (CUSTOM): ESTIMATE (sim/magnetics.py design_pv_inductor.json rev M2, design to cost D-044 / D-048): 2 x POCO NPC290026 16 + 0.54 kg solid |
 | 437 | 6 | C2M1000170D | 102.54 | 3.6 | low | C2M1000170D: ESTIMATE: LCSC lists the part (C5713500) 'from US$17.0935' but out of stock, so no break table is readable; this single-piece figure is u |
-| 344 | 24 | SG2M040170HJ | 97.68 | 3.5 | low | SG2M040170HJ: ESTIMATE (sim/out/pv_design/cell_spec.json device_primary.price_source; architect's list 4.07): Sichain RFQ pending, not on LCSC; scaled |
 | 13 | 3 | heatsink | 81.00 | 2.9 | low | heatsink: ESTIMATE: Al mass 4.4 kg (base 150x300x12 mm + 30 fins 60x2x300 mm = 1620 cm3 x 2.70 g/cm3; base and fin thickness are assumed, the BOM g... |
 | 461 | 4 | 300R RST200 RFQ | 60.00 | 2.1 | low | 300R RST200 RFQ: ESTIMATE: Miba RST 200 aluminium-housed power resistor (2.3-4 kJ pulse, 3 kW for 3 s, 3.5 kV insulation): no price found (Miba publis |
+| 430 | 64 | TNPV1210124KBEEA | 51.20 | 1.8 | low | TNPV1210124KBEEA: ESTIMATE: Vishay TNPV 1210 series; TNPV12101M00BEEA is USD 0.655 at 5000+ (Future Electronics, web-search result 2026-10-04); the 10 |
 
 ### Lines with no price
 
@@ -492,32 +492,32 @@ Groups are assigned by rule from the line's description and the board that carri
 
 ## PV-P100-110-FULL (old platform, for contrast)
 
-Total BOM cost **3348.07 USD at catalogue prices = 33.5 USD per kW at 100 kW / 30.4 USD per kW at 110 kW**; **2664.46 USD at a 5000-unit build = 26.6 USD per kW at 100 kW / 24.2 USD per kW at 110 kW**. Lines: 464 (456 purchased-part lines; 8 NOPART lines such as test points and net ties are not costed).
+Total BOM cost **3379.94 USD at catalogue prices = 33.8 USD per kW at 100 kW / 30.7 USD per kW at 110 kW**; **2692.32 USD at a 5000-unit build = 26.9 USD per kW at 100 kW / 24.5 USD per kW at 110 kW**. Lines: 464 (456 purchased-part lines; 8 NOPART lines such as test points and net ties are not costed).
 
 ### Evidence behind the catalogue total
 
 | basis | lines | parts | USD | share of the costed total |
 |---|---|---|---|---|
-| real price of the part (looked up) | 134 | 871 | 1430.25 | 42.7 % |
-| chip-passive class rule (price of a real LCSC example part of the same class) | 239 | 2695 | 65.87 | 2.0 % |
-| engineering estimate with stated basis | 76 | 497 | 1851.95 | 55.3 % |
+| real price of the part (looked up) | 136 | 919 | 1592.94 | 47.1 % |
+| chip-passive class rule (price of a real LCSC example part of the same class) | 239 | 2695 | 65.87 | 1.9 % |
+| engineering estimate with stated basis | 74 | 449 | 1721.12 | 50.9 % |
 | no price at all (UNPRICED, not in the total) | 7 | 84 | not known | not in the total |
 
 ### The 5000-unit view
 
 | basis of the 5000-unit price | lines | USD at 5000 units | share of the 5000-unit total |
 |---|---|---|---|
-| REAL: a published price at a break >= 1000 pieces | 352 | 440.90 | 16.5 % |
-| ASSUMED: catalogue price x factor of volume_factors.csv | 97 | 2223.56 | 83.5 % |
+| REAL: a published price at a break >= 1000 pieces | 353 | 442.04 | 16.4 % |
+| ASSUMED: catalogue price x factor of volume_factors.csv | 96 | 2250.28 | 83.6 % |
 
-The 5000-unit total is 79.6 % of the catalogue total.
+The 5000-unit total is 79.7 % of the catalogue total.
 
 | factor class used | factor | lines | catalogue USD | USD at 5000 units | confidence |
 |---|---|---|---|---|---|
 | protection_estimate | 0.80 | 16 | 810.73 | 648.58 | low |
+| short_table | 0.85 | 10 | 622.41 | 529.05 | medium |
 | single_piece_list | 0.52 | 12 | 588.20 | 305.87 | medium |
-| asia_part_estimate | 0.85 | 45 | 460.62 | 391.53 | low |
-| short_table | 0.85 | 9 | 460.14 | 391.12 | medium |
+| asia_part_estimate | 0.85 | 43 | 329.79 | 280.32 | low |
 | custom_magnetic_large | 0.85 | 2 | 322.00 | 273.70 | low |
 | custom_mech | 0.85 | 6 | 196.90 | 167.37 | low |
 | ceramic_pad | 0.70 | 1 | 32.00 | 22.40 | low |
@@ -530,18 +530,18 @@ Groups are assigned by rule from the line's description and the board that carri
 
 | group | catalogue USD | % of BOM | USD at 5000 units | lines | of which estimated |
 |---|---|---|---|---|---|
-| protection (fuses, contactors, SPD, TVS) | 1095.61 | 32.7 | 890.91 | 34 | 18 |
-| thermal | 498.00 | 14.9 | 302.34 | 4 | 3 |
-| magnetics | 358.50 | 10.7 | 300.12 | 10 | 8 |
-| capacitors | 294.12 | 8.8 | 234.37 | 84 | 81 |
-| sensing | 274.55 | 8.2 | 207.97 | 11 | 4 |
-| power semiconductors | 232.78 | 7.0 | 197.86 | 2 | 2 |
-| gate drive | 171.10 | 5.1 | 144.73 | 18 | 4 |
-| connectors + harness | 162.38 | 4.9 | 138.26 | 28 | 16 |
-| control + communications | 159.33 | 4.8 | 153.50 | 56 | 10 |
-| auxiliary supply | 76.54 | 2.3 | 71.98 | 38 | 7 |
-| resistors + other board parts | 25.16 | 0.8 | 22.41 | 164 | 162 |
-| **total BOM** | **3348.07** | 100 | **2664.46** | 449 | |
+| protection (fuses, contactors, SPD, TVS) | 1095.85 | 32.4 | 891.20 | 34 | 18 |
+| thermal | 498.00 | 14.7 | 302.34 | 4 | 3 |
+| magnetics | 358.50 | 10.6 | 300.12 | 10 | 8 |
+| capacitors | 294.12 | 8.7 | 234.37 | 84 | 81 |
+| sensing | 274.55 | 8.1 | 207.97 | 11 | 4 |
+| power semiconductors | 264.81 | 7.8 | 225.09 | 2 | 1 |
+| gate drive | 170.85 | 5.1 | 145.10 | 18 | 3 |
+| connectors + harness | 162.38 | 4.8 | 138.26 | 28 | 16 |
+| control + communications | 159.26 | 4.7 | 153.50 | 56 | 10 |
+| auxiliary supply | 76.46 | 2.3 | 71.96 | 38 | 7 |
+| resistors + other board parts | 25.16 | 0.7 | 22.41 | 164 | 162 |
+| **total BOM** | **3379.94** | 100 | **2692.32** | 449 | |
 | PCB / mechanics outside the BOM (rough, not in the BOM total) | 399.16 | | 333.36 | | all assumed |
 
 ### Outside the BOM (rough figures, not part of the BOM total)
@@ -557,22 +557,22 @@ Groups are assigned by rule from the line's description and the board that carri
 | board assembly (4125 placements, 9 boards) | 118.50 | 94.80 | 0.020 USD per placement + 4.0 USD per board |
 | enclosure / sheet metal / packaging | 100.00 | 85.00 | see cost_estimates.csv outside:enclosure |
 | final assembly, test and burn-in | 60.00 | 51.00 | see cost_estimates.csv outside:final_assembly_test |
-| **BOM + outside, rough** | **3747.22** (37.5 USD per kW at 100 kW / 34.1 USD per kW at 110 kW) | **2997.82** (30.0 USD per kW at 100 kW / 27.3 USD per kW at 110 kW) | |
+| **BOM + outside, rough** | **3779.09** (37.8 USD per kW at 100 kW / 34.4 USD per kW at 110 kW) | **3025.68** (30.3 USD per kW at 100 kW / 27.5 USD per kW at 110 kW) | |
 
 ### Top 25 cost lines (catalogue)
 
 | # | BOM item | qty | value / MPN | unit USD | ext USD | % of BOM | unit USD at 5000 | basis at 5000 units | basis (catalogue) | conf |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 1 | 293 | 2 | HP10NH2GPV250 | 190 | 380.00 | 11.3 | 152 | ASSUMED x0.80 [protection_estimate] | estimate HP10NH2GPV250: ESTIMATE: Mersen NH2 gPV 250 A 1000 V DC fuse link, no p | low |
-| 2 | 464 | 4 | 9GT1224P1S001 | 88 | 352.00 | 10.5 | 45.76 | ASSUMED x0.52 [single_piece_list] | Cyrus Industrial 9GT1224P1S001 @1+ (2026-10-04) single-piece price | high |
-| 3 | 282 | 2 | 004110760 | 123.5 | 247.00 | 7.4 | 98.8 | ASSUMED x0.80 [protection_estimate] | estimate 004110760: ESTIMATE: ETI NH1 gBat 200 A 1000 V DC fuse link, no public  | low |
-| 4 | 348 | 3 | B88269X7340C011 | 81.68 | 245.04 | 7.3 | 69.43 | ASSUMED x0.85 [short_table] | Mouser (web-search result; page blocked)  @100+ (2026-10-04) | medium |
-| 5 | 290 | 16 | C4AQUEW5450A3BJ | 10.87 | 173.92 | 5.2 | 9.239 | ASSUMED x0.85 [short_table] | Dasenic broker (web-search snippet) C4AQUEW5450A3BJ @500+ (2026-10-04) | medium |
-| 6 | 7 | 4 | L_CELL 224uH (CUSTOM) | 40.5 | 162.00 | 4.8 | 34.42 | ASSUMED x0.85 [custom_magnetic_large] | estimate L_CELL 224uH (CUSTOM): ESTIMATE (sim/magnetics.py design_pv_inductor.js | low |
-| 7 | 3 | 2 | CM choke 200 A (CUSTOM) | 80 | 160.00 | 4.8 | 68 | ASSUMED x0.85 [custom_magnetic_large] | estimate CM choke 200 A (CUSTOM): ESTIMATE: as the 160 A choke with a larger cor | low |
-| 8 | 344 | 32 | SG2M040170HJ | 4.07 | 130.24 | 3.9 | 3.459 | ASSUMED x0.85 [asia_part_estimate] | estimate SG2M040170HJ: ESTIMATE (sim/out/pv_design/cell_spec.json device_primary | low |
+| 1 | 293 | 2 | HP10NH2GPV250 | 190 | 380.00 | 11.2 | 152 | ASSUMED x0.80 [protection_estimate] | estimate HP10NH2GPV250: ESTIMATE: Mersen NH2 gPV 250 A 1000 V DC fuse link, no p | low |
+| 2 | 464 | 4 | 9GT1224P1S001 | 88 | 352.00 | 10.4 | 45.76 | ASSUMED x0.52 [single_piece_list] | Cyrus Industrial 9GT1224P1S001 @1+ (2026-10-04) single-piece price | high |
+| 3 | 282 | 2 | 004110760 | 123.5 | 247.00 | 7.3 | 98.8 | ASSUMED x0.80 [protection_estimate] | estimate 004110760: ESTIMATE: ETI NH1 gBat 200 A 1000 V DC fuse link, no public  | low |
+| 4 | 348 | 3 | B88269X7340C011 | 81.68 | 245.04 | 7.2 | 69.43 | ASSUMED x0.85 [short_table] | Mouser (web-search result; page blocked)  @100+ (2026-10-04) | medium |
+| 5 | 290 | 16 | C4AQUEW5450A3BJ | 10.87 | 173.92 | 5.1 | 9.239 | ASSUMED x0.85 [short_table] | Dasenic broker (web-search snippet) C4AQUEW5450A3BJ @500+ (2026-10-04) | medium |
+| 6 | 344 | 32 | SG2M040170HJ | 5.071 | 162.27 | 4.8 | 4.31 | ASSUMED x0.85 [short_table] | LCSC C42456100 @90+ (2026-10-04) | high |
+| 7 | 7 | 4 | L_CELL 224uH (CUSTOM) | 40.5 | 162.00 | 4.8 | 34.42 | ASSUMED x0.85 [custom_magnetic_large] | estimate L_CELL 224uH (CUSTOM): ESTIMATE (sim/magnetics.py design_pv_inductor.js | low |
+| 8 | 3 | 2 | CM choke 200 A (CUSTOM) | 80 | 160.00 | 4.7 | 68 | ASSUMED x0.85 [custom_magnetic_large] | estimate CM choke 200 A (CUSTOM): ESTIMATE: as the 160 A choke with a larger cor | low |
 | 9 | 13 | 4 | heatsink | 27 | 108.00 | 3.2 | 22.95 | ASSUMED x0.85 [custom_mech] | estimate heatsink: ESTIMATE: Al mass 4.4 kg (base 150x300x12 mm + 30 fins 60x2x3 | low |
-| 10 | 437 | 6 | C2M1000170D | 17.09 | 102.54 | 3.1 | 14.53 | ASSUMED x0.85 [asia_part_estimate] | estimate C2M1000170D: ESTIMATE: LCSC lists the part (C5713500) 'from US$17.0935' | low |
+| 10 | 437 | 6 | C2M1000170D | 17.09 | 102.54 | 3.0 | 14.53 | ASSUMED x0.85 [asia_part_estimate] | estimate C2M1000170D: ESTIMATE: LCSC lists the part (C5713500) 'from US$17.0935' | low |
 | 11 | 418 | 16 | UCC14241QDWNRQ1 | 4.972 | 79.55 | 2.4 | 4.972 | REAL: TI.com UCC14241QDWNRQ1 @1000+ break (annual qty 80000) | TI.com UCC14241QDWNRQ1 @1000+ (2026-10-04) | high |
 | 12 | 289 | 24 | C4AQUBU4220A1YJ | 2.795 | 67.08 | 2.0 | 1.453 | ASSUMED x0.52 [single_piece_list] | DigiKey Austria (web-search snippet; page blocked) C4AQUBU4220A1YJ @1+ (2026-10- | medium |
 | 13 | 430 | 80 | TNPV1210124KBEEA | 0.8 | 64.00 | 1.9 | 0.68 | ASSUMED x0.85 [asia_part_estimate] | estimate TNPV1210124KBEEA: ESTIMATE: Vishay TNPV 1210 series; TNPV12101M00BEEA i | low |
@@ -583,9 +583,9 @@ Groups are assigned by rule from the line's description and the board that carri
 | 18 | 354 | 6 | AMC3330DWE | 6.261 | 37.57 | 1.1 | 6.261 | REAL: TI.com AMC3330DWE @1000+ break (annual qty 30000) | TI.com AMC3330DWE @1000+ (2026-10-04) | high |
 | 19 | 429 | 36 | TNPV12061M00BEEA | 1.026 | 36.93 | 1.1 | 0.5334 | ASSUMED x0.52 [single_piece_list] | Farnell UK (web-search snippet; page blocked) 2475097 @1+ (2026-10-04) single-pi | medium |
 | 20 | 265 | 2 | CSM2F-8518-L100J01 | 16.57 | 33.14 | 1.0 | 14.08 | ASSUMED x0.85 [short_table] | DigiKey (web-search snippet; page blocked) 9487207 @100+ (2026-10-04) | medium |
-| 21 | 8 | 32 | PAD AlN 1 mm (CUSTOM) | 1 | 32.00 | 1.0 | 0.7 | ASSUMED x0.70 [ceramic_pad] | estimate PAD AlN 1 mm (CUSTOM): ESTIMATE: AlN ceramic insulator 15.9 x 20.9 mm + | low |
+| 21 | 8 | 32 | PAD AlN 1 mm (CUSTOM) | 1 | 32.00 | 0.9 | 0.7 | ASSUMED x0.70 [ceramic_pad] | estimate PAD AlN 1 mm (CUSTOM): ESTIMATE: AlN ceramic insulator 15.9 x 20.9 mm + | low |
 | 22 | 460 | 2 | 220R RST200 RFQ | 15 | 30.00 | 0.9 | 12 | ASSUMED x0.80 [protection_estimate] | estimate 220R RST200 RFQ: ESTIMATE: Miba RST 200 aluminium-housed power resistor | low |
-| 23 | 453 | 26 | 7461057 | 1.1 | 28.60 | 0.9 | 0.935 | ASSUMED x0.85 [asia_part_estimate] | estimate 7461057: ESTIMATE: Wurth REDCUBE press-fit M3 terminal 100 A, no readab | low |
+| 23 | 453 | 26 | 7461057 | 1.1 | 28.60 | 0.8 | 0.935 | ASSUMED x0.85 [asia_part_estimate] | estimate 7461057: ESTIMATE: Wurth REDCUBE press-fit M3 terminal 100 A, no readab | low |
 | 24 | 324 | 2 | G7L-2A-X DC24 | 12.71 | 25.42 | 0.8 | 10.17 | ASSUMED x0.80 [protection_estimate] | estimate G7L-2A-X DC24: ESTIMATE: no price for the -X variant; DigiKey G7L-2A-BU | low |
 | 25 | 281 | 4 | 002637115 | 6 | 24.00 | 0.7 | 4.8 | ASSUMED x0.80 [protection_estimate] | estimate 002637115: ESTIMATE: ETI CH14x51 gPV 36 A 1000 V d.c. fuse link (varist | low |
 
@@ -593,14 +593,14 @@ Groups are assigned by rule from the line's description and the board that carri
 
 | BOM item | qty | value / MPN | ext USD | % of BOM | conf | basis |
 |---|---|---|---|---|---|---|
-| 293 | 2 | HP10NH2GPV250 | 380.00 | 11.3 | low | HP10NH2GPV250: ESTIMATE: Mersen NH2 gPV 250 A 1000 V DC fuse link, no public price; taken at 1.55 x the NH1 160 A class estimate (Siemens 3NE1224-4 EU |
-| 282 | 2 | 004110760 | 247.00 | 7.4 | low | 004110760: ESTIMATE: ETI NH1 gBat 200 A 1000 V DC fuse link, no public price (ETI publishes none); taken equal to the Siemens NH1 160 A 1000 V DC gP.. |
+| 293 | 2 | HP10NH2GPV250 | 380.00 | 11.2 | low | HP10NH2GPV250: ESTIMATE: Mersen NH2 gPV 250 A 1000 V DC fuse link, no public price; taken at 1.55 x the NH1 160 A class estimate (Siemens 3NE1224-4 EU |
+| 282 | 2 | 004110760 | 247.00 | 7.3 | low | 004110760: ESTIMATE: ETI NH1 gBat 200 A 1000 V DC fuse link, no public price (ETI publishes none); taken equal to the Siemens NH1 160 A 1000 V DC gP.. |
 | 7 | 4 | L_CELL 224uH (CUSTOM) | 162.00 | 4.8 | low | L_CELL 224uH (CUSTOM): ESTIMATE (sim/magnetics.py design_pv_inductor.json rev M2, design to cost D-044 / D-048): 2 x POCO NPC290026 16 + 0.54 kg solid |
-| 3 | 2 | CM choke 200 A (CUSTOM) | 160.00 | 4.8 | low | CM choke 200 A (CUSTOM): ESTIMATE: as the 160 A choke with a larger core (about 0.8 kg, 45) and 200 A windings (6 USD Cu) + 14 + 15; no quote |
-| 344 | 32 | SG2M040170HJ | 130.24 | 3.9 | low | SG2M040170HJ: ESTIMATE (sim/out/pv_design/cell_spec.json device_primary.price_source; architect's list 4.07): Sichain RFQ pending, not on LCSC; scaled |
+| 3 | 2 | CM choke 200 A (CUSTOM) | 160.00 | 4.7 | low | CM choke 200 A (CUSTOM): ESTIMATE: as the 160 A choke with a larger core (about 0.8 kg, 45) and 200 A windings (6 USD Cu) + 14 + 15; no quote |
 | 13 | 4 | heatsink | 108.00 | 3.2 | low | heatsink: ESTIMATE: Al mass 4.4 kg (base 150x300x12 mm + 30 fins 60x2x300 mm = 1620 cm3 x 2.70 g/cm3; base and fin thickness are assumed, the BOM g... |
-| 437 | 6 | C2M1000170D | 102.54 | 3.1 | low | C2M1000170D: ESTIMATE: LCSC lists the part (C5713500) 'from US$17.0935' but out of stock, so no break table is readable; this single-piece figure is u |
+| 437 | 6 | C2M1000170D | 102.54 | 3.0 | low | C2M1000170D: ESTIMATE: LCSC lists the part (C5713500) 'from US$17.0935' but out of stock, so no break table is readable; this single-piece figure is u |
 | 430 | 80 | TNPV1210124KBEEA | 64.00 | 1.9 | low | TNPV1210124KBEEA: ESTIMATE: Vishay TNPV 1210 series; TNPV12101M00BEEA is USD 0.655 at 5000+ (Future Electronics, web-search result 2026-10-04); the 10 |
+| 461 | 4 | 300R RST200 RFQ | 60.00 | 1.8 | low | 300R RST200 RFQ: ESTIMATE: Miba RST 200 aluminium-housed power resistor (2.3-4 kJ pulse, 3 kW for 3 s, 3.5 kV insulation): no price found (Miba publis |
 
 ### Lines with no price
 
@@ -616,23 +616,23 @@ Groups are assigned by rule from the line's description and the board that carri
 
 ## DAB-D60-FULL (old platform, for contrast)
 
-Total BOM cost **3614.52 USD at catalogue prices = 60.2 USD per kW at 60 kW**; **2926.84 USD at a 5000-unit build = 48.8 USD per kW at 60 kW**. Lines: 442 (437 purchased-part lines; 5 NOPART lines such as test points and net ties are not costed).
+Total BOM cost **3614.70 USD at catalogue prices = 60.2 USD per kW at 60 kW**; **2927.30 USD at a 5000-unit build = 48.8 USD per kW at 60 kW**. Lines: 442 (437 purchased-part lines; 5 NOPART lines such as test points and net ties are not costed).
 
 ### Evidence behind the catalogue total
 
 | basis | lines | parts | USD | share of the costed total |
 |---|---|---|---|---|
-| real price of the part (looked up) | 120 | 479 | 1839.64 | 50.9 % |
+| real price of the part (looked up) | 121 | 487 | 1840.10 | 50.9 % |
 | chip-passive class rule (price of a real LCSC example part of the same class) | 238 | 1795 | 34.81 | 1.0 % |
-| engineering estimate with stated basis | 76 | 247 | 1740.08 | 48.1 % |
+| engineering estimate with stated basis | 75 | 239 | 1739.78 | 48.1 % |
 | no price at all (UNPRICED, not in the total) | 3 | 5 | not known | not in the total |
 
 ### The 5000-unit view
 
 | basis of the 5000-unit price | lines | USD at 5000 units | share of the 5000-unit total |
 |---|---|---|---|
-| REAL: a published price at a break >= 1000 pieces | 342 | 353.33 | 12.1 % |
-| ASSUMED: catalogue price x factor of volume_factors.csv | 92 | 2573.51 | 87.9 % |
+| REAL: a published price at a break >= 1000 pieces | 343 | 354.04 | 12.1 % |
+| ASSUMED: catalogue price x factor of volume_factors.csv | 91 | 2573.26 | 87.9 % |
 
 The 5000-unit total is 81.0 % of the catalogue total.
 
@@ -640,7 +640,7 @@ The 5000-unit total is 81.0 % of the catalogue total.
 |---|---|---|---|---|---|
 | short_table | 0.85 | 8 | 1020.74 | 867.63 | medium |
 | protection_estimate | 0.80 | 9 | 578.56 | 462.85 | low |
-| asia_part_estimate | 0.85 | 54 | 575.62 | 489.27 | low |
+| asia_part_estimate | 0.85 | 53 | 575.32 | 489.02 | low |
 | single_piece_list | 0.52 | 8 | 495.69 | 257.76 | medium |
 | custom_magnetic_large | 0.85 | 4 | 409.00 | 347.65 | low |
 | custom_mech | 0.85 | 3 | 152.00 | 129.20 | low |
@@ -659,12 +659,12 @@ Groups are assigned by rule from the line's description and the board that carri
 | thermal | 320.00 | 8.9 | 272.00 | 3 | 3 |
 | capacitors | 212.07 | 5.9 | 183.61 | 83 | 81 |
 | sensing | 180.00 | 5.0 | 134.85 | 11 | 5 |
-| gate drive | 167.95 | 4.6 | 152.34 | 21 | 8 |
-| control + communications | 145.36 | 4.0 | 142.43 | 54 | 11 |
+| gate drive | 168.27 | 4.7 | 152.81 | 21 | 7 |
+| control + communications | 145.29 | 4.0 | 142.43 | 54 | 11 |
 | connectors + harness | 85.06 | 2.4 | 72.58 | 26 | 15 |
-| auxiliary supply | 52.14 | 1.4 | 50.88 | 36 | 6 |
+| auxiliary supply | 52.06 | 1.4 | 50.87 | 36 | 6 |
 | resistors + other board parts | 14.18 | 0.4 | 12.53 | 164 | 163 |
-| **total BOM** | **3614.52** | 100 | **2926.84** | 434 | |
+| **total BOM** | **3614.70** | 100 | **2927.30** | 434 | |
 | PCB / mechanics outside the BOM (rough, not in the BOM total) | 324.06 | | 271.93 | | all assumed |
 
 ### Outside the BOM (rough figures, not part of the BOM total)
@@ -679,7 +679,7 @@ Groups are assigned by rule from the line's description and the board that carri
 | board assembly (2519 placements, 5 boards) | 70.38 | 56.30 | 0.020 USD per placement + 4.0 USD per board |
 | enclosure / sheet metal / packaging | 110.00 | 93.50 | see cost_estimates.csv outside:enclosure |
 | final assembly, test and burn-in | 70.00 | 59.50 | see cost_estimates.csv outside:final_assembly_test |
-| **BOM + outside, rough** | **3938.58** (65.6 USD per kW at 60 kW) | **3198.77** (53.3 USD per kW at 60 kW) | |
+| **BOM + outside, rough** | **3938.76** (65.6 USD per kW at 60 kW) | **3199.23** (53.3 USD per kW at 60 kW) | |
 
 ### Top 25 cost lines (catalogue)
 
@@ -742,26 +742,26 @@ Groups are assigned by rule from the line's description and the board that carri
 
 | module | kW | port current A | A per kW | A/kW relative to the benchmark | BOM multiplier | benchmark-equivalent BOM USD | our BOM, catalogue USD | catalogue / equivalent | our BOM at 5000 units USD | 5000 units / equivalent | equivalent BOM at margin 15 % / 25 % / 30 % |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| PV-P75 | 75 | 135 | 1.80 | 1.55 | 1.39 | 410 | 952 | 2.3x | 796 | 1.9x | 465 / 410 / 383 |
-| PV-P100-110 | 100 | 180 | 1.80 | 1.55 | 1.39 | 547 | 1135 | 2.1x | 949 | 1.7x | 620 / 547 / 511 |
-| PV-P100-110 | 110 | 180 | 1.64 | 1.41 | 1.29 | 559 | 1135 | 2.0x | 949 | 1.7x | 634 / 559 / 522 |
-| PCS-P125 | 125 | 250 | 2.00 | 1.72 | 1.51 | 744 | 1521 | 2.0x | 1292 | 1.7x | 843 / 744 / 694 |
-| PV-P75-FULL (old platform, for contrast) | 75 | 135 | 1.80 | 1.55 | 1.39 | 410 | 2812 | 6.9x | 2254 | 5.5x | 465 / 410 / 383 |
-| PV-P100-110-FULL (old platform, for contrast) | 100 | 180 | 1.80 | 1.55 | 1.39 | 547 | 3348 | 6.1x | 2664 | 4.9x | 620 / 547 / 511 |
-| PV-P100-110-FULL (old platform, for contrast) | 110 | 180 | 1.64 | 1.41 | 1.29 | 559 | 3348 | 6.0x | 2664 | 4.8x | 634 / 559 / 522 |
+| PV-P75 | 75 | 135 | 1.80 | 1.55 | 1.39 | 410 | 976 | 2.4x | 817 | 2.0x | 465 / 410 / 383 |
+| PV-P100-110 | 100 | 180 | 1.80 | 1.55 | 1.39 | 547 | 1167 | 2.1x | 977 | 1.8x | 620 / 547 / 511 |
+| PV-P100-110 | 110 | 180 | 1.64 | 1.41 | 1.29 | 559 | 1167 | 2.1x | 977 | 1.7x | 634 / 559 / 522 |
+| PCS-P125 | 125 | 250 | 2.00 | 1.72 | 1.51 | 744 | 1557 | 2.1x | 1322 | 1.8x | 843 / 744 / 694 |
+| PV-P75-FULL (old platform, for contrast) | 75 | 135 | 1.80 | 1.55 | 1.39 | 410 | 2836 | 6.9x | 2275 | 5.5x | 465 / 410 / 383 |
+| PV-P100-110-FULL (old platform, for contrast) | 100 | 180 | 1.80 | 1.55 | 1.39 | 547 | 3380 | 6.2x | 2692 | 4.9x | 620 / 547 / 511 |
+| PV-P100-110-FULL (old platform, for contrast) | 110 | 180 | 1.64 | 1.41 | 1.29 | 559 | 3380 | 6.0x | 2692 | 4.8x | 634 / 559 / 522 |
 | DAB-D60-FULL (old platform, for contrast) | 60 | 135 | 2.25 | 1.94 | 1.66 | 393 | 3615 | 9.2x | 2927 | 7.5x | 445 / 393 / 366 |
 
 In the terms of the owner's benchmark (a selling price per kW): the BOM of each module divided by the BOM share 0.60 is the selling price it would need if it had the benchmark maker's margin and cost structure. This is a bookkeeping conversion, not a price anyone would quote.
 
 | module | kW | implied selling price from our BOM, catalogue, USD/kW | implied selling price at 5000 units, USD/kW | benchmark selling price, USD/kW | benchmark adjusted for current, USD/kW |
 |---|---|---|---|---|---|
-| PV-P75 | 75 | 21.2 | 17.7 | 6.58 | 9.12 |
-| PV-P100-110 | 100 | 18.9 | 15.8 | 6.58 | 9.12 |
-| PV-P100-110 | 110 | 17.2 | 14.4 | 6.58 | 8.47 |
-| PCS-P125 | 125 | 20.3 | 17.2 | 6.58 | 9.91 |
-| PV-P75-FULL (old platform, for contrast) | 75 | 62.5 | 50.1 | 6.58 | 9.12 |
-| PV-P100-110-FULL (old platform, for contrast) | 100 | 55.8 | 44.4 | 6.58 | 9.12 |
-| PV-P100-110-FULL (old platform, for contrast) | 110 | 50.7 | 40.4 | 6.58 | 8.47 |
+| PV-P75 | 75 | 21.7 | 18.2 | 6.58 | 9.12 |
+| PV-P100-110 | 100 | 19.5 | 16.3 | 6.58 | 9.12 |
+| PV-P100-110 | 110 | 17.7 | 14.8 | 6.58 | 8.47 |
+| PCS-P125 | 125 | 20.8 | 17.6 | 6.58 | 9.91 |
+| PV-P75-FULL (old platform, for contrast) | 75 | 63.0 | 50.6 | 6.58 | 9.12 |
+| PV-P100-110-FULL (old platform, for contrast) | 100 | 56.3 | 44.9 | 6.58 | 9.12 |
+| PV-P100-110-FULL (old platform, for contrast) | 110 | 51.2 | 40.8 | 6.58 | 8.47 |
 | DAB-D60-FULL (old platform, for contrast) | 60 | 100.4 | 81.3 | 6.58 | 10.91 |
 
 The rows ending in -FULL are the roadmap's earlier platform. Current ratings are the port ratings (PV-05/PV-08 135 A; PV-PORT-180 180 A; DAB port fuses 135 A) taken from the module designs; where they change, MODULE_AMPS in gen/cost.py changes.
@@ -772,13 +772,13 @@ The rows ending in -FULL are the roadmap's earlier platform. Current ratings are
 
 | module | our BOM, catalogue USD/kW | our BOM at 5000 units USD/kW | implied BOM of the median listing USD/kW |
 |---|---|---|---|
-| PV-P75 at 75 kW | 12.7 | 10.6 | 20.2 |
-| PV-P100-110 at 100 kW | 11.4 | 9.5 | 20.2 |
-| PV-P100-110 at 110 kW | 10.3 | 8.6 | 20.2 |
-| PCS-P125 at 125 kW | 12.2 | 10.3 | 20.2 |
-| PV-P75-FULL (old platform, for contrast) at 75 kW | 37.5 | 30.1 | 20.2 |
-| PV-P100-110-FULL (old platform, for contrast) at 100 kW | 33.5 | 26.6 | 20.2 |
-| PV-P100-110-FULL (old platform, for contrast) at 110 kW | 30.4 | 24.2 | 20.2 |
+| PV-P75 at 75 kW | 13.0 | 10.9 | 20.2 |
+| PV-P100-110 at 100 kW | 11.7 | 9.8 | 20.2 |
+| PV-P100-110 at 110 kW | 10.6 | 8.9 | 20.2 |
+| PCS-P125 at 125 kW | 12.5 | 10.6 | 20.2 |
+| PV-P75-FULL (old platform, for contrast) at 75 kW | 37.8 | 30.3 | 20.2 |
+| PV-P100-110-FULL (old platform, for contrast) at 100 kW | 33.8 | 26.9 | 20.2 |
+| PV-P100-110-FULL (old platform, for contrast) at 110 kW | 30.7 | 24.5 | 20.2 |
 | DAB-D60-FULL (old platform, for contrast) at 60 kW | 60.2 | 48.8 | 20.2 |
 
 ## DC-to-AC PCS next to the PV module (design study)
@@ -789,28 +789,28 @@ The PCS (AC-01...AC-03, PCS-P125, 125 kW) has a design study and, since D-061 to
 |---|---|---|---|---|
 | status | BOM of drawn boards | BOM of drawn boards | design study | design study |
 | rated power, kW | 75 | 100 | 125 | 125 |
-| catalogue, USD | 951.88 | 1135.02 | 1408.90 | 1694.23 |
-| catalogue, USD/kW | 12.7 | 11.4 | 11.3 | 13.6 |
-| at 5000 units, USD | 796.12 | 949.00 | 1130.54 | 1360.99 |
-| at 5000 units, USD/kW | 10.6 | 9.5 | 9.0 | 10.9 |
-| share of the 5000-unit figure on real prices, % | 16 | 15 | 5 | not stated |
+| catalogue, USD | 975.97 | 1167.09 | 1408.94 | 1694.27 |
+| catalogue, USD/kW | 13.0 | 11.7 | 11.3 | 13.6 |
+| at 5000 units, USD | 817.10 | 976.90 | 1130.61 | 1361.08 |
+| at 5000 units, USD/kW | 10.9 | 9.8 | 9.0 | 10.9 |
+| share of the 5000-unit figure on real prices, % | 15 | 15 | 5 | not stated |
 
-PCS-P125 3-wire by block (catalogue / 5000 units, USD): power 239.26 / 201.98; gate drive 50.54 / 37.25; lcl filter 522.60 / 421.35; sensing 59.50 / 48.83; dc port 189.73 / 142.21; ac port 166.00 / 134.10; aux supply 37.30 / 31.00; control 11.63 / 10.78; interface 8.09 / 7.50; thermal 110.85 / 84.84; mech-elec 13.40 / 10.70.
-The 4-wire option adds a fourth leg, the neutral inductor and a 4-pole disconnect (285.32 / 230.45 USD). The PCS's real-price share is the study's own figure; the PV share counts the lines of this BOM with a published break of 1000 pieces or more.
+PCS-P125 3-wire by block (catalogue / 5000 units, USD): power 239.26 / 201.98; gate drive 50.58 / 37.32; lcl filter 522.60 / 421.35; sensing 59.50 / 48.83; dc port 189.73 / 142.21; ac port 166.00 / 134.10; aux supply 37.30 / 31.00; control 11.63 / 10.78; interface 8.09 / 7.50; thermal 110.85 / 84.84; mech-elec 13.40 / 10.70.
+The 4-wire option adds a fourth leg, the neutral inductor and a 4-pole disconnect (285.33 / 230.47 USD). The PCS's real-price share is the study's own figure; the PV share counts the lines of this BOM with a published break of 1000 pieces or more.
 
 ## Reconciliation of PV-P75 with the architect's list
 
-This BOM at catalogue prices: **951.88 USD**. The architect's costed list `gen/data/costfirst_bom.csv` (PV-P75): **965.72 USD** (its rows add up to 965.72). Difference (BOM minus list) **-13.84 USD**. Rows are paired by part name (a few renamed parts through the ALIAS table of gen/cost.py). The list bundles many small parts into 'class' rows that have no single BOM line (shown as 'list only'); BOM lines the list does not name are 'BOM only'.
+This BOM at catalogue prices: **975.97 USD**. The architect's costed list `gen/data/costfirst_bom.csv` (PV-P75): **965.72 USD** (its rows add up to 965.72). Difference (BOM minus list) **+10.25 USD**. Rows are paired by part name (a few renamed parts through the ALIAS table of gen/cost.py). The list bundles many small parts into 'class' rows that have no single BOM line (shown as 'list only'); BOM lines the list does not name are 'BOM only'.
 
 | step | catalogue USD | at 5000 units USD |
 |---|---|---|
 | architect's list, total | 965.72 | 731.25 |
-| change on paired lines (this BOM 808.02 against the list 892.79) | -84.77 | -8.11 |
-| plus BOM-only lines (257 lines: parts on the drawn boards that the list does not name) | +143.87 | +135.24 |
+| change on paired lines (this BOM 832.04 against the list 892.79) | -60.75 | +12.30 |
+| plus BOM-only lines (257 lines: parts on the drawn boards that the list does not name) | +143.93 | +135.80 |
 | minus list-only rows (17 rows: bundled 'class' rows and parts not drawn) | -72.93 | -62.26 |
-| **this BOM, total** | **951.88** | **796.12** |
+| **this BOM, total** | **975.97** | **817.10** |
 
-At 5000 units the two totals differ by +64.87 USD (this BOM 796.12, the list 731.25). 5k / catalogue is 0.84 here and 0.76 in the list. The list sets a 5k price per row (median ratio 0.85, lowest 0.52; its largest single reduction is L_CELL 224uH (CUSTOM): 80.00 to 55.00 USD per piece, 75 USD in total); this BOM uses published breaks of 1,000 pieces or more where they exist (mostly at the catalogue price already) and the class factors of gen/data/volume_factors.csv elsewhere.
+At 5000 units the two totals differ by +85.85 USD (this BOM 817.10, the list 731.25). 5k / catalogue is 0.84 here and 0.76 in the list. The list sets a 5k price per row (median ratio 0.85, lowest 0.52; its largest single reduction is L_CELL 224uH (CUSTOM): 80.00 to 55.00 USD per piece, 75 USD in total); this BOM uses published breaks of 1,000 pieces or more where they exist (mostly at the catalogue price already) and the class factors of gen/data/volume_factors.csv elsewhere.
 
 ### By function group (list-only rows are placed by their words and block, so the split is approximate)
 
@@ -819,21 +819,22 @@ At 5000 units the two totals differ by +64.87 USD (this BOM 796.12, the list 731
 | magnetics | 164.62 | 265.40 | -100.78 |
 | capacitors | 107.22 | 80.40 | +26.82 |
 | control + communications | 42.42 | 16.38 | +26.04 |
-| resistors + other board parts | 17.23 | 0.80 | +16.43 |
+| power semiconductors | 124.20 | 100.18 | +24.02 |
+| resistors + other board parts | 17.22 | 0.80 | +16.42 |
 | connectors + harness | 45.12 | 30.20 | +14.92 |
 | auxiliary supply | 14.61 | 26.60 | -11.99 |
-| protection (fuses, contactors, SPD, TVS) | 257.45 | 247.61 | +9.84 |
-| gate drive | 80.66 | 74.50 | +6.16 |
+| protection (fuses, contactors, SPD, TVS) | 257.40 | 247.61 | +9.79 |
+| gate drive | 80.79 | 74.50 | +6.29 |
 | sensing | 34.46 | 35.80 | -1.34 |
 | thermal | 87.92 | 87.85 | +0.07 |
-| power semiconductors | 100.18 | 100.18 | +0.00 |
-| **total** | **951.88** | **965.72** | **-13.84** |
+| **total** | **975.97** | **965.72** | **+10.25** |
 
 ### Paired lines with a difference of 1 USD or more
 
 | BOM line | qty BOM / list | unit USD BOM / list | ext USD BOM | ext USD list | difference | basis of the BOM price |
 |---|---|---|---|---|---|---|
 | L_CELL 224uH (CUSTOM) | 3 / 3 | 40.5 / 80 | 121.50 | 240.00 | -118.50 | ESTIMATE (sim/magnetics.py design_pv_inductor.json rev M2, design to cost D-044 / D-048):  |
+| SG2M040170HJ | 24 / 24 | 5.071 / 4.07 | 121.70 | 97.68 | +24.02 | LCSC C42456100 @90+ (2026-10-04) |
 | 7461057 | 18 / 10 | 1.1 / 0.6 | 19.80 | 6.00 | +13.80 | ESTIMATE: Wurth REDCUBE press-fit M3 terminal 100 A, no readable price; engineering estima |
 | N-C-644025 | 2 / 2 | 10.9 / 6 | 21.80 | 12.00 | +9.80 | ESTIMATE (sim/magnetics.py design_port_cm_choke.json rev M2, D-048): cased flat-mu nanocry |
 | FCSA3DS456K050H8F9DE3 | 13 / 12 | 5.4 / 5.4 | 70.20 | 64.80 | +5.40 | ESTIMATE (architect's list 5.40): Jianghai CBB-type 45 uF 1300 VDC, no Chinese price found |
@@ -877,7 +878,7 @@ At 5000 units the two totals differ by +64.87 USD (this BOM 796.12, the list 731
 | PORT B (battery) | class | 2 | 1.40 | ESTIMATE: as port A |
 | SENSING | class | 1 | 1.20 | ESTIMATE: LCSC class prices |
 
-**Which is right.** For the drawn boards, the BOM column: it prices every part that is on the schematics (the list prices some small parts as bundles), and it follows the later source where one exists. The three largest paired differences are L_CELL 224uH (CUSTOM) -118.50 USD; 7461057 +13.80 USD; N-C-644025 +9.80 USD. Where the basis of a BOM line reads 'architect's list', the BOM carries the list's estimate over unchanged: the two agree, and the number is only as good as that estimate (an RFQ that has not been answered).
+**Which is right.** For the drawn boards, the BOM column: it prices every part that is on the schematics (the list prices some small parts as bundles), and it follows the later source where one exists. The three largest paired differences are L_CELL 224uH (CUSTOM) -118.50 USD; SG2M040170HJ +24.02 USD; 7461057 +13.80 USD. Where the basis of a BOM line reads 'architect's list', the BOM carries the list's estimate over unchanged: the two agree, and the number is only as good as that estimate (an RFQ that has not been answered).
 
-PV-P100/110: this BOM 1135.02 USD, architect's list 1176.64 USD, difference -41.62 USD (the list's rows give the PV-P100/110 quantity in their notes; not paired line by line here).
+PV-P100/110: this BOM 1167.09 USD, architect's list 1176.64 USD, difference -9.55 USD (the list's rows give the PV-P100/110 quantity in their notes; not paired line by line here).
 

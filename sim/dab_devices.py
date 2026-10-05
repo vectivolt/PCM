@@ -387,6 +387,7 @@ def disc(mpn, maker, src, pages, e600, e800, e_test, e_rg, e_T, t_rg, vsd, qrr_r
              vth_min_25=c['vgs_th_V']['min_25C'], vth_175=c['vgs_th_V']['typ_175C'],
              qg=gq['qg_at_18V_nC'] * 1e-9, qgs=gq['q_plateau_start_nC'] * 1e-9,
              qgd=(gq['q_plateau_end_nC'] - gq['q_plateau_start_nC']) * 1e-9,
+             v_plateau=0.5 * sum(gq['plateau_V']), ciss=c['cap_pF']['ciss'] * 1e-12,
              rg_int=c['rg_int_ohm']['typ'], rg_int_min=rg_int_min, qrr=q_v, i_dm=float(c['i_d_pulse_A']),
              i_rms_lead=float(c['i_d_cont_A']['tc100C']), tsc=2.0e-6, qualification=c['qualification'] or
              'none stated in the datasheet', doc_rev=c['doc_rev'],
@@ -723,7 +724,7 @@ def composite(name, parts, rge_on, rge_off):
     d['e_rg'] = {}
     d['vsd_i'] = np.array([5.0, 10, 25, 50, 75, 100, 150])
     d['vsd_v'] = {t: np.max([g_vsd(p, d['vsd_i'], t) for p in parts], 0) for t in (25, 175)}
-    for k in ('rth_jc', 'qg', 'qrr', 'r_pkg', 'l_stray'):
+    for k in ('rth_jc', 'qg', 'qrr', 'r_pkg', 'l_stray', 'ciss', 'v_plateau'):
         d[k] = max((p.get(k) or 0.0) for p in parts)
     for k in ('qgs', 'qgd'):                     # not tabulated by every maker: 30 % of Q_g each (ASSUMPTION)
         d[k] = max((p.get(k) or 0.3 * p['qg']) for p in parts)

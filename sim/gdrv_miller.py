@@ -29,7 +29,12 @@ def design(dev, npar):
     des = tr.build_design(pd.FROZEN["cand"], dev, npar, pd.FROZEN["fsw"], pd.FROZEN["ripple"])
     m_on, _ = tr.transient_check(des)
     assert m_on is not None, dev
-    des.update(rg_on_mult=m_on, rg_ks=0.5, dec=pd.DEC_CHOICE)
+    if not tr.IND_DESIGN:
+        raise SystemExit("sim/out/magnetics/design_pv_inductor.json is missing: generate it with .venv/bin/python sim/magnetics.py")
+    des["ind"] = tr.ind_ocp_fields(tr.inductor_from_design(), des["i_ocp"])      # as pv_design.choose(): the magnetics construction,
+    des["caps"] = tr.size_caps(des)                                                # then the per-phase port banks the board draws
+    pd.size_port_caps(des)
+    des.update(rg_on_mult=m_on, rg_ks=pd.gdrv_check()["r_ks"], dec=pd.DEC_CHOICE)
     return des
 
 
@@ -57,7 +62,17 @@ def nfet_victim_deck(d, npar, wave, tag, rg, a, rks, voff, vth_victim=None, l_cl
             "vl_pk": float(vl.max()), "e_vic": float(np.trapezoid(-vdd * idd, t)), "deck": os.path.relpath(deck, HERE)}
 
 
-def case(role, dev, npar, rails=(-3.5,), mults=(None,), ls=(L_CLAMP,)):
+def admitted_corners(des):
+    """PCM-18: the admitted corners besides the worst one (OVP trip, hardware-trip current): bus 1000 V and 1100 V at the normal inductor
+    peak current (cell_spec worst_case_stresses) and 1000 V at the trip current"""
+    path = os.path.join(pd.OUT, "cell_spec.json")
+    if not os.path.exists(path):
+        raise SystemExit("%s is missing: generate it with .venv/bin/python sim/pv_design.py" % path)
+    i_n = json.load(open(path))["worst_case_stresses"]["inductor_I_peak_A"]
+    return ((1000.0, i_n), (1000.0, des["i_ocp"]), (tr.V_OVP, i_n))
+
+
+def case(role, dev, npar, rails=(-3.5,), mults=(None,), ls=(L_CLAMP,), corners=False):
     des = design(dev, npar)
     cal = tr.calibrate(des["d"], des["dev"])
     d = des["d"]
@@ -84,6 +99,17 @@ def case(role, dev, npar, rails=(-3.5,), mults=(None,), ls=(L_CLAMP,)):
                   f"N-FET @{v:g} V L {lc * 1e9:g} nH pin {new['pin_pk']:+.2f} die {new['die_pk']:+.2f} (I_M {new['i_m_pk']:.2f} A) vs "
                   f"Vth,min,175 {d['vth_175_min']:.2f} V | extra E at Vth,min {1e6 * r['nfet_vthmin_e_extra_J']:.1f} uJ",
                   flush=True)
+    res["corners"] = []
+    for v_c, i_c in (admitted_corners(des) if corners else ()):      # same network (rails[0], 1 nH clamp loop) at the other corners
+        tag = f"{dev}_c{v_c:.0f}_{i_c:.0f}"
+        agg = pd.leg_run(des, v_c, i_c, "gdrv_agg_" + tag, wave=True)
+        w = agg.pop("wave")
+        new = nfet_victim_deck(d, npar, w, "vic_" + tag, cal["rg_eff"], cal["a"], des["rg_ks"], rails[0], l_clamp=1e-9)
+        res["corners"].append({"V": v_c, "I_A": round(i_c, 2), "device_peak_V": agg["v_pk"], "dvdt_on_V_per_ns": agg["dvdt_on"] / 1e9,
+                               "voff": rails[0], "l_clamp_nH": 1.0, "pin_pk": new["pin_pk"], "die_pk": new["die_pk"], "i_m_pk": new["i_m_pk"]})
+        c = res["corners"][-1]
+        print(f"{role} corner {v_c:.0f} V / {i_c:.1f} A: device peak {c['device_peak_V']:.0f} V, dv/dt {c['dvdt_on_V_per_ns']:.0f} V/ns, "
+              f"N-FET @{rails[0]:g} V L 1 nH pin {c['pin_pk']:+.2f} die {c['die_pk']:+.2f} vs Vth,min,175 {d['vth_175_min']:.2f} V", flush=True)
     return res
 
 
@@ -120,5 +146,5 @@ if __name__ == "__main__":
     out = {}
     for role in which:
         dev, npar, rails, mults, ls = sets[role]
-        out[role] = case(role, dev, npar, rails, mults, ls)
+        out[role] = case(role, dev, npar, rails, mults, ls, corners=(role == "primary"))
     json.dump(out, open(os.path.join(OUT, "result_%s.json" % "_".join(which)), "w"), indent=1)

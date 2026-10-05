@@ -1203,7 +1203,7 @@ def build_design():
                       "and AN1 CMPSS window -> TRIP4/5/7/8; port OV (ADC PPB on VA/VB, CMPSS backup), open inputs "
                       "(CMPSS low), IA/IB SC (CMPSS) and OC (PPB), P_ID (PPB) -> TRIP9 for every cell; E-stop -> "
                       "INPUTXBAR6 -> TRIP6. CMPSS reference = VDAC = REF5025E; firmware nulls each channel at zero input "
-                      "at start-up; trip bands in the pin plan, asserted against sim/out/pv_control/control_spec.json. "
+                      "at start-up; trip bands in the pin plan, asserted against the frozen earlier-platform snapshot gen/data/control_spec_platform1.json (D-044). "
                       "EN pair = GATE_EN AND CHB_OK AND MCU enable (74LVC11A); line drivers on only with CHB_OK, MCU "
                       "enable and RDY; EN readback on GPIO100-103. +24V_GD feeds only the cell eFuses.",
                       "Rails: 24 V -> 5 V (LMR38020) -> 3.3 V (TPS62133); its PG enables 1.2 V (TPS62130) and 3.3 V "
@@ -1266,7 +1266,9 @@ def check_supervisor():
 
 
 # ---- hardware-trip budgets (INT-05): errors at the ADC node that remain after the firmware start-up null at zero input
-SPEC = os.path.join(L.REPO, "sim/out/pv_control/control_spec.json")
+SPEC = os.path.join(L.REPO, "gen/data/control_spec_platform1.json")   # FROZEN snapshot (2026-10-05) of the control spec this
+#   earlier-platform card was designed against; the live sim/out/pv_control/control_spec.json now describes the cost-first
+#   PV-CTL chain (D-044, PCM-02 re-base) and no longer carries the AMC3302 / LA 150-P keys this check needs
 PORT_SPEC = os.path.join(L.REPO, "sim/out/port_design/port_spec.json")
 LSB = 2.5 / 4096                   # 12 bit, VREFHI = VDAC = 2.5 V
 ADC_ERR = (5.0, 2.0)               # SPRSP14E 7.11.2.3.6: gain +/-5 LSB at full scale, INL +/-2 LSB (offset nulled)

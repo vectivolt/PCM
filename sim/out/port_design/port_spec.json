@@ -837,5 +837,81 @@
    "pull_in_guaranteed_to_C_at_21V": 50.4,
    "precharge_relay": "no economiser: energised < 1 s per attempt"
   }
+ },
+ "pcs_port": {
+  "fuse": {
+   "mpn": "HCHVF1000-400A-38R",
+   "mfr": "Zhejiang HIITIO",
+   "In_A": 400.0,
+   "I_min_break_A_read": 1194,
+   "I2t_melt_A2s": 43083.0,
+   "I2t_clear_A2s": 289502.0,
+   "Icu_A": 50000.0,
+   "tau_s": 0.0025
+  },
+  "contactor": {
+   "mpn": "HFE82V-300C/1000-24-H-C5-1",
+   "sc_capacity": [
+    [
+     3000,
+     1.5
+    ],
+    [
+     5000,
+     0.35
+    ],
+    [
+     6000,
+     0.15
+    ],
+    [
+     7000,
+     0.06
+    ],
+    [
+     8000,
+     0.006
+    ],
+    [
+     10000,
+     0.0015
+    ]
+   ],
+   "bounce_A": [
+    6000.0,
+    8000.0
+   ]
+  },
+  "oc_band_A": [
+   387,
+   413
+  ],
+  "hold_off_band_A": [
+   967,
+   1033
+  ],
+  "contactor_breaks_up_to_A": 1033,
+  "openings_at_band_top": 2.3,
+  "installation_band_A": [
+   967,
+   2009
+  ],
+  "installation_clear_within_s": 2.49,
+  "coordinated_A": [
+   2029,
+   7414
+  ],
+  "not_coordinated_above_A": 7487,
+  "Ipsc_max_for_coordination_A": 7487,
+  "peak_at_50kA_A": {
+   "cut_off_chart": 10122,
+   "tau 1.0 ms": 16861,
+   "tau 2.5 ms": 12770
+  },
+  "bounce_from_prospective_A": [
+   6083,
+   19348
+  ],
+  "statement": "the battery-side protection must interrupt any current of 0.97-2.01 kA into the PCS DC port within 2.5 s (the contactor's 130 C curve at the band top; 25 s at 1 kA), and either limit the battery's prospective short-circuit current at the PCS DC terminals to <= 7.5 kA (L/R <= 1 ms) or interrupt currents above it within the contactor's short-circuit capacity (6 ms at 8 kA, 1.5 ms at 10 kA) - the PCS's own 400 A links protect the contactor only between 2.0-7.4 kA.  The fuse data are averages from a chart with no tolerance band (+/-10 % in current assumed); its high-current tail (2.5-6 ms at 20-50 kA) is not consistent with the tabulated 43 kA2s melting I2t (adiabatic melting at 50 kA takes < 1 ms) - an RFQ / test item."
  }
 }

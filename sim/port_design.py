@@ -281,25 +281,25 @@ def ensure(cond, msg):
 # 0. Bus capacitance: the cell / DAB engineers' published values (+ the 100 uF .. 1 mF design envelope)
 # =====================================================================================================
 def bus_capacitances():
+    """the cell / DAB engineers' published bank capacitances (main() adds the 100 uF .. 1 mF envelope).  Both spec files must exist
+    and carry their banks: a missing or emptied file stops the script instead of a silent envelope-only run (PCM-23)"""
     cases, notes = [], []
     p = os.path.join(REPO, "sim/out/pv_design/cell_spec.json")
-    if os.path.exists(p):
-        mod = json.load(open(p)).get("module", {})
-        for k in sorted(mod):
-            if "port_A_capacitance_total_uF" in mod[k]:
-                c = mod[k]["port_A_capacitance_total_uF"] * 1e-6
-                cases.append(("PV %s" % k.replace("_", " "), c))
-                notes.append("PV: cell_spec.json module/%s: %.0f uF per port, %.0f A" %
-                             (k, c * 1e6, mod[k].get("port_current_max_A", float("nan"))))
-    else:
-        notes.append("PV: sim/out/pv_design/cell_spec.json not present - design envelope only")
+    ensure(os.path.exists(p), "%s missing: run sim/pv_design.py first" % p)
+    mod = json.load(open(p))["module"]
+    for k in sorted(mod):
+        if "port_A_capacitance_total_uF" in mod[k]:
+            c = mod[k]["port_A_capacitance_total_uF"] * 1e-6
+            cases.append(("PV %s" % k.replace("_", " "), c))
+            notes.append("PV: cell_spec.json module/%s: %.0f uF per port, %.0f A" % (k, c * 1e6, mod[k]["port_current_max_A"]))
+    ensure(cases, "%s: no module/*/port_A_capacitance_total_uF - re-run sim/pv_design.py" % p)
     p = os.path.join(REPO, "sim/out/dab_design/dab_spec.json")
-    if os.path.exists(p):
-        for port, d in sorted(json.load(open(p)).get("capacitor_banks", {}).items()):
-            cases.append(("DAB %s" % port, d["C_total_F"]))
-            notes.append("DAB: dab_spec.json capacitor_banks/%s: %.0f uF" % (port, d["C_total_F"] * 1e6))
-    else:
-        notes.append("DAB: sim/out/dab_design/dab_spec.json not present")
+    ensure(os.path.exists(p), "%s missing: run sim/dab_design.py first" % p)
+    banks = json.load(open(p))["capacitor_banks"]
+    ensure(banks, "%s: no capacitor_banks - re-run sim/dab_design.py" % p)
+    for port, d in sorted(banks.items()):
+        cases.append(("DAB %s" % port, d["C_total_F"]))
+        notes.append("DAB: dab_spec.json capacitor_banks/%s: %.0f uF" % (port, d["C_total_F"] * 1e6))
     return cases, notes
 
 
@@ -495,12 +495,8 @@ def divider():
     r_th = 1 / (1 / R_DIV_B + 1 / r_top)
     tau = {c: r_th * c for c in (10e-9, C_DIV_F)}                   # rev 2 (10 nF) vs now
     kt = 1.380649e-23 * 300.0
-    rip_f, rip_pp = 96e3, 0.435                                      # cell_spec module/3_cells (fallback values)
-    p = os.path.join(REPO, "sim/out/pv_design/cell_spec.json")
-    if os.path.exists(p):
-        m3 = json.load(open(p)).get("module", {}).get("3_cells", {})
-        rip_f = m3.get("ripple_frequency_kHz", rip_f / 1e3) * 1e3
-        rip_pp = m3.get("port_ripple_voltage_pp_worst_V", rip_pp)
+    m3 = json.load(open(os.path.join(REPO, "sim/out/pv_design/cell_spec.json")))["module"]["3_cells"]   # fail closed (PCM-23)
+    rip_f, rip_pp = m3["ripple_frequency_kHz"] * 1e3, m3["port_ripple_voltage_pp_worst_V"]
     att = {c: 1 / math.sqrt(1 + (2 * math.pi * rip_f * t) ** 2) for c, t in tau.items()}
     return dict(k=k, gain_V_per_V=AMC_V_GAIN * k, v_fs=AMC_V_FSR / k, v_clip=AMC_V_CLIP / k, elem_v=V_MAX / N_DIV,
                 elem_v_clip=AMC_V_CLIP / k / N_DIV, elem_p=(V_MAX / N_DIV) ** 2 / R_DIV_E,
@@ -2071,11 +2067,152 @@ def lean_checks(r):
            "lean: PV contactor breaks the array Isc with 20 % margin and carries the rating")
 
 
+# =====================================================================================================
+# 14. PCS-P125 DC PORT (PCM-15): HIITIO HCHVF1000-400A-38R per pole + Hongfa HFE82V-300C, the lean port's hold-off and OC windows
+# =====================================================================================================
+# HIITIO HCHVF1000-400A-38R (protection/HIITIO-HCHVF1000-Series.pdf, V.20240903010): p1 aR 1000 V DC, breaking 50 kA at tau 2.5
+# (+0.5) ms; p2 400 A row: melting / clearing I2t 43,083 / 289,502 A2s 'average @ 50 kA / 1000 V DC', 112 W.  p4 time-current
+# curves and the cut-off chart are VECTOR paths in the PDF: the 400 A curve (stroke 0.824 0.376 0.0706, legend '400A') and the 400 A
+# cut-off line (stroke 0.149 0.267 0.471) read from the page content stream; axes = the plot clip boxes (100..100,000 A x
+# 0.001..1000 s; 100..100,000 A x 100..100,000 A).  The curve is dashed up to 1.19 kA: taken as outside the breaking range (as the
+# HPE501's dashed part), and as the PRE-ARC time (the sheet does not say).  The cut-off chart's x axis is 'prospective symmetrical RMS'
+# (AC terms): read here as the DC prospective current, ASSUMED.
+F400_BEZ = [((181.45, 877.16), (199.68, 810.82), (211.71, 747.1), (236.14, 678.16)),        # dashed part
+            ((236.14, 678.16), (260.57, 609.22), (297.08, 507.4), (328.03, 463.51)),
+            ((328.03, 463.51), (358.47, 420.32), (406.43, 422.78), (421.81, 414.79))]
+F400_AX = (112.44, 344.58, 388.68, 383.64)          # clip box x0, width, y0, height: 3 decades of A from 100 A, 6 of s from 1 ms
+F400 = dict(In=400.0, i2t_melt=43083.0, i2t_clr=289502.0, icu=50e3, tau=2.5e-3, cut=((2150.0, 4651.0), (70e3, 11.0e3)))
+# Hongfa HFE82V-300C (Hongfa-HFE82V-300C.pdf) p5 'Endurance Capacity Curve' (85 C, >= 100 mm2; room temperature above 2 kA):
+# functional (130 C) and safe-operation (180 C) curves up to 2 kA, then the short-circuit capacity curve; notes 6-8: >= 2 kA the
+# contacts are likely bonded, >= 6 kA likely to bounce ('may explode ... if the fuse cannot be fused in time'), >= 8 kA severe bounce
+K_SC_CAP = [(3000, 1.5), (5000, 0.35), (6000, 0.15), (7000, 0.06), (8000, 0.006), (10000, 0.0015)]
+K_FUN = [(450, 300.0), (600, 120.0), (900, 30.0), (1000, 25.0), (2000, 2.5)] + K_SC_CAP
+K_SAFE = [(450, 500.0), (600, 200.0), (900, 65.0), (1000, 50.0), (2000, 4.0)] + K_SC_CAP
+K_BOUNCE = (6000.0, 8000.0)
+
+
+def f400_curve():
+    """(I, t) points of the 400 A curve from its PDF vector path, sorted; and the first solid-line current (I_min)"""
+    x0, w, y0, h = F400_AX
+    pts = []
+    for k, (p0, p1, p2, p3) in enumerate(F400_BEZ):
+        for t in np.linspace(0.0, 1.0, 81):
+            x = (1 - t) ** 3 * p0[0] + 3 * (1 - t) ** 2 * t * p1[0] + 3 * (1 - t) * t ** 2 * p2[0] + t ** 3 * p3[0]
+            y = (1 - t) ** 3 * p0[1] + 3 * (1 - t) ** 2 * t * p1[1] + 3 * (1 - t) * t ** 2 * p2[1] + t ** 3 * p3[1]
+            if y0 <= y <= y0 + h:
+                pts.append((10 ** (2 + 3 * (x - x0) / w), 10 ** (-3 + 6 * (y - y0) / h)))
+    pts = sorted(set(pts))
+    x_min = F400_BEZ[1][0][0]
+    return pts, 10 ** (2 + 3 * (x_min - x0) / w)
+
+
+def pcs_port(ln):
+    """PCM-15: coordination of the PCS-PWR DC port (HCHVF1000-400A-38R per pole, HFE82V-300C, hold-off 0.97-1.03 kA, OC 387-413 A)
+    over the battery's prospective current range (the lean port's installation basis: <= 50 kA, L/R <= 1 ms; the fuse's own rating
+    basis tau 2.5 ms).  Bands: where the contactor breaks, where nothing clears quickly, where the fuse clears before the contactor's
+    limit, and where it does not (time and peak).  CALCULATED from data-sheet curves; nothing tested."""
+    pts, i_min = f400_curve()
+    tp = lambda i: interp_loglog(pts, i) if pts[0][0] <= i <= pts[-1][0] else (math.inf if i < pts[0][0] else  # noqa: E731
+                                                                              pts[-1][1] * (pts[-1][0] / i) ** 2)
+    tk = lambda c, i: interp_loglog(c, i) if i <= c[-1][0] else c[-1][1] * (c[-1][0] / i) ** 2              # noqa: E731
+    band, oc = ln["band"], ln["oc"]
+    (c0, p0), (c1, p1) = F400["cut"]
+    cut = lambda i: i if i <= c0 else 10 ** (math.log10(p0) + (math.log10(p1) - math.log10(p0)) *            # noqa: E731
+                                              (math.log10(i) - math.log10(c0)) / (math.log10(c1) - math.log10(c0)))
+
+    def adiabatic_peak(ip, tau):
+        """current when the melting I2t is reached for i = ip (1 - exp(-t/tau)) - a lower bound of the DC peak"""
+        e = lambda t: ip ** 2 * (t - 2 * tau * (1 - math.exp(-t / tau)) + tau / 2 * (1 - math.exp(-2 * t / tau)))  # noqa: E731
+        lo, hi = 0.0, 1.0
+        for _ in range(80):
+            mid = (lo + hi) / 2
+            lo, hi = (mid, hi) if e(mid) < F400["i2t_melt"] else (lo, mid)
+        return ip * (1 - math.exp(-lo / tau))
+    rows, gaps = [], []
+    for i in np.logspace(math.log10(band[0]), math.log10(F400["icu"]), 400):
+        slow, fun, safe = tp(i / 1.1), tk(K_FUN, i), tk(K_SAFE, i)
+        pk = min(i, cut(i))
+        rows.append(dict(I=float(i), t_fuse_slow=slow, t_fun=fun, t_safe=safe, ok=bool(i >= i_min and slow <= safe), peak=pk))
+    bad = [r["I"] for r in rows if not r["ok"]]
+    for r in rows:
+        if not r["ok"] and (not gaps or r["I"] > gaps[-1][1] * 1.02):
+            gaps.append([r["I"], r["I"]])
+        elif not r["ok"]:
+            gaps[-1][1] = r["I"]
+    lo_gap, hi_gap = gaps[0], (gaps[1] if len(gaps) > 1 else None)
+    ok = [r for r in rows if r["ok"]]
+    n_brk = lambda i: interp_loglog(KL["brk"], i)                                                          # noqa: E731
+    t_req = min(r["t_fun"] for r in rows if lo_gap[0] <= r["I"] <= lo_gap[1])
+    pk50 = {f"tau {t * 1e3:.1f} ms": adiabatic_peak(F400["icu"], t) for t in (1e-3, F400["tau"])}
+    i_bounce = [min((r["I"] for r in rows if r["peak"] >= b), default=math.inf) for b in K_BOUNCE]
+    res = dict(i_min=i_min, band=band, oc=oc, gap_low=lo_gap, gap_high=hi_gap, coordinated=(ok[0]["I"], ok[-1]["I"]) if ok else None,
+               n_break_at_band_top=n_brk(band[1]), t_fuse_fast_at_band_top=tp(band[1] / 0.9), t_req=t_req,
+               peak_chart_50kA=cut(F400["icu"]), peak_adiabatic_50kA=pk50, i_bounce=i_bounce,
+               k_i2t_10kA=10000.0 ** 2 * 0.0015, k_i2t_8kA=8000.0 ** 2 * 0.006)
+    hg = ("%.1f-%.0f kA" % (hi_gap[0] / 1e3, hi_gap[1] / 1e3)) if hi_gap else "none"
+    res["lines"] = [
+        "", "## 14 PCS-P125 DC port (PCM-15): HIITIO HCHVF1000-400A-38R per pole + HFE82V-300C, lean port windows", "",
+        "Both parts read here (fuse p1, p2, p4 vector paths; contactor p1, p4, p5).  **Calculated from data-sheet curves, not tested.**  "
+        "The design intent (D-019 / D-050): the contactor never interrupts a fault above the hold-off band - it is held and the fuse clears.",
+        "", "| band | current | what clears it | verdict | basis |", "|---|---|---|---|---|",
+        "| port over-current window -> contactor opens | %.0f-%.0f A up to the hold-off band %.0f-%.0f A | the contactor breaks, "
+        "<= %.1f openings at the band top (1000 V, L/R <= 1 ms, p4 'reference only') | ok; the fast fuse (curve 10 %% left) needs "
+        "%.0f s at the band top against 30 ms trip + release | KL brk, F400 curve |" % (oc[0], oc[1], band[0], band[1],
+                                                                                     res["n_break_at_band_top"],
+                                                                                     res["t_fuse_fast_at_band_top"]),
+        "| hold-off band to where the fuse is faster than the contactor | %.2f-%.2f kA | NOTHING quickly: contactor held, fuse below "
+        "its breaking range (dashed to %.2f kA) or slower than the contactor's 180 C curve | **installation requirement**: upstream "
+        "clears within the contactor's 130 C curve, %.1f s at the band top | slow fuse (curve 10 %% right) vs p5 safe curve |"
+        % (lo_gap[0] / 1e3, lo_gap[1] / 1e3, i_min / 1e3, t_req),
+        "| fuse clears first | %s | the 400 A link (pre-arc %.2f s ... %.3f s) | coordinated; >= 2 kA the contacts are likely bonded "
+        "(weld check: firmware sees the bank follow the terminal) | slow fuse <= p5 safe curve |"
+        % (("%.1f-%.1f kA" % (res["coordinated"][0] / 1e3, res["coordinated"][1] / 1e3)) if ok else "none",
+           tp(res["coordinated"][0] / 1.1) if ok else math.nan, tp(res["coordinated"][1] / 1.1) if ok else math.nan),
+        "| above that, to the fuse's 50 kA | %s | the fuse, but after the contactor's short-circuit capacity (8 kA 6 ms, 10 kA 1.5 ms); "
+        "let-through peak >= 6 kA from %.1f kA, >= 8 kA from %.1f kA prospective (bounce; Hongfa: may explode if the fuse is late) | "
+        "**NOT coordinated**: installation requirement | p4 curve 10 %% right vs p5 capacity; cut-off chart |"
+        % (hg, i_bounce[0] / 1e3, i_bounce[1] / 1e3),
+        "| current-limiting region | 50 kA prospective | peak %.1f kA (cut-off chart, AC terms) / %.1f-%.1f kA (DC at the melting "
+        "I2t, tau 2.5 / 1 ms); clearing I2t %.0f kA2s (average) | contactor at >= 8 kA: %.0f kA2s (8 kA 6 ms), %.0f kA2s (10 kA 1.5 ms) "
+        "- the I2t comparison of rev A0 (289.5 <= 384 kA2s) used the 8 kA point only | p2, p4, p5 |"
+        % (res["peak_chart_50kA"] / 1e3, pk50["tau 2.5 ms"] / 1e3, pk50["tau 1.0 ms"] / 1e3, F400["i2t_clr"] / 1e3,
+           res["k_i2t_8kA"] / 1e3, res["k_i2t_10kA"] / 1e3),
+        "", "**Installation requirement (PCS-P125 battery side, CALCULATED):** the battery-side protection must interrupt any current of "
+        "%.2f-%.2f kA into the PCS DC port within %.1f s (the contactor's 130 C curve at the band top; 25 s at 1 kA), and either limit "
+        "the battery's prospective short-circuit current at the PCS DC terminals to <= %.1f kA (L/R <= 1 ms) or interrupt currents "
+        "above it within the contactor's short-circuit capacity (6 ms at 8 kA, 1.5 ms at 10 kA) - the PCS's own 400 A links protect the "
+        "contactor only between %s.  The fuse data are averages from a chart with no tolerance band (+/-10 %% in current assumed); its "
+        "high-current tail (2.5-6 ms at 20-50 kA) is not consistent with the tabulated 43 kA2s melting I2t (adiabatic melting at 50 kA "
+        "takes < 1 ms) - an RFQ / test item." % (lo_gap[0] / 1e3, lo_gap[1] / 1e3, t_req, (hi_gap[0] if hi_gap else F400["icu"]) / 1e3,
+                                                 ("%.1f-%.1f kA" % (res["coordinated"][0] / 1e3, res["coordinated"][1] / 1e3)) if ok else "no range")]
+    res["spec"] = {
+        "fuse": {"mpn": "HCHVF1000-400A-38R", "mfr": "Zhejiang HIITIO", "In_A": F400["In"], "I_min_break_A_read": round(i_min),
+                 "I2t_melt_A2s": F400["i2t_melt"], "I2t_clear_A2s": F400["i2t_clr"], "Icu_A": F400["icu"], "tau_s": F400["tau"]},
+        "contactor": {"mpn": "HFE82V-300C/1000-24-H-C5-1", "sc_capacity": K_SC_CAP, "bounce_A": list(K_BOUNCE)},
+        "oc_band_A": [round(x) for x in oc], "hold_off_band_A": [round(x) for x in band],
+        "contactor_breaks_up_to_A": round(band[1]), "openings_at_band_top": round(res["n_break_at_band_top"], 1),
+        "installation_band_A": [round(lo_gap[0]), round(lo_gap[1])], "installation_clear_within_s": round(t_req, 2),
+        "coordinated_A": [round(x) for x in res["coordinated"]] if ok else None,
+        "not_coordinated_above_A": round(hi_gap[0]) if hi_gap else None, "Ipsc_max_for_coordination_A": round(hi_gap[0]) if hi_gap else F400["icu"],
+        "peak_at_50kA_A": {"cut_off_chart": round(res["peak_chart_50kA"]), **{k: round(v) for k, v in pk50.items()}},
+        "bounce_from_prospective_A": [round(x) for x in i_bounce],
+        "statement": res["lines"][-1].replace("**Installation requirement (PCS-P125 battery side, CALCULATED):** ", "")}
+    return res
+
+
+def pcs_port_checks(p):
+    ensure(F400_BEZ[0][3] == F400_BEZ[1][0] and F400_BEZ[1][3] == F400_BEZ[2][0], "PCS fuse curve: path segments must join")
+    ensure(1100.0 <= p["i_min"] <= 1300.0 and p["band"][1] < p["i_min"], "PCS fuse: dashed/solid boundary above the hold-off band")
+    ensure(p["n_break_at_band_top"] >= 1.0 and p["t_fuse_fast_at_band_top"] > 100 * 0.03,
+           "PCS port: the contactor must still open once at the hold-off band top before the fuse melts")
+    ensure(p["gap_low"][0] <= p["band"][0] * 1.001, "PCS port: the installation band starts at the hold-off band")
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     found, cn = bus_capacitances()
     C_cases = sorted([("envelope min", C_RANGE[0]), ("envelope max", C_RANGE[1])] + found, key=lambda c: c[1])
-    real = [c for c in C_cases if not c[0].startswith("envelope")] or C_cases
+    real = [c for c in C_cases if not c[0].startswith("envelope")]          # never empty: bus_capacitances() fails closed
     pc = precharge(C_cases)
     ir = inrush(C_cases)
     tl = time_limit()
@@ -2096,9 +2233,12 @@ def main():
     plots(pc, sp, co, im, hold, C_cases)
     report(cn, pc, ir, dc, dv, cs, co, hold, itf, im, sg, yc, sp, cd, tl, pt, pn, bp)
     ln = lean(sg)
-    open(os.path.join(OUT, "report.md"), "a").write("\n".join(ln["lines"]) + "\n")
+    pp = pcs_port(ln)
+    open(os.path.join(OUT, "report.md"), "a").write("\n".join(ln["lines"] + pp["lines"]) + "\n")
     js = spec(pc, dv, cs, co, hold, itf, im, cn, dc, cd, tl, pt, pn, bp, sg)
     js["lean"] = ln["spec"]
+    js["pcs_port"] = pp["spec"]
+    pcs_port_checks(pp)
     json.dump(js, open(os.path.join(OUT, "port_spec.json"), "w"), indent=1)
     lean_checks(ln)
 

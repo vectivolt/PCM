@@ -249,7 +249,7 @@ CATALOG = dict(catalog.PARTS, **{
     "RJ45": ic("LINK-PP", "LPJ4012AHNL", "RJ45 THT tab down, 1:1 magnetics, 2 LEDs", "connectors/LINK-PP-LPJ4012AHNL.pdf",
                "RJ45 10/100BASE-T, integrated magnetics and LEDs, -40..+85 C, 1500 Vrms hipot",
                ["1 TD+ p", "3 TD- p", "2 TCT p", None, "4 RD+ p", "6 RD- p", "5 RCT p", None, "7 NC nc"],
-               ["10 LEDG_A p", "9 LEDG_K p", "12 LEDY_A p", "11 LEDY_K p", None, "8 SHLD p"], prefix="J"),
+               ["10 LEDG_A p", "9 LEDG_K p", "12 LEDY_A p", "11 LEDY_K p", None, "8 CHS_GROUND p"], prefix="J"),   # pin 8 named as the datasheet p1 (pin audit)
     "MH": dict(mfr="", mpn="", prefix="H", pkg="M3 plated hole", ds="", sourcing="NOPART",
                stock=("Mechanical", "MountingHole_Pad"), desc="Chassis (PE) bonding mounting hole"),
     "J_SYS": conn("SSW-140-01-G-D", 80, SSW, "2x40 2.54 mm socket THT",

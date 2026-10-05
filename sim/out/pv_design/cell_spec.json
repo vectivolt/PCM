@@ -155,7 +155,7 @@
   },
   "sc_booster": {
    "r_sb_ohm_per_device": 22.0,
-   "detection_to_off_us": 0.62,
+   "detection_to_off_us": 0.42,
    "basis": "gen/gdrv.py rev 5 (primary preset; the fallback needs its own booster sizing)"
   },
   "rail_range_basis": "REQUIREMENT on the bias design (VDD-VEE 22 V): +-0.5 V on, +-0.3 V off keeps both makers inside their recommended drive and well inside the absolute limits",
@@ -221,8 +221,8 @@
     "Q1": 1.96,
     "industrial": 1.24
    },
-   "booster_detection_to_off_us_primary": 0.62,
-   "verdict": "primary: rev-5 booster (22 ohm per device) turns off 0.62 us after DESAT detection (<= 1.0 us required); the internal soft turn-off alone would take 1.96 us. Fallback (MSC035, +20/-4 V): the booster is not sized for it in gen/gdrv.py rev 5 - open"
+   "booster_detection_to_off_us_primary": 0.42,
+   "verdict": "primary: rev-5 booster (22 ohm per device) turns off 0.42 us after DESAT detection (<= 1.0 us required); the internal soft turn-off alone would take 1.96 us. Fallback (MSC035, +20/-4 V): the booster is not sized for it in gen/gdrv.py rev 5 - open"
   }
  },
  "inductor": {
@@ -335,23 +335,22 @@
  },
  "decoupling": {
   "requirement": "low-ESL film within each leg's commutation loop so that the loop (cap-S_top-S_bottom) is <= 20 nH",
-  "suggested": "3 x C4AQUBU4220A1YJ (2.2 uF / 1300 V, Ipkr 63 A, ESL 24 nH, C4AQ p.14) per leg",
-  "mpn": "C4AQUBU4220A1YJ",
+  "suggested": "3 x FCSA3DS225 (2.2 uF / 1300 V, Ipkr 176 A, ESL 25 nH, Jianghai CBB138 DS p.30 (v2026.2)) per leg",
+  "mpn": "FCSA3DS225",
   "count_per_leg": 3,
   "C_per_leg_uF": 6.6000000000000005,
-  "ESL_per_leg_nH": 8.0,
-  "peak_current_per_cap_A": 40.5,
-  "peak_current_per_cap_with_recovery_A": 62.5,
-  "Ipkr_per_cap_A": 63.0,
-  "peak_margin": 1.65,
-  "rms_per_cap_A": 3.04,
-  "Irms_70C_per_cap_A": 7.1,
+  "ESL_per_leg_nH": 8.33,
+  "peak_current_per_cap_A": 39.8,
+  "peak_current_per_cap_with_recovery_A": 61.5,
+  "Ipkr_per_cap_A": 176.0,
+  "peak_margin": 4.69,
+  "rms_per_cap_A": 3.56,
+  "Irms_70C_per_cap_A": 5.2,
+  "Irms_85C_per_cap_A": 3.9,
   "V_op_85C_V": 1100,
-  "basis": "physical-leg deck (sim/spice/pv_dpt_leg_dec.cir): 1100 V, 72.4 A trip current, worst of on-times 0.6, 1.0, 1.5, 2.2, 3.0 us (decoupling-bulk resonance); rule: peak <= Ipkr/1.2 (VDMOS, Q_oss) and <= Ipkr with the Q_rr surrogate, ESL <= 8.5 nH so the 20 nH loop holds. Drawn 2 x C4AQUBU4100A1WJ: 56 A per capacitor vs Ipkr 28 A (PVR-03)",
+  "basis": "physical-leg deck (sim/spice/pv_dpt_leg_dec.cir): 1100 V, 72.4 A trip current, worst of on-times 0.6, 1.0, 1.5, 2.2, 3.0 us (decoupling-bulk resonance); rule: peak <= Ipkr/1.2 (VDMOS, Q_oss) and <= Ipkr with the Q_rr surrogate, ESL <= 8.5 nH so the 20 nH loop holds. Capacitors as drawn on PV-PWR (PCM-18): 2 x FCSA3DS456 per phase and port (Ls 35 nH, ESR 4.0 mOhm each) and 3 x FCSA3DS225 per leg (Ls 25 nH, ESR 22.5 mOhm each), Jianghai CBB138 DS p.30; the deck ran the KEMET C4AQ values before",
   "rejected": [
-   "2 x C4AQUBU4100A1WJ: 56 A per cap vs Ipkr 28 A",
-   "4 x C4AQUBU4100A1WJ: 35 A per cap vs Ipkr 28 A",
-   "4 x C4AQUBU4220A1YJ: nan A per cap vs Ipkr 63 A"
+   "2 x FCSA3DS225: 47 A per cap vs Ipkr 176 A"
   ]
  },
  "sensing": {
@@ -412,21 +411,21 @@
   "current_limit_avg_A": 45.0,
   "overvoltage_hw_trip_port_A_V": 1100.0,
   "overvoltage_hw_trip_port_B_V": 1100.0,
-  "overvoltage_sw_limit_V": 1050.0,
+  "overvoltage_sw_limit_V": 1034.0,
   "undervoltage_stop_V": 240.0,
-  "desat_VDS_threshold_V": 9.26,
+  "desat_VDS_threshold_V": 9.3,
   "desat_blanking_ns": 465,
   "desat_threshold_range_V": [
    8.5,
-   9.8
+   10.0
   ],
   "desat_blanking_range_ns": [
    350,
    465
   ],
-  "short_circuit_detect_to_off_us": 0.62,
+  "short_circuit_detect_to_off_us": 0.42,
   "short_circuit_withstand_us_typ": 2.0,
-  "desat_basis": "NSI6651 DESAT pin threshold 8.5/9.26/9.8 V, LEB 200 ns + filter 150-265 ns, DESAT to OUT <= 300 ns (sim/data/asia_drivers.md); V_DS(on) at the trip current, 175 C: SG2M040170HJ 3.1 V (margin 2.7x), MSC035SMA170B4 2.4 V (margin 3.6x); short-circuit withstand ASSUMED 2.0 us (no Chinese datasheet gives one)",
+  "desat_basis": "NSI6651 DESAT pin threshold 8.5/9.3/10.0 V (envelope of the drawn -Q1 grade and the industrial alternate, gen/gdrv.py NSI), LEB 200 ns, DESAT to OUT <= 360 ns (contains the deglitch filter) (sim/data/asia_drivers.md); V_DS(on) at the trip current, 175 C: SG2M040170HJ 3.1 V (margin 2.7x), MSC035SMA170B4 2.4 V (margin 3.6x); short-circuit withstand ASSUMED 2.0 us (no Chinese datasheet gives one)",
   "heatsink_overtemperature_trip_C": 95.0,
   "heatsink_trip_basis": "heatsink temperature at which the hottest device reaches 125 C at full load, minus 5 K"
  },
@@ -447,7 +446,10 @@
   "inductor_I_peak_A": 62.29263749467361,
   "inductor_I_rms_A": 47.70348607913046,
   "port_cap_I_rms_A": 23.581544024661152,
-  "port_cap_V_max_V": 1100.0
+  "port_cap_V_max_V": 1100.0,
+  "device_VDS_peak_lumped_deck_V": 1400.6,
+  "device_VDS_peak_physical_leg_V": 1374.4,
+  "device_VDS_peak_basis": "larger of the lumped 20 nH deck (loop estimate, no capacitor model) and the physical-leg deck with the Jianghai capacitors as drawn (PCM-18), both at the OVP trip 1100 V and the hardware trip current"
  },
  "heatsink_insulator": {
   "function": "basic insulation of every TO-247 tab (drain = A+/B+ or a switch node) from the earthed heatsink (D-032, IC-07)",
@@ -469,22 +471,22 @@
   "vs_bias_VIORM_1414Vpk": "UCC14241-Q1 VIORM 1414 Vpk (IC-06): the bias barrier must cover the recurring peak; margin at 1000 V = 1.11"
  },
  "efficiency": {
-  "peak": 0.9950458475923235,
+  "peak": 0.9950447572709314,
   "peak_at": {
    "va": 900.0,
    "vb": 1000.0,
    "p_W": 13750.0
   },
   "corners": {
-   "550->950": 0.9905113704980066,
-   "950->550": 0.990321850183395,
-   "550->550": 0.9900271311944421,
-   "950->950": 0.9923814581077843,
-   "611->950": 0.9915362377936702,
-   "950->611": 0.9913516740862967,
-   "611->611": 0.9905667236465818,
-   "1000->500": 0.9889731274782976,
-   "500->1000": 0.9891966699880086
+   "550->950": 0.9905103707354781,
+   "950->550": 0.9903208508034107,
+   "550->550": 0.9900256873850085,
+   "950->950": 0.9923797039846208,
+   "611->950": 0.9915353255805188,
+   "950->611": 0.9913507622127106,
+   "611->611": 0.9905652867644882,
+   "1000->500": 0.988972023272267,
+   "500->1000": 0.9891955652827435
   },
   "note": "power stage incl. gate drive, driver bias, sensing and the leg RC dampers; dead time at its 586 ns maximum; excludes fans/controller"
  },
@@ -677,6 +679,14 @@
   "leg_deck": "sim/spice/pv_dpt_leg.cir"
  },
  "honesty": "All values calculated from datasheets and assumptions listed in sim/out/pv_design/report.md; nothing measured.",
+ "ov_trip_costfirst": {
+  "band_V": [
+   1039.0,
+   1110.0
+  ],
+  "response_us": 47.0,
+  "basis": "PV-CTL hardware OV comparators on VA / VB (TLV9024) as built: band bottom / top and the time from the true crossing of the band top to gates off (sim/pv_design.py OV_HW, checked by gen/pv_ctrl.py)"
+ },
  "bus_reverse_clamp": {
   "function": "reverse-voltage clamp across each cell film bank: a bolted port-terminal short rings the bank below zero; without it the leg's two series SiC body diodes carry the freewheel",
   "part": "WND75P16W6",
@@ -796,7 +806,51 @@
    "sim/spice/pv_dump_4c_A_1100V_n8.cir",
    "sim/spice/pv_dump_4c_B_1000V_n8.cir",
    "sim/spice/pv_dump_4c_B_1100V_n8.cir"
-  ]
+  ],
+  "drawn_bank_check": {
+   "3_cells": {
+    "design_basis_C4AQ": {
+     "module_peak_kA": 24.47,
+     "clamp_per_device_peak_A": 2116,
+     "clamp_per_device_I2t_A2s": 196,
+     "allowed_I2t_at_t95_A2s": 615,
+     "t95_ms": 0.39,
+     "body_diode_peak_A": 51,
+     "bank_internal_min_V": -79
+    },
+    "as_drawn_FCSA3DS456": {
+     "module_peak_kA": 24.35,
+     "clamp_per_device_peak_A": 2125,
+     "clamp_per_device_I2t_A2s": 196,
+     "allowed_I2t_at_t95_A2s": 614,
+     "t95_ms": 0.39,
+     "body_diode_peak_A": 34,
+     "bank_internal_min_V": -104
+    },
+    "deck": "sim/spice/pv_dump_3c_A_1100V_n8_drawn.cir"
+   },
+   "4_cells": {
+    "design_basis_C4AQ": {
+     "module_peak_kA": 28.56,
+     "clamp_per_device_peak_A": 1861,
+     "clamp_per_device_I2t_A2s": 233,
+     "allowed_I2t_at_t95_A2s": 906,
+     "t95_ms": 0.59,
+     "body_diode_peak_A": 35,
+     "bank_internal_min_V": -69
+    },
+    "as_drawn_FCSA3DS456": {
+     "module_peak_kA": 28.44,
+     "clamp_per_device_peak_A": 1871,
+     "clamp_per_device_I2t_A2s": 232,
+     "allowed_I2t_at_t95_A2s": 904,
+     "t95_ms": 0.59,
+     "body_diode_peak_A": 19,
+     "bank_internal_min_V": -92
+    },
+    "deck": "sim/spice/pv_dump_4c_A_1100V_n8_drawn.cir"
+   }
+  }
  },
  "damper": {
   "function": "RC damper across each leg at the device pins (drawn on PVCELL 03_power: R301-R304, C303-C308); damps the commutation-loop ringing",
@@ -804,26 +858,131 @@
   "R_per_leg_ohm": 9.98,
   "C_per_leg_nF": 2.35,
   "energy_per_cycle_uJ_at_trip": 178.0,
-  "energy_basis": "1100 V, 72.4 A: hard turn-on 168 uJ + turn-off 8 uJ (the loop's Q_oss/commutation energy, nearly independent of the damper C)",
-  "power_per_leg_W_max": 3.75,
+  "energy_basis": "1100 V, 72.4 A: hard turn-on 169 uJ + turn-off 8 uJ (the loop's Q_oss/commutation energy, nearly independent of the damper C)",
+  "power_per_leg_W_max": 3.78,
   "power_per_leg_W_max_at": {
    "va": 250.0,
    "vb": 1000.0,
    "p_W": 11250.0,
    "load": 1.0
   },
-  "power_per_leg_W_at_trip_1100V": 5.68,
+  "power_per_leg_W_at_trip_1100V": 5.71,
   "peak_current_A": 47.1,
   "peak_voltage_per_resistor_V": 235.0,
   "capacitor_voltage_per_element_V": 687.0,
   "required_resistor_rating": {
-   "continuous_W_per_leg_min": 5.5,
+   "continuous_W_per_leg_min": 5.6,
    "continuous_basis": "1.5 x worst per-leg power at the resistor's mounting temperature (heatsink-mounted thick-film power resistors; 2 x 1 W 2512 is not enough)",
    "pulse_or_working_voltage_per_element_V_min": 290.0,
-   "energy_per_pulse_per_element_uJ": 84.0
+   "energy_per_pulse_per_element_uJ": 85.0
   },
   "in_loss_model": "yes: loss group 'damp' (ngspice energy table per edge, V 250-1100 V x I 2 A-trip, interpolated)",
   "deck": "sim/spice/pv_dpt_leg.cir"
+ },
+ "capacitors_drawn": {
+  "basis": "Jianghai CBB138 DS p.30 (v2026.2), class A3; as drawn on PV-PWR / PV-PWR-4; read by gen/pv_power.py (asserted equal to its FILM45 / FILM2U2 data) and used by the leg deck (leg_net)",
+  "bank": {
+   "mpn": "FCSA3DS456K050H8F9DE3",
+   "C": 4.5e-05,
+   "vndc": 1300,
+   "vop85": 1100,
+   "esl": 3.5e-08,
+   "esr": 0.004,
+   "ipkr": 900.0,
+   "irms": 29.0,
+   "irms85": 22.1,
+   "rth": 6.0,
+   "src": "Jianghai CBB138 DS p.30 (v2026.2)",
+   "count_per_phase_and_port": 2
+  },
+  "decoupling": {
+   "mpn": "FCSA3DS225K050IC90BE3",
+   "C": 2.2e-06,
+   "vndc": 1300,
+   "vop85": 1100,
+   "esl": 2.5e-08,
+   "esr": 0.0225,
+   "ipkr": 176.0,
+   "irms": 5.2,
+   "irms85": 3.9,
+   "rth": 33.0,
+   "src": "Jianghai CBB138 DS p.30 (v2026.2)",
+   "count_per_leg": 3
+  }
+ },
+ "leg_commutation": {
+  "network": {
+   "bank_C_uF": 90.0,
+   "bank_ESL_nH": 17.5,
+   "bank_ESR_mOhm": 2.0,
+   "bus_nH": 14.999999999999998,
+   "decoupling_C_uF": 6.6,
+   "decoupling_ESL_nH": 8.33,
+   "decoupling_ESR_mOhm": 7.5,
+   "board_and_devices_nH": 11.5,
+   "damper_ohm": 9.98,
+   "damper_nF": 2.35
+  },
+  "device_peak_limit_V": 1445.0,
+  "corners": [
+   {
+    "V": 1000.0,
+    "I_A": 62.29,
+    "case": "normal peak",
+    "device_peak_V": 1274.8,
+    "turnoff_overshoot_V": 86.4,
+    "turnon_complementary_overshoot_V": 274.8,
+    "turnon_dvdt_V_per_ns": 108.5,
+    "decoupling_peak_per_cap_A": 34.2,
+    "decoupling_rms_per_cap_A": 3.06,
+    "vgs_off_pin_peak_V_lumped_clamp": -1.05,
+    "vgs_off_die_peak_V_lumped_clamp": 2.27,
+    "deck": "sim/spice/pv_dpt_leg_c1000_62.cir"
+   },
+   {
+    "V": 1000.0,
+    "I_A": 72.45,
+    "case": "hardware trip",
+    "device_peak_V": 1281.0,
+    "turnoff_overshoot_V": 129.7,
+    "turnon_complementary_overshoot_V": 281.0,
+    "turnon_dvdt_V_per_ns": 108.5,
+    "decoupling_peak_per_cap_A": 36.7,
+    "decoupling_rms_per_cap_A": 3.55,
+    "vgs_off_pin_peak_V_lumped_clamp": -1.04,
+    "vgs_off_die_peak_V_lumped_clamp": 2.32,
+    "deck": "sim/spice/pv_dpt_leg_c1000_72.cir"
+   },
+   {
+    "V": 1100.0,
+    "I_A": 62.29,
+    "case": "normal peak",
+    "device_peak_V": 1367.0,
+    "turnoff_overshoot_V": 81.3,
+    "turnon_complementary_overshoot_V": 267.0,
+    "turnon_dvdt_V_per_ns": 115.4,
+    "decoupling_peak_per_cap_A": 35.0,
+    "decoupling_rms_per_cap_A": 3.06,
+    "vgs_off_pin_peak_V_lumped_clamp": -0.98,
+    "vgs_off_die_peak_V_lumped_clamp": 2.45,
+    "deck": "sim/spice/pv_dpt_leg_c1100_62.cir"
+   },
+   {
+    "V": 1100.0,
+    "I_A": 72.45,
+    "case": "hardware trip",
+    "device_peak_V": 1374.4,
+    "turnoff_overshoot_V": 123.6,
+    "turnon_complementary_overshoot_V": 274.4,
+    "turnon_dvdt_V_per_ns": 115.4,
+    "decoupling_peak_per_cap_A": 37.5,
+    "decoupling_rms_per_cap_A": 3.56,
+    "vgs_off_pin_peak_V_lumped_clamp": -0.96,
+    "vgs_off_die_peak_V_lumped_clamp": 2.49,
+    "deck": "sim/spice/pv_dpt_leg_c1100_72.cir"
+   }
+  ],
+  "result": "device peak 1275 V (1000 V / 62.3 A), 1281 V (1000 V / 72.5 A), 1367 V (1100 V / 62.3 A), 1374 V (1100 V / 72.5 A) against 1445 V (calculated, ngspice VDMOS)"
  },
  "worst_of": "efficiency, worst_case_stresses, damper, decoupling, gate_drive.miller_check and the clamp's body-diode share are the worse of device_primary and device_alternate",
  "device_primary": {
@@ -834,11 +993,11 @@
   "datasheet": "docs/datasheets/power-semiconductors/SG2M040170HJ.pdf",
   "revision": "V01_02, 2025-12-30 (Final; p13 revision history: V01_00 2025-01-06, V01_01 2025-09-08)",
   "qualification": "none stated: p1 lists only halogen-free / RoHS; p13 RoHS + REACH statements; p14 item 8 says to consult Sichain for high-reliability applications",
-  "price_usd": 4.07,
-  "price_source": "ESTIMATE: Sichain: RFQ; SG2M020170HJ 9.74 USD scaled by (R ratio)^1.26, the exponent of the Sichain 1200 V LCSC prices (13 mOhm 7.31, 27 mOhm 3.46, 33 mOhm 2.26 USD)",
+  "price_usd": 5.07,
+  "price_source": "LCSC 2026-10-05, 5.0709 USD @90",
   "rg_on_ohm": 3.75,
   "rg_off_ohm": 2.5,
-  "eta_corner_min": 0.9900626344328121,
+  "eta_corner_min": 0.9900614570910026,
   "eta_corners": {
    "550->950": 0.99059,
    "950->550": 0.99057,
@@ -853,6 +1012,7 @@
   "eta_peak": 0.99611,
   "Tj_max_45C_C": 78.0,
   "VDS_peak_V": 1396.0,
+  "VDS_peak_physical_leg_V": 1374.0,
   "turn_on_dvdt_V_per_ns": 124.0,
   "miller_die_peak_V": 1.41,
   "miller_limit_V": 1.94,
@@ -882,16 +1042,16 @@
   "trip_band_costfirst": {
    "hardware": {
     "band_A": [
-     68.9,
-     79.9
+     67.9,
+     80.5
     ],
-    "response_us": 1.95,
-    "i_peak_A": 92.1,
-    "L_over_L0": 0.702,
-    "B_T": 0.542,
-    "B_over_Bsat": 0.433,
+    "response_us": 1.52,
+    "i_peak_A": 89.9,
+    "L_over_L0": 0.714,
+    "B_T": 0.532,
+    "B_over_Bsat": 0.425,
     "I_DM_A": 376.0,
-    "v_pk_V": 1396,
+    "v_pk_V": 1395,
     "v_pk_limit_V": 1445,
     "ok": true
    },
@@ -906,7 +1066,7 @@
     "B_T": 0.621,
     "B_over_Bsat": 0.497,
     "I_DM_A": 376.0,
-    "v_pk_V": 1407,
+    "v_pk_V": 1408,
     "v_pk_limit_V": 1445,
     "ok": true
    },
@@ -925,7 +1085,7 @@
   "price_source": "RS Components HK (web-search snippet) 2026-10-04, 309.46 HKD @600",
   "rg_on_ohm": 6.0,
   "rg_off_ohm": 4.0,
-  "eta_corner_min": 0.9900271311944421,
+  "eta_corner_min": 0.9900256873850085,
   "eta_corners": {
    "550->950": 0.99051,
    "950->550": 0.99032,
@@ -937,9 +1097,10 @@
    "1000->500": 0.98897,
    "500->1000": 0.9892
   },
-  "eta_peak": 0.99505,
+  "eta_peak": 0.99504,
   "Tj_max_45C_C": 80.3,
   "VDS_peak_V": 1401.0,
+  "VDS_peak_physical_leg_V": 1361.0,
   "turn_on_dvdt_V_per_ns": 92.0,
   "miller_die_peak_V": null,
   "miller_limit_V": 1.48,
@@ -969,14 +1130,14 @@
   "trip_band_costfirst": {
    "hardware": {
     "band_A": [
-     68.9,
-     79.9
+     67.9,
+     80.5
     ],
-    "response_us": 1.95,
-    "i_peak_A": 92.1,
-    "L_over_L0": 0.702,
-    "B_T": 0.542,
-    "B_over_Bsat": 0.433,
+    "response_us": 1.52,
+    "i_peak_A": 89.9,
+    "L_over_L0": 0.714,
+    "B_T": 0.532,
+    "B_over_Bsat": 0.425,
     "I_DM_A": 400.0,
     "v_pk_V": 1386,
     "v_pk_limit_V": 1445,
@@ -993,7 +1154,7 @@
     "B_T": 0.621,
     "B_over_Bsat": 0.497,
     "I_DM_A": 400.0,
-    "v_pk_V": 1402,
+    "v_pk_V": 1403,
     "v_pk_limit_V": 1445,
     "ok": true
    },
@@ -1003,7 +1164,7 @@
  "module_basis_role": "alternate",
  "cost_usd": {
   "per_cell": {
-   "devices": 32.54,
+   "devices": 40.57,
    "gate_drive": 43.4,
    "insulators": 8.0,
    "inductor": 40.5,
@@ -1013,11 +1174,11 @@
    "clamp_diodes": 42.78,
    "damper": 4.0,
    "board_rest": 0.0,
-   "total": 258.47
+   "total": 266.5
   },
   "per_module_cells_only": {
-   "3_cells": 775.0,
-   "4_cells": 1034.0
+   "3_cells": 800.0,
+   "4_cells": 1066.0
   },
   "basis": "sim/pv_tradeoff.py cost_usd(): gen/data/prices.csv (largest break <= 1000 pcs) and labelled ESTIMATES (sim/out/pv_tradeoff/gate0b.md); port board, control, fans and enclosure not included",
   "inductor_row_written_usd": 40.0

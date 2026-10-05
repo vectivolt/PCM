@@ -179,7 +179,7 @@ PARTS = {
 CATALOG = dict(catalog.PARTS, **PARTS)
 
 R_GATE = (2.0, 1.0)                     # Ron, Roff (ohm) for the GM4 module card; checked in design_check()
-# DESAT per device voltage class (NSI6651 DESAT pin, p9: internal ICHG source, VDESAT_TH 8.5-9.8 V): DESAT - Rs - n x US1M
+# DESAT per device voltage class (NSI6651 DESAT pin, p9: internal ICHG source, VDESAT_TH 8.5-10.0 V (-Q1 / industrial envelope)): DESAT - Rs - n x US1M
 # - drain, BAT54S clamp of the pin to COM/VDD, Cblk footprint fitted DNP (c_blk None): string, clamp and pin capacitance
 # alone set the blanking. 3 x 1000 V for both classes (fewer diodes = more capacitance = longer blanking).
 DESAT_CLASS = {1200: dict(n_dhv=3, rs=100.0, c_blk=None), 1700: dict(n_dhv=3, rs=100.0, c_blk=None)}
@@ -473,7 +473,7 @@ def channel(B, tag, pwm, en, flt_n, rdy, gate, source, drain, vdd, vee, interloc
         B.C("47p", n("QRZ"), n("QRB"), diel="C0G", tol="5%")
         B.part("BZX84-B5V6", {"1": n("QRZ"), "2": None, "3": n("OUTH")})
     if booster:
-        B.block("%s: short-circuit booster" % tag, "DESAT > 10.3-10.9 V (above the 9.8 V maximum trip) -> MMBT3904 -> "
+        B.block("%s: short-circuit booster" % tag, "DESAT > 10.3-10.9 V (above the 10.0 V maximum trip of the -Q1 grade) -> MMBT3904 -> "
                 "MMBT3906 charges BG to VEE + 10 V;\nper device AO3400A + %s pull the gate to VEE; BG holds ~3 us (1k + FET "
                 "gates)." % ohm(r_sb))
         B.part("BZX84-B10", {"1": n("BTZ"), "2": None, "3": n("DX")})   # A BTZ, K DESAT pin node
@@ -487,7 +487,7 @@ def channel(B, tag, pwm, en, flt_n, rdy, gate, source, drain, vdd, vee, interloc
         B.part("BZX84-B10", {"1": vee, "2": None, "3": n("BG")})        # A VEE, K BG
         B.R("1k", n("BG"), vee)
 
-    B.block("%s: DESAT" % tag, "DESAT pin (internal %.0f uA blanking source, trip 8.5-9.8 V) - Rs - %d x US1M - drain.\n"
+    B.block("%s: DESAT" % tag, "DESAT pin (internal %.0f uA blanking source, trip 8.5-10.0 V) - Rs - %d x US1M - drain.\n"
             "BAT54S keeps DX between COM and VDD against dv/dt through the string; Cblk footprint DNP."
             % (NSI["ichg"][1] * 1e6, desat["n_dhv"]))
     off = "desat" in dnp
@@ -664,8 +664,12 @@ UCC21710 = dict(vdd_com=(13.0, 33.0), vdd_vee_max=33.0, vdd_on_max=12.8, i_pk=10
 NSI = dict(vcc2_com=(13.0, 32.0), vcc2_vee_max=32.0, vcc2_vee_abs=35.0, vee_com_abs=-17.5, uvlo_on=(9.8, 11.2, 12.8),
            uvlo_off=(9.0, 10.4, 11.8), icc1=4e-3, icc2=7e-3, roh=2.2, rol=0.3, i_pk=10.0, ioh_pk=11.0, vcc2_pk=15.0,
            vclmpth=(1.5, 2.0, 2.5), vclamp_1a=0.8, t_clamp=50e-9, vinh=(2.5, 2.9, 3.5), vinl=(1.5, 2.1, 2.5),
-           vdesat=(8.5, 9.26, 9.8), ichg=(350e-6, 500e-6, 650e-6), t_leb=(150e-9, 200e-9, 250e-9), t_fil=(150e-9, 265e-9),
-           t_off=(150e-9, 300e-9), t_flt=(400e-9, 750e-9), t_rst=(480e-9, 800e-9), i_sto={"Q1": (0.10, 0.40, 0.57),
+           # DESAT: envelope of the drawn -Q1 grade (EN 1.2 DESAT table, printed page 8: VDESAT_TH 8.5/9.3/10 V, ICHG 350/500/650 uA,
+           # tDESAT_FIL 100/200/320 ns, tDESAT_OFF 150/250/360 ns, tDESAT_FLT 400/650/800 ns, tRST_FIL 480/600/800 ns) and the
+           # industrial alternate (Rev 1.1 printed page 7: 8.5/9.26/9.8 V, 430/500/600 uA, 150/200/265, 150/250/300, 400/650/750,
+           # 400/600/800 ns): min of the minima, max of the maxima, so both orderable grades are covered (review PCM-07/10, 2026-10-05)
+           vdesat=(8.5, 9.3, 10.0), ichg=(350e-6, 500e-6, 650e-6), t_leb=(150e-9, 200e-9, 250e-9), t_fil=(100e-9, 320e-9),
+           t_off=(150e-9, 360e-9), t_flt=(400e-9, 800e-9), t_rst=(480e-9, 800e-9), i_sto={"Q1": (0.10, 0.40, 0.57),
            "industrial": (0.25, 0.40, 0.57)}, tprop=(70e-9, 80e-9, 110e-9), pwd=30e-9, tpw_min=70e-9, cmti=150.0,
            viowm=2121.0, viorm=2121.0, viotm=8000.0, vimp=6250.0, viosm=10000.0, cio=0.8,
            certs="VDE 0884-17 reinforced 40052820, UL 1577 E500602, CQC20001264939: granted (p18)",
@@ -755,10 +759,19 @@ for _d, _x in ((GM4, dict(vth_typ=2.5, i_sc=2 * 400.0, v_rated=1200.0, v_bus_sc=
 # 1 A) and release ZXTN25040DFH (>= 300 at 1 A), 1 A each ASSUMED (base currents 5.5 / 10 mA allow more). t_off scaled
 # from SC40 by (R_off + R_G,int) / (2.5 + 1.4) ohm (ESTIMATE, no switching data at 7.5 ohm). DESAT margin to the on-state
 # voltage is the board's check (v_on None here: the inverter's overload peak sits near the trip, PCS-PWR design check).
+# DESAT string of the PCS preset (PCM-07, D-061 OPEN 1): 2 x US1M instead of 3 - one V_F more threshold, so that the 200 ms overload
+# peak (66 A per device, pcs_spec desat.onstate_200ms_overload) does not reach it.  V_F of one diode at the NSI6651 I_CHG (0.35-0.65
+# mA), typical curves at 25 C only, extrapolated down (ASSUMED): Diodes US1M (DS16008 Fig. 2 p2) 0.80 V at 10 mA, 1.2-1.5 decades at
+# 0.09-0.17 V per decade -> 0.55-0.70 V; the drawn Taiwan Semi US1MH (TSC-US1xH.pdf Fig. 4 p3, starts at 0.1 A: 1.10 V there,
+# 0.13 V above the US1M) -> 0.68-0.82 V (0.118 V per decade, n = 2, below 10 mA).  Union 0.55-0.82 V; +/-10 % part spread and
+# -2 mV/K (ASSUMED: no tempco printed) over -30..+125 C -> 0.30-1.01 V per diode (vf_t: the diode temperatures of that band).
+# Blocking 2 x 1000 V against the 1445 V device limit of the 1050 V bus (x1.38; the PV rule 1.5 x 1700 V stays for the 1100 V PV
+# bus).  The PV presets keep DESAT_CLASS (3 x US1M).
+DESAT_PCS = dict(n_dhv=2, rs=100.0, c_blk=None, vf=(0.30, 1.01), vf_t=(-30.0, 125.0), vf_tc=-2e-3)
 SC40X6 = dict(SC40, name="6 x SG2M040170HJ", n=6, r_gate=(8.75, 7.5), t_off=SC40["t_off"] * (7.5 + 1.4) / (2.5 + 1.4),
               v_on=None, v_bus_sc=1050.0, bias="ext", sink_buffer=2, buf=dict(veb=1.2, icm=9.0, hfe=15.0), i_inv=1.0,
               i_rel=1.0, inv=("ZXTP25040DFH", "330R"), rel=("ZXTN25040DFH", "1.5k"), deadtime=(3.65e3, 100e-12),
-              fw_dt=300e-9, c_gs=1e-9)
+              fw_dt=300e-9, c_gs=1e-9, desat=DESAT_PCS)
 DEVICES = (GM4, C3M16, SC40, MSC, IV3Q, SC14, SC40X6)   # MSC = qualified fallback of the PV cell (+20/-4 V); SC40X6 = PCS
 # ngspice Miller hold (sim/gdrv_miller.py: PV engineer's physical-leg V_DS(t) at 1100 V / 72.4 A, calibrated VDMOS with the
 # datasheet C(V), victim with the rev-5 clamp; die = pin + I_gate x R_G,int). die_l1 = clamp loop 1 nH (layout rule), l0 = 0.
@@ -802,8 +815,9 @@ def desat_numbers(d):
     Cblk + string (US1M CJ 10 pF at 4 V / n, +/-20 %) + BAT54S (2 diodes) + pin. Returns trip (min, max), nominal trip,
     blanking (min, max)."""
     n, rs, cb = d["n_dhv"], d["rs"], d["c_blk"] or 0.0
-    trip = (NSI["vdesat"][0] - NSI["ichg"][2] * rs * 1.01 - n * US1M_VF[1],
-            NSI["vdesat"][2] - NSI["ichg"][0] * rs * 0.99 - n * US1M_VF[0])
+    vf = d.get("vf", US1M_VF)                     # PCS preset: its own V_F band (spread + temperature); PV presets: US1M_VF
+    trip = (NSI["vdesat"][0] - NSI["ichg"][2] * rs * 1.01 - n * vf[1],
+            NSI["vdesat"][2] - NSI["ichg"][0] * rs * 0.99 - n * vf[0])
     nom = NSI["vdesat"][1] - NSI["ichg"][1] * rs - n * 0.75
     c_lo = cb * 0.95 + 10e-12 / n * 0.8 + 2 * BAT54S_CD[0] + C_DESAT_PIN[0]
     c_hi = cb * 1.05 + 10e-12 / n * 1.2 + 2 * BAT54S_CD[1] + C_DESAT_PIN[1]
@@ -952,7 +966,7 @@ def design_check():
             else "%g/%g ohm" % (ron, roff), i_src, i_snk, extra)
         assert max(i_src, i_snk) <= NSI["i_pk"], "peak gate current above the NSI6651 10 A rating"
 
-        d = DESAT_CLASS[dev["vclass"]]
+        d = dev.get("desat") or DESAT_CLASS[dev["vclass"]]
         (vlo, vhi), nom, (tlo, thi) = desat_numbers(d)
         say("desat" + k, "   DESAT (NSI6651 pin, Rs %s, %d x US1M, Cblk DNP): trip at V_DS %.2f-%.2f V (nominal %.2f V), string "
             ">= %.2f mA at trip; blanking %.0f-%.0f ns (>= %.0f ns needed)", ohm(d["rs"]), d["n_dhv"], vlo, vhi, nom,
@@ -969,15 +983,20 @@ def design_check():
         elif dev["v_on"]:
             say("trip" + k, "   %s: on-state %.1f V at the turn-off maximum (cell_spec) -> trip margin %.1f x", k, dev["v_on"],
                 vlo / dev["v_on"])
+        # DESAT chain (DAB study DR-05 / review PCM-10): t_DESAT_OFF (DESAT sense to OUT(L) 90 %) is timed from the same V_DESAT_TH
+        # crossing as the deglitch t_DESAT_FIL (NSI66x1A Fig. 8.10 p23; NSI66x1A-Q1 Fig. 8.8 p25), so it already contains the filter:
+        # the chain is blanking + t_DESAT_OFF, not + t_DESAT_FIL on top. Maximum of the drawn -Q1 grade 360 ns (NSI66x1A-Q1 Datasheet
+        # (EN) 1.2 p9, the file on record; the industrial sheet p8: 300 ns = NSI["t_off"]) - the larger one is used.
+        t_doff = NSI["t_off"][1]                      # 360 ns: the -Q1 maximum, now in the NSI table
         sc = {}
         for grade, isto in NSI["i_sto"].items():                       # SC: V_DS stays high, no Miller step
             t_sto = n * dev["ciss"] * (v2[1] - dev["vth_min"]) / isto[0]
-            sc[grade] = thi + NSI["t_fil"][1] + NSI["t_off"][1] + t_sto
+            sc[grade] = thi + t_doff + t_sto
         t_tot = None
-        say("sc" + k, "   %s short circuit (internal soft turn-off only, PROVISIONAL): blank %.0f + filter %.0f + DESAT-OUT %.0f "
-            "ns + %d x Ciss %.1f nF at ISTO min -> %.2f us (-Q1, 100 mA) / %.2f us (industrial, 250 mA) vs %.1f us [%s]", k,
-            thi * 1e9, NSI["t_fil"][1] * 1e9, NSI["t_off"][1] * 1e9, n, dev["ciss"] * 1e9, sc["Q1"] * 1e6,
-            sc["industrial"] * 1e6, dev["t_sc"][0] * 1e6, dev["t_sc"][1])
+        say("sc" + k, "   %s short circuit (internal soft turn-off only, PROVISIONAL): blank %.0f + DESAT-OUT %.0f ns (-Q1 max, "
+            "contains the deglitch) + %d x Ciss %.1f nF at ISTO min -> %.2f us (-Q1, 100 mA) / %.2f us (industrial, 250 mA) vs "
+            "%.1f us [%s]", k, thi * 1e9, t_doff * 1e9, n, dev["ciss"] * 1e9, sc["Q1"] * 1e6, sc["industrial"] * 1e6,
+            dev["t_sc"][0] * 1e6, dev["t_sc"][1])
         dtc = dev.get("deadtime", DEADTIME_CLASS[dev["vclass"]])
         t_min, t_max = stretch(dtc)
         g_min = t_min + LVC1G17["tpd"][0] - NSI["skew"]
@@ -1022,7 +1041,7 @@ def design_check():
             if sim:
                 assert sim["die_l1"] <= dev["vth175"] - 0.5, "die gate-source within 0.5 V of V_th(min, 175 C)"
                 assert sim["i_m"] <= AO["idm"] / 2, "Miller current above IDM/2 of the clamp FET"
-        # short-circuit booster (rev 5): until the driver reacts (filter + DESAT-to-OUT max) OUTH and the booster divide
+        # short-circuit booster (rev 5): until the driver reacts (DESAT-to-OUT max, filter included) OUTH and the booster divide
         # the rail -> two-level gate vg2; then the booster discharges the gates through R_sb + R_G,int. SC current scales
         # with (VGS - V_th)^2 from i_sc at VGS(on) (ASSUMED square law); overshoot = L_loop x n x I_sc / t_fall.
         r_sb = dev.get("r_sb", R_SB_CLASS[dev["vclass"]])
@@ -1031,7 +1050,7 @@ def design_check():
         c_g = dev["ciss"] if dev["per_dev"] else n * dev["ciss"]
         rgi = dev["rg"] if dev["per_dev"] else dev["rg"] / n
         vg2 = -v3[0] + vt[1] * r_sb / (r_sb + r_up)
-        t_drv = NSI["t_fil"][1] + NSI["t_off"][1]
+        t_drv = t_doff                                  # DESAT-to-OUT max, the deglitch inside it (Fig. 8.10 p23 / -Q1 Fig. 8.8 p25)
         t_f = (r_sb + rgi) * c_g * math.log((vg2 + v3[0]) / (dev["vth_typ"] + v3[0]))
         i_sc2 = n * dev["i_sc"] * max(0.0, (vg2 - dev["vth_typ"]) / (v2[1] - dev["vth_typ"])) ** 2
         v_pk = dev["v_bus_sc"] + dev["l_loop"] * i_sc2 / t_f
@@ -1039,18 +1058,44 @@ def design_check():
         thr = (VZ["BZX84-B10"][0] + 0.5, VZ["BZX84-B10"][1] + 0.75)               # DESAT level that fires the booster
         t_hold = 1e3 * nd * AO["ciss"] * math.log(VZ["BZX84-B10"][0] / AO["vth"][2])
         e_rsb = (vt[1] * r_sb / (r_sb + r_up)) ** 2 / r_sb * t_drv
+        # Short-circuit acceptance, the DAB study's DR-05 rule for every preset (release block, risk C2). In a short V_DS stays at
+        # the bus: no Miller plateau holds the current, which follows V_GS down (square law from I_sc0 at V_GS(on), ASSUMED) from
+        # the instant the gate starts falling. t_eq = integral of I / I_sc0 dt over the drawn chain from the start of the short:
+        # full current until the booster fires (DESAT node charged to the trigger + 50 ns trigger chain, ASSUMED as
+        # sim/dab_design.py t_booster), the two-level gate vg2 until the driver reacts (blanking + t_DESAT_OFF), then the
+        # R_sb + R_G,int discharge to V_th(min, 175 C) (closed form of the integral). Fault energy per device E = V_bus I_sc0 t_eq.
+        # Release needs the maker's t_SC >= 2 t_eq and E_SC >= 2 E at V_bus / 150 C start / V_GS(on): not on file.
+        vth_h = dev.get("vth175", dev["vth_min"])                      # labelled below when no hot value is on file
+        vth_lbl = "V_th(175 C)" if "vth175" in dev else "V_th(min, 25 C - no hot value on file, understates the tail)"
+        x2 = lambda v: max(0.0, (v - vth_h) / (v2[1] - vth_h)) ** 2               # noqa: E731
+        c_pin = (thi - NSI["t_leb"][2]) * NSI["ichg"][0] / NSI["vdesat"][2]     # DESAT node capacitance behind the blanking
+        t_fire = thi + c_pin * (thr[1] - NSI["vdesat"][2]) / NSI["ichg"][0] + 50e-9
+        t_gate = thi + t_drv
+        a_, b_, tau_b = vg2 + v3[0], vth_h + v3[0], (r_sb + rgi) * c_g
+        tail = tau_b * (0.5 * (a_ * a_ - b_ * b_) - 2 * b_ * (a_ - b_) + b_ * b_ * math.log(a_ / b_)) / (v2[1] - vth_h) ** 2
+        t_eq = t_fire + (t_gate - t_fire) * x2(vg2) + tail
+        e_ch = dev["v_bus_sc"] * dev["i_sc"] * t_eq
+        assert thi < t_fire < t_gate and vg2 > vth_h, "booster fires outside the driver's reaction window: t_eq model invalid"
         say("boost" + k, "   SC booster (%s per device): OUTH drives %.0f ns after DESAT detection -> two-level gate %+.1f V "
             "(SC current %.0f A in total, from %.0f A per device at VGS(on), assumed); then off in %.0f ns -> detection to off "
             "%.2f us vs %.1f us; turn-off overshoot %.0f V + %.0f nH x %.0f A / %.0f ns = %.0f V vs 0.85 x %.0f V = %.0f V; "
-            "trigger at DESAT %.1f-%.1f V (driver trip <= 9.8 V; normal on-state DESAT <= %.1f V); hold %.1f us; R_sb pulse "
-            "%.1f uJ", ohm(r_sb), t_drv * 1e9, vg2, i_sc2, dev["i_sc"], t_f * 1e9, (t_drv + t_f) * 1e6,
+            "trigger at DESAT %.1f-%.1f V (driver trip <= %.1f V; normal on-state DESAT <= %.1f V); hold %.1f us; R_sb pulse "
+            "%.1f uJ. SC ACCEPTANCE (DAB rule DR-05, RELEASE BLOCK, risk C2): energy-equivalent full-current time t_eq %.2f us "
+            "(full current to the booster at %.0f ns, two-level gate %.0f %% current to %.0f ns, R_sb tail to %s %.2f V "
+            "%.0f ns; no Miller plateau in a short); fault energy %.2f J per device at %.0f V x %.0f A (I_sc ASSUMED); the maker "
+            "must confirm t_SC >= %.2f us and E_SC >= %.2f J per device at %.0f V / 150 C start / VGS +%g V - NOT on file, the "
+            "short circuit is not shown to be covered (assumed t_sc %.1f us = %.2f x t_eq, not a rating)",
+            ohm(r_sb), t_drv * 1e9, vg2, i_sc2, dev["i_sc"], t_f * 1e9, (t_drv + t_f) * 1e6,
             dev["t_resp"] * 1e6, dev["v_bus_sc"], dev["l_loop"] * 1e9, i_sc2, t_f * 1e9, v_pk, dev["v_rated"],
-            0.85 * dev["v_rated"], thr[0], thr[1], dx_on, t_hold * 1e6, e_rsb * 1e6)
+            0.85 * dev["v_rated"], thr[0], thr[1], NSI["vdesat"][2], dx_on, t_hold * 1e6, e_rsb * 1e6, t_eq * 1e6, t_fire * 1e9,
+            100 * x2(vg2), t_gate * 1e9, vth_lbl, vth_h, tail * 1e9, e_ch, dev["v_bus_sc"], dev["i_sc"], 2 * t_eq * 1e6, 2 * e_ch,
+            dev["v_bus_sc"], dev["gate_v"][0], dev["t_sc"][0] * 1e6, dev["t_sc"][0] / t_eq)
         assert t_drv + t_f <= dev["t_resp"], "short-circuit detection-to-off above the required time"
         assert v_pk <= 0.85 * dev["v_rated"], "short-circuit turn-off overshoot above 0.85 x V_DS rating"
         assert thr[0] >= NSI["vdesat"][2] + 0.3 and thr[0] - dx_on >= 2.0 and thr[1] <= v2[0] - 2.0, "booster trigger level"
         assert t_hold >= 2 * t_f and e_rsb <= 100e-6, "booster hold time / R_sb pulse energy"
         sc["booster"] = t_drv + t_f
+        rec.update(t_eq=t_eq, e_sc=e_ch, t_sc_required=2 * t_eq, e_sc_required=2 * e_ch)
         if "crss" in dev:
             # single device: CLAMP direct to the gate (NSI: VEE2 + 0.8 V at 1 A, taken as 0.8 ohm - linear beyond 1 A
             # ASSUMED) in parallel with Roff + ROL; I_M = Crss(800 V) x dv/dt (understates the low-voltage Cgd peak)

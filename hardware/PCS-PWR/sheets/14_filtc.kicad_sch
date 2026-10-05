@@ -489,7 +489,7 @@
 			(in_pos_files yes)
 			(duplicate_pin_numbers_are_jumpers no)
 			(property "Reference" "CS"
-				(at -10.16 8.89 0)
+				(at -7.62 8.89 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(effects
@@ -499,8 +499,8 @@
 					(justify left bottom)
 				)
 			)
-			(property "Value" "CS_PH"
-				(at -10.16 -8.89 0)
+			(property "Value" "STK-250HO/4"
+				(at -7.62 -8.89 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(effects
@@ -521,7 +521,7 @@
 					)
 				)
 			)
-			(property "Datasheet" ""
+			(property "Datasheet" "docs/datasheets/sensing/Sinomags-STK-HO-4.pdf"
 				(at 0 -13.97 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -532,7 +532,7 @@
 					)
 				)
 			)
-			(property "Description" "RFQ open-loop (TMR / Hall) current sensor: measuring range >= +/-500 A, I_PN >= 216 A rms (250 A continuous primary), 5 V supply, Vout = Vref + G x I with the reference on its own pin (Vref 2.5 V), G 3.5-4.0 mV/A, bandwidth >= 100 kHz, response <= 1 us, accuracy +/-2 % after calibration, primary-secondary basic for 1000 V DC + 400 V AC (OVC III), -40..105 C (pcs_spec sensing.phase_current)"
+			(property "Description" "Open-loop Hall current sensor, I_PN 250 A rms, I_PM +/-625 A, 3.2 mV/A around Uref 2.5 V (own pin) at Vcc 5 V, 200 kHz, step response <= 2 us; 4.3 kV rms / 8 kV impulse, > 8 mm, CTI 600 (L1 -> C_f busbar)"
 				(at 0 -16.51 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -545,8 +545,8 @@
 			)
 			(symbol "CS_PH_1_1"
 				(rectangle
-					(start -10.16 7.62)
-					(end 10.16 -7.62)
+					(start -7.62 7.62)
+					(end 7.62 -7.62)
 					(stroke
 						(width 0.254)
 						(type default)
@@ -556,7 +556,7 @@
 					)
 				)
 				(pin power_in line
-					(at 15.24 2.54 180)
+					(at 12.7 5.08 180)
 					(length 5.08)
 					(name "+UC"
 						(effects
@@ -574,7 +574,7 @@
 					)
 				)
 				(pin power_in line
-					(at 15.24 0 180)
+					(at 12.7 2.54 180)
 					(length 5.08)
 					(name "GND"
 						(effects
@@ -592,7 +592,7 @@
 					)
 				)
 				(pin output line
-					(at 15.24 -2.54 180)
+					(at 12.7 0 180)
 					(length 5.08)
 					(name "UOUT"
 						(effects
@@ -610,7 +610,7 @@
 					)
 				)
 				(pin output line
-					(at 15.24 -5.08 180)
+					(at 12.7 -2.54 180)
 					(length 5.08)
 					(name "UREF"
 						(effects
@@ -627,10 +627,10 @@
 						)
 					)
 				)
-				(pin passive line
-					(at -15.24 2.54 0)
+				(pin open_collector line
+					(at 12.7 -5.08 180)
 					(length 5.08)
-					(name "IP+"
+					(name "OCD"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -646,16 +646,16 @@
 					)
 				)
 				(pin passive line
-					(at -15.24 0 0)
+					(at -12.7 5.08 0)
 					(length 5.08)
-					(name "IP-"
+					(name "P"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "6"
+					(number "P"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1718,8 +1718,8 @@
 		)
 	)
 	(rectangle
-		(start 280.62 14)
-		(end 375.36 52.8)
+		(start 270.54 14)
+		(end 365.28 52.8)
 		(stroke
 			(width 0.254)
 			(type dash)
@@ -1731,8 +1731,8 @@
 		(uuid "30cb8886-4183-58c0-a7ac-e909fce0208c")
 	)
 	(rectangle
-		(start 147.36 14)
-		(end 275.62 70.69)
+		(start 148.02 14)
+		(end 265.54 73.69)
 		(stroke
 			(width 0.254)
 			(type dash)
@@ -1741,11 +1741,11 @@
 		(fill
 			(type none)
 		)
-		(uuid "44670ed1-ad24-543d-b11e-e88902bba54d")
+		(uuid "4f2e0201-f647-55a8-b7c9-ff57724c06ff")
 	)
 	(rectangle
 		(start 12 14)
-		(end 142.36 78.52)
+		(end 143.02 78.52)
 		(stroke
 			(width 0.254)
 			(type dash)
@@ -1758,7 +1758,7 @@
 	)
 	(text "C_f = 2 x 25 uF MKP (50 uF); R_d 2 ohm + C_d 10 uF in series, F_C to M."
 		(exclude_from_sim no)
-		(at 282.62 50.304 0)
+		(at 272.544 50.304 0)
 		(effects
 			(font
 				(size 1.1 1.1)
@@ -1766,6 +1766,29 @@
 			(justify left bottom)
 		)
 		(uuid "00ad8156-843c-5ae9-8fc6-90ed3f9ff696")
+	)
+	(text "IL3 = Uref + 3.2 mV/A x I (I + = L1 -> C_f: body arrow, verify at incoming inspection), IL3R = its Uref pin; 100R + 1 nF\neach at the source (as PV-PWR). Primary = L1's output busbar through the aperture (a 50 Hz-smooth node, not the switch\nnode). OCD (open drain, 2.93 x I_PN = 732 A +/-10 %) not used: above both IL windows and the L1 limit."
+		(exclude_from_sim no)
+		(at 150.024 71.192 0)
+		(effects
+			(font
+				(size 1.1 1.1)
+			)
+			(justify left bottom)
+		)
+		(uuid "09d43f63-0969-5ecc-911d-1c4729ae95a4")
+	)
+	(text "PHASE C CURRENT SENSOR STK-250HO/4 (C_F SIDE OF L1)"
+		(exclude_from_sim no)
+		(at 150.024 19 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "0a6164d7-247d-5819-8045-f88469881a64")
 	)
 	(text "PHASE C: L1 AND L2 (CHASSIS, CUSTOM) AND THEIR STUDS"
 		(exclude_from_sim no)
@@ -1779,30 +1802,7 @@
 		)
 		(uuid "370bfaf5-804b-53ef-9743-f773892fa048")
 	)
-	(text "IL3 = Vref + G x I (I + = L1 -> C_f), IL3R = its Vref: 100R + 1 nF each at the source (as PV-PWR).\nThe primary sits between L1 and the C_f node (a 50 Hz-smooth node, not the switch node)."
-		(exclude_from_sim no)
-		(at 149.364 68.192 0)
-		(effects
-			(font
-				(size 1.1 1.1)
-			)
-			(justify left bottom)
-		)
-		(uuid "7b036bff-4bd5-5a84-ad39-8c1b23e8fda9")
-	)
-	(text "PHASE C CURRENT SENSOR (C_F SIDE OF L1)"
-		(exclude_from_sim no)
-		(at 149.364 19 0)
-		(effects
-			(font
-				(size 1.8 1.8)
-				(bold yes)
-			)
-			(justify left bottom)
-		)
-		(uuid "a2b40152-c1fe-56b3-85d4-3107a70a1a6b")
-	)
-	(text "Board studs (REDCUBE press-fit, 100 A each): 3 x switch node to L1, 3 x L1 out, 3 x C_f node to L2,\n3 x L2 out (to AC contactor K1 on the port sheet). Cores bonded to PE."
+	(text "Board studs (REDCUBE press-fit, 100 A each): 3 x switch node to L1, 3 x L1 out (C_f node, its busbar through the\nsensor), 3 x C_f node to L2, 3 x L2 out (to AC contactor K1 on the port sheet). Cores bonded to PE."
 		(exclude_from_sim no)
 		(at 14 76.02 0)
 		(effects
@@ -1815,7 +1815,7 @@
 	)
 	(text "PHASE C C_F AND DAMPING BRANCH (STAR = M, THE DC MIDPOINT)"
 		(exclude_from_sim no)
-		(at 282.62 19 0)
+		(at 272.544 19 0)
 		(effects
 			(font
 				(size 1.8 1.8)
@@ -1824,6 +1824,10 @@
 			(justify left bottom)
 		)
 		(uuid "de85c77d-93c3-5de2-b176-4e1571acdf8f")
+	)
+	(no_connect
+		(at 233.68 38.1)
+		(uuid "92cac73e-a64d-5805-bcfd-ecd33c395d43")
 	)
 	(wire
 		(pts
@@ -1857,7 +1861,7 @@
 	)
 	(wire
 		(pts
-			(xy 186.69 53.34) (xy 184.15 53.34)
+			(xy 189.23 53.34) (xy 186.69 53.34)
 		)
 		(stroke
 			(width 0)
@@ -1867,7 +1871,7 @@
 	)
 	(wire
 		(pts
-			(xy 194.31 53.34) (xy 196.85 53.34)
+			(xy 196.85 53.34) (xy 199.39 53.34)
 		)
 		(stroke
 			(width 0)
@@ -1887,7 +1891,7 @@
 	)
 	(wire
 		(pts
-			(xy 205.74 39.37) (xy 205.74 41.91)
+			(xy 154.94 39.37) (xy 154.94 41.91)
 		)
 		(stroke
 			(width 0)
@@ -1907,7 +1911,7 @@
 	)
 	(wire
 		(pts
-			(xy 190.5 35.56) (xy 193.04 35.56)
+			(xy 233.68 33.02) (xy 236.22 33.02)
 		)
 		(stroke
 			(width 0)
@@ -1927,17 +1931,7 @@
 	)
 	(wire
 		(pts
-			(xy 160.02 33.02) (xy 157.48 33.02)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "3459d009-54be-5ea8-8b8f-43cc9c342e4c")
-	)
-	(wire
-		(pts
-			(xy 290.83 38.1) (xy 288.29 38.1)
+			(xy 280.67 38.1) (xy 278.13 38.1)
 		)
 		(stroke
 			(width 0)
@@ -1947,7 +1941,7 @@
 	)
 	(wire
 		(pts
-			(xy 320.04 38.1) (xy 317.5 38.1)
+			(xy 309.88 38.1) (xy 307.34 38.1)
 		)
 		(stroke
 			(width 0)
@@ -2007,7 +2001,7 @@
 	)
 	(wire
 		(pts
-			(xy 298.45 38.1) (xy 300.99 38.1)
+			(xy 288.29 38.1) (xy 290.83 38.1)
 		)
 		(stroke
 			(width 0)
@@ -2017,7 +2011,7 @@
 	)
 	(wire
 		(pts
-			(xy 223.52 39.37) (xy 223.52 41.91)
+			(xy 172.72 39.37) (xy 172.72 41.91)
 		)
 		(stroke
 			(width 0)
@@ -2027,7 +2021,7 @@
 	)
 	(wire
 		(pts
-			(xy 190.5 30.48) (xy 193.04 30.48)
+			(xy 233.68 27.94) (xy 236.22 27.94)
 		)
 		(stroke
 			(width 0)
@@ -2037,7 +2031,7 @@
 	)
 	(wire
 		(pts
-			(xy 238.76 39.37) (xy 238.76 41.91)
+			(xy 187.96 39.37) (xy 187.96 41.91)
 		)
 		(stroke
 			(width 0)
@@ -2057,7 +2051,7 @@
 	)
 	(wire
 		(pts
-			(xy 300.99 27.94) (xy 303.53 27.94)
+			(xy 290.83 27.94) (xy 293.37 27.94)
 		)
 		(stroke
 			(width 0)
@@ -2087,17 +2081,7 @@
 	)
 	(wire
 		(pts
-			(xy 160.02 30.48) (xy 157.48 30.48)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8b5f9b11-794c-5526-a554-f0f20feb655c")
-	)
-	(wire
-		(pts
-			(xy 205.74 31.75) (xy 205.74 29.21)
+			(xy 154.94 31.75) (xy 154.94 29.21)
 		)
 		(stroke
 			(width 0)
@@ -2117,7 +2101,7 @@
 	)
 	(wire
 		(pts
-			(xy 344.17 27.94) (xy 341.63 27.94)
+			(xy 334.01 27.94) (xy 331.47 27.94)
 		)
 		(stroke
 			(width 0)
@@ -2127,7 +2111,7 @@
 	)
 	(wire
 		(pts
-			(xy 66.04 50.8) (xy 63.5 50.8)
+			(xy 68.58 50.8) (xy 66.04 50.8)
 		)
 		(stroke
 			(width 0)
@@ -2137,7 +2121,7 @@
 	)
 	(wire
 		(pts
-			(xy 293.37 27.94) (xy 290.83 27.94)
+			(xy 283.21 27.94) (xy 280.67 27.94)
 		)
 		(stroke
 			(width 0)
@@ -2147,7 +2131,7 @@
 	)
 	(wire
 		(pts
-			(xy 238.76 31.75) (xy 238.76 29.21)
+			(xy 187.96 31.75) (xy 187.96 29.21)
 		)
 		(stroke
 			(width 0)
@@ -2157,7 +2141,7 @@
 	)
 	(wire
 		(pts
-			(xy 326.39 27.94) (xy 328.93 27.94)
+			(xy 316.23 27.94) (xy 318.77 27.94)
 		)
 		(stroke
 			(width 0)
@@ -2177,7 +2161,7 @@
 	)
 	(wire
 		(pts
-			(xy 190.5 33.02) (xy 193.04 33.02)
+			(xy 233.68 30.48) (xy 236.22 30.48)
 		)
 		(stroke
 			(width 0)
@@ -2187,7 +2171,7 @@
 	)
 	(wire
 		(pts
-			(xy 190.5 38.1) (xy 193.04 38.1)
+			(xy 233.68 35.56) (xy 236.22 35.56)
 		)
 		(stroke
 			(width 0)
@@ -2207,7 +2191,7 @@
 	)
 	(wire
 		(pts
-			(xy 318.77 27.94) (xy 316.23 27.94)
+			(xy 308.61 27.94) (xy 306.07 27.94)
 		)
 		(stroke
 			(width 0)
@@ -2217,7 +2201,7 @@
 	)
 	(wire
 		(pts
-			(xy 223.52 31.75) (xy 223.52 29.21)
+			(xy 172.72 31.75) (xy 172.72 29.21)
 		)
 		(stroke
 			(width 0)
@@ -2247,7 +2231,7 @@
 	)
 	(wire
 		(pts
-			(xy 351.79 27.94) (xy 354.33 27.94)
+			(xy 341.63 27.94) (xy 344.17 27.94)
 		)
 		(stroke
 			(width 0)
@@ -2275,18 +2259,18 @@
 		)
 		(uuid "eb5c73ee-63ac-5ac0-8845-0cf161abad13")
 	)
-	(label "L1O_C"
-		(at 58.42 30.48 0)
-		(effects
-			(font
-				(size 1 1)
-			)
-			(justify left bottom)
+	(wire
+		(pts
+			(xy 208.28 27.94) (xy 205.74 27.94)
 		)
-		(uuid "152ee0da-197c-5c5b-ab36-5ebb4f56d7fa")
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "eea26808-a7d9-5614-a9f6-6df5e4b37908")
 	)
 	(label "RD_C"
-		(at 288.29 38.1 180)
+		(at 278.13 38.1 180)
 		(effects
 			(font
 				(size 1 1)
@@ -2295,28 +2279,8 @@
 		)
 		(uuid "1b181305-ca79-5cdb-91b2-5e1ab323c50f")
 	)
-	(label "L1O_C"
-		(at 157.48 30.48 180)
-		(effects
-			(font
-				(size 1 1)
-			)
-			(justify right bottom)
-		)
-		(uuid "3bdb6d4c-b42b-5f6b-adb0-4bc27a751c46")
-	)
-	(label "L1O_C"
-		(at 106.68 50.8 180)
-		(effects
-			(font
-				(size 1 1)
-			)
-			(justify right bottom)
-		)
-		(uuid "737c977c-b3d7-5664-8b56-f906118b821a")
-	)
 	(label "IL3R_S"
-		(at 193.04 38.1 0)
+		(at 236.22 35.56 0)
 		(effects
 			(font
 				(size 1 1)
@@ -2324,16 +2288,6 @@
 			(justify left bottom)
 		)
 		(uuid "a465edf6-879e-53e2-9088-a9038346a56b")
-	)
-	(label "L1O_C"
-		(at 86.36 50.8 180)
-		(effects
-			(font
-				(size 1 1)
-			)
-			(justify right bottom)
-		)
-		(uuid "cb8de690-861b-578a-9e1a-283be3f12329")
 	)
 	(label "IL3_S"
 		(at 156.21 53.34 180)
@@ -2346,7 +2300,7 @@
 		(uuid "d28cf4c7-20d6-5115-8a63-8d2881d2abdd")
 	)
 	(label "RD_C"
-		(at 354.33 27.94 0)
+		(at 344.17 27.94 0)
 		(effects
 			(font
 				(size 1 1)
@@ -2356,7 +2310,7 @@
 		(uuid "dd247a61-abb5-5967-830e-ecd3d768e852")
 	)
 	(label "IL3_S"
-		(at 193.04 35.56 0)
+		(at 236.22 33.02 0)
 		(effects
 			(font
 				(size 1 1)
@@ -2366,7 +2320,7 @@
 		(uuid "e3295051-7f50-541a-8fc0-1c3359d25d48")
 	)
 	(label "IL3R_S"
-		(at 184.15 53.34 180)
+		(at 186.69 53.34 180)
 		(effects
 			(font
 				(size 1 1)
@@ -2375,19 +2329,9 @@
 		)
 		(uuid "f17c82f3-fbd0-500a-902a-9557623b9fcc")
 	)
-	(label "L1O_C"
-		(at 63.5 50.8 180)
-		(effects
-			(font
-				(size 1 1)
-			)
-			(justify right bottom)
-		)
-		(uuid "f20323bf-24aa-5247-86e5-5f23848006dc")
-	)
 	(global_label "IL3R"
 		(shape bidirectional)
-		(at 238.76 29.21 90)
+		(at 187.96 29.21 90)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2397,7 +2341,7 @@
 		)
 		(uuid "029a3d8d-3ec1-55a7-a24e-72f3ea9c6a3b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 238.76 29.21 90)
+			(at 187.96 29.21 90)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2410,7 +2354,30 @@
 	)
 	(global_label "F_C"
 		(shape bidirectional)
-		(at 316.23 27.94 180)
+		(at 58.42 30.48 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "032d0c31-e1ea-5f7a-92c2-dffe711a8dbe")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 58.42 30.48 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "F_C"
+		(shape bidirectional)
+		(at 306.07 27.94 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2420,30 +2387,7 @@
 		)
 		(uuid "222c4d34-952e-5c43-a786-941addaeaed9")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 316.23 27.94 180)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1 1)
-				)
-			)
-		)
-	)
-	(global_label "F_C"
-		(shape bidirectional)
-		(at 157.48 33.02 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1 1)
-			)
-			(justify right)
-		)
-		(uuid "2c4bf3f9-95ff-5c3a-b2ba-62a301a67591")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 157.48 33.02 180)
+			(at 306.07 27.94 180)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2525,7 +2469,7 @@
 	)
 	(global_label "M"
 		(shape bidirectional)
-		(at 300.99 38.1 0)
+		(at 290.83 38.1 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2535,7 +2479,7 @@
 		)
 		(uuid "514cbc03-aa47-5808-9546-3df986e45579")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 300.99 38.1 0)
+			(at 290.83 38.1 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2571,7 +2515,7 @@
 	)
 	(global_label "F_C"
 		(shape bidirectional)
-		(at 341.63 27.94 180)
+		(at 331.47 27.94 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2581,7 +2525,7 @@
 		)
 		(uuid "5d95d06a-ac57-510d-bcd8-4e144e607f6a")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 341.63 27.94 180)
+			(at 331.47 27.94 180)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2617,7 +2561,30 @@
 	)
 	(global_label "F_C"
 		(shape bidirectional)
-		(at 290.83 27.94 180)
+		(at 205.74 27.94 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "688c2cbe-12a2-5159-8520-3369dca13b2b")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 205.74 27.94 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "F_C"
+		(shape bidirectional)
+		(at 280.67 27.94 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2627,7 +2594,7 @@
 		)
 		(uuid "70ddeda0-93f8-5469-93ca-468d4fcf3c2b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 290.83 27.94 180)
+			(at 280.67 27.94 180)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2663,7 +2630,7 @@
 	)
 	(global_label "AC_T_C"
 		(shape bidirectional)
-		(at 317.5 38.1 180)
+		(at 307.34 38.1 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2673,7 +2640,7 @@
 		)
 		(uuid "826d9144-0663-5ab9-91c2-09c53737cf79")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 317.5 38.1 180)
+			(at 307.34 38.1 180)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2730,9 +2697,55 @@
 			)
 		)
 	)
+	(global_label "F_C"
+		(shape bidirectional)
+		(at 106.68 50.8 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "8f4baaf0-7941-58c5-afa1-8991d1392865")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 106.68 50.8 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "F_C"
+		(shape bidirectional)
+		(at 86.36 50.8 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "90fc3814-a751-53ac-b280-936cbfa09878")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 86.36 50.8 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
 	(global_label "M"
 		(shape bidirectional)
-		(at 328.93 27.94 0)
+		(at 318.77 27.94 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2742,7 +2755,30 @@
 		)
 		(uuid "a944a49f-6573-5302-a8a3-5529d0026808")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 328.93 27.94 0)
+			(at 318.77 27.94 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "F_C"
+		(shape bidirectional)
+		(at 66.04 50.8 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "a98597b6-86ad-565c-a824-e99a7e3b6282")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 66.04 50.8 180)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2755,7 +2791,7 @@
 	)
 	(global_label "IL3"
 		(shape bidirectional)
-		(at 223.52 29.21 90)
+		(at 172.72 29.21 90)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2765,7 +2801,7 @@
 		)
 		(uuid "af32ac02-0ff1-5452-aa59-5744ff4520a3")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 223.52 29.21 90)
+			(at 172.72 29.21 90)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2824,7 +2860,7 @@
 	)
 	(global_label "IL3R"
 		(shape bidirectional)
-		(at 196.85 53.34 0)
+		(at 199.39 53.34 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2834,7 +2870,7 @@
 		)
 		(uuid "de26f865-2de8-550e-a22a-13817367fd54")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 196.85 53.34 0)
+			(at 199.39 53.34 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2847,7 +2883,7 @@
 	)
 	(global_label "M"
 		(shape bidirectional)
-		(at 303.53 27.94 0)
+		(at 293.37 27.94 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2857,7 +2893,7 @@
 		)
 		(uuid "df10587c-1de4-5f63-a593-5661a51afdd0")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 303.53 27.94 0)
+			(at 293.37 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2962,7 +2998,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:C")
-		(at 238.76 35.56 0)
+		(at 187.96 35.56 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -2972,7 +3008,7 @@
 		(dnp no)
 		(uuid "14095332-be54-5145-8ffa-c045be6ae871")
 		(property "Reference" "C1403"
-			(at 245.064 34.66 0)
+			(at 194.264 34.66 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -2983,7 +3019,7 @@
 			)
 		)
 		(property "Value" "1n 50V"
-			(at 245.064 36.46 0)
+			(at 194.264 36.46 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -2993,7 +3029,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 238.76 35.56 0)
+			(at 187.96 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3004,7 +3040,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 238.76 35.56 0)
+			(at 187.96 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3015,7 +3051,7 @@
 			)
 		)
 		(property "Description" "Capacitor 1n 5% 50V C0G 0603"
-			(at 238.76 35.56 0)
+			(at 187.96 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3026,7 +3062,7 @@
 			)
 		)
 		(property "Manufacturer" ""
-			(at 238.76 35.56 0)
+			(at 187.96 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3037,7 +3073,7 @@
 			)
 		)
 		(property "MPN" ""
-			(at 238.76 35.56 0)
+			(at 187.96 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3048,7 +3084,7 @@
 			)
 		)
 		(property "Package" "0603"
-			(at 238.76 35.56 0)
+			(at 187.96 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3059,7 +3095,7 @@
 			)
 		)
 		(property "Sourcing" "GENERIC"
-			(at 238.76 35.56 0)
+			(at 187.96 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3070,7 +3106,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 238.76 35.56 0)
+			(at 187.96 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3097,7 +3133,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_AGND")
-		(at 205.74 41.91 0)
+		(at 187.96 41.91 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -3107,7 +3143,7 @@
 		(dnp no)
 		(uuid "197772c6-80ad-585e-8937-634bc26ed313")
 		(property "Reference" "#PWR14007"
-			(at 205.74 41.91 0)
+			(at 187.96 41.91 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3118,7 +3154,7 @@
 			)
 		)
 		(property "Value" "AGND"
-			(at 205.74 46.31 0)
+			(at 187.96 46.31 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3128,7 +3164,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 205.74 41.91 0)
+			(at 187.96 41.91 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3139,7 +3175,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 205.74 41.91 0)
+			(at 187.96 41.91 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3149,7 +3185,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 205.74 41.91 0)
+			(at 187.96 41.91 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3304,7 +3340,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:CD_10U")
-		(at 347.98 27.94 90)
+		(at 337.82 27.94 90)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -3314,7 +3350,7 @@
 		(dnp no)
 		(uuid "214a43c9-5d8b-59d0-9f3f-8a21519e786b")
 		(property "Reference" "C1406"
-			(at 347.98 24.508 90)
+			(at 337.82 24.508 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3325,7 +3361,7 @@
 			)
 		)
 		(property "Value" "10u 450VAC RFQ"
-			(at 347.98 31.372 90)
+			(at 337.82 31.372 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3335,7 +3371,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 347.98 27.94 0)
+			(at 337.82 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3346,7 +3382,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 347.98 27.94 0)
+			(at 337.82 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3357,7 +3393,7 @@
 			)
 		)
 		(property "Description" "RFQ AC film capacitor MKP 10 uF 10 %, 450 V AC, >= 5 A rms (LCL damping branch C_d)"
-			(at 347.98 27.94 0)
+			(at 337.82 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3368,7 +3404,7 @@
 			)
 		)
 		(property "Manufacturer" ""
-			(at 347.98 27.94 0)
+			(at 337.82 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3379,7 +3415,7 @@
 			)
 		)
 		(property "MPN" ""
-			(at 347.98 27.94 0)
+			(at 337.82 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3390,7 +3426,7 @@
 			)
 		)
 		(property "Package" "board, 4-pin"
-			(at 347.98 27.94 0)
+			(at 337.82 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3401,7 +3437,7 @@
 			)
 		)
 		(property "Sourcing" "RFQ"
-			(at 347.98 27.94 0)
+			(at 337.82 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3412,7 +3448,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 347.98 27.94 0)
+			(at 337.82 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3571,7 +3607,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:C")
-		(at 205.74 35.56 0)
+		(at 154.94 35.56 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -3581,7 +3617,7 @@
 		(dnp no)
 		(uuid "28c8574b-cdbb-5163-8704-cfa3fca29b88")
 		(property "Reference" "C1401"
-			(at 212.968 34.66 0)
+			(at 162.168 34.66 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3592,7 +3628,7 @@
 			)
 		)
 		(property "Value" "100n 50V"
-			(at 212.968 36.46 0)
+			(at 162.168 36.46 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3602,7 +3638,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 205.74 35.56 0)
+			(at 154.94 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3613,7 +3649,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 205.74 35.56 0)
+			(at 154.94 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3624,7 +3660,7 @@
 			)
 		)
 		(property "Description" "Capacitor 100n 50V X7R 0603"
-			(at 205.74 35.56 0)
+			(at 154.94 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3635,7 +3671,7 @@
 			)
 		)
 		(property "Manufacturer" ""
-			(at 205.74 35.56 0)
+			(at 154.94 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3646,7 +3682,7 @@
 			)
 		)
 		(property "MPN" ""
-			(at 205.74 35.56 0)
+			(at 154.94 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3657,7 +3693,7 @@
 			)
 		)
 		(property "Package" "0603"
-			(at 205.74 35.56 0)
+			(at 154.94 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3668,7 +3704,7 @@
 			)
 		)
 		(property "Sourcing" "GENERIC"
-			(at 205.74 35.56 0)
+			(at 154.94 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3679,7 +3715,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 205.74 35.56 0)
+			(at 154.94 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3706,7 +3742,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_AGND")
-		(at 193.04 33.02 90)
+		(at 154.94 41.91 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -3716,7 +3752,7 @@
 		(dnp no)
 		(uuid "2e6cfaad-0035-5df3-b227-785a359cc2b6")
 		(property "Reference" "#PWR14005"
-			(at 193.04 33.02 90)
+			(at 154.94 41.91 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3727,7 +3763,7 @@
 			)
 		)
 		(property "Value" "AGND"
-			(at 198.62 33.02 90)
+			(at 154.94 46.31 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3737,7 +3773,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 193.04 33.02 0)
+			(at 154.94 41.91 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3748,7 +3784,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 193.04 33.02 0)
+			(at 154.94 41.91 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3758,7 +3794,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 193.04 33.02 0)
+			(at 154.94 41.91 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3931,7 +3967,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:RD_2R")
-		(at 294.64 38.1 90)
+		(at 284.48 38.1 90)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -3941,7 +3977,7 @@
 		(dnp no)
 		(uuid "52a3466a-14ed-59ef-b744-e3a80afea962")
 		(property "Reference" "R1403"
-			(at 294.64 35.684 90)
+			(at 284.48 35.684 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3952,7 +3988,7 @@
 			)
 		)
 		(property "Value" "2R 25W RFQ"
-			(at 294.64 40.516 90)
+			(at 284.48 40.516 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3962,7 +3998,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 294.64 38.1 0)
+			(at 284.48 38.1 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3973,7 +4009,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 294.64 38.1 0)
+			(at 284.48 38.1 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3984,7 +4020,7 @@
 			)
 		)
 		(property "Description" "RFQ power resistor 2 ohm 5 %, 25 W in aluminium housing on the heatsink, 1000 V insulation to the housing (LCL damping branch R_d)"
-			(at 294.64 38.1 0)
+			(at 284.48 38.1 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3995,7 +4031,7 @@
 			)
 		)
 		(property "Manufacturer" ""
-			(at 294.64 38.1 0)
+			(at 284.48 38.1 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4006,7 +4042,7 @@
 			)
 		)
 		(property "MPN" ""
-			(at 294.64 38.1 0)
+			(at 284.48 38.1 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4017,7 +4053,7 @@
 			)
 		)
 		(property "Package" "aluminium housing, chassis"
-			(at 294.64 38.1 0)
+			(at 284.48 38.1 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4028,7 +4064,7 @@
 			)
 		)
 		(property "Sourcing" "RFQ"
-			(at 294.64 38.1 0)
+			(at 284.48 38.1 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4039,7 +4075,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 294.64 38.1 0)
+			(at 284.48 38.1 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4197,8 +4233,8 @@
 		)
 	)
 	(symbol
-		(lib_id "dcdc:PWR_+5V")
-		(at 205.74 29.21 0)
+		(lib_id "dcdc:PWR_AGND")
+		(at 172.72 41.91 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -4208,7 +4244,7 @@
 		(dnp no)
 		(uuid "60a959ba-59f7-5ffe-9bd4-6478c3c75809")
 		(property "Reference" "#PWR14006"
-			(at 205.74 29.21 0)
+			(at 172.72 41.91 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4218,8 +4254,8 @@
 				)
 			)
 		)
-		(property "Value" "+5V"
-			(at 205.74 25.01 0)
+		(property "Value" "AGND"
+			(at 172.72 46.31 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4229,7 +4265,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 205.74 29.21 0)
+			(at 172.72 41.91 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4240,7 +4276,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 205.74 29.21 0)
+			(at 172.72 41.91 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4250,7 +4286,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 205.74 29.21 0)
+			(at 172.72 41.91 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4273,7 +4309,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:C")
-		(at 223.52 35.56 0)
+		(at 172.72 35.56 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -4283,7 +4319,7 @@
 		(dnp no)
 		(uuid "60c85ee7-71c8-5d3d-ae4a-251db17421ad")
 		(property "Reference" "C1402"
-			(at 229.824 34.66 0)
+			(at 179.024 34.66 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4294,7 +4330,7 @@
 			)
 		)
 		(property "Value" "1n 50V"
-			(at 229.824 36.46 0)
+			(at 179.024 36.46 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4304,7 +4340,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 223.52 35.56 0)
+			(at 172.72 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4315,7 +4351,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 223.52 35.56 0)
+			(at 172.72 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4326,7 +4362,7 @@
 			)
 		)
 		(property "Description" "Capacitor 1n 5% 50V C0G 0603"
-			(at 223.52 35.56 0)
+			(at 172.72 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4337,7 +4373,7 @@
 			)
 		)
 		(property "Manufacturer" ""
-			(at 223.52 35.56 0)
+			(at 172.72 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4348,7 +4384,7 @@
 			)
 		)
 		(property "MPN" ""
-			(at 223.52 35.56 0)
+			(at 172.72 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4359,7 +4395,7 @@
 			)
 		)
 		(property "Package" "0603"
-			(at 223.52 35.56 0)
+			(at 172.72 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4370,7 +4406,7 @@
 			)
 		)
 		(property "Sourcing" "GENERIC"
-			(at 223.52 35.56 0)
+			(at 172.72 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4381,7 +4417,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 223.52 35.56 0)
+			(at 172.72 35.56 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4543,7 +4579,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_AGND")
-		(at 238.76 41.91 0)
+		(at 236.22 30.48 90)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -4553,7 +4589,7 @@
 		(dnp no)
 		(uuid "6d4254e9-356c-569c-870d-f9483cbba921")
 		(property "Reference" "#PWR14009"
-			(at 238.76 41.91 0)
+			(at 236.22 30.48 90)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4564,7 +4600,7 @@
 			)
 		)
 		(property "Value" "AGND"
-			(at 238.76 46.31 0)
+			(at 241.8 30.48 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4574,7 +4610,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 238.76 41.91 0)
+			(at 236.22 30.48 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4585,7 +4621,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 238.76 41.91 0)
+			(at 236.22 30.48 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4595,7 +4631,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 238.76 41.91 0)
+			(at 236.22 30.48 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4882,7 +4918,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:STUD")
-		(at 71.12 50.8 0)
+		(at 73.66 50.8 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -4892,7 +4928,7 @@
 		(dnp no)
 		(uuid "756557f7-3da2-52e8-83d4-f07ca5b98b8a")
 		(property "Reference" "J1404"
-			(at 71.12 48.13 0)
+			(at 73.66 48.13 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4903,7 +4939,7 @@
 			)
 		)
 		(property "Value" "7461057"
-			(at 71.12 53.47 0)
+			(at 73.66 53.47 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4913,7 +4949,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 71.12 50.8 0)
+			(at 73.66 50.8 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4924,7 +4960,7 @@
 			)
 		)
 		(property "Datasheet" "docs/datasheets/connectors/WE-7461057.pdf"
-			(at 71.12 50.8 0)
+			(at 73.66 50.8 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4935,7 +4971,7 @@
 			)
 		)
 		(property "Description" "PCB HV connection point (ring lug / busbar), M3, 100 A"
-			(at 71.12 50.8 0)
+			(at 73.66 50.8 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4946,7 +4982,7 @@
 			)
 		)
 		(property "Manufacturer" "Wurth Elektronik"
-			(at 71.12 50.8 0)
+			(at 73.66 50.8 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4957,7 +4993,7 @@
 			)
 		)
 		(property "MPN" "7461057"
-			(at 71.12 50.8 0)
+			(at 73.66 50.8 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4968,7 +5004,7 @@
 			)
 		)
 		(property "Package" "REDCUBE press-fit M3"
-			(at 71.12 50.8 0)
+			(at 73.66 50.8 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4979,7 +5015,7 @@
 			)
 		)
 		(property "Sourcing" "ORDERABLE"
-			(at 71.12 50.8 0)
+			(at 73.66 50.8 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4990,7 +5026,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 71.12 50.8 0)
+			(at 73.66 50.8 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5013,8 +5049,8 @@
 		)
 	)
 	(symbol
-		(lib_id "dcdc:PWR_AGND")
-		(at 223.52 41.91 0)
+		(lib_id "dcdc:PWR_+5V")
+		(at 236.22 27.94 270)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -5024,7 +5060,7 @@
 		(dnp no)
 		(uuid "863e57fe-83f2-59b5-b46f-7096bf42aca5")
 		(property "Reference" "#PWR14008"
-			(at 223.52 41.91 0)
+			(at 236.22 27.94 90)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5034,8 +5070,8 @@
 				)
 			)
 		)
-		(property "Value" "AGND"
-			(at 223.52 46.31 0)
+		(property "Value" "+5V"
+			(at 241.38 27.94 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5045,7 +5081,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 223.52 41.91 0)
+			(at 236.22 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5056,7 +5092,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 223.52 41.91 0)
+			(at 236.22 27.94 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5066,7 +5102,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 223.52 41.91 0)
+			(at 236.22 27.94 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5830,7 +5866,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:CS_PH")
-		(at 175.26 33.02 0)
+		(at 220.98 33.02 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -5840,7 +5876,7 @@
 		(dnp no)
 		(uuid "b4cbfcf6-d4cf-560f-8e12-21e169c1987d")
 		(property "Reference" "CS1401"
-			(at 175.26 23.8 0)
+			(at 220.98 23.8 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5850,8 +5886,8 @@
 				)
 			)
 		)
-		(property "Value" "CS +/-500A RFQ"
-			(at 175.26 42.24 0)
+		(property "Value" "STK-250HO/4"
+			(at 220.98 42.24 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5861,7 +5897,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 175.26 33.02 0)
+			(at 220.98 33.02 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5871,8 +5907,8 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
-			(at 175.26 33.02 0)
+		(property "Datasheet" "docs/datasheets/sensing/Sinomags-STK-HO-4.pdf"
+			(at 220.98 33.02 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5882,8 +5918,8 @@
 				)
 			)
 		)
-		(property "Description" "RFQ open-loop (TMR / Hall) current sensor: measuring range >= +/-500 A, I_PN >= 216 A rms (250 A continuous primary), 5 V supply, Vout = Vref + G x I with the reference on its own pin (Vref 2.5 V), G 3.5-4.0 mV/A, bandwidth >= 100 kHz, response <= 1 us, accuracy +/-2 % after calibration, primary-secondary basic for 1000 V DC + 400 V AC (OVC III), -40..105 C (pcs_spec sensing.phase_current)"
-			(at 175.26 33.02 0)
+		(property "Description" "Open-loop Hall current sensor, I_PN 250 A rms, I_PM +/-625 A, 3.2 mV/A around Uref 2.5 V (own pin) at Vcc 5 V, 200 kHz, step response <= 2 us; 4.3 kV rms / 8 kV impulse, > 8 mm, CTI 600 (L1 -> C_f busbar)"
+			(at 220.98 33.02 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5893,8 +5929,8 @@
 				)
 			)
 		)
-		(property "Manufacturer" ""
-			(at 175.26 33.02 0)
+		(property "Manufacturer" "Sinomags Technology"
+			(at 220.98 33.02 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5904,8 +5940,8 @@
 				)
 			)
 		)
-		(property "MPN" ""
-			(at 175.26 33.02 0)
+		(property "MPN" "STK-250HO/4"
+			(at 220.98 33.02 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5915,8 +5951,8 @@
 				)
 			)
 		)
-		(property "Package" "PCB mount, integrated primary bar 250 A rms"
-			(at 175.26 33.02 0)
+		(property "Package" "screw mount 40.8 x 32.1 mm, aperture 15 x 8 mm busbar, 5-pin 2 mm connector"
+			(at 220.98 33.02 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5926,8 +5962,8 @@
 				)
 			)
 		)
-		(property "Sourcing" "RFQ"
-			(at 175.26 33.02 0)
+		(property "Sourcing" "ORDERABLE"
+			(at 220.98 33.02 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5938,7 +5974,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 175.26 33.02 0)
+			(at 220.98 33.02 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5948,11 +5984,8 @@
 				)
 			)
 		)
-		(pin "5"
-			(uuid "ba4ec5ec-e035-5261-8fba-0910979d3bb5")
-		)
-		(pin "6"
-			(uuid "6fd384f8-4aca-5016-87e1-76dee2861de5")
+		(pin "P"
+			(uuid "4e1bdc63-dc09-5fe3-b0cc-3486e70cc8da")
 		)
 		(pin "1"
 			(uuid "be48cd18-372b-535a-8864-6611ec38dda6")
@@ -5965,6 +5998,9 @@
 		)
 		(pin "4"
 			(uuid "29aaf2a4-d035-5fb5-8bcf-e7facfde3390")
+		)
+		(pin "5"
+			(uuid "ba4ec5ec-e035-5261-8fba-0910979d3bb5")
 		)
 		(instances
 			(project "PCS-PWR"
@@ -6109,7 +6145,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:CF_25U")
-		(at 322.58 27.94 90)
+		(at 312.42 27.94 90)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6119,7 +6155,7 @@
 		(dnp no)
 		(uuid "b7607c73-ff13-534e-a6d7-26fbce4648c6")
 		(property "Reference" "C1405"
-			(at 322.58 24.508 90)
+			(at 312.42 24.508 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6130,7 +6166,7 @@
 			)
 		)
 		(property "Value" "25u 450VAC RFQ"
-			(at 322.58 31.372 90)
+			(at 312.42 31.372 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6140,7 +6176,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 322.58 27.94 0)
+			(at 312.42 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6151,7 +6187,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 322.58 27.94 0)
+			(at 312.42 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6162,7 +6198,7 @@
 			)
 		)
 		(property "Description" "RFQ AC filter capacitor MKP 25 uF 10 %, 450 V AC (rated for the phase-to-midpoint voltage incl. the 150 Hz zero sequence), >= 15 A rms, self-healing, overpressure disconnector (C_f, 2 per phase)"
-			(at 322.58 27.94 0)
+			(at 312.42 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6173,7 +6209,7 @@
 			)
 		)
 		(property "Manufacturer" ""
-			(at 322.58 27.94 0)
+			(at 312.42 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6184,7 +6220,7 @@
 			)
 		)
 		(property "MPN" ""
-			(at 322.58 27.94 0)
+			(at 312.42 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6195,7 +6231,7 @@
 			)
 		)
 		(property "Package" "chassis or board, M6 / 4-pin"
-			(at 322.58 27.94 0)
+			(at 312.42 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6206,7 +6242,7 @@
 			)
 		)
 		(property "Sourcing" "RFQ"
-			(at 322.58 27.94 0)
+			(at 312.42 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6217,7 +6253,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 322.58 27.94 0)
+			(at 312.42 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6376,7 +6412,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:STUD")
-		(at 325.12 38.1 0)
+		(at 314.96 38.1 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6386,7 +6422,7 @@
 		(dnp no)
 		(uuid "c022e04f-6bac-5c2a-ae5a-d37b390c6c01")
 		(property "Reference" "J1413"
-			(at 325.12 35.43 0)
+			(at 314.96 35.43 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6397,7 +6433,7 @@
 			)
 		)
 		(property "Value" "7461057"
-			(at 325.12 40.77 0)
+			(at 314.96 40.77 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6407,7 +6443,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 325.12 38.1 0)
+			(at 314.96 38.1 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6418,7 +6454,7 @@
 			)
 		)
 		(property "Datasheet" "docs/datasheets/connectors/WE-7461057.pdf"
-			(at 325.12 38.1 0)
+			(at 314.96 38.1 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6429,7 +6465,7 @@
 			)
 		)
 		(property "Description" "PCB HV connection point (ring lug / busbar), M3, 100 A"
-			(at 325.12 38.1 0)
+			(at 314.96 38.1 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6440,7 +6476,7 @@
 			)
 		)
 		(property "Manufacturer" "Wurth Elektronik"
-			(at 325.12 38.1 0)
+			(at 314.96 38.1 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6451,7 +6487,7 @@
 			)
 		)
 		(property "MPN" "7461057"
-			(at 325.12 38.1 0)
+			(at 314.96 38.1 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6462,7 +6498,7 @@
 			)
 		)
 		(property "Package" "REDCUBE press-fit M3"
-			(at 325.12 38.1 0)
+			(at 314.96 38.1 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6473,7 +6509,7 @@
 			)
 		)
 		(property "Sourcing" "ORDERABLE"
-			(at 325.12 38.1 0)
+			(at 314.96 38.1 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6484,7 +6520,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 325.12 38.1 0)
+			(at 314.96 38.1 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6508,7 +6544,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:R")
-		(at 190.5 53.34 90)
+		(at 193.04 53.34 90)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6518,7 +6554,7 @@
 		(dnp no)
 		(uuid "c9c3b9d4-1621-5ddc-9072-8c382a3a9e82")
 		(property "Reference" "R1402"
-			(at 190.5 50.924 90)
+			(at 193.04 50.924 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6529,7 +6565,7 @@
 			)
 		)
 		(property "Value" "100R"
-			(at 190.5 55.756 90)
+			(at 193.04 55.756 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6539,7 +6575,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 190.5 53.34 0)
+			(at 193.04 53.34 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6550,7 +6586,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 190.5 53.34 0)
+			(at 193.04 53.34 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6561,7 +6597,7 @@
 			)
 		)
 		(property "Description" "Resistor 100R 1% 0603"
-			(at 190.5 53.34 0)
+			(at 193.04 53.34 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6572,7 +6608,7 @@
 			)
 		)
 		(property "Manufacturer" ""
-			(at 190.5 53.34 0)
+			(at 193.04 53.34 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6583,7 +6619,7 @@
 			)
 		)
 		(property "MPN" ""
-			(at 190.5 53.34 0)
+			(at 193.04 53.34 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6594,7 +6630,7 @@
 			)
 		)
 		(property "Package" "0603"
-			(at 190.5 53.34 0)
+			(at 193.04 53.34 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6605,7 +6641,7 @@
 			)
 		)
 		(property "Sourcing" "GENERIC"
-			(at 190.5 53.34 0)
+			(at 193.04 53.34 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6616,7 +6652,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 190.5 53.34 0)
+			(at 193.04 53.34 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6787,7 +6823,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:CF_25U")
-		(at 297.18 27.94 90)
+		(at 287.02 27.94 90)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6797,7 +6833,7 @@
 		(dnp no)
 		(uuid "e13d39ba-4e7e-54fb-bcc4-7ab4c96ab217")
 		(property "Reference" "C1404"
-			(at 297.18 24.508 90)
+			(at 287.02 24.508 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6808,7 +6844,7 @@
 			)
 		)
 		(property "Value" "25u 450VAC RFQ"
-			(at 297.18 31.372 90)
+			(at 287.02 31.372 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6818,7 +6854,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 297.18 27.94 0)
+			(at 287.02 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6829,7 +6865,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 297.18 27.94 0)
+			(at 287.02 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6840,7 +6876,7 @@
 			)
 		)
 		(property "Description" "RFQ AC filter capacitor MKP 25 uF 10 %, 450 V AC (rated for the phase-to-midpoint voltage incl. the 150 Hz zero sequence), >= 15 A rms, self-healing, overpressure disconnector (C_f, 2 per phase)"
-			(at 297.18 27.94 0)
+			(at 287.02 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6851,7 +6887,7 @@
 			)
 		)
 		(property "Manufacturer" ""
-			(at 297.18 27.94 0)
+			(at 287.02 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6862,7 +6898,7 @@
 			)
 		)
 		(property "MPN" ""
-			(at 297.18 27.94 0)
+			(at 287.02 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6873,7 +6909,7 @@
 			)
 		)
 		(property "Package" "chassis or board, M6 / 4-pin"
-			(at 297.18 27.94 0)
+			(at 287.02 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6884,7 +6920,7 @@
 			)
 		)
 		(property "Sourcing" "RFQ"
-			(at 297.18 27.94 0)
+			(at 287.02 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6895,7 +6931,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 297.18 27.94 0)
+			(at 287.02 27.94 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6922,7 +6958,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_+5V")
-		(at 193.04 30.48 270)
+		(at 154.94 29.21 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6932,7 +6968,7 @@
 		(dnp no)
 		(uuid "fa72f6fb-db56-52b0-9abe-652e7248cdb0")
 		(property "Reference" "#PWR14004"
-			(at 193.04 30.48 90)
+			(at 154.94 29.21 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6943,7 +6979,7 @@
 			)
 		)
 		(property "Value" "+5V"
-			(at 198.2 30.48 90)
+			(at 154.94 25.01 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6953,7 +6989,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 193.04 30.48 0)
+			(at 154.94 29.21 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6964,7 +7000,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 193.04 30.48 0)
+			(at 154.94 29.21 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6974,7 +7010,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 193.04 30.48 0)
+			(at 154.94 29.21 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects

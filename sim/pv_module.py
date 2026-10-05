@@ -57,6 +57,7 @@ FAN_OF = {3: "AFB1224SHE-F00", 4: "FFB1224SHE-F00"}
 FAN_P_CAP = {4: 17.0}                              # W per fan: the aux SELV budget caps the FFB (19.2 W rated) at 17 W
 FAN_USD = {"AFB1224SHE-F00": (12.85, "Master Electronics @504, web-search result (gen/data/prices.csv)"),
            "FFB1224SHE-F00": (None, "no price on file")}
+DELTA_USD = FAN_USD["AFB1224SHE-F00"][0]
 # one earthed extrusion, 444 mm wide, 10 mm base (RTH_SPREAD basis), 40 mm x 1.5 mm fins; fin count solved so that R_sa (incl. air
 # rise) = 0.060 K/W at 400 m3/h, 45 C air - the architecture's limit, so every figure below is for the worst heatsink the spec
 # allows (ASSUMPTION: geometry stands in for the mechanical design, out of scope).  PV-P100/110: same section, 4/3 the length
@@ -330,6 +331,194 @@ def holdable(m, t_in, alt=0.0, n_fail=0, flap="no flap", fan=None, port=True):
     return worst
 
 
+# ------------------------------------------------------------------------------------------------ passive cooling (PCM-17, D-045, risk A4)
+# The Delta fans are rated -10..+60 C: below -10 C inlet the fans stay OFF (firmware) and the module runs on what it dissipates without
+# forced air. ESTIMATES throughout (+-50 %, no bench data): natural convection between the fins and on the inductor, an enclosure that
+# loses its heat through its walls only - NO credit for a chimney draft through the stopped fans and the grilles (orientation unknown),
+# so the figures err on the low side of the real capability and the firmware override below covers the rest.
+T_COLD = (-30.0, -20.0, -10.0)       # inlet (outside air) temperatures of the table, C; -10 C is the fans' own limit
+G_ACC, SIGMA = 9.81, 5.670e-8
+EPS_HS, F_RAD_HS = 0.10, 0.25        # bare aluminium extrusion (eps ~0.1): radiation from inside the fin channels reaches the walls only in part
+EPS_IND, F_RAD_IND, H_IND_VERT = 0.85, 0.5, 0.075   # toroid: enamel / powder core; half of its radiation reaches the walls; vertical extent, m
+H_ENC_IN, H_ENC_OUT, A_ENC = 6.0, 8.0, 0.70          # W/m2K inside (natural convection + radiation to the walls), outside (4 convection + 4 radiation
+#                                                      at -30 C), m2 of the 550 x 444 x 133 mm enclosure with the back face against the wall
+C_MODULE = 30.0 * 800.0              # J/K: PV-13's 30 kg x 0.8 kJ/(kg K) (mixed Al / Cu / steel / FR4), the structure the inlet air follows
+V_AIR_FREE = 0.5 * 0.550 * 0.444 * 0.133   # m3 of free air inside (half of the enclosure volume)
+T_SINK_PASSIVE, T_IND_PASSIVE = 75.0, 130.0   # C the passive power keeps the heatsink NTC / the inductor hot spot below (steady state)
+T_SINK_START, T_IND_START = 80.0, 135.0       # C: firmware starts the fans at any heatsink / inductor NTC above this, whatever the inlet reads
+FAN_ALT_USD = {"9GT": (88.0, 112.92), "4414": (33.94, 78.89)}   # USD per fan, low / high: Sanyo 88 (stock dealer) / 112.92 (DigiKey 21+) from gen/data/prices.csv;
+#   ebm-papst 4414/2HHP = web-search snippet of 2026-10-05 (Octopart range, NOT verified on the pages, not in prices.csv)
+F_PASSIVE_MIN = 0.05                 # of P_max: the lowest load the passive power is searched from (at exactly 0 the model still switches)
+EQUAL_V = (611, 611)                 # the DERATE_PTS corner with V_A = V_B: both legs hard-switch, light-load losses 150-300 W (no passive power)
+PASSIVE_K = {"nominal": (1.0, 1.0, 1.0), "pessimistic": (1.5, 1.3, 0.7), "optimistic": (0.7, 0.8, 1.4)}   # (R_sa,nc x, R_ind,nc x, G_enc x)
+
+
+def air_props(t_c):
+    """k, nu, alpha of air at t_c (C), 1 atm"""
+    T = t_c + 273.15
+    rho = 101325.0 / (287.05 * T)
+    k = 0.0241 * (T / 273.15) ** 0.81
+    return k, 1.458e-6 * T ** 1.5 / (T + 110.4) / rho, k / (rho * CP_AIR)
+
+
+def nat_rsa(n, dts, t_air):
+    """sink-to-enclosure-air resistance (K/W) of the n-phase extrusion in natural convection (fins vertical, chimney length = the fin
+    length): Bar-Cohen and Rohsenow's composite correlation for isothermal parallel plates + straight-fin efficiency + the hindered
+    radiation of a bare aluminium fin array; dts = sink excess over the air, K. ESTIMATE"""
+    g = hs_geom(n)
+    nf, h, t, L, W = g["n_fin"], g["h_fin"], g["t_fin"], g["length"], g["width"]
+    s = W / nf - t
+    tf = t_air + 0.5 * dts
+    k, nu, al = air_props(tf)
+    T = tf + 273.15
+    el = G_ACC / T * max(dts, 1.0) * s ** 4 / (nu * al * L)           # Elenbaas number
+    hc = (576.0 / el ** 2 + 2.873 / el ** 0.5) ** -0.5 * k / s
+    htot = hc + F_RAD_HS * 4 * EPS_HS * SIGMA * T ** 3
+    m = math.sqrt(2 * htot / (200.0 * t))
+    eta = math.tanh(m * h) / (m * h)
+    return 1.0 / (htot * eta * (nf * 2 * h * L + W * L))
+
+
+def nat_h_ind(dts, t_air):
+    """toroid surface coefficient (W/m2K) in natural convection + radiation; the forced-air model uses H_IND0 = 25 at 150 m3/h. ESTIMATE"""
+    T = t_air + 0.5 * dts + 273.15
+    hc = 1.42 * (max(dts, 1.0) / H_IND_VERT) ** 0.25                  # laminar vertical surface
+    hr = F_RAD_IND * EPS_IND * SIGMA * ((T + dts / 2) ** 2 + (T - dts / 2) ** 2) * 2 * T
+    return hc + hr
+
+
+def g_enc(k=1.0):
+    """enclosure to ambient conductance (W/K): inside and outside films in series over the wall area. ESTIMATE"""
+    return k * A_ENC / (1 / H_ENC_IN + 1 / H_ENC_OUT)
+
+
+def passive_state(m, va, vb, p, t_amb, k=PASSIVE_K["nominal"]):
+    """steady state with the fans OFF at (va, vb, p) and outside air t_amb: the cell losses with the natural-convection heatsink resistance
+    (tr.heatsink_rth replaced for the call), the inductor hot spot from its natural-convection h, and the enclosure air that all the heat
+    has to reach through the walls. The losses rise with temperature, so the heat balance can have two solutions (or none: runaway); the
+    iteration starts from the cold side and, being monotone in the enclosure air temperature, ends on the LOWEST one - the state the
+    module reaches from a cold start; 'ok' False = no solution below 150 K above the outside air (runaway)"""
+    n, des = m["n"], m["des"]
+    t_air, dts, dti, ok = t_amb, 1.0, 1.0, False
+    orig = tr.heatsink_rth
+    try:
+        for it in range(400):
+            r_sec = nat_rsa(n, dts, t_air) * n * k[0]                  # a 1/n section of the sink at 1/n of the heat: n x the whole sink
+            tr.heatsink_rth = lambda r_sec=r_sec, **kw: (r_sec, 0.0, 0.0)
+            r = tr.cell_losses(dict(des, flow=100.0, rho=1.2, hs_geom=hs_geom(n, True), aux_external=True), va, vb, p / n, t_air=t_air)
+            lc = r["loss"]
+            dt_ind = tr.ind_hot_rise(lc["core"] + lc["cu"], H_IND0 / nat_h_ind(dti, t_air) * k[1])
+            va_aux, i_b = max(va, vb), abs(p) / vb
+            loss = {"cells": n * r["ptot"], "ctrl_aux": aux_in(n, va_aux, 0.0) + p_hv(va, vb), "port": 0.0}
+            for _ in range(50):
+                i_a = (abs(p) + sum(loss.values())) / va
+                new_port = i_a ** 2 * R_PORT_A + i_b ** 2 * R_PORT_B
+                if abs(new_port - loss["port"]) < 1e-9:
+                    break
+                loss["port"] = new_port
+            ptot = sum(loss.values())
+            t_new, dts_new = t_amb + ptot / g_enc(k[2]), r["t_sink"] - t_air
+            if abs(t_new - t_air) < 0.01 and abs(dts_new - dts) < 0.01 and abs(dt_ind - dti) < 0.01:
+                ok = True
+                break
+            if t_new - t_amb > 150.0:
+                break
+            t_air, dts, dti = t_new, 0.5 * (dts + max(dts_new, 1.0)), 0.5 * (dti + max(dt_ind, 1.0))
+    finally:
+        tr.heatsink_rth = orig
+    cap = des["caps"]["A"]
+    i_cap = max(r["st"]["icap_rms_A"], r["st"]["icap_rms_B"]) / cap["n"]
+    return {"ok": ok, "t_air": float(t_air), "t_sink": float(r["t_sink"]), "tj": float(r["tj_max"]), "t_ind": float(t_air + dt_ind),
+            "ptot": float(ptot), "t_cap": float(t_air + cap["esr"] * i_cap ** 2 * dv.C4AQ[cap["part"]]["rth"]),
+            "p_ind": float(lc["core"] + lc["cu"]), "p_sink": float(lc["cond"] + lc["sw"] + lc["dead"]), "r_sa_nc": float(r_sec / n)}
+
+
+def passive_ok(st, va, vb):
+    return (st["ok"] and st["tj"] <= pdz.TJ_DESIGN and st["t_sink"] <= T_SINK_PASSIVE and st["t_ind"] <= T_IND_PASSIVE
+            and st["t_cap"] <= cap_allowed(max(va, vb)))
+
+
+def passive_by_point(m, t_amb, k=PASSIVE_K["nominal"]):
+    """for every DERATE_PTS point: (W it holds with the fans OFF within the passive limits, fraction of that point's P_max, state at that
+    load) - bisection on the fraction from F_PASSIVE_MIN, the lowest load searched; 0 W = even F_PASSIVE_MIN needs the fans"""
+    n, out = m["n"], {}
+    for va, vb in DERATE_PTS:
+        pmax, top = n * tr.p_limit(va, vb), port_cap(n, va, vb)
+        st_lo = passive_state(m, va, vb, F_PASSIVE_MIN * pmax, t_amb, k)
+        if not passive_ok(st_lo, va, vb):
+            f, st = 0.0, st_lo
+        elif passive_ok(passive_state(m, va, vb, top * pmax, t_amb, k), va, vb):
+            f, st = top, passive_state(m, va, vb, top * pmax, t_amb, k)
+        else:
+            lo, hi = F_PASSIVE_MIN, top
+            for _ in range(9):
+                mid = 0.5 * (lo + hi)
+                lo, hi = (mid, hi) if passive_ok(passive_state(m, va, vb, mid * pmax, t_amb, k), va, vb) else (lo, mid)
+            f, st = lo, passive_state(m, va, vb, lo * pmax, t_amb, k)
+        out[(va, vb)] = (f * pmax, f, st)
+    return out
+
+
+def warmup_s(ptot, c, k_g=1.0, d_t=20.0):
+    """time for the lumped capacity c (J/K) to rise by d_t K above the outside air when ptot (W) is dissipated and the enclosure loses
+    g_enc (W/K) to it: c / g x ln(ptot / (ptot - g d_t)); None when the steady state stays below d_t"""
+    g = g_enc(k_g)
+    return None if ptot <= g * d_t else c / g * math.log(ptot / (ptot - g * d_t))
+
+
+def override_minutes(n, st, t_amb, horizon=6 * 3600.0, dt=10.0):
+    """minutes from a cold soak at t_amb until the heatsink NTC reaches T_SINK_START or the inductor NTC T_IND_START (the firmware then starts
+    the fans whatever the inlet reads) when the module dissipates the losses of the steady state `st`: three lumped nodes (heatsink,
+    inductors, enclosure structure + air) with the steady-state conductances; ESTIMATE. None = not within the horizon"""
+    c_s = HS["mass_kg"][n] * 900.0
+    c_i = n * tr.IND_DESIGN["mass_kg"] * 500.0
+    c_a = C_MODULE - c_s - c_i
+    p_s, p_i = n * st["p_sink"], n * st["p_ind"]
+    p_r = st["ptot"] - p_s - p_i
+    g_s = 1.0 / st["r_sa_nc"]
+    g_i = p_i / max(st["t_ind"] - st["t_air"], 1.0)
+    ts = ti = ta = t_amb
+    for k in range(int(horizon / dt)):
+        qs, qi = g_s * (ts - ta), g_i * (ti - ta)
+        ts += dt * (p_s - qs) / c_s
+        ti += dt * (p_i - qi) / c_i
+        ta += dt * (p_r + qs + qi - g_enc() * (ta - t_amb)) / c_a
+        if ts >= T_SINK_START or ti >= T_IND_START:
+            return (k + 1) * dt / 60.0
+    return None
+
+
+def cold_start(res):
+    """PCM-17: the passive power of each build at -30 / -20 / -10 C inlet for each corner point, its sensitivity, the warm-up time of the air
+    near the fan inlet from -30 to -10 C at that power, the time the override takes where no passive power exists, and the firmware rule;
+    all ESTIMATES"""
+    out = {}
+    for n, r in res.items():
+        m, rows = r["m"], []
+        for t in T_COLD:
+            pts = passive_by_point(m, t)
+            lim = min((q for q in pts if q != EQUAL_V), key=lambda q: pts[q][0])      # the lowest corner point away from V_A = V_B
+            sens = {tag: min(v[0] for q, v in passive_by_point(m, t, PASSIVE_K[tag]).items() if q != EQUAL_V) / 1e3
+                    for tag in ("pessimistic", "optimistic")}
+            by_pt = {"%.0f/%.0f" % q: {"kW": round(v[0] / 1e3, 1), "fraction_of_P_max": round(v[1], 3), "enclosure_air_C": round(v[2]["t_air"], 1),
+                                       "heatsink_C": round(v[2]["t_sink"], 1), "junction_C": round(v[2]["tj"], 1),
+                                       "inductor_hot_spot_C": round(v[2]["t_ind"], 1), "module_loss_W": round(v[2]["ptot"], 1),
+                                       "override_after_min": (None if v[0] > 0 else (lambda x: None if x is None else round(x, 0))(
+                                           override_minutes(n, v[2], t)))} for q, v in pts.items()}
+            rows.append({"inlet_C": t, "kW": round(pts[lim][0] / 1e3, 1), "limiting_point_V": list(lim), "kW_by_point": by_pt,
+                         "kW_at_equal_voltages": round(pts[EQUAL_V][0] / 1e3, 1),
+                         "kW_pessimistic": round(sens["pessimistic"], 1), "kW_optimistic": round(sens["optimistic"], 1),
+                         "module_loss_W": round(pts[lim][2]["ptot"], 1), "R_sa_natural_K_W": round(pts[lim][2]["r_sa_nc"], 3)})
+        p30 = rows[0]["module_loss_W"]                                  # module loss at the passive limit, -30 C
+        c_air = 1.45 * V_AIR_FREE * 718.0
+        w_s, w_a = warmup_s(p30, C_MODULE), warmup_s(p30, c_air)
+        out[MODULES[n]] = {"table": rows, "R_sa_forced_K_W": round(hs_rsa(n, r["op45"]["q_hs"]), 4),
+                           "warmup_minus30_to_minus10_C_min": {"structure_and_air": None if w_s is None else round(w_s / 60, 0),
+                                                              "air_only_s": None if w_a is None else round(w_a, 1),
+                                                              "at_module_loss_W": round(p30, 0)}}
+    return out
+
+
 # ------------------------------------------------------------------------------------------------ run
 def s_cap_of(fan, n):
     """speed cap: all N_FANS within NOISE_MAX, and the per-fan power cap of the build (fan power ~ speed^3 without p_min_w)"""
@@ -434,7 +623,7 @@ def run():
 
     os.makedirs(OUT, exist_ok=True)
     cell_spec = json.load(open(os.path.join(OUT, "cell_spec.json")))
-    role = cell_spec.get("module_basis_role", "primary")      # the device of the pair with the lower corner efficiency
+    role = cell_spec["module_basis_role"]      # the device of the pair with the lower corner efficiency (a cell_spec without it is stale)
     des, rec, sel, pick, target = pdz.choose(role)
     j = tr.IND_DESIGN
     ind_used = {"revision": j["revision"], "construction": j["construction"], "conductor": j["windings"][0]["conductor"],
@@ -453,7 +642,7 @@ def run():
                          "fail_flap": holdable(m, 45.0, n_fail=1, flap="flap", fan=fan),
                          "fail_noflap": holdable(m, 45.0, n_fail=1, flap="no flap", fan=fan),
                          "i_ok": N_FANS * dv.FANS[fan]["p_w"] <= 36.0 + 1e-9, "p_w": dv.FANS[fan]["p_w"],
-                         "cold_ok": dv.FANS[fan].get("t_amb", (99.0,))[0] <= T_INLET_MIN_REQ})
+                         "cold_ok": dv.FANS[fan]["t_amb"][0] <= T_INLET_MIN_REQ})
     choice = FAN_OF[3]
 
     res = {}
@@ -506,6 +695,7 @@ def run():
     for n, r in res.items():
         r["bank"] = bank_study(des, n, f_cv)
     fsw = fsw_study(res[3]["m"], res[3]["peak"])
+    cold = cold_start(res)
 
     # ---------------------------------------------------------------- self-check (physics)
     assert abs(hs_rsa(3, R_SA_SPEC[3][1]) - R_SA_SPEC[3][0]) < 1e-5, "extrusion calibrated to the spec R_sa"
@@ -536,14 +726,55 @@ def run():
         assert pk["eff"] < tr.cell_losses(dict(des, aux_external=True), pk["va"], pk["vb"], pk["p"] / n)["eff"], "module < cell"
         assert all(h > o for h, o in zip(r["stby"]["contactors_held_W"], r["stby"]["contactors_open_W"])), "holding costs power"
         assert r["bank"]["B"]["need_uF"]["load_rejection"] > r["bank"]["B"]["need_uF"]["load_rejection_at_1100V_nominal"]
+    for name, c in cold.items():       # passive cooling: warmer outside air leaves less power, natural convection is worse than forced air
+        kw = [away_from_equal(row) for row in c["table"]]
+        assert all(kw[k + 1] <= kw[k] + 0.5 for k in range(len(kw) - 1)), ("passive power falls with the inlet temperature", name, kw)
+        assert all(row["R_sa_natural_K_W"] > 2 * c["R_sa_forced_K_W"] for row in c["table"]), "natural-convection R_sa above the forced-air value"
+        assert all(row["kW_pessimistic"] <= row["kW"] + 1e-9 <= row["kW_optimistic"] + 2e-9 for row in c["table"]), "sensitivity brackets the nominal"
     assert [x["fsw_kHz"] for x in fsw] == sorted(x["fsw_kHz"] for x in fsw)
     assert all(fsw[k + 1]["loss_at_peak_point_W"] > fsw[k]["loss_at_peak_point_W"] for k in range(len(fsw) - 1)), "loss rises with f"
 
-    write_outputs(res, fan_rows, choice, des, cell_spec, plt, ind_used, fsw)
+    write_outputs(res, fan_rows, choice, des, cell_spec, plt, ind_used, fsw, cold)
     return res, fan_rows, choice, fsw
 
 
-def write_outputs(res, fan_rows, choice, des, cell_spec, plt, ind_used, fsw):
+def away_from_equal(r):
+    """lowest passive power (kW) of the corner points other than V_A = V_B = 611 V in one table row"""
+    return r["kW"]
+
+
+def cold_text(cold, f):
+    """the cold-start restriction of module_spec fan.cold_restriction: what is limited, to how much, and the firmware rule (PCM-17)"""
+    pts = "; ".join("%s: %s kW at %s C inlet (lowest of the corner points 950/611, 611/950, 1000/500 V; %s kW at 611/611 V)" % (
+        name, " / ".join(str(away_from_equal(r)) for r in c["table"]), " / ".join("%.0f" % r["inlet_C"] for r in c["table"]),
+        " / ".join(str(r["kW_at_equal_voltages"]) for r in c["table"])) for name, c in cold.items())
+    wu = cold["PV-P75"]["warmup_minus30_to_minus10_C_min"]
+    ov = cold["PV-P75"]["table"][0]["kW_by_point"]["611/611"]["override_after_min"]
+    return (f"RESTRICTION: both Delta fans are rated {f['t_amb'][0]:.0f}..{f['t_amb'][1]:.0f} C operating (p.3 4-1; storage -40..+75 C); PV-20 asks "
+            f"for {T_INLET_MIN_REQ:.0f} C. FIRMWARE RULE: while the inlet NTC reads below {f['t_amb'][0]:.0f} C the fans stay OFF and the module "
+            f"delivers at most the passive power of the table row of the inlet reading at start-up (sustained, steady state): {pts} "
+            f"(ESTIMATE, +-50 %: natural convection between the fins and on the inductors, an enclosure that loses heat through its walls only, "
+            f"no credit for a chimney draft; limits: heatsink {T_SINK_PASSIVE:.0f} C, inductor hot spot {T_IND_PASSIVE:.0f} C, junction "
+            f"{pdz.TJ_DESIGN:.0f} C). At V_A = V_B = 611 V (both legs hard-switching) even {F_PASSIVE_MIN*100:.0f} % load exceeds the passive limits in "
+            f"steady state: there the start relies on the warm-up, not on a power limit. The fans are enabled once the inlet NTC reads above "
+            f"{f['t_amb'][0]:.0f} C - the air near the intake warms from -30 to -10 C in about {wu['structure_and_air']:.0f} min at PV-P75's "
+            f"module loss of {wu['at_module_loss_W']:.0f} W (the 30 kg structure it follows; the air alone in {wu['air_only_s']:.0f} s) - and the fans "
+            f"start at ANY heatsink NTC above {T_SINK_START:.0f} C or inductor NTC above {T_IND_START:.0f} C whatever the inlet reads (5 K above "
+            f"the passive-mode limits, below the 85 / 145 C derating levels of the second layer: a fan outside its rating beats an "
+            f"over-temperature trip; at 611/611 V and -30 C that happens after about "
+            f"{'more than 6 h' if ov is None else '%.0f min' % ov}). Open until a bench test: the passive capability itself. "
+            f"Fan alternatives (the fan selection is NOT changed): Sanyo Denki 9GT1224P1S001 (120 x 120 x 38 mm, -40..+85 C, 26.4 W at 100 %, "
+            f"i.e. over the 36 W SELV allocation of 3 fans) is the only fan ON FILE that reaches {T_INLET_MIN_REQ:.0f} C, at {FAN_ALT_USD['9GT'][0]:.0f}-"
+            f"{FAN_ALT_USD['9GT'][1]:.0f} USD each against {DELTA_USD:.2f} USD @504 for the Delta (gen/data/prices.csv): "
+            f"+{3 * (FAN_ALT_USD['9GT'][0] - DELTA_USD):.0f}..+{3 * (FAN_ALT_USD['9GT'][1] - DELTA_USD):.0f} USD per module (3 fans). "
+            f"ebm-papst 4414/2HHP (119 x 119 x 38 mm, 24 V, 12 W, 285 m3/h, -20..+70 C, datasheet p.1 on file) reaches -20 C only, its supply "
+            f"range is 18..28 V (p.1; the 7-24 V supply-voltage speed law of the fan buck does not apply to it) and the speed signal is an option; "
+            f"price not on file, web-search snippets of 2026-10-05 (NOT verified on the pages, not in prices.csv): "
+            f"{FAN_ALT_USD['4414'][0]:.2f}-{FAN_ALT_USD['4414'][1]:.2f} USD (Octopart range), 55.92 USD (eBay, single), 64.59 USD (Newark), i.e. "
+            f"+{3 * (FAN_ALT_USD['4414'][0] - DELTA_USD):.0f}..+{3 * (FAN_ALT_USD['4414'][1] - DELTA_USD):.0f} USD per module")
+
+
+def write_outputs(res, fan_rows, choice, des, cell_spec, plt, ind_used, fsw, cold):
     # ---- plots
     fig, axs = plt.subplots(1, 3, figsize=(16, 4.6))
     for n, r in res.items():
@@ -614,18 +845,11 @@ def write_outputs(res, fan_rows, choice, des, cell_spec, plt, ind_used, fsw):
                                   "law": "max of two linear ramps: heatsink NTC and inductor NTC; speed by the 7-24 V fan-buck voltage"},
                     "arrangement": (f"{N_FANS} x 120 mm on one shared extrusion for both builds (PV-P100/110: {N_FANS} x {FAN_OF[4]} capped at "
                                     f"{FAN_P_CAP[4]:.0f} W), no backflow shutters; plenum between fans and fins ASSUMED (even spread)"),
-                    "ambient_rated_C": list(f.get("t_amb", (None, None))), "PV_20_inlet_C": [T_INLET_MIN_REQ, tr.T_AIR_HOT],
+                    "ambient_rated_C": list(f["t_amb"]), "PV_20_inlet_C": [T_INLET_MIN_REQ, tr.T_AIR_HOT],
                     "min_speed_fraction": round(max(S_MIN, f.get("s_min", 0.0)), 3),
                     "speed_law_note": (f"supply-voltage control, no PWM input; never below {S_MIN*100:.0f} % (7 V of 24 V ~ 29 %, speed ~ voltage "
                                        f"ASSUMED); capped so that all fans stay <= {NOISE_MAX:.0f} dB(A) at 1 m and within the per-fan power cap"),
-                    "cold_restriction": (None if f.get("t_amb", (99.0,))[0] <= T_INLET_MIN_REQ else
-                                         f"RESTRICTION: both Delta fans are rated {f['t_amb'][0]:.0f}..{f['t_amb'][1]:.0f} C operating (p.3 4-1; "
-                                         f"storage -40..+75 C); PV-20 asks for {T_INLET_MIN_REQ:.0f} C. Below {f['t_amb'][0]:.0f} C inlet the "
-                                         f"fans run outside their rating (bearing grease): firmware holds them off and limits the module to "
-                                         f"what the heatsink passes without forced air (not modelled) until the inlet is above "
-                                         f"{f['t_amb'][0]:.0f} C (R-05), or Delta's low-temperature grease option is ordered (no datasheet "
-                                         f"on file). Cheapest fan ON FILE with a published rating <= {T_INLET_MIN_REQ:.0f} C: Sanyo Denki "
-                                         f"9GT1224P1S001 (-40..+85 C; 88-113 USD each, gen/data/prices.csv) - open item: a cheaper one"),
+                    "cold_restriction": None if f["t_amb"][0] <= T_INLET_MIN_REQ else cold_text(cold, f),
                     "selection": [{k: (round(v, 4) if isinstance(v, float) else v) for k, v in x.items()} for x in fan_rows],
                     "selection_note": ("comparison on the 3-phase cost-first module (fans at their cap); i_ok now = 3 fans' rated power "
                                        "fits the 36 W SELV fan allocation (PV-CTL budget); the module's fan is fixed by the boards")},
@@ -680,13 +904,13 @@ def write_outputs(res, fan_rows, choice, des, cell_spec, plt, ind_used, fsw):
                              "fuse_In_A": LEAN["battery_fuse"]["In_A"], "fuse_derated_A_at_50C": None,
                              "R_port_mOhm": {"PV (A)": round(R_PORT_A * 1e3, 3), "battery (B)": round(R_PORT_B * 1e3, 3)},
                              "battery_port_limit_A": LEAN_I_B[n]}}
-    spec["costfirst"] = costfirst_block(res, des, cell_spec, ind_used, fsw)
+    spec["costfirst"] = costfirst_block(res, des, cell_spec, ind_used, fsw, cold)
     fan_usd = FAN_USD[choice][0]
-    cell_usd = cell_spec["cost_usd"]["per_cell"]["total"] if "cost_usd" in cell_spec else None
-    spec["cost_usd"] = {MODULES[n]: {"cells": round(n * cell_usd, 0) if cell_usd else None,
+    cell_usd = cell_spec["cost_usd"]["per_cell"]["total"]          # a cell_spec without its cost block is stale: stop
+    spec["cost_usd"] = {MODULES[n]: {"cells": round(n * cell_usd, 0),
                                      "fans": round(N_FANS * FAN_USD[FAN_OF[n]][0], 0) if FAN_USD[FAN_OF[n]][0] else None,
-                                     "total_cells_and_fans": round(n * (cell_usd or 0.0) + N_FANS * (FAN_USD[FAN_OF[n]][0] or 0.0), 0),
-                                     "per_kW_rated": round((n * (cell_usd or 0.0) + N_FANS * (FAN_USD[FAN_OF[n]][0] or 0.0)) /
+                                     "total_cells_and_fans": round(n * cell_usd + N_FANS * (FAN_USD[FAN_OF[n]][0] or 0.0), 0),
+                                     "per_kW_rated": round((n * cell_usd + N_FANS * (FAN_USD[FAN_OF[n]][0] or 0.0)) /
                                                            (n * tr.P_RATED / 1e3), 2)} for n in MODULES}
     spec["cost_usd"]["basis"] = (f"cells: cell_spec.json cost_usd (Gate-0b per-cell model, NOT the cost-first boards - gen/cost.py "
                                  f"is the module cost); fans {N_FANS} x {choice} {fan_usd:.2f} USD ({FAN_USD[choice][1]}); "
@@ -695,7 +919,12 @@ def write_outputs(res, fan_rows, choice, des, cell_spec, plt, ind_used, fsw):
     write_report(res, fan_rows, choice, spec)
 
 
-def costfirst_block(res, des, cell_spec, ind_used, fsw):
+def rsa_flow_exponent(n, q, rho=1.10, d=0.02):
+    """-d ln R_sa / d ln Q of the n-phase extrusion at the flow q (m3/h): R_sa rises as Q^-exponent when the fans slow (PCM-26)"""
+    return -(math.log(hs_rsa(n, q * (1 + d), rho)) - math.log(hs_rsa(n, q * (1 - d), rho))) / (math.log(1 + d) - math.log(1 - d))
+
+
+def costfirst_block(res, des, cell_spec, ind_used, fsw, cold):
     """everything new for the cost-first build (D-044..D-052) in one place for sim/compare_megarevo.py"""
     cf = {"basis": ("ARCHITECTURE-COSTFIRST sec. 9; hardware/PV-PWR rev A2 / PV-PWR-4 and PV-CTL rev A1 design checks; port_spec "
                     "lean; aux75_spec; calculated, not measured"),
@@ -709,6 +938,10 @@ def costfirst_block(res, des, cell_spec, ind_used, fsw):
                        "mass_kg_model": {MODULES[n]: round(HS["mass_kg"][n], 2) for n in MODULES},
                        "R_sa_spec_K_W": {MODULES[n]: R_SA_SPEC[n][0] for n in MODULES},
                        "R_sa_at_operating_point_K_W": {MODULES[n]: round(res[n]["op45"]["r_sa"], 4) for n in MODULES},
+                       "R_sa_flow_exponent": {MODULES[n]: round(rsa_flow_exponent(n, res[n]["op45"]["q_hs"]), 3) for n in MODULES},
+                       "R_sa_flow_exponent_note": "R_sa ~ flow^-exponent at the 45 C full-power operating point (same heatsink model as "
+                                                  "the spec calibration); used by the PV-PWR thermal line to apply the fan supply "
+                                                  "contract's airflow (speed ~ fan voltage, airflow ~ speed: ASSUMED)",
                        "trip_band_C": list(T_SINK_TRIP), "inductor_trip_band_C": list(T_IND_TRIP)},
           "fans_operating_point_45C": {MODULES[n]: {"fan": FAN_OF[n], "speed": round(r["op45"]["s"], 3),
                                                     "flow_m3h_total": round(r["op45"]["q_hs"], 0),
@@ -746,10 +979,28 @@ def costfirst_block(res, des, cell_spec, ind_used, fsw):
             "aux_input_W_full_45C": round(r["op45"]["loss"]["ctrl_aux"] + r["op45"]["loss"]["fans"] - p_hv(611, 611), 1),
             "port_conduction_W_full_45C": round(r["op45"]["loss"]["port"], 1),
             "port_film_bank": r["bank"]}
-    tb = {k: (cell_spec.get("device_" + k) or {}).get("trip_band_costfirst") for k in ("primary", "alternate")}
+    tb = {k: cell_spec["device_" + k]["trip_band_costfirst"] for k in ("primary", "alternate") if k == "primary" or "device_" + k in cell_spec}
     cf["trip_band"] = {"per_device": tb, "ov_trip_V": list(pdz.OV_HW[:2]), "ov_response_us": pdz.OV_HW[2] * 1e6,
                        "note": "PV-PWR comparator band / CMPSS backup band; peaks with the OV-trip top across L(I) (calculated)"}
     cf["fsw_question"] = {"rows": fsw, "basis": fsw_study.__doc__.split("\n")[0] + " ... (see sim/pv_module.py fsw_study)"}
+    cf["cold_start"] = {"basis": ("PCM-17 / D-045 / risk A4: fans OFF below the inlet temperature of their rating; passive power from natural "
+                                  "convection on the heatsink and the inductors, heat leaving through the enclosure walls only (ESTIMATES, "
+                                  "+-50 %: PASSIVE_K pessimistic / optimistic); sim/pv_module.py passive_by_point()"),
+                        "policy": {"fan_rated_min_inlet_C": dv.FANS[FAN_OF[3]]["t_amb"][0], "table_inlet_C": list(T_COLD),
+                                   "passive_limits_C": {"heatsink": T_SINK_PASSIVE, "inductor_hot_spot": T_IND_PASSIVE,
+                                                        "junction": pdz.TJ_DESIGN},
+                                   "fans_start_regardless_of_inlet_C": {"heatsink_NTC": T_SINK_START, "inductor_NTC": T_IND_START},
+                                   "enclosure": {"area_m2": A_ENC, "h_inside_W_m2K": H_ENC_IN, "h_outside_W_m2K": H_ENC_OUT,
+                                                 "G_W_per_K": round(g_enc(), 2), "structure_J_per_K": C_MODULE,
+                                                 "free_air_m3": round(V_AIR_FREE, 4)},
+                                   "estimates": {"heatsink_radiation": [EPS_HS, F_RAD_HS], "inductor": [EPS_IND, F_RAD_IND, H_IND_VERT],
+                                                 "sensitivity_factors_Rsa_Rind_Genc": PASSIVE_K}},
+                        "modules": cold,
+                        "firmware_rule": ["inlet NTC < fan rating (-10 C) at start-up: fans OFF, module power <= the table row of the inlet "
+                                          "reading (table kW, nominal), no other change to the control",
+                                          "fans enabled (speed from the fan law) once the inlet NTC reads above the fan rating",
+                                          "fans start at once at any heatsink NTC above the start level or inductor NTC above its start "
+                                          "level, whatever the inlet reads (backstop for the passive estimate)"]}
     return cf
 
 
@@ -818,6 +1069,24 @@ def write_report(res, fan_rows, choice, spec):
         a(f"| {x['fan']} | {x['hold45']*100:.0f} % | {x['noise_full45']:.1f} (speed {x['s_full45']*100:.0f} %) | {x['q_cell']:.0f} | "
           f"{x['fail_flap']*100:.0f} % / {x['fail_noflap']*100:.0f} % | {'yes' if x['i_ok'] else 'no'} |")
     a("\n![cooling](module_cooling_derating.png)\n")
+    a("### Cold start: fans off below the fans' rated inlet (PCM-17, ESTIMATES)\n")
+    a("| module | inlet [C] | passive power at 611/611 | 950/611 | 611/950 | 1000/500 [kW] (heatsink / inductor [C] there) | lowest of the three, pessimistic - optimistic estimates [kW] | module loss at the lowest of the three [W] |")
+    a("|---|---|---|---|---|---|---|---|")
+    for name, c in cf["cold_start"]["modules"].items():
+        for r_ in c["table"]:
+            bp = r_["kW_by_point"]
+            cell = lambda q: f"{bp[q]['kW']} ({bp[q]['heatsink_C']:.0f} / {bp[q]['inductor_hot_spot_C']:.0f})"
+            a(f"| {name} | {r_['inlet_C']:.0f} | {cell('611/611')} | {cell('950/611')} | {cell('611/950')} | {cell('1000/500')} | "
+              f"{r_['kW_pessimistic']} - {r_['kW_optimistic']} | {r_['module_loss_W']} |")
+    for name, c in cf["cold_start"]["modules"].items():
+        w_ = c["warmup_minus30_to_minus10_C_min"]
+        a(f"\n{name}: natural-convection R_sa {c['table'][0]['R_sa_natural_K_W']} K/W against {c['R_sa_forced_K_W']} K/W forced; the air near the "
+          f"fan inlet warms from -30 to -10 C in about {w_['structure_and_air']:.0f} min at {w_['at_module_loss_W']:.0f} W (structure and air, "
+          f"{cf['cold_start']['policy']['enclosure']['structure_J_per_K']/1e3:.0f} kJ/K) - the air alone in {w_['air_only_s']:.0f} s; where no "
+          f"passive power exists the override starts the fans after " + ", ".join(f"{r_['inlet_C']:.0f} C: " + ("> 6 h" if r_['kW_by_point']['611/611']['override_after_min'] is None else f"{r_['kW_by_point']['611/611']['override_after_min']:.0f} min") for r_ in c["table"] if r_['kW_by_point']['611/611']['kW'] == 0) + " (611/611 V).")
+    a("\nFirmware rule: " + "; ".join(cf["cold_start"]["firmware_rule"]) + f". Limits of the passive mode: heatsink "
+      f"{T_SINK_PASSIVE:.0f} C, inductor hot spot {T_IND_PASSIVE:.0f} C, junction {pdz.TJ_DESIGN:.0f} C; fans start regardless of the inlet at heatsink "
+      f"NTC >= {T_SINK_START:.0f} C or inductor NTC >= {T_IND_START:.0f} C. Estimates: " + cf["cold_start"]["basis"] + ".\n")
     a(f"## 4. Ambient derating (fans at the cap; Tj {pdz.TJ_DESIGN:.0f} C, inductor hot spot <= {T_IND_TRIP[0]} C (trip band low end), "
       f"heatsink <= {T_SINK_TRIP[0]} C (trip band low end), C4AQ hot spot, lean battery-port current)\n")
     for n, r in res.items():

@@ -287,3 +287,186 @@ Most important first. "if B/C" = applies only if the D-031 re-run picks the 3-le
   (7.4 kW GaN OBC), PMP41042 (3.6 kW CLLLC), TIDA-010933 (1.6 kW microinverter), TIDA-010954 (600 W cycloconverter),
   TIDA-010231 (older arc detection, superseded by TIDA-010955), TIDUF88 (BMS insulation monitor on BQ79731),
   TIDA-010966 (300 W series-resonant DAB for pack balancing).
+
+## 6. Wolfspeed firmware packages (2026-10-05)
+
+**Requirement:** REQUIREMENTS.md DAB-08 (our DC/DC controls are cross-checked against references), AC-01 / AC-02 (PCS-P125
+designed to the same depth), SRC-7 (hardware / firmware balance). **Owner (2026-10-05):** "take reference from below
+firmwares" and "remember we are using IGBTs or SiCs.. they are just for reference... and edge cases". **Status:** three
+packages read statically on 2026-10-05 - nothing built, flashed or run; the full extraction, with file:line evidence for
+every number, is in `docs/reference-designs/wolfspeed/<design>/FIRMWARE-NOTES.md`. Wolfspeed's device-specific values
+(dead times, DESAT tuning, gate timing, current limits tied to their modules) are reference points only and are not
+carried into our design. Our side is calculated / simulated, not bench-validated. Verdicts as in §1-5; **every
+recommendation below is a recommendation only - adoption is the orchestrator's decision.**
+Citation prefixes: `GMA:` = `docs/reference-designs/wolfspeed/crd200da23n-gma/firmware/CRD200DA23N-GMA Firmware [v1.0.0]/`,
+`GMB:` = `docs/reference-designs/wolfspeed/crd60dd12n-gmb/firmware/CRD60DD12N-GMB Firmware [V1.1.0]/`,
+`K:` = `docs/reference-designs/wolfspeed/crd60dd12n-k/firmware/Wolfspeed_CRD60DD12N-K_Firmware_GUI/CRD60DD12N-K_DCDC_F28377D_V1.00/`.
+
+### 6.1 The three packages
+
+| package | hardware | controller | what the firmware does | protection in firmware | interface |
+|---|---|---|---|---|---|
+| CRD200DA23N-GMA v1.0.0 (2025-10-27) | 200 kW two-level three-phase inverter, 2300 V SiC modules, 1500 V bus | F28379D, 200 MHz | **open-loop** SPWM sine generator: no current loop, PLL, DC-link loop or grid forming (GMA:main.c:8-15) | none beyond the drivers' DESAT → controller trip zone | 2 x CAN 1 Mbit/s, 1 s cycle, Python GUI |
+| CRD60DD12N-GMB v1.1.0 (2026-03-06) | 60 kW DAB, two CBB011M12GM4T full-bridge modules | F280039C, 120 MHz | **open-loop** single phase shift typed into the GUI (GMB:CRD60DD12N-GMB_main.c:11-18) | drivers' DESAT; trip zone for 3 of the 8 driver fault lines | CAN 1 Mbit/s, 1 s cycle, Python GUI |
+| CRD-60DD12N-K v1.00 (2022-02-08, linked 2023-03-13) | **60 kW three-phase interleaved LLC, unidirectional - not a DAB** (UG PRD-07229 p1, p8) | F28377D, 200 MHz | closed loop CV / CC / CP, variable frequency + phase shift, topology switching, soft start | tank OCP, output short, output OV (hardware + firmware + lock-out), input OV / UV, ambient OT, offsets, calibration | CAN 125 kbit/s J1939-style, C# GUI |
+
+The GMA and GMB are starting points ("designed as a starting point only"); only the -K has real control and protection.
+The edge cases therefore come mainly from the -K and from what the GMA and GMB leave out.
+
+### 6.2 Comparison
+
+**Inverter: CRD200DA23N-GMA against PCS-P125** (ours: `sim/out/pcs_control/pcs_control_spec.json`, report §9,
+`hardware/PCS-CTL/outputs/PCS-CTL_design_check.txt` lines 55-77)
+
+| item | Wolfspeed reference (read) | ours (calculated / specified) | assessment |
+|---|---|---|---|
+| timing | one ePWM1 counter-zero ISR per carrier (20 kHz default) that only advances three sine references; everything else in a 1 s background loop (GMA:main.c:276, :403-421, :575-577) | 64 kHz control ISR (double update at 32 kHz), slow tasks 1 kHz; 3.9-4.8 µs = 25-31 % of the period at 120 MHz (firmware.isr, cost model ASSUMED) | N/A - an open-loop generator needs no budget |
+| sampling | ADC forced by software once per second, telemetry only (GMA:main.c:319-348) | SOC at carrier zero and peak + 2.46 µs chain delay, simultaneous rounds, VA / VB 4 x per period (firmware.sampling) | WE HAVE |
+| modulation | sine-triangle SPWM, no zero sequence, MF 0-1.023 not clamped; V_LL,rms ≤ 0.612 MF V_dc (GMA:main.c:813, :937; calculated) | min-max zero sequence, \|u\| ≤ 0.5495 V_dc (V_LL,rms ≤ 0.673 V_dc, calculated), clamping anti-windup, refusal below the operating map | WE HAVE (+10 % AC voltage per DC volt) |
+| carriers | phases B / C shifted by TBPHS 2/3 and 4/3 TBPRD (GMA:main.c:602, :702) | not stated in pcs_control_spec | CONSIDER (low): state the carrier alignment in the PWM specification - the min-max modulator assumes one common carrier |
+| dead time | ePWM dead band, 400 ns default, any value incl. 0 accepted from the bus (GMA:main.c:188, :920, :938) | 300 ns firmware floor, hardware stretch 185-510 ns at the gates, per-leg compensation (check line 65) | WE HAVE (hardware floor); value N/A (device) |
+| current loop, PLL, DC link, grid forming | none | αβ PR 1750 Hz + h5 / h7; SRF-PLL 30 Hz, ±5 Hz clamp; DC-link PI 40 Hz + DC-current feed-forward; droop + virtual impedance + voltage PR | WE HAVE - the reference has no numbers to compare |
+| over-current | DESAT with soft turn-off on each driver; the three phase faults ANDed → TZ1 one-shot on all six PWM, no software in the path (GMA:GATEDRIVER.c:73-77; main.c:556-568; UG p26) | phase window ±454 A (422-490 A, 2.6 µs) in hardware, CMPSS backup 492-572 A, DESAT per channel, latch | SAME PRINCIPLE (SRC-7); ours has more layers |
+| DC OV / UV, AC U / f, islanding, OT | none (values sent once per second) | DC OV 1000-1051 V hardware + PPB backup 1029-1061 V in 33.9 µs; U / f windows, ROCOF, SFS; heatsink and inductor OT with derating | WE HAVE |
+| fault-line integrity | active-low fault inputs with internal pull-ups behind RS-422 receivers (fail-safe high, inferred); the driver's RESET / EN is pulled up "to enable" (GMA:GATEDRIVER.c:61-76; UG p19) | 10 kΩ pull-downs on every MCU line into the gating; an unpowered or missing board reads as a trip (check line 38; DR-04) | WE HAVE |
+| exceptions, watchdog | watchdog disabled; TI default handlers `ESTOP0; for(;;)` keep the PWM running (GMA:device/device.c:62-64; device/driverlib/interrupt.h:138-223) | watchdog ≤ 10 ms after the ISR ran; heartbeat monoflop 4.7-5.8 ms → latch; clock loss → NMI → one-shot < 6 ms (lines 63, 66-67) | WE HAVE in hardware; R-WS-6 removes the ≤ 5.8 ms window at no cost |
+| fault clear | CAN reset pulses the drivers and clears the trip zone; the same frame can re-enable (GMA:main.c:951-974) | clear only with every source inactive, cause logged, PWM commands low; a start event is needed (line 64) | WE HAVE |
+| command validation | only f_fund ≤ 500 Hz; f_sw 0 divides by zero, > 65 kHz overflows; ranges enforced by the PC tool only (GMA:main.c:914-946; UG p38) | not specified | GAP → R-WS-1 |
+| communication loss | none; last command kept, read once per second (GMA:main.c:276-292) | not specified | GAP in both → R-WS-2 |
+| service interface | 1 Hz temperatures, currents, voltages; status echo (GMA:main.c:355-396, :882-902) | not defined (ARCHITECTURE-PCS.md:211, :290: CAN + RS-485, "CAN updates") | CONSIDER → R-WS-12 |
+| precharge, contactors, synchronisation | none on the board | DC precharge to ≤ 10 V within 1.0 s; close at \|dV\| ≤ 5 %, \|dθ\| ≤ 5°, \|df\| ≤ 0.1 Hz after a relay test; dead-bus start in GFM (state_machine) | WE HAVE |
+| bench method | open loop into a wye inductor with its neutral on the DC midpoint: rated current from a supply that covers only the losses (UG p43-45) | none | CONSIDER → R-WS-12 (factory test mode) |
+
+**DC/DC: CRD60DD12N-GMB and CRD-60DD12N-K against DAB-D60** (ours: `sim/out/dab_design/dab_spec.json`
+firmware_requirements FW-DAB-1..10, protection, flux_balance; `sim/out/dab_control/report.md`;
+`hardware/DAB60/outputs/DAB60_design_check.txt`)
+
+| item | Wolfspeed reference (read) | ours (calculated / specified) | assessment |
+|---|---|---|---|
+| timing | GMB: no control ISR, 1 s background; -K: 100 kHz timer ISR not synchronised to the 120-250 kHz PWM, ADC once per switching period (K:source/PWM_Isr.c:9-17; InitPeripherals.c:277-337) | control update every switching period (100 kHz), one-period delay | WE HAVE (synchronous) |
+| modulation | GMB: SPS, 50 % legs, manual phase; -K: LLC frequency control, phase shift in the 2-phase full-bridge mode | SPS only where \|V1 − n V2\| ≤ 130 V, TPS look-up table elsewhere, feasibility built in (FW-DAB-1, -4) | DIFFERENT; nothing to adopt for the law |
+| phase units and limit | GMB GUI ±90 "deg" = **±180° of the period** (TBPHS = TBPRD φ / 90 in up-down count; GMB:wsinclude/wsepwm.c:105-140) - past the 90° maximum-power point | clamp ±60° of the period (dab_control) | WE HAVE; R-WS-1 puts the service interface under the same clamp |
+| phase update | GMB: register writes from the 1 s loop, no slew, no split update, a sign change in two separate writes (wsepwm.c:93-141) | split (volt-second balanced) update + 3° per period slew | WE HAVE |
+| start, light load, zero power | GMB: switches at the set phase (default 0°) the moment Logic Enable arrives; -K: on-time-then-frequency soft start with a 480 ms voltage walk-in, dummy load below 2.5 A, on-time floor | gates off below 1.5 kW, back at ≥ 2.5 kW, no zero-phase SPS with mismatch, restart from zero phase with the split update (FW-DAB-3/4/5) | WE HAVE |
+| loops | GMB: none; -K: voltage and current incremental PI in parallel, the lower output wins (CV / CC), CP as a current limit; zeros ≈ 54 Hz / 2.1 kHz (calculated); integral boost above 5 V of error; integrators clamped [0, permit] (K:source/PWM_Isr.c:150-198) | CV 400 Hz → per-branch current loop 2 kHz with SPS feed-forward; conditional integration while the CC limit acts | SAME STRUCTURE (min-select vs cascade); nothing to adopt |
+| power reversal | GMB: type a negative phase (secondary legs inverted); -K: unidirectional | through the idle band (FW-DAB-5) | WE HAVE |
+| flux balance | GMB: none, the transformer current is not even converted (GMB:CRD60DD12N-GMB_main.c:124-126); -K: N/A (resonant capacitor) | flux loop on the averaged transformer current + 5 A / 1 ms DC trip (FW-DAB-7) - **no offset-null rule** (§6.6 C-4) | GAP in ours → R-WS-5 |
+| dead time | GMB 200 ns commanded = 166.7 ns programmed (calculated); -K 150 ns, 250 ns in the full-bridge mode for gate ringing, 137 / 153 ns measured (UG p59) | hardware guard 69-188 ns + table 50-300 ns (ZVS transition + 20 ns) | values N/A; per-mode tables endorsed → R-WS-10 |
+| over-current | GMB: DESAT per driver, all-PWM one-shot for only 3 of 8 fault lines (§6.6 C-2); -K: tank CT → **positive-side** CMPSS → one-shot on all legs, latched (K:source/InitPeripherals.c:151-200) | ±200 A window (190-210 A) on the transformer current → soft turn-off of all 8 drivers by DESAT-pin injection, 1.47 µs; port OC 115 A | WE HAVE (hardware, both signs, all drivers); R-WS-7 for routing checks |
+| output short | -K: output < 100 / 300 V for 20 µs running; < 10 / 20 V at 25 % of the walk-in (K:source/PWM_Isr.c:74-101; DCDC_start.C:405-432) | port OC, DESAT, precharge supervision (a shorted port cannot precharge) | N/A (current layers cover it) |
+| over-voltage | GMB: none; -K: output hardware comparator ≈ 0.13 ms, auto-clears after ≈ 1.5 s; firmware 1050 / 550 V after ≈ 0.3 s; lock-out when both agree; input 890 V after 0.5 s | port 1 / 2 hardware 37.5 µs (DAB60), firmware 960 / 920 V cycle by cycle | WE HAVE (faster); lock-out → R-WS-3 |
+| UV, OT recovery | -K: UV 600 V (1 s) recovers above 640 V after 3.25 s; OT 79 °C recovers below 70 °C; bus OV recovers below 875 V (K:source/DCDC_Warning.C:46-109) | UV 580 / 380 V; plate OT 77 °C hardware, derating from 67 °C; recovery thresholds and dwell not stated | GAP → R-WS-4 |
+| sensor offsets | GMB: DC current sensors nulled at boot, no plausibility window; -K: current **and voltage** channels nulled 1 s after power-up, no start until done (K:source/DCDC_Adc.c:104-132) | PV: re-zero at idle with a limit (guide 05 line 227); PCS: CMPSS DACs from the idle zero; DAB: none | GAP (DAB) → R-WS-5 |
+| calibration storage | -K: three copies, 2-of-3 vote with repair, range checks, defaults + status bit, start not inhibited (K:source/DCDC_E2PROM.C, DCDC_E2PROMdataDriver.C) | PV: two-point end-of-line calibration; storage integrity not specified | GAP → R-WS-9 |
+| parallel branches | none in either | 1-4 (+1) branches, CAN-B reference, per-branch loops, survivor clamp | WE HAVE |
+| communication | GMB: 1 Mbit/s, 1 s cycle; -K: 125 kbit/s, 0.5 / 3 s telemetry, CAN error counters reported, no stop on loss (K:source/DCDC_Warning.C:150-166) | CAN-B reference every 10 ms (dab_control t_can); loss not specified | GAP → R-WS-2 |
+| watchdog | GMB: disabled; -K: ≈ 0.84 s, serviced by the background loop only (calculated) | PCS-CTL / PV: ≤ 10 ms, serviced only after the ISR ran; not stated for the DAB controller | CONSIDER → R-WS-6 |
+| service modes | -K: a CAN command enters a test mode that skips the protection gating and the short check; raw memory read / write over CAN (K:source/DCDC_CANCOM.c:248-376) | PCS SERVICE = all off, latch held; DAB not stated | negative lesson → R-WS-8 |
+
+### 6.3 Edge cases the references handle that ours does not mention
+
+| # | edge case | reference (evidence) | ours today | recommendation |
+|---|---|---|---|---|
+| E-1 | repeated restarts after hazard trips | -K clears SHORT and OCP on any OFF frame, so a master can retry into a short without limit (K:source/DCDC_start.C:41-53); but locks out for good when the hardware and firmware OV agree (DCDC_Warning.C:144-147) | contactor / precharge: 3 attempts, then lock-out (PCS-CTL line 77; port_spec); converter trips: no count | R-WS-3 |
+| E-2 | recovery of non-latched limits | -K: hysteresis and dwell on every class (bus OV 890 / 875 V; UV 600 / 640 V, 1 s / 3.25 s; OT 79 / 70 °C) | trips defined, recovery not | R-WS-4 |
+| E-3 | start before the sensor zeros are known | -K: no start until the offsets are measured (DCDC_start.C:56); GMB: boot-time null of the DC current sensors (GMB:wsinclude/wssensor.c:614-629) | PV / PCS current channels re-zeroed at idle; DAB transformer and branch currents not | R-WS-5 |
+| E-4 | corrupted or missing calibration | -K: 3 copies, vote, repair, range check, status bit (K:source/DCDC_E2PROMdataDriver.C:181-300) | not specified | R-WS-9 |
+| E-5 | CAN error state | -K: REC or TEC > 10 reported in the status word (K:source/DCDC_CANCOM.c:604-607) | not specified | part of R-WS-2 |
+| E-6 | debugger halt and clock failure | GMB: emulation-stop and clock-fail one-shot sources on every ePWM (GMB:CPU1_FLASH/syscfg/board.c:812; TZ4-6 meaning inferred) | clock loss via NMI < 6 ms; heartbeat 5.8 ms | R-WS-6 |
+| E-7 | dead time per operating mode | -K: +100 ns in the full-bridge mode "due to the Vgs oscillation issue" (K:source/DCDC_start.C:487-488) | DAB: table per point; PCS: one band | R-WS-10 |
+| E-8 | module NTC through the driver's APWM | GMA: eCAP high time over 10 periods at 400 kHz, polynomial (GMA:TEMPERATURE.c:82-100, :175-211) | DAB60 rev B0 reads the module NTC through AIN / APWM, method not stated | R-WS-11 |
+| E-9 | operator-facing validation | GMA / GMB GUIs refuse or clamp out-of-range inputs with a message | no service tool defined | R-WS-1, R-WS-12 |
+| E-10 | configuration changed only while off; topology change by stop and restart | -K (K:source/DCDC_CANCOM.c:124-140; DCDC_start.C:184-192) | PCS GFL ↔ GFM bumpless by design; build code from EEPROM | N/A - equivalent |
+| E-11 | operating limits that follow the input | -K: frequency ceiling from the bus voltage, set-point following the input ratio (DCDC_start.C:118-163; DCDC_cal.C:159-212) | DAB feasibility map; PCS operating-map refusal | N/A - equivalent |
+| E-12 | output short seen as missing voltage at start | -K: < 10 / 20 V at 25 % of the walk-in | port OC + DESAT + precharge supervision | N/A |
+| E-13 | light-load dummy load | -K: switched below 2.5 A (DCDC_start.C:515-522) | DAB idles with the gates off | N/A (LLC gain at no load) |
+
+### 6.4 Edge cases ours handles that the references do not
+
+Precharge supervision with attempts, lock-out and weld check; contactor sequencing with zero-current opening; AC
+synchronisation permissives, relay test and dead-bus start; U / f windows, ROCOF and anti-islanding; current-limit tiers
+with timers; DC-link coordination between DAB and PCS (FW-DAB-8..10) including the coordinated trip; flux balance with a
+DC trip; light-load idle and the ban on zero-phase SPS with mismatch; look-up-table CRC and per-entry checks at start
+(FW-DAB-2); split phase update and slew; parallel-branch sharing and the survivor clamp; hardware latch with heartbeat,
+configuration read-back, latch-clear rules, brown-out and clock-loss handling; fail-safe fault lines (an unpowered or
+missing board reads as a trip); NTC plausibility at a cold start; insulation check before start; V_dc-below-rectification
+handling and the upper DC-link-half monitor (PCS); refusal outside the operating map. None of the three packages has any
+of these.
+
+### 6.5 Edge cases neither handles
+
+* **Communication loss** - all three keep running on the last command (GMA:main.c:276-292; GMB:CRD60DD12N-GMB_main.c:85-94;
+  K:source/DCDC_Warning.C:150-166, where the OFF action is commented out); ours is silent → R-WS-2.
+* **Exception paths with the PWM running** - TI's default handlers spin with the ePWM active (GMA / GMB driverlib
+  `interrupt.h` / `interrupt.c`); ours relies on the 5.8 ms heartbeat → R-WS-6.
+* **Verification of controller-routed trip paths** - the GMB shows the failure (C-2); ours reads back CMPSS, PPB, TZ and
+  dead band but not the X-BAR / digital-compare routing → R-WS-7.
+* **Grid reconnection after a grid-caused stop** (PCS) - observation time and power gradient before reconnecting; not in
+  the references (GMA is open loop) and not in pcs_control_spec → R-WS-14 (values from memory, standards not on file).
+
+### 6.6 Contradictions and discrepancies found
+
+* **C-1 The -K is not a DAB.** The brief for this review and the SOURCES.csv row of `crd60dd12n-k_firmware-gui.zip`
+  call it "60 kW isolated DC/DC (DAB, discrete TO-247 devices)"; the row's URL `.../reference-designs/crd60dd12n-k/`
+  returns 404. Evidence: UG PRD-07229 p1 ("60kW three-phase interleaved LLC DC/DC converter"), p8 (C6D20065D Schottky
+  rectifiers, unidirectional), p25; firmware: period control of three interleaved half bridges
+  (K:INCLUDE/OBC_constant.h:42-65; K:source/PWM_Isr.c:238-265). Correct product page:
+  `https://www.wolfspeed.com/products/power/reference-designs/crd-60dd12n-k/`. The SOURCES.csv row was not edited here.
+* **C-2 CRD60DD12N-GMB user guide vs its firmware.** UG p39: "The default firmware will quickly disable all the other
+  gate drivers using the C2000 trip zone hardware functionality." The SysConfig routes only faults 1P-3P to latched
+  one-shot trips; 4P acts (unlatched) on one ePWM output; 1S and 2S go to X-BAR trips no ePWM selects; 3S and 4S go
+  nowhere (GMB:CRD60DD12N_GMB.syscfg:213-318, :435-464; CPU1_FLASH/syscfg/board.c:810-960). A DESAT on those five
+  switches stops only the faulted channel. Confidence: high for the settings, medium for the consequence (TRM
+  conventions not on file).
+* **C-3 Our CRD60DD12N-GMB test point** (`sim/dab_devices.py` CRD['test']): (a) the comment calling UG Table 11's
+  2.5-5.0° "inconsistent" with Fig. 55 has its cause in the firmware - one GUI degree is two degrees of the period
+  (GMB:wsinclude/wsepwm.c:110-111, :124-125), so 5.0° in the GUI is Fig. 55's 10.0° (SPS, 800 / 800 V, 7.5 µH, n = 1:
+  22.4 kW at 10°, calculated); our use of Fig. 55 stands. (b) `tdead` 200 ns is the commanded value; the firmware
+  programs 20 counts at 120 MHz = 166.7 ns (GMB:wsinclude/wsepwm.c:47-48, wsdefine.h:31; calculated, assumes the dead
+  band counts the time-base clock) - a few watts less body-diode loss in the CRD calibration, small against the 46-91 W
+  residual gap.
+* **C-4 Our own DAB documents disagree on the transformer-current offset**, surfaced by the references' offset-null
+  practice: `DAB60_design_check.txt` line 21 gives uncalibrated offsets up to ±4.0 A and states that the firmware flux
+  loop nulls the *measured* DC; `sim/out/dab_design/report.md` §8 assumes a 1.5 A residual; FW-DAB-7 has no offset rule.
+  A loop that nulls measured DC with an un-nulled offset drives a real DC bias equal to the offset (4 A ≈ 32 mT at the
+  report's 12 mT per 1.5 A, calculated) that the measured-DC trip cannot see → R-WS-5.
+* **C-5 -K user guide vs firmware:** tank OCP 120 A peak (UG Table 6 p34) vs "Threshold = 100A (peak)"
+  (K:source/InitPeripherals.c:185); "one-shot protections that require a system reset" (UG p34) vs an OFF frame clearing
+  them (K:source/DCDC_start.C:41-53); CAN identifiers 0x18B2F4E5 / 0x18B3F4E5 / 0x18B8F4E5 / 0x18B9F4E5 (UG p59-61) vs
+  0x1CB2F4E5 / 0x1CB3F4E5 / 0x1AB8F4E5 / 0x1AB9F4E5 (K:INCLUDE/ChargeCan.h:18-23; the GUI follows the code); status bit 11
+  "1: Power Off" (UG Table 21b p60) vs set when on (K:source/DCDC_CANCOM.c:532-535).
+* **C-6 GMA user guide vs firmware:** the GUI ranges of UG p38 are not enforced by the firmware (GMA:main.c:914-946).
+  The GMA README ("the firmware was not reviewed here") and the GMB README ("no firmware in the package", "firmware
+  access terms unconfirmed") are now out of date; they were not edited by this review.
+* **C-7 REQUIREMENTS.md:** no requirement is contradicted. SRC-7 is corroborated - Wolfspeed's own system stop is the
+  controller's trip zone fed by the driver fault lines - with the GMB showing why controller-routed protection needs
+  per-path verification (R-WS-7). DAB-08's SPS baseline is what the GMB ships.
+
+### 6.7 Recommended firmware-requirement additions (recommendations only)
+
+| ID | requirement wording | applies to | verdict | basis |
+|---|---|---|---|---|
+| R-WS-1 | Every value received over a bus or a service tool is checked by the controller against limits derived from the hardware ratings before it is used. Out-of-range or inconsistent values (a zero divisor, a field that overflows, a dead time below the hardware guard, a modulation index or a DAB phase beyond the design clamp of ±60° of the switching period) are rejected with a status code and the previous value is kept. Switching frequency and dead time are not writable in normal operation. | PCS, DAB, PV | ADOPT | GMA:main.c:914-946 + UG p38; GMB:wsinclude/wscan.c:97-103, :148-150 + wsepwm.c:105-140; K:source/DCDC_CANCOM.c:143-170 |
+| R-WS-2 | Each unit supervises its controlling master. If no valid reference or heartbeat frame arrives for T_comm (ASSUMED: 3 frame periods = 30 ms on the DAB CAN-B; 1-10 s configurable on the PCS energy-management link), a DAB branch or PV module ramps its power to zero at the FW-DAB-8 / normal stop rate and stops; a PCS in grid-following mode ramps P / Q to a configured fallback (default zero) and stops after a second timeout; a PCS forming the grid keeps forming and reports. Bus-off and error-passive are handled the same way and reported in the status word. Restart needs a fresh command after the link is back. | PCS, DAB, PV | ADOPT | all three lack it: GMA:main.c:276-292; GMB:CRD60DD12N-GMB_main.c:85-94; K:source/DCDC_Warning.C:150-166, DCDC_CANCOM.c:604-607 |
+| R-WS-3 | Hazard trips (over-current window, DESAT, output short, over-voltage) are counted per class over a rolling window; the third trip of a class within 10 min (ASSUMED) locks the unit out until a local service reset; an over-voltage seen by both the hardware comparator and the firmware limit locks out at once. An OFF or clear command over the bus never clears a lock-out. | PCS, DAB, PV | ADOPT | K:source/DCDC_start.C:41-53; DCDC_Warning.C:144-147 |
+| R-WS-4 | Every non-latched limit (soft DC OV / UV, over-temperature stop, grid window) has an explicit recovery threshold, dwell time and restart-rate limit, e.g. UV recovery ≥ 40 V above the trip held ≥ 3 s and OT recovery ≥ 10 K below the trip held ≥ 60 s (ASSUMED values, set per board); a restart goes through the full start sequence. | PCS, DAB, PV | ADOPT | K:source/DCDC_Warning.C:46-109 |
+| R-WS-5 | Before the first switching after power-up and at every idle period (both bridges off, magnetising current decayed per FW-DAB-7, port currents below 1 A), the controller nulls the transformer-current and branch-current sensor offsets over ≥ 64 samples; a null outside the chain's worst-case offset (±4.0 A for the DAB60 HOB 130-P chain) is a sensor fault and blocks the start; the flux-balance loop and the DC trip use the nulled value. Voltage channels are never auto-zeroed. | DAB (the voltage rule: all) | ADOPT | GMB:CRD60DD12N-GMB_main.c:62-66, wsinclude/wssensor.c:614-629; K:source/DCDC_Adc.c:104-132, DCDC_start.C:56; ours: C-4 |
+| R-WS-6 | Every exception path (illegal-operation trap, NMI, default or unhandled interrupt, CLA fault, stack check) first forces the one-shot trip on all ePWM modules and stops the heartbeat; the clock-fail and emulation-stop one-shot sources are enabled on every ePWM; the DAB controller adopts the PCS-CTL watchdog rule (timeout ≤ 10 ms, serviced only after the control ISR ran). | PCS, DAB, PV | ADOPT (no hardware) | GMA:device/driverlib/interrupt.h:138-223, device/device.c:62-64; GMB:CPU1_FLASH/syscfg/board.c:812; K:source/InitPeripherals.c:96-101, Main.c:111 |
+| R-WS-7 | The start-up self-test fires each gate-driver fault line and each comparator trip source on its own (where the hardware allows a test injection) and checks that the one-shot appears on every PWM output; the 10 ms configuration read-back covers the X-BAR multiplexers, the digital-compare selections, the one-shot source lists and the trip actions of every ePWM against a stored table. | PCS, DAB, PV | ADOPT | GMB routing gap (C-2); extends PCS-CTL check line 70 and guide 05 lines 222, 225 |
+| R-WS-8 | No mode reachable over a field bus disables a protection. Open-loop or test operation, calibration writes and parameter changes are accepted only in SERVICE (entered with the PWM off, every trip active), with an authorisation (key + local switch or HMI) and a timeout back to OFF. Released firmware has no raw memory read / write over CAN or RS-485 (parameter access through a whitelist with range checks); firmware updates over the bus ("CAN updates", ARCHITECTURE-PCS.md:290) are authenticated. | PCS, DAB, PV | ADOPT | K:source/DCDC_CANCOM.c:248-376; DCDC_start.C:41-73; PWM_Isr.c:77-78 |
+| R-WS-9 | Calibration coefficients and the build code are stored redundantly (three copies with 2-of-3 vote and repair, or two copies with a CRC) and range-checked at load; a failed load sets a status bit and blocks the start; calibration writes are accepted only in SERVICE, two-point fits require increasing points, and every write is verified by read-back. | PCS, DAB, PV | ADOPT | K:source/DCDC_E2PROMdataDriver.C:181-300; DCDC_E2PROM.C:17-136; INCLUDE/OBC_constant.h:206-223 |
+| R-WS-10 | Dead-band counts are computed from the time-base clock read back at start, never from a constant that assumes a clock; dead time may differ per operating mode (table); the programmed values are verified at the gates at commissioning. | PCS, DAB | CONSIDER | GMB:wsinclude/wsepwm.c:47-48 (0.833 x, calculated); K:source/DCDC_start.C:487-488; UG -K p59 |
+| R-WS-11 | A module NTC that reaches the controller as a gate-driver APWM duty is measured by eCAP (period and high time, averaged over ≥ 10 periods); the carrier period and the duty window of the driver are checked, and a reading outside them is a sensor fault treated as hot. | DAB60 rev B0, any AIN / APWM user | CONSIDER | GMA:TEMPERATURE.c:82-100, :175-211; UG GMA p32; §4 row 7 (AIN → APWM accuracy) |
+| R-WS-12 | One service interface for PCS, DAB and PV: commands = enable / disable (edge-triggered), stop with ramp, fault clear (accepted only with the enable inactive), mode (GFL / GFM, branch count) and references with limits; status = run state, per-class fault bits with first-fault capture, limit and derating flags, bus error state; telemetry = port voltages, currents, power and temperatures every 0.5 s, fault log on request; a factory test mode (SERVICE only, every trip active) that drives a reactive load open loop at rated current for burn-in. | PCS, DAB, PV | CONSIDER | GMA:main.c:882-931 + UG p37-45; GMB:wsinclude/wscan.c:31-158; K:source/DCDC_CANCOM.c:111-610 |
+| R-WS-13 | Static analysis (a MISRA C:2012 subset) and bounds checks on every buffer index shared with an interrupt are part of the firmware build. | all firmware | CONSIDER (low) | GMA:main.c:46, :1053-1057 (eCAP buffer overrun) |
+| R-WS-14 | After a grid-caused stop the PCS reconnects only after the grid has stayed inside its voltage and frequency windows for the configured observation time, then ramps its power at the configured gradient (grid-code values, e.g. EN 50549-1 - from memory, the standard is not on file). | PCS | CONSIDER | in neither the references nor pcs_control_spec (state_machine) |
+
+### 6.8 Not read, and limits
+
+* GUI executables: the two Python GUIs (PyInstaller) were listed statically (main-script strings only); their numeric
+  limits were taken from the user guides. The -K C# GUI was read from source; its binaries and the USB-CAN Windows
+  drivers were not examined. TI libraries (`.lib`) were not examined.
+* The -K design files were not fetched; its hardware facts come from the user guide (filed 2026-10-05).
+* Statements that depend on TI reference-manual behaviour (TZ4-TZ6 meanings, dead-band clocking, digital-compare
+  latching, CMPSS filter timing, watchdog clock) are labelled inferred in the notes; no TRM is on file.
+* No loop bandwidth of the -K can be derived (the LLC gain slope is not in the code); the GMA and GMB have no loops.

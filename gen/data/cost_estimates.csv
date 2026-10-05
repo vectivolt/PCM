@@ -207,3 +207,28 @@ outside:final_assembly_test@DAB-D60-FULL,70,ASSUMPTION: as the earlier DAB-D60 r
 class:mlcc_1206_x7r_16v_le10u,0.1024,"GENERIC class rule, reel price of a typical equivalent. LCSC C47971 CL31B106KOHNNNE (1206, 10 uF 16 V X7R); US$0.1024 at 4000+; read 2026-10-04 via the jlcsearch mirror of LCSC, price breaks in prices.csv",high
 outside:pcb_mult:PV-PWR,3,"ASSUMPTION: the power board is a 6-layer heavy-copper (>= 3 oz) board that costs about 3x per cm2 of a 4-layer 1 oz board (ARCHITECTURE-COSTFIRST.md, 'Two boards, not one'; the architect's own ratio, no fab quote); the 0.045 USD/cm2 of outside:pcb_usd_per_cm2 is the 4-layer price",low
 outside:pcb_mult:PV-PWR-4,3,"ASSUMPTION: the power board is a 6-layer heavy-copper (>= 3 oz) board that costs about 3x per cm2 of a 4-layer 1 oz board (ARCHITECTURE-COSTFIRST.md, 'Two boards, not one'; the architect's own ratio, no fab quote); the 0.045 USD/cm2 of outside:pcb_usd_per_cm2 is the 4-layer price",low
+C3D1U147+M0A,4.9,"ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv, the inverter study's DC-link film row): LCSC C3D1X505 0.557 USD @1000 scaled by can volume (architect basis); no quote",low
+HCHVF1000-400A-38R,25.0,ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv 'DC fuse aR 400 A 1000 V DC'): no public price; marketplace anchor 1000 V 350 A semiconductor fuse 25 USD (sim/data/asia_modules.md sec. 7),low
+X9555WV-2x08-6TV01,0.104,"ESTIMATE: 2x8 shrouded header not in the mirror; the 2x20 X9555WV-2X20-6TV01 is 0.26 USD at 500 on LCSC (prices.csv), scaled by 8/20 pins",low
+ZXTN25040DFHTA,0.52,"ESTIMATE: NPN complement of ZXTP25040DFHTA, taken at that part's estimate (no listing read)",low
+L1 120u (CUSTOM)@PCS-P125,126.6,"ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv LCL L1 row; sim/magnetics.py design_pcs_l1.json cost model, core / conductor USD per kg + labour, catalogue 1k): no quote",low
+L2 6u (CUSTOM)@PCS-P125,38.6,ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv LCL L2 row; sim/magnetics.py design_pcs_l2.json cost model): no quote,low
+CM choke (CUSTOM)@PCS-P125,24.8,"ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv AC CM choke row 26.3 USD less its 3 x Y1 at 0.5, which this BOM prices as VY1 lines; = sim/magnetics.py design_pcs_cm_choke.json 24.8): no quote",low
+25u 450VAC RFQ@PCS-P125,3.0,"RFQ ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv C_f row: 0.12 USD/uF, architect): 25 uF 450 V AC MKP, no quote",low
+10u 450VAC RFQ@PCS-P125,1.5,RFQ ESTIMATE: half of the sim/out/pcs_design/pcs_costed_bom.csv damping-branch row (3.0 USD per phase for R_d + C_d),low
+2R 25W RFQ@PCS-P125,1.5,RFQ ESTIMATE: half of the sim/out/pcs_design/pcs_costed_bom.csv damping-branch row (3.0 USD per phase for R_d + C_d),low
+CS +/-500A RFQ@PCS-P125,6.0,"RFQ ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv phase-current sensor row, architect, range raised for the 450 A trip): no part with a data sheet found",low
+RCM type B RFQ@PCS-P125,10.0,RFQ ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv residual-current sensor row): no data sheet on file (R-10),low
+K1 AC-1 250A RFQ@PCS-P125,45.0,"RFQ ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv AC contactor row: CHINT NXC-225 / Delixi CJX2s-185 class, no OEM price, R-06)",low
+K2 AC-1 250A RFQ@PCS-P125,45.0,"RFQ ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv AC contactor row, as K1)",low
+heatsink section a (CUSTOM)@PCS-P125,23.8,"ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv THERMAL row: one 150 x 400 mm section per leg, 4.0 kg at 4.7 USD/kg + 5 USD machining, architect basis)",low
+heatsink section b (CUSTOM)@PCS-P125,23.8,"ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv THERMAL row: one 150 x 400 mm section per leg, 4.0 kg at 4.7 USD/kg + 5 USD machining, architect basis)",low
+heatsink section c (CUSTOM)@PCS-P125,23.8,"ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv THERMAL row: one 150 x 400 mm section per leg, 4.0 kg at 4.7 USD/kg + 5 USD machining, architect basis)",low
+PAD Al2O3 0.635 mm (CUSTOM)@PCS-P125,0.4,"ESTIMATE (sim/out/pcs_design/pcs_costed_bom.csv POWER row: Al2O3 TO-247 pad + clip + grease, costfirst_pcs_bom.csv)",low
+AC terminal L1 250 A (CUSTOM)@PCS-P125,13.0,ESTIMATE: a third of the sim/out/pcs_design/pcs_costed_bom.csv row 'AC terminals (L1-L3 + PE) + busbars' 39 USD (architect),low
+AC terminal L2 250 A (CUSTOM)@PCS-P125,13.0,ESTIMATE: a third of the sim/out/pcs_design/pcs_costed_bom.csv row 'AC terminals (L1-L3 + PE) + busbars' 39 USD (architect),low
+AC terminal L3 250 A (CUSTOM)@PCS-P125,13.0,ESTIMATE: a third of the sim/out/pcs_design/pcs_costed_bom.csv row 'AC terminals (L1-L3 + PE) + busbars' 39 USD (architect),low
+DC terminal B+ 250 A (CUSTOM)@PCS-P125,15.5,ESTIMATE: half of the sim/out/pcs_design/pcs_costed_bom.csv row 'DC terminals M8 + busbars' 31 USD (cost_estimates basis),low
+DC terminal B- 250 A (CUSTOM)@PCS-P125,15.5,ESTIMATE: half of the sim/out/pcs_design/pcs_costed_bom.csv row 'DC terminals M8 + busbars' 31 USD (cost_estimates basis),low
+outside:enclosure@PCS-P125,120.0,"ASSUMPTION: sheet-metal chassis, covers, air plenum and packaging for the 650 x 700 x 220 mm, 5U envelope of the benchmark PMA0125 (ARCHITECTURE-PCS section 7), scaled from the PV modules' 90-100 USD",low
+outside:final_assembly_test@PCS-P125,70.0,"ASSUMPTION: as the PV modules plus the AC port test (relay test, RCM test, grid sync)",low

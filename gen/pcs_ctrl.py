@@ -13,7 +13,10 @@ STAGES DONE / TODO (each DONE stage builds and passes every check):
           Budget (counted, not yet drawn): PWM 6 of 16; ADC: PV plan 22 channels - 6 not used by the three-wire PCS (IA,
           IA_H, VAX, IL4, NTC4, NTC8) + 8 new (VG1-3, VC1-3, RCM, NTC9) = 24 of 25 - holds for three-wire; four-wire
           (IL4, NTC4, NTC8, VGN back) needs 28: does not hold on the F280039C
-  3 TODO  module PCS-P125 in gen/build_all.py and gen/cost.py
+  3 DONE  module PCS-P125 = PCS-PWR + PCS-CTL-3W (the three-wire assembly: neutral-leg comparators not fitted, as
+          PV-P75 uses PV-CTL-P75) with fans, guards, harness and standoffs in gen/build_all.py extras; gen/cost.py
+          MODULES / MODULE_AMPS; the lines the pricer could not price entered from sim/out/pcs_design/pcs_costed_bom.csv
+          as labelled ESTIMATE / RFQ rows (@PCS-P125) in gen/data/cost_estimates.csv. Stage 2 is still TODO.
 OPEN: (1) every sensor number of the IL window is an ASSUMPTION for the RFQ sensor (G 4.0 mV/A, Vref 2.475-2.525 V, Voe
       +/-10 mV, X 1 % / 3 % of I_PN 250 A, 1.5 % / 3 % of I_PM 500 A above I_PN, response 1 us; linear to +/-525 A, i.e.
       output swing 0.4-4.6 V - tighter than PCS-PWR's '>= +/-500 A' RFQ line). (2) The window top (495 A)
@@ -22,7 +25,8 @@ OPEN: (1) every sensor number of the IL window is an ASSUMPTION for the RFQ sens
       and the 1087 V bus limit are this script's ASSUMPTIONS (PCS_REQ below); the DC OV band is centred so its top is
       the hand-over's 1050 V. (3) The coordinator's brief asked for the DC contactor (K_B)
       gated by HEALTHY only; this build keeps K_B = HEALTHY OR HOLD (the hold-off layer of the DC contactor) and gates K_A
-      (AC contactor 1) by HEALTHY only - the item listed by the power board (PCS-PWR OPEN 6).
+      (AC contactor 1) by HEALTHY only - the item listed by the power board (PCS-PWR OPEN 6); accepted in D-062.
+      (4) Four-wire build: 28 ADC channels needed, 25 on the F280039C - not solved (coordinator, D-062).
 Usage: .venv/bin/python gen/pcs_ctrl.py
 """
 import contextlib

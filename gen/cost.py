@@ -25,9 +25,9 @@ REPO = os.path.dirname(HERE)
 DATA = os.path.join(HERE, "data")
 sys.path.insert(0, HERE)
 
-MODULES = {"PV-P75": [75.0], "PV-P100-110": [100.0, 110.0],            # cost-first baseline (D-044)
+MODULES = {"PV-P75": [75.0], "PV-P100-110": [100.0, 110.0], "PCS-P125": [125.0],   # cost-first baseline (D-044, D-061)
            "PV-P75-FULL": [75.0], "PV-P100-110-FULL": [100.0, 110.0], "DAB-D60-FULL": [60.0]}   # rated kW (REQUIREMENTS PV-01, PV-15, DAB-01)
-MODULE_AMPS = {"PV-P75": 135.0, "PV-P100-110": 180.0, "PV-P75-FULL": 135.0, "PV-P100-110-FULL": 180.0, "DAB-D60-FULL": 135.0}   # rated port current (PV-05/PV-08, PV-PORT-180, DAB port fuses)
+MODULE_AMPS = {"PV-P75": 135.0, "PV-P100-110": 180.0, "PCS-P125": 250.0, "PV-P75-FULL": 135.0, "PV-P100-110-FULL": 180.0, "DAB-D60-FULL": 135.0}   # rated port current (PV-05/PV-08, PV-PORT-180, DAB port fuses)
 QTY_CAP = 1000          # catalogue price: the break at the highest quantity at or below this many pieces
 BUILD_UNITS = 5000      # SRC-6: the volume basis; the annual quantity of a line is BUILD_UNITS x its per-module quantity
 EVIDENCE_MIN_BREAK = 1000   # a 5,000-unit price is REAL only if it is a published price at a break of at least this many pieces

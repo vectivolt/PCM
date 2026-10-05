@@ -28,6 +28,8 @@ MODULES = {  # module -> {board: quantity}
     # the product baseline: cost-first architecture (decision D-044): one power board + one control board
     "PV-P75": {"PV-PWR": 1, "PV-CTL-P75": 1},     # control board with the phase-4 comparators not fitted
     "PV-P100-110": {"PV-PWR-4": 1, "PV-CTL": 1},                     # P100 and P110 differ in rating only
+    # the inverter (D-061, D-062): power board + the control board's three-wire assembly (neutral-leg comparators not fitted)
+    "PCS-P125": {"PCS-PWR": 1, "PCS-CTL-3W": 1},
     # the roadmap's full-featured platform, kept as reference (REQUIREMENTS.md PV-15, DAB-02)
     "PV-P75-FULL": dict(COMMON, **{"PVCELL-25": 3, "PV-PORT": 1}),
     "PV-P100-110-FULL": dict(COMMON, **{"PVCELL-25": 4, "PV-PORT-180": 1}),
@@ -42,6 +44,19 @@ PHASES = {"PV-P75": 3, "PV-P100-110": 4}
 def extras(module):
     """Chassis items that sit on no board: [(quantity, Value, Description, Manufacturer, MPN, Package, Sourcing,
     Datasheet)]. The fan comes from the thermal design's own output, so the BOM cannot drift from it."""
+    if module == "PCS-P125":  # inverter: inductors, contactors, fuses, terminals and heatsinks are drawn on PCS-PWR
+        rows = {r["part"]: r for r in csv.DictReader(open(os.path.join(REPO, "gen", "data", "costfirst_bom.csv"),
+                                                          encoding="utf-8")) if r["block"] in ("THERMAL", "MECH-ELEC")}
+        fan = [k for k in rows if "FB1224" in k][0]
+        return [
+            (3, fan, "Fan 120 x 120 x 38 mm 24 V with PWM input and tach, one per heatsink section (pcs_spec heatsink) - "
+             "RATED -10..+60 C ONLY (PV risk R-05)", rows[fan]["maker"], fan, "chassis", "ORDERABLE",
+             "docs/datasheets/thermal/AFB1224SHE-F00.pdf"),
+            (3, "120 mm wire guard", "Finger guard for a 120 mm fan", "", "", "chassis", "GENERIC", ""),
+            (1, "harness set", "SELV supply lead, contactor coil leads, NTC probe leads, fan leads, RCM sensor lead", "", "",
+             "harness", "CUSTOM", ""),
+            (12, "PA66 standoff", "Board standoff, insulating", "", "", "chassis", "GENERIC", ""),
+        ]
     if module in PHASES:      # cost-first module: everything else is on the two boards' BOMs (chassis parts included)
         n = PHASES[module]
         rows = {r["part"]: r for r in csv.DictReader(open(os.path.join(REPO, "gen", "data", "costfirst_bom.csv"),

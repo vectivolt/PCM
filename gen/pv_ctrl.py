@@ -936,6 +936,10 @@ CMPSS = dict(gain=0.02, inl=16, t=60e-9, filt=5 / 120e6)    # SPRSP61C 6.13.5.3:
 #                                                             digital filter 5 SYSCLK (window 5, threshold 4) ASSUMED
 T_TZ = 25e-9                                                # ePWM trip-zone action
 IL_TOP_MAX = 79.9            # A: IL window top - at 79.9 A the device peak is 1,396 V vs 1,445 V allowed (D-056, module_spec)
+# variant knobs (gen/pcs_ctrl.py sets them for the inverter; the PV values here)
+IL_LO_FACTOR, I_BK, LATCH_I, P75_SUFFIX, LATCH_VA, V_PPB = 1.10, 91.5, 85.0, "-P75", 800.0, 1100.0
+HOLD_KEEPS = ("K_A", "K_B")                                 # contactor commands a trip keeps while HOLD is high
+IL_NOM_MAX = None                                           # nominal IL trip limit (None = the sensor's I_PN)
 # STK-HO/A 75 (Sinomags STK-HO-A.pdf sec. 3): Voff 2.48-2.52 V; X @ 25 C +/-1 % of Ipn (+/-1.5 % of Ipm above Ipn);
 # X_TRange -40..105 C +/-3 % of Ipn (of Ipm above Ipn): Voe drift, gain drift and linearity vs the 25 C fitted gain
 SENS = dict(ipn=75.0, ipm=187.5, x25=(0.01, 0.015), xt=0.03)
@@ -1093,21 +1097,21 @@ def check_trips(pw):
     lo_l, hi_l = min(b[1] for b in band), max(b[2] for b in band)
     tw = {k: max(b[3][k] for b in band) for k in band[0][3]}
     t_loc = pw["t_sens"] + pw["t_rc"] + n["tau"] + T_CMP + 3 * T_LOGIC + T_PB
-    i_bk = 91.5
+    i_bk = I_BK
     d = i_bk * n["g_adc"]
     db = (CMPSS["gain"] * d + 2 * CMPSS["inl"] * LSB + d * REF_E) / n["g_adc"] + i_bk * 2 * 25e-6 * 60 + s_err(i_bk, True)
     lo_b, hi_b = i_bk - db, i_bk + db
     t_bk = (pw["t_sens"] + pw["t_rc"] + n["tau"] + val(IL_RC[0]) * val(IL_RC[1]) + 0.1e-6 + CMPSS["t"] + CMPSS["filt"] +
             T_TZ + T_PB)
-    ok &= say(lo_l >= 1.10 * i_pk and hi_l <= IL_TOP_MAX and hi_l < lo_b and hi_l + didt * t_loc <= i_lim and
+    ok &= say(lo_l >= IL_LO_FACTOR * i_pk and hi_l <= IL_TOP_MAX and hi_l < lo_b and hi_l + didt * t_loc <= i_lim and
               t_loc <= io["local"]["max_response_us"] * 1e-6 and hi_l * 1.05 < pw["il_lin"] and dead > 2 * VIO_CMP and
-              max(b[0] for b in band) <= SENS["ipn"],
+              max(b[0] for b in band) <= (IL_NOM_MAX or SENS["ipn"]),
               "Trip IL local window (TLV9024 on ILn_P, both directions, thresholds from each sensor's Uref)",
               "+%.1f / -%.1f A nominal -> %.1f-%.1f A, %.1f %% above the normal peak (rev A0 from VREF: 66.2-79.9 A as "
               "then modelled, without the PV-PWR source resistance). Worst-case terms (A, larger direction): sensor X 1 %% + "
               "3 %% of Ipn %.2f, Voe %.2f, Uref 2.48-2.52 V %.2f (only the offset part scales with it), 10.0k/29.4k divider "
               "%.2f, Uref ladder %.2f, comparator VOS %.2f, PV-PWR sources (R_out / R_ref + 100R) %.2f, VREF + 1 M pull-up "
-              "%.2f; no hysteresis (the latch holds the trip). Needs >= %.1f A (1.10 x normal peak %.1f A), top <= %.1f A "
+              "%.2f; no hysteresis (the latch holds the trip). Needs >= %.1f A (%.2f x normal peak %.1f A), top <= %.1f A "
               "(device peak, cell_spec trip band) and < backup %.1f A; dead sensor (IL = ILR = 0 V): TH_LO %.0f mV above "
               "the node -> trips. Gates off %.2f us (sensor %.2f + PV-PWR RC %.2f + node %.2f + comparator %.1f ASSUMED + "
               "logic + driver) <= %.2f us -> %.1f A <= %.0f A (50 %% L0); sensor linear to %.0f A. NOT in the band: the "
@@ -1115,10 +1119,10 @@ def check_trips(pw):
               "the 2.45 V node (0.3-1.0 A), as for every comparator band on this board"
               % (band[0][0], band[1][0], lo_l, hi_l, 100 * (lo_l / i_pk - 1), tw["X"], tw["voe"], tw["uref"],
                  tw["r1"] + tw["r2"], tw["ra"] + tw["rb"] + tw["rc"], tw["vio"], tw["rsi"] + tw["rsr"], tw["vref"] + tw["rpu"],
-                 1.10 * i_pk, i_pk, IL_TOP_MAX, lo_b, dead * 1e3, t_loc * 1e6, pw["t_sens"] * 1e6, pw["t_rc"] * 1e6,
+                 IL_LO_FACTOR * i_pk, IL_LO_FACTOR, i_pk, IL_TOP_MAX, lo_b, dead * 1e3, t_loc * 1e6, pw["t_sens"] * 1e6, pw["t_rc"] * 1e6,
                  n["tau"] * 1e6, T_CMP * 1e6, io["local"]["max_response_us"], hi_l + didt * t_loc, i_lim, pw["il_lin"]))
-    rec = CELL["device_primary"]["trip_band_costfirst"]["hardware"]
-    ok &= say([round(lo_l, 1), round(hi_l, 1)] == rec["band_A"] and abs(rec["response_us"] - t_loc * 1e6) < 0.006,
+    rec = CELL.get("device_primary", {}).get("trip_band_costfirst", {}).get("hardware")
+    ok &= not rec or say([round(lo_l, 1), round(hi_l, 1)] == rec["band_A"] and abs(rec["response_us"] - t_loc * 1e6) < 0.006,
               "Record: cell_spec trip_band_costfirst (sim/pv_design.py TRIP_HW, read by sim/pv_module.py) = this window",
               "cell_spec %s A, %.2f us; this board %.1f-%.1f A, %.2f us%s" % (rec["band_A"], rec["response_us"], lo_l, hi_l,
                                                                               t_loc * 1e6, "" if [round(lo_l, 1), round(hi_l, 1)]
@@ -1131,7 +1135,7 @@ def check_trips(pw):
               (i_bk, lo_b, hi_b, t_bk * 1e6, io["ctrl_backup"]["max_response_us"], hi_b + didt * t_bk, i_lim,
                *mr["cell_inductor_current"]["comparator_threshold_band_A"]))
     rows += [("IL1-4 local window", "+%.1f/-%.1f A" % (band[0][0], band[1][0]), "%.1f-%.1f A" % (lo_l, hi_l),
-              "%.2f us" % (t_loc * 1e6), ">= %.1f A, <= %.1f A, <= %.1f us" % (1.10 * i_pk, IL_TOP_MAX,
+              "%.2f us" % (t_loc * 1e6), ">= %.1f A, <= %.1f A, <= %.1f us" % (IL_LO_FACTOR * i_pk, IL_TOP_MAX,
                                                                          io["local"]["max_response_us"])),
              ("IL1-4 CMPSS backup", "+/-%.1f A (DAC)" % i_bk, "%.1f-%.1f A" % (lo_b, hi_b), "%.2f us" % (t_bk * 1e6),
               "84.4-98.6 A, <= 4.87 us")]
@@ -1225,7 +1229,7 @@ def check_trips(pw):
              ("RDY (gate supplies, +5V, 24 V)", "low", "logic", "%.0f ns" % (3 * T_LOGIC * 1e9), "<= 1 us"),
              ("3.3 V supervisor / MCU reset", "2.93 V", "2.88-3.00 V (TPS3828)", "via XRSn -> WD_OK", "-")]
     # ---- firmware layer: ADC PPB limit on every VA / VB conversion (<= 10 us), after the hardware comparator
-    v_ppb, t_conv = 1100.0, 10e-6
+    v_ppb, t_conv = V_PPB, 10e-6
     dv_ppb = v_ppb * (e_div + REF_E) + (pw["vmid"][1] - pw["vmid"][0]) / 2 / pw["k_div"] + 2 * LSB / pw["k_div"]
     lag_p = tau_div + t_conv + 0.3e-6 + T_TZ + T_PB
     end_p = max(v_ppb + dv_ppb + sl * 1e6 * lag_p for sl in (0.27, ov["full_current_frozen_case"]["slope_V_per_us"]))
@@ -1413,7 +1417,7 @@ def check_latch(B, pw):
     il = lambda amps: pw["v0"] + pw["g"] * amps                   # noqa: E731
     base = {"IL%d" % k: il(0) for k in range(1, 5)}
     base.update({"IL%dR" % k: pw["v0"] for k in range(1, 5)})       # sensor references (Uref, rev A1 trip ladders)
-    base.update({"VA": vm + 800 * pw["k_div"], "VB": vm + 800 * pw["k_div"]})
+    base.update({"VA": vm + LATCH_VA * pw["k_div"], "VB": vm + 800 * pw["k_div"]})
     base.update({"NTC%d" % k: ntc_v(60 if k in HS_NTC else 100, NTC_BIAS["hs" if k in HS_NTC else "ind"])
                  for k in range(1, 9)})
     outs = ["PWM%d" % k for k in range(1, 17)] + ["EN", "K_PRE", "K_A", "K_B", "STATUS_L"]
@@ -1439,7 +1443,7 @@ def check_latch(B, pw):
                  ("heartbeat", 0), ("enable_closed", 0), ("VA", vm + 1150 * pw["k_div"]),
                  ("VB", vm + 1150 * pw["k_div"])]
         for k in range(1, phases + 1):
-            cases += [("IL%d" % k, il(85)), ("IL%d" % k, il(-85)), ("IL%d" % k, 0.0),
+            cases += [("IL%d" % k, il(LATCH_I)), ("IL%d" % k, il(-LATCH_I)), ("IL%d" % k, 0.0),
                       ("IL%d dead sensor" % k, {"IL%d" % k: 0.0, "IL%dR" % k: 0.0})]
         for k in [x for x in range(1, 9) if phases == 4 or x not in (4, 8)]:
             hs = k in HS_NTC
@@ -1462,7 +1466,7 @@ def check_latch(B, pw):
             if q4 != 0:
                 errs.append("%s %s: not clearable" % (build, key))
             nh, _ = ev(dict(bad, HOLD=1), 1)
-            if not (nh["K_A"] == 1 and nh["K_B"] == 1 and nh["K_PRE"] == 0 and
+            if not (all(nh[k_] == 1 for k_ in HOLD_KEEPS) and nh["K_PRE"] == 0 and
                     not any(nh["PWM%d" % k] for k in range(1, 17))):
                 errs.append("%s %s with HOLD: contactor commanded open or gates on" % (build, key))
         nf, _ = ev(dict(healthy, BIAS_EN=0), 0)
@@ -1822,7 +1826,7 @@ def write_p75_bom(B):
         if PH4 in r[3]:
             r = r[:10] + ["DNP (PV-P75)"]
         out.append(r)
-    with open(os.path.join(L.REPO, "bom", PROJECT + "-P75_BOM.csv"), "w", newline="") as f:
+    with open(os.path.join(L.REPO, "bom", PROJECT + P75_SUFFIX + "_BOM.csv"), "w", newline="") as f:
         csv.writer(f).writerows(out)
 
 

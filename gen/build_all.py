@@ -16,7 +16,7 @@ REPO = os.path.abspath(os.path.join(HERE, ".."))
 
 BOARDS = {   # KiCad project -> generator script (a script may build variants: pv_power -> PV-PWR + PV-PWR-4)
     "PV-PWR": "pv_power.py", "PV-CTL": "pv_ctrl.py",                                     # cost-first PV module (D-044)
-    "PCS-PWR": "pcs_power.py",                       # PCS-P125 power board (D-060); module "PCS-P125" once its control board exists
+    "PCS-PWR": "pcs_power.py", "PCS-CTL": "pcs_ctrl.py",   # PCS-P125 (D-061); PCS-CTL reads PCS-PWR's check: keep this order
     "BMU-GW": "bmu_gw.py", "CTRL-C2000": "ctrl_c2000.py", "SYS-IO-AUX": "sys_io_aux.py", "GDRV-HB": "gdrv.py",
     "AUX-HV": "aux_hv.py", "PV-PORT": "port.py", "PVCELL-25": "pvcell.py"}               # the roadmap's full platform
 # DAB60 (gen/dab60.py) is frozen at its rev B outputs: the generator predates gate drive rev 5 and the re-run DAB

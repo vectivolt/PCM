@@ -652,6 +652,8 @@ def design_check(B, st):
         gk, 2 * n_leg, n_leg, gdrv.XF_N, p_ch, GD["qg"] * N_PAR * 1e9, vt_r[1], f_sw / 1e3,
         GD["qg"] * N_PAR * vt_r[1] * f_sw, CG["gate"]["P_gate_W_per_channel"], e["von"][0], e["von"][1], on_w[0], on_w[1],
         e["v3"][0], e["v3"][1], e["p_in"], g_out["ipk" + gk].strip(), g_out["boost" + gk].strip()[:200])
+    say("PC: PWM1-6, EN, BIAS_EN: 3.3 V CMOS IN, 10k pull-down + SN74AHCT1G08 (VIH 2.0 V, VIL 0.8 V); control drives >= 2.4 V "
+        "at 0.4 mA; PWMk is also ANDed with EN here (as PV-PWR)")
     say("Dead time at the gates (stretch %s/%s on the SN74LVC1G17 at +5V %.2f-%.2f V, NSI6651 skew + AHCT spread %.0f ns): "
         "%.0f-%.0f ns >= max(turn-off %.0f ns + 20 ns ESTIMATE, Miller clamps of six gates on %.0f ns); a firmware dead band "
         "below %.0f ns is extended by the hardware (hand-over: 300 ns) - OPEN (2)", gdrv.ohm(GD["deadtime"][0]),

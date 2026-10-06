@@ -1,6 +1,6 @@
 # PCS-P125 control study: current loop, PLL, DC link, grid forming, firmware
 
-**CALCULATED by sim/pcs_control.py - not measured.** Sampled averaged models (no switching ripple in the loop, ideal devices), linear analyses and sample-by-sample simulations of the firmware structure; nothing is bench-validated. Every number below is written by the script (run time 37 s). Re-run: `caffeinate -i .venv/bin/python sim/pcs_control.py`. Hand-off: `pcs_control_spec.json`. Requirements: REQUIREMENTS AC-01, AC-02, SRC-7; closes the sampled-loop part of review finding PCM-21 / open item E1.
+**CALCULATED by sim/pcs_control.py - not measured.** Sampled averaged models (no switching ripple in the loop, ideal devices), linear analyses and sample-by-sample simulations of the firmware structure; nothing is bench-validated. Every number below is written by the script (run time 68 s). Re-run: `caffeinate -i .venv/bin/python sim/pcs_control.py`. Hand-off: `pcs_control_spec.json`. Requirements: REQUIREMENTS AC-01, AC-02, SRC-7; closes the sampled-loop part of review finding PCM-21 / open item E1.
 
 ## What the study establishes
 
@@ -10,13 +10,17 @@
 - **DC link:** held at 40 Hz crossover with the measured DC-current feed-forward - mandatory: without it a constant-power DC/DC load is unstable at every SCR; large steps on the 0.41 mF link need a DC/DC power ramp and a coordinated trip at weak grids (section 6).
 - **Grid forming:** droop + virtual impedance + C_f-voltage PR around a P-only current loop, voltage gains from a two-axis scan (crossover parameter 800 Hz, PR zero at 1/2 of it): closed-loop -3 dB 386 Hz at no load, 197 Hz at rated load; grid-connected stable from stiff to SCR 5 (least damping ratio 0.18); under a terminal short the limiter holds 366 A pk (limit 367 A), first peak 397 A below the window band (426-486 A); transfer sequence and permissives in section 7.
 - **Firmware:** sampling plan, ISR budget, limits, anti-islanding methods and a protection state machine whose transition table passes an exhaustive invariant check (section 9).
+- **Ride-through (section 4b):** a ride-through state (dip-time limit 1.0 I_r, PLL free-running below 0.2 pu) and a per-sample clamp at 380 A hold every in-dip and recovery peak at <= 382 A from stiff to SCR 5 and 0 to 0.5 pu; the onset at a stiff connection still reaches 484 A for residual voltages <= 0.2 pu (latency-bound, before any firmware acts): derating 95.5 kW at 0 pu, 105.5 kW at 0.1 pu, 115.0 kW at 0.2 pu.
+- **VF accuracy (section 7b):** secondary restoration (T 0.5 s) returns the voltage within +/-1 % in 1.58 / 0.30 s and the frequency within +/-0.2 % in 1.42 / 1.18 s after 0 -> rated / rated -> 0 (dip 0.38 pu, overshoot 2.17 pu, averaged model); voltage accuracy 0.59 % worst-case sum, frequency +/-60 ppm.
+- **THDu (section 8b, analytical):** <= 1.31 % three-wire, <= 1.98 % four-wire on a linear balanced load (worst load point and DC voltage, dead time not compensated); output imbalance (8c) +/-0.41 % and 120 +/-0.40 deg three-wire, +/-0.76 % and 120 +/-0.052 deg four-wire.
+- **Four-wire N leg (section 9b):** the same parts give the same loop only where the N node sees a held phase; on its capacitive terminations the grid-following PR alone fails, the VF cascade passes everywhere (worst PM 57 deg, GM 8.7 dB); a 100 % unbalanced load step moves the N node by 0.57 pu for 20 ms.
 - **Drawn hardware:** 5 mismatches (section 10): PCS-CTL phase window; Current-loop bandwidth statement (risk register E1, guide 09, pcs_spec hand-over); Pin plan route of K_A_M (AC contactor 1); DC-link capacitance seen by the DC/DC; Lowest full-load DC voltage (REQUIREMENTS AC-02: full load 600-900 V).
 
 ## What it does not establish
 
-- No switched model: PWM ripple is added to peaks as +ripple/2, dead time is a voltage disturbance, no device or sensor nonlinearity. THDi is an estimate from the linear closed loop with assumed background distortion, not a measurement or a switched simulation.
+- No switched model: PWM ripple is added to peaks as +ripple/2, dead time is a voltage disturbance, no device or sensor nonlinearity. THDi is an estimate from the linear closed loop with assumed background distortion, not a measurement or a switched simulation; THDu (8b) is analytical in the same sense.
 - No standards text: grid-code limits (ROCOF, phase jump, LVRT, islanding times) are quoted from memory and labelled; no compliance is claimed, in particular not IEC 62116 anti-islanding (not simulated).
-- Not covered: four-wire neutral-leg control, parallel units, LVRT reactive-current priority profiles, the AC-side start-up path, common-mode/leakage control (the C_f star on the DC midpoint is common mode only), switching-frequency interactions, ADC noise and quantisation, sensor offsets.
+- Not covered: the four-wire build only linearly (section 9b: N-leg loop margins and the N-node excursion; no switched N leg, no nonlinear unbalanced transient), parallel units (the restoration consensus over the module CAN is stated, not modelled), LVRT reactive-current injection profiles (the ride-through study holds the power reference), the AC-side start-up path as a state of the checked machine (drawn: grid tap and AC precharge, pcs_spec ac_start; the rectifier stage after it is this study's DC-link loop), common-mode/leakage control (the C_f star on the DC midpoint is common mode only), switching-frequency interactions, ADC noise and quantisation, sensor offsets.
 
 ## 1. Inputs and assumptions
 
@@ -58,6 +62,15 @@ Read at run time: `sim/out/pcs_design/pcs_spec.json` (L1 120 uH, C_f 50 uF, L2 6
 | r_sc_ohm | 0.005 | terminal short: resistance (bolted fault behind a short cable) |
 | l_sc_H | 5e-06 | terminal short: cable inductance |
 | t_lim_s | 0.2 | firmware: current limit 1.2 x I_max held for <= this, then trip (pcs_spec hand-over) |
+| sec_rule | (10.0, 0.1) | VF secondary restoration time constant (firmware parameter, 0.5-2 s class) = the smallest of sec_T_scan_s whose restoration modes are real, at least this x slower than the nearest primary mode (the 5 Hz measurement filters) and move that mode by at most this fraction, and >= this x can_cycle_s |
+| sec_reseed_pu | 0.02 | VF secondary voltage layer: re-seeded downwards when its state exceeds the virtual-impedance drop of the present output current by more than this (load rejection); never upwards (the slow integrator restores) |
+| sec_T_scan_s | (0.5, 1.0, 2.0) | secondary time constants compared on the linearised island at rated load |
+| iclamp_margin_A | 15.0 | per-sample current clamp level = window low edge - ripple/2 - this (prediction error of the sensed C_f voltage and of L1) |
+| lvrt_pu | (0.85, 0.9) | ride-through state: entered when the sensed C_f voltage magnitude falls below the first, its hold timer runs down only above the second (EN 50549-1 class thresholds, FROM MEMORY) |
+| pll_freeze_pu | 0.2 | ride-through: PLL integrator and angle held (free-running at the pre-dip frequency) while the sensed C_f voltage magnitude is below this; resumes above it |
+| lvrt_hold_s | 0.04 | dip-time current limit kept this long after the voltage has returned (two grid periods) |
+| osc_ageing_ppm | 10.0 | controller oscillator ageing over the module life (Epson SG-210STF data sheet: +/-3 ppm in the first year at 25 C, lifetime not guaranteed by the maker; its +/-50 ppm tolerance covers initial, temperature, supply and load) |
+| can_cycle_s | 0.05 | module-CAN cycle of the paralleled modules' restoration consensus (ASSUMED; not modelled) |
 | isr_cyc_per_op | 2.5 | C28x + FPU32 + TMU, compiled C: cycles per floating-point operation incl. loads/stores |
 | isr_overhead_cyc | 80 | ISR entry/exit and context save with the FPU registers, cycles |
 | codes | rocof_Hz_s: 2.0, f_band_Hz: (47.5, 51.5), phase_jump_deg: 30.0, dip_pu: 0.5, deep_pu: 0.1, dip_s: 0.15, island_s: 2.0, transfer_ms: 20.0 | grid-code-like limits FROM MEMORY (EN 50549-1 / ENTSO-E RfG / IEC 62116 class; Megarevo's 20 ms transfer), not verified - the standards are not on file |
@@ -168,6 +181,46 @@ Peaks include +ripple/2 = 30.9 A. **0.5 pu dip at 125 kW export:** the limiter h
 
 ![faults](faults.png)
 
+## 4b. Cycle-by-cycle limiting in ride-through (firmware limiter; D-074 open item)
+
+**The limiter (firmware, three layers).** (1) The circular reference limiter of section 4 (367 A pk for <= 200 ms). (2) A ride-through state: entered when the sensed |v_C| falls below 0.85 pu, left 40 ms after it is back above 0.9 pu; while it runs the reference limit is 255 A pk - the hand-over profile's 1.0 I_r reactive-current cap (parsed from pcs_spec), not the 200 ms tier - and below 0.2 pu the PLL free-runs at its pre-dip frequency (otherwise it locks onto the module's own current through the grid impedance and the voltage comes back out of phase: without the freeze the 0 pu dip at SCR 50 recovered at 462 A). (3) A per-sample predictive clamp in the PWM update at 380 A (sampled, ripple-midpoint current) = the window's low edge 426 A - ripple/2 30.9 A - 15 A for the prediction error (sensed C_f voltage behind its divider, L1 tolerance): per phase, the current one period after the new command is predicted from the sensed current and the command already committed; a phase that would leave +/-380 A gets the deadbeat command that ends that period on the clamp (unit gain on that phase; the PR integrators are back-calculated). Dips at 125 kW export with the power reference held, 150 ms; onset = the first ms; peaks = averaged + ripple/2 (SIMULATED, sampled averaged model).
+
+| grid | residual pu | onset A | in dip A | recovery A | in-dip current A pk | settled to 5 % ms | modulation limit ms | window |
+|---|---|---|---|---|---|---|---|---|
+| stiff | 0 | 484 | 287 | 301 | 255 | 0.7 | 0.3 | TRIP (onset) |
+| stiff | 0.1 | 465 | 286 | 307 | 255 | 0.7 | 0.2 | TRIP (onset) |
+| stiff | 0.2 | 445 | 287 | 306 | 255 | 0.7 | 0.2 | TRIP (onset) |
+| stiff | 0.3 | 425 | 286 | 304 | 255 | 0.5 | 0.1 | inside |
+| stiff | 0.5 | 385 | 287 | 298 | 255 | 0.4 | 0.1 | inside |
+| SCR 50 | 0 | 402 | 286 | 296 | 255 | 1.0 | 0.4 | inside |
+| SCR 50 | 0.1 | 390 | 287 | 299 | 255 | 0.9 | 0.4 | inside |
+| SCR 50 | 0.2 | 380 | 288 | 297 | 255 | 0.9 | 0.3 | inside |
+| SCR 50 | 0.3 | 369 | 286 | 289 | 255 | 0.8 | 0.2 | inside |
+| SCR 50 | 0.5 | 350 | 285 | 299 | 255 | 0.7 | 0.2 | inside |
+| SCR 20 | 0 | 370 | 297 | 290 | 255 | 2.9 | 0.6 | inside |
+| SCR 20 | 0.1 | 362 | 293 | 289 | 255 | 2.1 | 0.4 | inside |
+| SCR 20 | 0.2 | 353 | 292 | 288 | 255 | 2.8 | 0.3 | inside |
+| SCR 20 | 0.3 | 344 | 288 | 293 | 255 | 2.0 | 0.3 | inside |
+| SCR 20 | 0.5 | 330 | 292 | 291 | 255 | 1.9 | 0.3 | inside |
+| SCR 10 | 0 | 343 | 300 | 288 | 255 | 3.6 | 0.4 | inside |
+| SCR 10 | 0.1 | 337 | 301 | 288 | 255 | 3.6 | 0.3 | inside |
+| SCR 10 | 0.2 | 332 | 296 | 382 | 255 | 2.8 | 0.4 | inside |
+| SCR 10 | 0.3 | 328 | 293 | 290 | 255 | 2.9 | 0.3 | inside |
+| SCR 10 | 0.5 | 316 | 293 | 289 | 255 | 3.2 | 0.3 | inside |
+| SCR 5 | 0 | 320 | 310 | 357 | 268 | 31.0 | 14.7 | inside |
+| SCR 5 | 0.1 | 315 | 310 | 366 | 268 | 36.5 | 16.6 | inside |
+| SCR 5 | 0.2 | 310 | 310 | 350 | 256 | 97.8 | 0.4 | inside |
+| SCR 5 | 0.3 | 308 | 309 | 298 | 256 | 108.1 | 0.4 | inside |
+| SCR 5 | 0.5 | 300 | 307 | 296 | 255 | 3.9 | 0.3 | inside |
+
+Clamp alone (no ride-through state, reference at the 200 ms tier): stiff 0.1 pu: 465 / 400 / 416 A (clamp active 0.1 ms); stiff 0.3 pu: 426 / 398 / 413 A (clamp active 0.0 ms); stiff 0.5 pu: 386 / 398 / 409 A (clamp active 0.0 ms); SCR 5 0.1 pu: 317 / 413 / 432 A (clamp active 17.1 ms); SCR 5 0.3 pu: 309 / 413 / 412 A (clamp active 13.9 ms); SCR 5 0.5 pu: 300 / 411 / 412 A (clamp active 0.6 ms). Against section 4 (no clamp) the clamp lowers the SCR 5 in-dip peak but not the recovery, where the modulation limit is reached; with the ride-through state the reference stays below it and it never acts - it is the backstop for a reference that would exceed it. The current loop settles onto the dip-time limit within the times in the table (SCR 5 longer: the modulation limit at the recovery and the weak-grid loop).
+
+**What firmware cannot do.** The onset peak forms within the first ms, before the C_f divider's lag (23 us) and the 1.5 T_s delay (23.4 us) let any firmware act: on a stiff grid it reaches 484 A at 0 pu, 465 A at 0.1 pu, 445 A at 0.2 pu, 425 A at 0.3 pu, 385 A at 0.5 pu against the 426 A low edge - rated current trips the window for residual voltages of 0.2 pu and below at stiff; from SCR 50 down every onset stays inside (SCR 50 current-loop margins: PM 55 deg, GM 12.6 dB). The study's dip instant is the worst of a 60 deg scan (484, 476, 453, 431, 463, 481 A). A CMPSS cycle-by-cycle threshold below the window or a faster divider would be hardware (out of this firmware-only scope).
+
+**Derating (firmware) at stiff connections.** The onset is affine in the pre-dip current; the pre-dip power that puts it on the low edge, rounded down and verified by simulation: 0 pu: 95.5 kW (76 %, onset 425 A); 0.1 pu: 105.5 kW (84 %, onset 426 A); 0.2 pu: 115.0 kW (92 %, onset 425 A); 0.3 pu: 125.0 kW (100 %, onset 425 A); 0.5 pu: 125.0 kW (100 %, onset 385 A).
+
+**Ride-through profile** (hand-over, FROM MEMORY: 0 pu to 0.15 s, 0.2 pu to 0.625 s, linear to 0.9 pu at 2 s): during the dip the current is held at 1.0 I_r, inside the continuous tier, so the profile's durations add no limit and the peaks do not depend on the duration beyond 150 ms (the current is settled). At rated pre-dip current the whole profile rides through at SCR 50, SCR 20, SCR 10, SCR 5; at a stiff connection the points below 0.3 pu need the derating above.
+
 ## 5. PLL
 
 | grid | P kW | PM / GM at 30 Hz | rule holds up to Hz | unstable from Hz |
@@ -262,6 +315,39 @@ A transfer within 20 ms needs the unit to be grid forming before the grid is los
 
 ![gfm](gfm.png)
 
+## 7b. VF (off-grid) secondary restoration and the accuracy statements
+
+**Structure (firmware).** Above the droop + virtual impedance, two slow integrators: the generator's frequency deviation is integrated into an offset of the droop (d dw_s/dt = -dw/T) and the sensed C_f-voltage magnitude (5 Hz filtered) into an offset of the voltage set point (d dV_s/dt = (V_n - |v_C|)/T). Steady state: 50 Hz and V_n exactly (integral action); the droop and the virtual impedance still act on every transient. VF only: in grid-connected grid forming the grid sets f and V, the integrators would wind up against it - frozen and ramped out before re-synchronisation. The voltage layer is re-seeded downwards when it exceeds the virtual-impedance drop of the present output current by > 0.02 pu (load rejection), never upwards. Paralleled modules share the restoration over the module CAN (a consensus of the offsets, so that each module's integrator does not pull the droop's sharing apart - stated, not modelled).
+
+**Time constant (firmware parameter): 0.5 s.** Linearised island at rated load (the fixed point exists with the restoration); rule: the restoration modes real, >= 10 x slower than the nearest primary mode (the 5 Hz measurement filters), moving it by <= 10 %, and T >= 10 x the 50 ms CAN cycle; the smallest value meeting it is taken:
+
+| T s | restoration modes tau s | real | separation from the 5 Hz filters | filter mode moved % | least-damped mode | rule |
+|---|---|---|---|---|---|---|
+| 0.5 | 0.49 / 0.57 | yes | 14.5 x | 6.0 | zeta 0.363 at 70 Hz | pass |
+| 1 | 0.98 / 1.17 | yes | 30.0 x | 2.9 | zeta 0.363 at 70 Hz | pass |
+| 2 | 1.97 / 2.37 | yes | 61.2 x | 1.2 | zeta 0.363 at 70 Hz | pass |
+
+The least-damped mode of the primary loops is the same at every T: the restoration does not reach into the droop or the voltage loop. (The island's free angle - eigenvalue 1 - is excluded: off-grid there is no angle reference.)
+
+| step (SIMULATED) | v_C min pu | v_C max pu | within 10 % ms | within +/-1 % s | f min / max Hz | within +/-0.2 % s | at the end of the run |
+|---|---|---|---|---|---|---|---|
+| 0 -> rated | 0.380 | 1.000 | 283.3 | 1.575 | -0.608 / +0.000 | 1.417 | 0.9981 pu, -0.0187 Hz at 2.5 s |
+| rated -> 0 | 0.500 | 2.170 | 14.9 | 0.304 | -0.000 / +0.829 | 1.184 | 1.0001 pu, +0.0073 Hz at 2.5 s |
+| rated -> 0, no re-seed | 0.507 | 2.170 | 321.6 | 1.393 | -0.000 / +0.829 | 1.184 | 1.0010 pu, +0.0073 Hz at 2.5 s |
+| rated -> 0, primary layer only | 0.716 | 1.894 | 6.2 | 0.029 | +0.290 / +1.000 | not restored | 1.0004 pu, +0.9999 Hz at 0.3 s |
+
+Frequency band +/-0.2 % = +/-0.10 Hz. The dip (0.38 pu) and the overshoot (2.17 pu) are the primary loops' first milliseconds (the restoration is too slow to touch them); from the primary layer's own rated-load voltage the same rejection reaches 1.89 pu - L1's current charges C_f before the inner loop turns it (no measured output current, section 10); the re-seed shortens the tail above +1 % from 1.39 s to 0.30 s. Averaged model: above the DC-link half the switched bridge's diodes would clamp sooner; the published accuracy rows are static.
+
+Steady state (Newton fixed point with the restoration): no load: v_C 1.00003 pu, load terminals 1.00003 pu, frequency +4.2e-11 Hz; rated resistive: v_C 1.00003 pu, load terminals 0.99976 pu, frequency -1.5e-12 Hz - zero error by construction on the sensed C_f magnitude (the divider's 50 Hz attenuation, 27 ppm, remains); the load terminals sit below it by the L2 drop at rated load (measuring the restoration on VG1-3 instead removes it).
+
+**Voltage accuracy (CALCULATED):** regulation residual 0.024 % + sensing floor (PCS-CTL design check, after the two-point calibration: ADC share RSS 0.27 % / worst 0.42 %, divider TCR mismatch 0.15 %) = **0.59 % worst-case sum** (0.33 % RSS), no load to rated.
+
+**Frequency accuracy (CALCULATED):** the output frequency is the angle generator's: oscillator SPXO SG-210STF 25.000000 MHz L +/-50 ppm (module BOM; covers initial, temperature, supply and load) + ageing 10 ppm (ASSUMED) + the 32-bit per-unit accumulator's rounded increment 0.06 ppm + the restoration residual 8.4e-07 ppm = **+/-60.1 ppm = +/-0.0060 %**. (A float32 radian accumulator, the alternative, would add 0.91 ppm over one second - also negligible.)
+
+Four-wire 100 % unbalanced load: section 9b (per-phase loops, the N node).
+
+![vf](vf_and_ride_through.png)
+
 ## 8. THDi estimate and dead time (CALCULATED, assumed background distortion)
 
 | controller | dead time | worst THDi % | at |
@@ -281,6 +367,54 @@ A transfer within 20 ms needs the unit to be grid forming before the grid is los
 
 Dead-time error 185-510 ns at 900 V and 32 kHz = 5.3-14.7 V average, a square wave with the current sign; plus the PWM figure of pcs_spec (0.20 %).
 
+## 8b. THDu on a linear balanced load (VF, off-grid; CALCULATED - analytical, not a switched simulation)
+
+Terms: (a) the carrier groups of regular-sampled double-update PWM (sim/pcs_design.py's exact Fourier series, imported) through the LCL with the load, at the load terminals; (b) the dead-time error with a ripple-aware shape (it is a square wave only where the current exceeds half the local ripple; at no load it nearly vanishes) through the closed VF loop; (c) wherever a zero sequence is modulated (three-wire m > 0.98: min-max; four-wire mode B), its 150 Hz family through the filters' tolerance mismatch (corner pair: +10 % L at 0 A / C_f +5 % against the -10 % part at the trip current / C_f -5 %) and, three-wire, through the per-channel gain error into the measured alpha-beta. Three-wire = line-to-neutral of a balanced star load (non-triplen orders); four-wire = phase-to-N (every order; mode A with the N leg at 50 %, its carrier term included; mode B's carrier approximated with the N leg at zero reference). h2-h50 plus the carrier groups, against the fundamental.
+
+Voltage loop: the design (PR at h1) and the option with h5 / h7 resonant terms (lead h5 23 deg, h7 24 deg, K_h 37.9 S/s): margin rule met (PM 74 deg, GM 11.7 dB), but their closed-loop modes decay at 8.1/9.2 1/s against the 31.4 1/s the current loop's rule asks: not adopted - and not needed (below).
+
+| wire | load | voltage loop | dead time | THDu % (worst V_dc) | at | carrier % | dead time % | zero sequence % | dominant terms |
+|---|---|---|---|---|---|---|---|---|---|
+| 3W | rated | PR h1 | 510 ns, not compensated | 1.30 | 643 V (minmax) | 0.10 | 0.44 | 1.22 | h39 zero sequence via the filter mismatch 1.06 %; h33 zero sequence via the filter mismatch 0.53 %; h5 dead time 0.32 % |
+| 3W | rated | PR h1 | compensated per leg | 1.22 | 643 V (minmax) | 0.10 | 0.04 | 1.22 | h39 zero sequence via the filter mismatch 1.06 %; h33 zero sequence via the filter mismatch 0.53 %; h3 zero sequence via the gain error 0.16 % |
+| 3W | rated | PR h1+h5+h7 | 510 ns, not compensated | 1.24 | 643 V (minmax) | 0.10 | 0.21 | 1.22 | h39 zero sequence via the filter mismatch 1.06 %; h33 zero sequence via the filter mismatch 0.53 %; h3 zero sequence via the gain error 0.16 % |
+| 3W | rated | PR h1+h5+h7 | compensated per leg | 1.22 | 643 V (minmax) | 0.10 | 0.02 | 1.22 | h39 zero sequence via the filter mismatch 1.06 %; h33 zero sequence via the filter mismatch 0.53 %; h3 zero sequence via the gain error 0.16 % |
+| 3W | 50 % | PR h1 | 510 ns, not compensated | 1.31 | 643 V (minmax) | 0.13 | 0.46 | 1.22 | h39 zero sequence via the filter mismatch 1.06 %; h33 zero sequence via the filter mismatch 0.53 %; h5 dead time 0.36 % |
+| 3W | 50 % | PR h1 | compensated per leg | 1.22 | 643 V (minmax) | 0.13 | 0.05 | 1.22 | h39 zero sequence via the filter mismatch 1.06 %; h33 zero sequence via the filter mismatch 0.53 %; h3 zero sequence via the gain error 0.16 % |
+| 3W | 50 % | PR h1+h5+h7 | 510 ns, not compensated | 1.23 | 643 V (minmax) | 0.13 | 0.15 | 1.22 | h39 zero sequence via the filter mismatch 1.06 %; h33 zero sequence via the filter mismatch 0.53 %; h3 zero sequence via the gain error 0.16 % |
+| 3W | 50 % | PR h1+h5+h7 | compensated per leg | 1.22 | 643 V (minmax) | 0.13 | 0.01 | 1.22 | h39 zero sequence via the filter mismatch 1.06 %; h33 zero sequence via the filter mismatch 0.53 %; h3 zero sequence via the gain error 0.16 % |
+| 3W | no load | PR h1 | 510 ns, not compensated | 1.24 | 643 V (minmax) | 0.14 | 0.19 | 1.21 | h39 zero sequence via the filter mismatch 1.06 %; h33 zero sequence via the filter mismatch 0.53 %; h3 zero sequence via the gain error 0.16 % |
+| 3W | no load | PR h1 | compensated per leg | 1.22 | 643 V (minmax) | 0.14 | 0.02 | 1.21 | h39 zero sequence via the filter mismatch 1.06 %; h33 zero sequence via the filter mismatch 0.53 %; h3 zero sequence via the gain error 0.16 % |
+| 3W | no load | PR h1+h5+h7 | 510 ns, not compensated | 1.22 | 643 V (minmax) | 0.14 | 0.05 | 1.21 | h39 zero sequence via the filter mismatch 1.06 %; h33 zero sequence via the filter mismatch 0.53 %; h3 zero sequence via the gain error 0.16 % |
+| 3W | no load | PR h1+h5+h7 | compensated per leg | 1.22 | 643 V (minmax) | 0.14 | 0.00 | 1.21 | h39 zero sequence via the filter mismatch 1.06 %; h33 zero sequence via the filter mismatch 0.53 %; h3 zero sequence via the gain error 0.16 % |
+| 4W | rated | PR h1 | 510 ns, not compensated | 1.98 | 643 V (mode B) | 0.43 | 0.67 | 1.81 | h39 zero sequence via the filter mismatch 1.60 %; h33 zero sequence via the filter mismatch 0.80 %; h3 dead time 0.46 % |
+| 4W | rated | PR h1 | compensated per leg | 1.86 | 643 V (mode B) | 0.43 | 0.07 | 1.81 | h39 zero sequence via the filter mismatch 1.60 %; h33 zero sequence via the filter mismatch 0.80 %; carrier groups 0.43 % |
+| 4W | rated | PR h1+h5+h7 | 510 ns, not compensated | 1.94 | 643 V (mode B) | 0.43 | 0.55 | 1.81 | h39 zero sequence via the filter mismatch 1.60 %; h33 zero sequence via the filter mismatch 0.80 %; h3 dead time 0.47 % |
+| 4W | rated | PR h1+h5+h7 | compensated per leg | 1.86 | 643 V (mode B) | 0.43 | 0.05 | 1.81 | h39 zero sequence via the filter mismatch 1.60 %; h33 zero sequence via the filter mismatch 0.80 %; carrier groups 0.43 % |
+| 4W | 50 % | PR h1 | 510 ns, not compensated | 1.98 | 643 V (mode B) | 0.38 | 0.71 | 1.81 | h39 zero sequence via the filter mismatch 1.59 %; h33 zero sequence via the filter mismatch 0.80 %; h3 dead time 0.51 % |
+| 4W | 50 % | PR h1 | compensated per leg | 1.85 | 643 V (mode B) | 0.38 | 0.07 | 1.81 | h39 zero sequence via the filter mismatch 1.59 %; h33 zero sequence via the filter mismatch 0.80 %; carrier groups 0.38 % |
+| 4W | 50 % | PR h1+h5+h7 | 510 ns, not compensated | 1.93 | 643 V (mode B) | 0.38 | 0.57 | 1.81 | h39 zero sequence via the filter mismatch 1.59 %; h33 zero sequence via the filter mismatch 0.80 %; h3 dead time 0.52 % |
+| 4W | 50 % | PR h1+h5+h7 | compensated per leg | 1.85 | 643 V (mode B) | 0.38 | 0.06 | 1.81 | h39 zero sequence via the filter mismatch 1.59 %; h33 zero sequence via the filter mismatch 0.80 %; carrier groups 0.38 % |
+| 4W | no load | PR h1 | 510 ns, not compensated | 1.90 | 643 V (mode B) | 0.34 | 0.49 | 1.81 | h39 zero sequence via the filter mismatch 1.59 %; h33 zero sequence via the filter mismatch 0.80 %; h3 dead time 0.45 % |
+| 4W | no load | PR h1 | compensated per leg | 1.84 | 643 V (mode B) | 0.34 | 0.05 | 1.81 | h39 zero sequence via the filter mismatch 1.59 %; h33 zero sequence via the filter mismatch 0.80 %; carrier groups 0.34 % |
+| 4W | no load | PR h1+h5+h7 | 510 ns, not compensated | 1.90 | 643 V (mode B) | 0.34 | 0.47 | 1.81 | h39 zero sequence via the filter mismatch 1.59 %; h33 zero sequence via the filter mismatch 0.80 %; h3 dead time 0.46 % |
+| 4W | no load | PR h1+h5+h7 | compensated per leg | 1.84 | 643 V (mode B) | 0.34 | 0.05 | 1.81 | h39 zero sequence via the filter mismatch 1.59 %; h33 zero sequence via the filter mismatch 0.80 %; carrier groups 0.34 % |
+
+Worst over the load points per DC voltage (design loop, dead time not compensated): 3W 643 V 1.31 %; 3W 750 V 0.52 %; 3W 950 V 0.61 %; 4W 643 V 1.98 %; 4W 750 V 0.90 %; 4W 950 V 1.08 % - the zero-sequence term exists only where a zero sequence is modulated (three-wire below 668 V at rated load, where m > 0.98; four-wire mode B below 746 V).
+
+DC component (separately, not part of THDu): the DC-component regulator holds it at its measurement floor, 0.56 V (0.24 % of Un; divider TCR mismatch at 750 V, pcs_spec) against the 1.15 V (0.5 % Un) limit; the ADC gain drift of the two channels is the open term of that row. What a switched model would add: the dead-time error's dependence on the commutation (device capacitance, current-dependent switching times) and the minimum pulse near m = 1, the ripple's sampling and aliasing in the ADC, the device voltage drops (a resistive term), the interaction of the carrier sidebands with the loop, and the N leg's own switching in four-wire mode B.
+
+## 8c. Output voltage imbalance on a linear balanced load (CALCULATED)
+
+The loops regulate the measured voltages exactly at the fundamental (resonant terms at +/-50 / 60 Hz), so the output carries the inverse of each channel's gain and phase error. Gain: +/-0.57 % per channel after the two-point calibration (the control board's ADC share + divider TCR, every term independent per channel - the reference drift is counted although the three ADCs may share it). Phase: the drawn anti-alias poles - PCS-PWR divider R_th 4.99 k (+/-0.1 %) with 4.7 nF (+/-5 % C0G), PCS-CTL charge bucket 100 R (+/-1 %) with 1 nF (+/-5 %): common lag 0.424 deg at 50 Hz (no effect on the displacement), per-channel spread +/-0.0216 deg (50 Hz) / +/-0.0260 deg (60 Hz); VC1-3 convert simultaneously (yes: no skew); the software angle generator's float32 constants 3.6e-06 deg. Worst over every sign corner, 50 and 60 Hz:
+
+| build | loop | amplitude: largest deviation from the mean | displacement: largest deviation from 120 deg | negative / positive sequence |
+|---|---|---|---|---|
+| three-wire (line-to-line) | alpha-beta PR | +/-0.41 % | 120 +/-0.40 deg | 0.41 % |
+| four-wire (phase-to-N) | per-phase PR | +/-0.76 % | 120 +/-0.052 deg | 0.41 % |
+
+Three-wire: the gain errors rotate the line-to-line phasors (the zero sequence of the measured set is free), so the angle term there comes from the gains, not the filters. Regulation residual at the fundamental: zero (resonant terms on both sequences / per phase).
+
 ## 9. Firmware requirements
 
 | round | nets | pins | ADC A/B/C |
@@ -294,9 +428,10 @@ Rounds 1-3 at both update instants (carrier zero and peak), round 4 once per car
 
 | ISR at 64 kHz | operations | cycles | us | % of 15.625 us |
 |---|---|---|---|---|
-| GFL | 157 | 472 | 3.94 | 25 |
-| GFL + DC link | 164 | 490 | 4.08 | 26 |
-| GFM + DC link | 198 | 575 | 4.79 | 31 |
+| GFL | 199 | 578 | 4.81 | 31 |
+| GFL + DC link | 206 | 595 | 4.96 | 32 |
+| GFM + DC link | 248 | 700 | 5.83 | 37 |
+| GFM + DC link, four-wire | 318 | 875 | 7.29 | 47 |
 
 Cost model ASSUMED: 2.5 cycles per operation (compiled C, FPU32 + TMU), 80 cycles of entry/exit, F280039C at 120 MHz; slower tasks (grid protection, RMS, ROCOF, thermal model, anti-islanding) at 1 kHz add about 1 %. The CLA can take the 64 kHz part.
 
@@ -312,6 +447,15 @@ Cost model ASSUMED: 2.5 cycles per operation (compiled C, FPU32 + TMU), 80 cycle
 | dead time | program >= 433 ns so the firmware value, not the hardware stretch (185-510 ns), sets it; or identify each leg's effective dead time at commissioning and compensate (THDi estimate: section 8) |
 | synchronisation | close K_AC1/K_AC2 only at |dV| <= 5 %, |dtheta| <= 5 deg (pcs_spec), |df| <= 0.1 Hz (assumed), after the relay test |
 | ADC configuration | AGPIOCTRLA GPIO20/21 = 0: B5/B11 read on pins 32/30, pins 48/49 stay digital (TACH3, RCM_TST) |
+| ride-through state (LVRT) | entered when the sensed |v_C| < 0.85 pu, kept 40 ms after it is back above 0.9 pu; reference limit 255 A pk during it (the hand-over profile's 1.0 I_r reactive-current cap) instead of the 200 ms tier; PLL integrator and angle held below 0.2 pu (free-running at the pre-dip frequency) |
+| per-sample current clamp | in the PWM update, per phase: the current one period after the new command, predicted from the sensed current and the committed command over the -10 % L1, limited to 380 A (sampled) = window low edge 426 A - ripple/2 30.9 A - 15 A; deadbeat correction with unit gain on that phase, anti-windup through the PR back-calculation; backstop only - the ride-through state keeps the reference below it |
+| stiff-grid deep-dip derating | the onset peak forms in the first ms, before the sensing chain and 1.5 T_s let any firmware act: at a stiff connection rated current reaches the window for residual voltages of 0.2 pu and below; where ride-through below that is required at a connection stiffer than SCR 50, limit the continuous current: to 0 pu 95.5 kW (76 %), to 0.1 pu 105.5 kW (84 %), to 0.2 pu 115.0 kW (92 %) |
+| VF secondary restoration | frequency and C_f-voltage magnitude integrators, time constant 0.5 s (sec_rule); VF only - off in grid-connected GFM, frozen and ramped out before re-synchronisation; voltage layer re-seeded downwards on a load rejection (> 0.02 pu above the present need); paralleled modules agree the restoration terms over the module CAN (consensus, 50 ms cycle ASSUMED, not modelled) so the droop's sharing is kept |
+| angle generator (VF) | 32-bit per-unit phase accumulator, increment rounded (0.06 ppm), TMU sin/cos of the per-unit angle: the output frequency is the controller oscillator's |
+| voltage-loop h5 / h7 resonant terms (VF) | not adopted: margin rule met (PM 74 deg, GM 11.7 dB) but their modes decay at 8/9 1/s against 31 1/s; THDu without them <= 1.31 % (three-wire) / 1.98 % (four-wire), dead time not compensated |
+| zero sequence in VF (THDu option) | min-max zero sequence (m > 0.98) excites the L1-C_f resonance through the filters' tolerance mismatch: up to 1.81 % (4W, 643 V); a pure third-harmonic zero sequence (same linear range) leaves only its 150 Hz term (0.039 %) - firmware option, not adopted here |
+| four-wire per-phase loops | one C_f-voltage PR per phase on its phase-to-N voltage (N held on M by the N leg): the alpha-beta design per axis - margins and bandwidth identical (386 Hz no load, 197 Hz rated); per-phase amplitude restoration (the secondary voltage layer per phase); per-phase virtual reactance through a quadrature generator (not simulated); DC-component regulator per phase on the phase-to-N one-cycle mean (pcs_spec row) |
+| four-wire N leg | the VF cascade in every mode: P-only current loop on IL4 with the phases' K_p and SOGI feed-forward, the phases' C_f-voltage PR on VGN - VA (reference 0 in mode A; mode B: the min-max zero sequence u_0 as feed-forward to its modulator and reference); not the grid-following PR alone (max |pole| 1.00038 on the capacitive N node); N-leg DC regulator: one-cycle mean of VGN - VA -> integrator -> offset on its reference (without it a half-wave load's 89 A DC shifts N_F by 296 V through the voltage loop's 0.302 S); the phases' DC regulators act on the phase-to-N means - independent quantities |
 
 | anti-islanding | method | measurements | note |
 |---|---|---|---|
@@ -319,13 +463,40 @@ Cost model ASSUMED: 2.5 cycles per operation (compiled C, FPU32 + TMU), 80 cycle
 | active | Sandia frequency shift: a chopping fraction cf = cf0 + k (f - f0) on the current reference (GFL only); a Q perturbation is the alternative | PLL frequency, IL1-3 | detection 0.2-2 s (from memory), small THD cost; not simulated, compliance (IEC 62116 test) not claimed |
 | not possible | impedance measurement by injection would need the grid current: there is no grid-side current sensor (i_2 is only estimated as i_1 - C_f dv_C/dt) | - | - |
 
+Four-wire build and AC start (sim/pcs_design.py step i, read at run time; the N-leg loop: section 9b): the N leg runs in mode A (50 % duty, reference L_N di_N/dt plus a v(N_F - M) loop on VGN - VA; 724 V DC to connect at 230 V) or mode B (the min-max zero sequence on all four legs: the three-wire window, 624 V), the per-phase current loops here take the phase-to-N voltages, the neutral current is limited to the phase tiers, and a DC-component regulator holds the off-grid output below 0.5 % Un with half-wave loads; the grid-start path (7 steps in pcs_spec ac_start: grid tap boots the controller -> relay test -> AC precharge -> K2, K1 onto the precharged link -> rectifier start -> DC port) enters this study's DC-link loop (PI 40 Hz, DC-current feed-forward = 0 with the DC contactor open) as a rectifier. The state table above does not yet carry the AC-start states (section 11).
+
 Protection state machine: outputs (PWM, K_PRE, K_DC, K_AC1+2) per state IDLE (0, 0, 0, 0), PRECHARGE (0, 1, 0, 0), SYNC (1, 0, 1, 0), GFL (1, 0, 1, 1), GFM (1, 0, 1, 1), STOP (1, 0, 1, 1), FAULT (0, 0, 0, 0), SERVICE (0, 0, 0, 0). Exhaustive check over every (state, event) pair: I1 hw_trip and fw_trip lead to FAULT from every state: holds; I2 FAULT: PWM off, precharge and AC contactors open: holds; I3 AC contactors close only out of SYNC on a permissive: holds; I4 DC contactor closes only out of PRECHARGE on 'precharged': holds; I5 PWM only in SYNC, GFL, GFM, STOP: holds; I6 FAULT is left only by 'clear', to IDLE: holds; I7 every state reachable from IDLE: holds; I8 IDLE reachable from every state: holds. (The check found that a stop during synchronisation routed through CONTROLLED STOP would have closed the AC contactors; the transition now goes to IDLE.) Verified = the table, not firmware code.
+
+## 9b. Four-wire: the neutral leg and the per-phase loops (CALCULATED / SIMULATED, linear)
+
+Same parts (asserted from pcs_spec four_wire): L_N = the L1 part, C_fN = C_f, the same R_d-C_d branch, IL4 and VGN through the same sensor and divider chains. Not the same plant beyond N_F: the N path has no L2 of its own; the neutral current returns through the load and the phases' L2 to their C_f star on M (off-grid) or through the grid's neutral and the phases' L2 in parallel (grid-connected, the phases current-controlled: their C_f star is the only return to M). Margins, worst over the nom / low / high / slow corners (the phases' C_f in the path follow the same tolerance), for the phases' grid-following PR current controller alone on IL4 and for the VF cascade (P-only inner loop with the phases' K_p and SOGI feed-forward, the phases' C_f-voltage PR on VGN - VA):
+
+| N-node termination | PR current loop alone: PM / GM / max |pole| | VF cascade: PM / GM / max |pole| | cascade -3 dB Hz |
+|---|---|---|---|
+| off-grid, N terminal open (balanced load: no neutral current) | 9.0 / 2.8 / 1.00027 (FAIL) | 85.5 / 12.2 / 0.99771 (pass) | 386 |
+| off-grid, balanced rated load, the loads' star on N, the phase nodes as their C_f | 12.4 / 2.5 / 1.00038 (FAIL) | 61.9 / 25.2 / 0.99800 (pass) | 411 |
+| off-grid, 100 % unbalance, the loaded phase's node as its C_f | 0.0 / 0.0 / 1.00033 (FAIL) | 75.5 / 18.4 / 0.99780 (pass) | 411 |
+| off-grid, 100 % unbalance, the loaded phase's node held by its loop | 82.7 / 12.8 / 0.99962 (pass) | 83.4 / 11.6 / 0.99794 (pass) | 197 |
+| grid-connected, stiff: zero-sequence path to the phases' C_f star | 4.4 / 0.7 / 1.00038 (FAIL) | 59.8 / 22.8 / 0.99800 (pass) | 460 |
+| grid-connected, SCR 20: zero-sequence path to the phases' C_f star | 6.3 / 1.1 / 1.00038 (FAIL) | 59.0 / 8.7 / 0.99800 (pass) | 454 |
+| grid-connected, SCR 10: zero-sequence path to the phases' C_f star | 8.4 / 1.4 / 1.00038 (FAIL) | 58.3 / 10.2 / 0.99800 (pass) | 448 |
+| grid-connected, SCR 5: zero-sequence path to the phases' C_f star | 12.5 / 2.3 / 1.00038 (FAIL) | 56.7 / 11.2 / 0.99800 (pass) | 428 |
+
+The phases for comparison: current loop (grid-connected) worst PM 48.7 deg / GM 12.1 dB; VF voltage loop worst PM 83.4 deg / GM 11.6 dB, -3 dB 386 Hz (no load) / 197 Hz (rated). Where the N node sees a resistive path to a held voltage (the loaded phase), it IS the phase plant and the numbers are the phases' (PR alone PM 83 deg; cascade 83 deg / 11.6 dB, 197 Hz = the rated-load phase loop). Wherever the N node closes only through capacitors (open terminal, balanced load, grid-connected zero sequence) the grid-following PR alone has no current path at the fundamental but its own and fails; the N leg therefore runs the VF cascade in every mode, holding v(N_F - M) - which meets the rule at every termination.
+
+**Per-phase voltage loops (four-wire, mode A):** each phase's C_f voltage against M is its phase-to-N voltage while the N leg holds N_F on M; the per-phase PR is the alpha-beta design per axis - same margins, same bandwidth (386 Hz no load, 197 Hz rated); amplitude restoration per phase (the 7b voltage layer on each phase's RMS).
+
+**100 % unbalanced load (linear, SIMULATED):** a rated resistive load switched on between a held phase at its peak and N draws up to 258 A through the N leg; the N node moves by 0.57 pu at most and is within 1 % after 20 ms, 1.4e-05 pu after 80 ms (the 50 Hz resonant term). The unloaded phases' phase-to-N voltages carry that excursion; the loaded phase also its own dip, which per phase is the balanced step's (0.38 pu, section 7b). Steady state: every phase-to-N RMS restored by its own integrator - the imbalance is the sensing bound of 8c. Not simulated: the per-phase virtual reactance's quadrature generator, the droop seeing one third of the power, the switched N leg, the combined nonlinear transient.
+
+**Mode B zero-sequence feed-forward:** below the mode-A window the min-max zero sequence u_0 of the phase references (at 643 V and m 1.017: 68 V at 150 Hz) is added to all four legs and is the N leg's reference (feed-forward to its modulator, the voltage loop correcting the rest). It cancels in phase-to-N to the filters' mismatch: at opposite tolerance corners 0.039 % at 150 Hz but 1.60 % at h39 near the L1-C_f resonance, 1.81 % over h2-h50 (in the THDu of 8b); a pure third-harmonic zero sequence would leave only the 150 Hz term (firmware option).
+
+**DC-component regulators:** u_0 has no DC (4e-15 V over a period), so mode B does not disturb them. The voltage PR has no gain at DC beyond K_pv: a half-wave load's 89 A DC through the N leg would shift N_F by 296 V (89 A / 0.302 S) - so the N leg needs its own DC regulator (one-cycle mean of VGN - VA -> integrator -> offset on its reference) beside the phases' (one-cycle mean of each phase-to-N voltage): four integrators on four independent DC quantities (three phase-to-N, one N-to-M), none fighting another. Firmware rows in section 9.
 
 ## 10. The drawn hardware against the loop
 
 | item | as drawn / stated | study result | verdict |
 |---|---|---|---|
-| PCS-CTL phase window | +/-455 A nominal, worst band 426-486 A (basis 1.05 x the normal peak 397.5 A) | peaks above the band's low edge (averaged + ripple/2): 0.1 pu dip (stiff) 465 A (above the nominal threshold: trips); 0.1 pu dip (SCR 5) 457 A (above the nominal threshold: trips); highest peak below the band: 0.5 pu dip (SCR 5) 414 A | MISMATCH |
+| PCS-CTL phase window | +/-455 A nominal, worst band 426-486 A (basis 1.072 x the normal peak 397.5 A) | with the firmware limiter of section 4b (ride-through state, PLL freeze, per-sample clamp) every in-dip and recovery peak is <= 382 A; peaks above the band's low edge (averaged + ripple/2): 0 pu dip at 125 kW (stiff) onset 484 A (above the nominal threshold: trips); 0.1 pu dip at 125 kW (stiff) onset 465 A (above the nominal threshold: trips); 0.2 pu dip at 125 kW (stiff) onset 445 A (may trip); highest peak below the band: 0.3 pu dip at 125 kW (stiff) onset 425 A; without the ride-through state (section 4): 0.1 pu dip (stiff) 465 A | MISMATCH (stiff-grid onset: firmware derating, section 4b) |
 | Current-loop bandwidth statement (risk register E1, guide 09, pcs_spec hand-over) | 'the filter allows a current-loop bandwidth of up to 1 kHz (below half the lowest resonance)'; resonant terms h5/h7/h11/h13 | crossovers meeting the rule (stiff-grid parameter) 1000-3250 Hz, delay-only limit 4750 Hz: 1 kHz is the lower edge, not the ceiling; the weak grid lowers the loop (closed-loop -3 dB at the design: stiff 2650 Hz, SCR 5 301 Hz); at 1 kHz the harmonic terms kept are none and THDi reaches 6.5 % (estimate); h11/h13 fit at no crossover that meets the rule | MISMATCH |
 | PCS-CTL ADC plan (design check) | '25 conversions per 31.25 us on 3 ADCs = 15 %', the PV control spec's plan | inverter: 25.2 conversions per 31.25 us, 15 % busy, last loop input 1.67 us after the trigger; VA/VB 4 x per period (every 7.8 us) for the pin plan's <= 10 us OV backup; IL1-3, VC1-3, VA/VB/IB and VG1-3 each convert simultaneously on A/B/C: yes | OK |
 | TMUX1208 temperature multiplexer | 5 ms settling per address, NTC1-8 on one ADC pin | a full scan takes >= 40 ms: no loop uses a temperature; derating and the 1 s firmware layer are slower; the 200 ms overload rests on the current-based junction model; the hardware OT comparators sit on the NTC nets, not behind the multiplexer | OK |
@@ -339,18 +510,20 @@ Protection state machine: outputs (PWM, K_PRE, K_DC, K_AC1+2) per state IDLE (0,
 | L1/L2 L(I) envelope of the inductor specification | down to 60 / 3.6 uH at the trip current | a part at the envelope still meets the rule (worst PM 42 deg, GM 7.5 dB); the designed amorphous parts stay >= 107 / 5.4 uH | OK |
 | Phase-current sensor gain vs the PCS-CTL window ladder | ladder computed for 3.2 mV/A (PCS-CTL assumption); frozen Sinomags Technology STK-250HO/4 3.2 mV/A, linear +/-625 A (ASSUMED, section 1) | the drawn ladder would trip at about 426-486 A (x 1.00), above the 493 A top the window must keep, gates off at about 516 A against the 600 A limit; the CMPSS backup is a DAC value (firmware) | OK |
 | Phase-current sensor response | PCS-CTL assumed 2.0 us (chain 2.47 us); frozen part 2 us max step | loop: chain 2.47 us nominal; the rule holds at 2 x that (corner 'slow'); trip: gates off 3.47 us after the crossing -> 516 A <= 600 A (at the drawn gain) | OK |
-| Grid-side current | not sensed (i_2 estimated as i_1 - C_f dv_C/dt) | grid forming off-grid: a 0 -> rated resistive step dips v_C to 0.38 pu, within 10 % after 5 ms; a load-current feed-forward needs a measured output current (the estimate contains the inner loop's own current) | NOTE (design gap if a stiff off-grid voltage is required: three grid-side sensors) |
+| Grid-side current | not sensed (i_2 estimated as i_1 - C_f dv_C/dt) | grid forming off-grid: a 0 -> rated resistive step dips v_C to 0.38 pu, within 10 % after 5 ms; a rated -> 0 step overshoots to 2.17 pu with the restoration (1.89 pu from the primary layer's 0.84 pu; averaged model, first 0.2 ms: L1's current charges C_f before the inner loop turns it); a load-current feed-forward needs a measured output current (the estimate contains the inner loop's own current) | NOTE (design gap if a stiff dynamic off-grid voltage is required: three grid-side sensors; the published rows are static) |
 
 ## 11. Open items
 
 - A switched (PWM, dead-time, ripple-sampling) simulation of the chosen loops and a THDi figure from it; ADC noise.
 - Phase-current sensor: the frozen Sinomags Technology STK-250HO/4 (3.2 mV/A) needs the PCS-CTL window ladder re-valued (drawn for 3.2 mV/A); its 2 us step response is in the loop here; the residual-current sensor is still a quotation part.
-- The fault-transient peaks above the window's low edge need a decision: cycle-by-cycle limiting on the CMPSS below the latch band, a faster C_f divider, or accepting a trip on close-in faults.
+- Ride-through: the stiff-grid onset of deep dips (section 4b) is latency-bound - the firmware derating at stiff connections or a trip; a CMPSS cycle-by-cycle threshold below the window or a faster C_f divider would be hardware decisions; the ride-through state's thresholds and the dip-time cap follow grid-code values quoted from memory.
 - DC/DC coordination: power ramp and a shared trip signal; the DAB study's 4 mF assumption.
-- Grid forming without a grid-side current sensor: load-step voltage dip; secondary voltage/frequency restoration; the virtual impedance (0.15 + j0.30 pu) was not re-scanned with the new voltage-loop gains.
+- Grid forming without a grid-side current sensor: full-load steps dip to 0.38 pu and overshoot to 2.17 pu (section 7b, averaged model; the published rows are static); the virtual impedance (0.15 + j0.30 pu) was not re-scanned with the new voltage-loop gains; paralleled modules' restoration consensus over the CAN is not modelled.
 - PLL: plain SRF on v_C; a positive-sequence (DSOGI) front end for unbalanced grids is a firmware option, not studied.
 - Standards (EN 50549-1, IEC 62116, GB/T 34120) to buy and check against the assumed limits.
+- Four-wire: the per-phase virtual reactance (quadrature generator), the 100 % unbalanced transient as one nonlinear / switched simulation (section 9b is linear), the mode A / B hand-over; the AC-start states (grid tap, AC precharge, closing onto the precharged link, rectifier start) in the checked state table (pcs_spec ac_start, firmware rows of the hand-over).
+- VF THDu: the min-max zero sequence near the L1-C_f resonance through the filters' tolerance mismatch is the largest term at low DC voltage; the third-harmonic zero sequence (firmware option) is not adopted or simulated.
 
 ## Files
 
-`sim/pcs_control.py`; `sim/out/pcs_control/`: report.md, pcs_control_spec.json, bode_scr.png, steps.png, faults.png, pll_weak_grid.png, gfm.png.
+`sim/pcs_control.py`; `sim/out/pcs_control/`: report.md, pcs_control_spec.json, bode_scr.png, steps.png, faults.png, pll_weak_grid.png, gfm.png, vf_and_ride_through.png.

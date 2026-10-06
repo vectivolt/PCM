@@ -31,8 +31,8 @@ Counts from `docs/SOURCES.csv` (regenerate with `python docs/fetch.py --summary`
 |  | rows | on disk | to fetch by hand | MB on disk |
 |---|---:|---:|---:|---:|
 | reference designs | 111 | 96 | 15 | 408 |
-| datasheets | 514 | 498 | 16 | 868 |
-| **total** | **625** | **594** | **31** | **1276** |
+| datasheets | 522 | 506 | 16 | 883 |
+| **total** | **634** | **603** | **31** | **1312** |
 
 ### Reference designs
 
@@ -79,18 +79,18 @@ Counts from `docs/SOURCES.csv` (regenerate with `python docs/fetch.py --summary`
 
 | category | rows | on disk | by hand | MB |
 |---|---:|---:|---:|---:|
-| connectors | 24 | 24 | 0 | 12 |
-| controllers | 10 | 9 | 1 | 70 |
+| connectors | 25 | 25 | 0 | 12 |
+| controllers | 11 | 10 | 1 | 72 |
 | gate-drivers | 16 | 14 | 2 | 37 |
-| isolation-interface | 39 | 39 | 0 | 70 |
+| isolation-interface | 41 | 41 | 0 | 72 |
 | magnetics | 35 | 35 | 0 | 63 |
 | passives-capacitors | 27 | 27 | 0 | 33 |
 | power-semiconductors | 176 | 173 | 3 | 259 |
 | power-supply | 28 | 28 | 0 | 79 |
-| protection | 105 | 95 | 10 | 114 |
+| protection | 108 | 98 | 10 | 124 |
 | sensing | 42 | 42 | 0 | 88 |
 | thermal | 10 | 10 | 0 | 40 |
-| timing | 2 | 2 | 0 | 3 |
+| timing | 3 | 3 | 0 | 4 |
 <!-- /generated:counts -->
 
 ## Manifests

@@ -387,7 +387,7 @@ Direction A->B = PV / port A to port B; B->A = battery / port B to port A. The e
 |---|---|---|---|---|---|---|---|---|---|
 | 250 / 1000 | A->B | boost | 33.75 | phase current = port A current | 33.75 | 32.99 | 32.98 | 25.45 | **no** |
 | 250 / 1000 | B->A | boost | 34.54 | phase current = port A current = thermal | 34.54 | 33.75 | 33.75 | 25.45 | **no** |
-| 500 / 1000 | A->B | boost | 67.50 | phase current = port A current | 67.50 | 66.67 | 66.64 | 50.90 | **no** |
+| 500 / 1000 | A->B | boost | 67.50 | phase current = port A current | 67.50 | 66.66 | 66.64 | 50.90 | **no** |
 | 500 / 1000 | B->A | boost | 68.38 | phase current = port A current = thermal | 68.38 | 67.50 | 67.50 | 50.90 | **no** |
 | 550 / 550 | A->B | band | 74.25 | phase current = port A current | 70.04 | 73.37 | 73.34 | 55.98 | **no** |
 | 550 / 550 | B->A | band | 74.25 | port B current | 70.91 | 73.37 | 73.34 | 55.98 | **no** |
@@ -420,8 +420,8 @@ Direction A->B = PV / port A to port B; B->A = battery / port B to port A. The e
 | 650 / 650 | B->A | band | 94.25 | port B current | 94.25 | 93.29 | 93.24 | 79.20 | **no** | **no** |
 | 750 / 750 | A->B | band | 101.92 | thermal | 101.92 | 108.75 | 100.87 | 79.20 | yes | **no** |
 | 750 / 750 | B->A | band | 101.92 | thermal | 101.92 | 107.69 | 100.87 | 79.20 | yes | **no** |
-| 950 / 950 | A->B | band | 101.85 | thermal | 101.85 | 108.99 | 100.87 | 79.20 | yes | **no** |
-| 950 / 950 | B->A | band | 101.85 | thermal | 101.85 | 110.00 | 100.87 | 79.20 | yes | **no** |
+| 950 / 950 | A->B | band | 101.86 | thermal | 101.86 | 108.99 | 100.87 | 79.20 | yes | **no** |
+| 950 / 950 | B->A | band | 101.86 | thermal | 101.86 | 110.00 | 100.87 | 79.20 | yes | **no** |
 
 Lowest V_A = V_B at which the rated power is delivered:
 

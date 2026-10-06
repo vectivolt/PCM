@@ -4,38 +4,38 @@
  "status": "proposed construction - calculated, not built or measured",
  "basis": {
   "spec": "sim/out/aux_hv_design/aux75_spec.json",
-  "spec_mtime": "2026-10-05 00:09",
-  "spec_rev": "A0"
+  "spec_mtime": "2026-10-06 20:04",
+  "spec_rev": "A3"
  },
- "construction": "DMEGC EC39A DMR95 (ETD39 class), centre-leg gap 1.05 mm, 48:8 live:9 SELV in the order P1 | SH | SELV (TIW-litz) | LIVE | P2, copper set back 2.0 mm from the gapped leg, vacuum-potted case",
+ "construction": "DMEGC EC39A DMR95 (ETD39 class), centre-leg gap 1.17 mm, 50:9 live:10 SELV in the order P1 | SH | SELV (TIW-litz) | LIVE | P2, copper set back 2.0 mm from the gapped leg, vacuum-potted case",
  "electrical": {
-  "L_p_H": 0.00048518573815795215,
+  "L_p_H": 0.000485,
   "L_p_tol": "+/-7 % at 10 kHz",
-  "turns": "48:8:9 (P:live:SELV)",
+  "turns": "50:9:10 (P:live:SELV)",
   "f_sw_Hz": 64899.60778807783,
   "mode": "DCM >= 185 V",
-  "I_pk_limit_A": 3.905788063751778,
-  "B_limit_Amin_T": 0.32823182972933174,
+  "I_pk_limit_A": 4.073502584226496,
+  "B_limit_Amin_T": 0.32850725191675834,
   "B_limit_rule_T": 0.3485000000000002,
-  "Np_x_Amin_m2": 0.0061776,
-  "Np_x_Amin_min_m2": 0.005818321237692737,
-  "L_leak_est_H": 1.4046163581568305e-05,
-  "L_leak_max_H": 1.6242321980820713e-05,
-  "L_leak_live_selv_H": 3.276908113184029e-07,
-  "L_leak_live_selv_max_H": 6.986547246413413e-07,
-  "C_switched_P1_SH_own_F": 3.988773879543997e-11,
-  "C_switched_max_F": 6.367373662397481e-11,
-  "winding_loss_max_W": 1.5,
-  "live_share": 0.2771362586605081,
+  "Np_x_Amin_m2": 0.006435000000000001,
+  "Np_x_Amin_min_m2": 0.006065836918462953,
+  "L_leak_est_H": 1.5241062914028108e-05,
+  "L_leak_max_H": 1.828927549683373e-05,
+  "L_leak_live_selv_H": 4.147336830748536e-07,
+  "L_leak_live_selv_max_H": 6.221005246122805e-07,
+  "C_switched_P1_SH_own_F": 4.154972791191664e-11,
+  "C_switched_max_F": 6.265672023699283e-11,
+  "winding_loss_max_W": 1.9537723322894316,
+  "live_share": 0.3184713375796178,
   "acceptance_limits": {
    "L_leak_primary_max_H": 1.2e-05,
    "C_switched_max_F": 4.5e-11,
    "note": "routine-test limits that guarantee the drain-voltage budget (1336 V vs 1360 V): leakage measured at 100 kHz with SELV and live shorted; switched capacitance P1-start to shield at 100 kHz"
   },
   "leakage_for_cross_regulation": {
-   "P_to_secondaries_own_H": 1.4046163581568305e-05,
-   "P_to_SELV_OM_H": 3.4609946545645007e-06,
-   "live_SELV_live_referred_H": 3.276908113184029e-07
+   "P_to_secondaries_own_H": 1.5241062914028108e-05,
+   "P_to_SELV_OM_H": 3.388406395211995e-06,
+   "live_SELV_live_referred_H": 4.147336830748536e-07
   },
   "cross_regulation": "tightest practical band: SELV and live as adjacent single full-width layers, same winding sense, between the primary halves (P1 | SH | SELV | LIVE | P2), separated only by the reinforced tape barrier -> live-SELV leakage ~0.3 uH; bifilar SELV/live would halve it again but leaves only the TIW insulation (~25 kV/mm at the 2505 V pk PD test: not PD-free); a SELV-LIVE-SELV sandwich (~0.15 uH) needs a second reinforced barrier and does not fit the ETD39-class window; the residual band is set by the diode drops and the 18 W / 57 W load asymmetry - the converter engineer re-runs the band with these leakages"
  },
@@ -51,7 +51,7 @@
   "note": "window and post from the ETD 39/20/13 class (MAS); the EC39A drawing is image-only - confirm the bobbin",
   "gap": {
    "type": "ground centre-leg gap",
-   "length_m": 0.0010512657162000945
+   "length_m": 0.0011700629277106135
   },
   "asian_alternative": "this is the Asian part (DMEGC lists no ETD39)",
   "western_reference": "TDK ETD 39/20/13 N97"
@@ -60,7 +60,7 @@
   {
    "order": 1,
    "name": "P1",
-   "turns": 24,
+   "turns": 25,
    "spec": "litz 30 x 0.10 mm (grade 2 strands), 1 layer, start = DRAIN"
   },
   {
@@ -72,19 +72,19 @@
   {
    "order": 3,
    "name": "SELV",
-   "turns": 9,
+   "turns": 10,
    "spec": "TIW-litz 200 x 0.10 mm (three-layer extruded, certified reinforced), 1 layer"
   },
   {
    "order": 4,
    "name": "LIVE",
-   "turns": 8,
+   "turns": 9,
    "spec": "litz 100 x 0.10 mm, 1 layer, -> live 24 V rectifier"
   },
   {
    "order": 5,
    "name": "P2",
-   "turns": 24,
+   "turns": 25,
    "spec": "litz 30 x 0.10 mm, 1 layer, finish = bulk"
   }
  ],
@@ -92,7 +92,7 @@
   "build_m": 0.007965134348738677,
   "available_m": 0.0082,
   "fits": true,
-  "widest_layer_m": 0.02009642823392823,
+  "widest_layer_m": 0.022329319959113244,
   "breadth_m": 0.0266
  },
  "insulation": {
@@ -101,7 +101,7 @@
   "levels": [
    {
     "label": "Reinforced: primary + live + shield - SELV",
-    "u_rp": 1315.9235629727114,
+    "u_rp": 1318.2337180166655,
     "pd_test": 2505.0,
     "ac": 4400.0,
     "imp": 8000.0,
@@ -114,7 +114,7 @@
     ]
    }
   ],
-  "routine_tests": "<= 10 pC at 2467 Vpk on every unit (extinction >= 1974 Vpk); M1's 2505 Vpk covers it",
+  "routine_tests": "<= 10 pC at 2472 Vpk on every unit (extinction >= 1977 Vpk); M1's 2505 Vpk covers it",
   "type_tests": "AC 4400.0 V rms 60 s; impulse 8000.0 V; thermal at 82.5 W"
  },
  "loss_model": {
@@ -123,7 +123,7 @@
    "alpha": 2.0182306625896125,
    "beta": 3.0309313905981483,
    "Ve_m3": 1.3699e-05,
-   "N": 48,
+   "N": 50,
    "Ae_m2": 0.000133,
    "formula": "unipolar DCM flux (iGSE), DMR95 at 100 C"
   },
@@ -136,58 +136,58 @@
  },
  "loss_table": [
   {
-   "point": "200 V, 95.3 W",
-   "I_rms_A": 1.0687325075473828,
-   "B_pk_T": 0.21224630722060325,
-   "P_core_W": 0.21156805589467798,
-   "P_cu_W": 0.8324784506172211,
-   "P_fringe_W": 0.08503430686575954,
-   "P_total_W": 1.0440465065118991
+   "point": "200 V, 112.2 W",
+   "I_rms_A": 1.2240813478882575,
+   "B_pk_T": 0.2229936490530003,
+   "P_core_W": 0.21699513609079882,
+   "P_cu_W": 1.303498552755084,
+   "P_fringe_W": 0.2827920542363512,
+   "P_total_W": 1.5204936888458829
   },
   {
-   "point": "250 V, 95.3 W",
-   "I_rms_A": 0.9351740109902712,
-   "B_pk_T": 0.20915037574769296,
-   "P_core_W": 0.23555319130434607,
-   "P_cu_W": 0.7346029376432348,
-   "P_fringe_W": 0.09117535602948956,
-   "P_total_W": 0.9701561289475809
+   "point": "250 V, 112.2 W",
+   "I_rms_A": 1.074185569151073,
+   "B_pk_T": 0.22012264828049716,
+   "P_core_W": 0.2434668255177902,
+   "P_cu_W": 1.0181689379412073,
+   "P_fringe_W": 0.13277344038500044,
+   "P_total_W": 1.2616357634589974
   },
   {
-   "point": "400 V, 95.3 W",
-   "I_rms_A": 0.7099091656398595,
-   "B_pk_T": 0.20358697690811853,
-   "P_core_W": 0.3093518011425023,
-   "P_cu_W": 0.6163596958355345,
-   "P_fringe_W": 0.12170399580676765,
-   "P_total_W": 0.9257114969780369
+   "point": "400 V, 112.2 W",
+   "I_rms_A": 0.8098369876700046,
+   "B_pk_T": 0.21332566127866076,
+   "P_core_W": 0.3194588132592989,
+   "P_cu_W": 0.8179997528960933,
+   "P_fringe_W": 0.14593570977431047,
+   "P_total_W": 1.1374585661553922
   },
   {
-   "point": "600 V, 95.3 W",
-   "I_rms_A": 0.5733565632635753,
-   "B_pk_T": 0.20222457961620346,
-   "P_core_W": 0.4195412359155617,
-   "P_cu_W": 0.5944466802308858,
-   "P_fringe_W": 0.1640995026557945,
-   "P_total_W": 1.0139879161464473
+   "point": "600 V, 112.2 W",
+   "I_rms_A": 0.6536141375586589,
+   "B_pk_T": 0.2115113757594557,
+   "P_core_W": 0.4340747076210978,
+   "P_cu_W": 0.7795339838541361,
+   "P_fringe_W": 0.19758277255857762,
+   "P_total_W": 1.2136086914752338
   },
   {
-   "point": "800 V, 95.3 W",
-   "I_rms_A": 0.49806244586918524,
-   "B_pk_T": 0.20242121594620058,
-   "P_core_W": 0.5356403369197394,
-   "P_cu_W": 0.6112161522952286,
-   "P_fringe_W": 0.20704863756892594,
-   "P_total_W": 1.1468564892149682
+   "point": "800 V, 112.2 W",
+   "I_rms_A": 0.5658193575978736,
+   "B_pk_T": 0.21151655147119217,
+   "P_core_W": 0.5549086554957473,
+   "P_cu_W": 0.7949144992715564,
+   "P_fringe_W": 0.25006687539513306,
+   "P_total_W": 1.3498231547673036
   },
   {
-   "point": "1000 V, 95.3 W",
-   "I_rms_A": 0.4472318595992198,
-   "B_pk_T": 0.20324699161970106,
-   "P_core_W": 0.6568101141400255,
-   "P_cu_W": 0.6421041653087771,
-   "P_fringe_W": 0.2505239577900357,
-   "P_total_W": 1.2989142794488027
+   "point": "1000 V, 112.2 W",
+   "I_rms_A": 0.5091317334999942,
+   "B_pk_T": 0.2122319254306154,
+   "P_core_W": 0.6808904048052489,
+   "P_cu_W": 0.8305647950881687,
+   "P_fringe_W": 0.3028738340244253,
+   "P_total_W": 1.5114551998934176
   }
  ],
  "loss_grid": {
@@ -200,21 +200,21 @@
    1000
   ],
   "P_total_W": [
-   1.0440465065118991,
-   0.9701561289475809,
-   0.9257114969780369,
-   1.0139879161464473,
-   1.1468564892149682,
-   1.2989142794488027
+   1.5204936888458829,
+   1.2616357634589974,
+   1.1374585661553922,
+   1.2136086914752338,
+   1.3498231547673036,
+   1.5114551998934176
   ],
-  "note": "at 95.3 W (design point incl. margin)"
+  "note": "at 112.2 W (design point incl. margin)"
  },
  "thermal": {
-  "T_rise_K": 17.87146277708696,
+  "T_rise_K": 23.812667490723996,
   "basis": "potted ETD39-class case ~45 x 40 x 35 mm, ~12 K/W natural convection (estimate)",
   "interface": "board-mounted"
  },
- "mass_kg": 0.13923577819138414,
+ "mass_kg": 0.1409913869462252,
  "cost": {
   "core_usd": 0.85,
   "copper_usd": 2.7,
@@ -228,20 +228,20 @@
  },
  "verification": {
   "own": {
-   "P_cu_W": 0.8324784506172211,
-   "L_leak_est_H": 1.4046163581568305e-05,
-   "B_limit_Amin_T": 0.32823182972933174
+   "P_cu_W": 1.303498552755084,
+   "L_leak_est_H": 1.5241062914028108e-05,
+   "B_limit_Amin_T": 0.32850725191675834
   },
   "openmagnetics": {
-   "L_p_H": 0.0004406380902621479,
-   "P_core_W": 0.3200634192138607,
-   "P_cu_W": 1.4387174820364346,
-   "L_leak_H": 3.4609946545645007e-06,
+   "L_p_H": 0.0004393204056503596,
+   "P_core_W": 0.3539266860935703,
+   "P_cu_W": 1.776156674057908,
+   "L_leak_H": 3.388406395211995e-06,
    "point_V": 1000,
    "note": "MAS ETD 39/20/13 window, P and SELV only (live winding not in the OM model); all secondary ampere-turns in the SELV winding"
   },
   "previous_designer": {
-   "estimates": "A0: leakage 13.5 uH, core 0.54 W, flux 328 mT"
+   "estimates": "A3: leakage 15.2 uH, core 0.51 W, flux 329 mT"
   }
  }
 }

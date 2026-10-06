@@ -117,7 +117,7 @@ One set-dominant flip-flop (74LVC1G74) on PV-CTL, set through a 74LVC07 open-dra
 |---|---|
 | What sets it | inductor windows, port OV, both over-temperatures, open probe, FLT_N, RDY, ENABLE open, heartbeat stop, 3.3 V supervisor, MCU reset; **power-up always starts tripped** |
 | What it does | gates all 16 PWM lines, EN, K_PRE and STATUS low through 6 × 74LVC08; drops K_A and K_B unless the power board asserts HOLD (a trip never commands a held contactor open); signals the MCU trip zone |
-| What clears it | only a firmware rising edge on the clock input (GPIO24) **while every source is inactive**; an edge during an active source is ignored; no automatic clear after a watchdog reset, an over-current or an over-voltage trip; the cause is logged to EEPROM first |
+| What clears it | only a firmware rising edge on the clock input (GPIO24) **while every source is inactive**; an edge during an active source is ignored; no automatic clear after a watchdog reset, an over-current or an over-voltage trip; the cause is logged to the recorder flash first (GD25Q32E, which replaced the EEPROM in [D-075](../requirements/DECISIONS.md)) |
 | How it was checked | logic evaluated from the drawn netlist for **86 fault cases in 2 builds** (PV-P75 and PV-P100/110), including dead sensors (0 V), shorted and open NTCs and firmware still commanding the outputs |
 | Dual channel | none (decision D-044): a single latch, no fault-tree analysis |
 
@@ -311,7 +311,7 @@ assumed 2.0 µs withstand ([pv_control report §9.3](../../sim/out/pv_control/re
 | B1, DC side ↔ SELV, reinforced | 8 kV impulse (6 kV with credit), 4,400 V rms, creepage 10.0 mm PD2 (6.4 mm PD1), clearance 8.0 / 9.2 / 10.4 mm at 2000 / 3000 / 4000 m | [PV-CTL design check](../../hardware/PV-CTL/outputs/PV-CTL_design_check.txt) |
 | B2, DC side ↔ PE, basic | 6 kV impulse (4 kV with credit), 2,200 V rms, creepage 5.0 mm PD2 / 12.5–16 mm PD3 | ARCHITECTURE-COSTFIRST.md §2.1 |
 | B3, inside the DC side, functional | partial-discharge-free at ≥ 1.75 kV<sub>pk</sub> for parts at a switch node | same |
-| Audit status | earlier platform: 132 rows, 22 fail at 2000 m (last complete run); the audit script has no domain map for the cost-first and inverter boards and now stops with 101 problems — their barrier parts are checked in their own design checks (B1's five isolators, isolation domains) | [insulation report](../../sim/out/insulation/report.md), [08 · Verification](08-verification.md) |
+| Audit status | earlier platform: 132 rows, 22 fail at 2000 m (last complete run); the audit script has no domain map for the cost-first and inverter boards and now stops with 102 problems (the four-wire power board PCS-PWR-4W added one) — their barrier parts are checked in their own design checks (B1's six isolators, isolation domains) | [insulation report](../../sim/out/insulation/report.md), [08 · Verification](08-verification.md) |
 
 All standard values (IEC 60664-1, IEC 62477-1, IEC 62109) are transcriptions from memory; the credit of a monitored
 arrester for reinforced insulation is not verified against the standard text ([D-032](../requirements/DECISIONS.md)).

@@ -20,6 +20,11 @@ STAGES DONE / TODO (each DONE stage builds and passes every check):
           PV-P75 uses PV-CTL-P75) with fans, guards, harness and standoffs in gen/build_all.py extras; gen/cost.py
           MODULES / MODULE_AMPS; the lines the pricer could not price entered from sim/out/pcs_design/pcs_costed_bom.csv
           as labelled ESTIMATE / RFQ rows (@PCS-P125) in gen/data/cost_estimates.csv.
+  4 DONE  four-wire assembly PCS-CTL-4W (with PCS-PWR-4W; module PCS-P125-4W): every part fitted (bom/PCS-CTL-4W_BOM.csv) -
+          PWM7 / PWM8 = the N leg, the IL4 window and NTC4 / NTC8 comparators, NTC4 / NTC8 through the TMUX1208, VGN from PCS_X
+          on pin 21 (B12/C2; 100R / 1 nF + 1 M pull-down: 0 V = a three-wire power board); PWM16 = K_ACPRE, the AC precharge relay
+          command of both power-board builds (GPIO15 as a GPIO, gated AND HEALTHY). One pin plan for both builds (the routing does
+          not differ): 22 of 23 analog pins with VDAC, PWM 6 / 8 of 16 - both budgets printed
 REVIEW (PCM-04 / 05 / 06 / 14 / 20 and the control study's record errors): the IL window, ADC scaling and trip response on the
       STK-250HO/4's data-sheet values (parsed from PCS-PWR's design check, error terms of its p13); the inverter's firmware limits
       (pcs_spec handover firmware_limits) in the firmware table, incl. the upper DC-link half (VB - VA) by firmware; the
@@ -32,14 +37,15 @@ OPEN: (1) closed (PCM-20): the sensor is the STK-250HO/4; what stays open is the
       the hand-over's 1050 V. (3) The coordinator's brief asked for the DC contactor (K_B)
       gated by HEALTHY only; this build keeps K_B = HEALTHY OR HOLD (the hold-off layer of the DC contactor) and gates K_A
       (AC contactor 1) by HEALTHY only - the item listed by the power board (PCS-PWR OPEN 6); accepted in D-062.
-      (4) Four-wire build not drawn (coordinator, D-062): with the NTC mux it counts 22 of 23 analog pins (IL4 keeps its
-      CMPSS4 pin, NTC4 / NTC8 are on the mux, VGN would take a spare pin); PCS-PWR leaves VGN open.
+      (4) closed (stage 4): the four-wire assembly is drawn; 22 of 23 analog pins (one spare, pin 23); four fans on three
+      fan headers (Y-harness on header 3, fan 4's tach unread).
       (5) RCM sensor (RFQ on PCS-PWR): output level ASSUMED <= its 5.25 V supply and >= 0.25 mA drive into the 23 kOhm
       divider; the RFQ has to state output range and gain (mA per V) before the firmware thresholds are set.
 Usage: .venv/bin/python gen/pcs_ctrl.py
 """
 import contextlib
 import copy
+import csv
 import hashlib
 import io
 import json
@@ -57,6 +63,15 @@ import pv_power as PP
 C.PROJECT, C.REV, C.DATE = "PCS-CTL", "A0", "2026-10-05"
 C.PLAN_CSV = os.path.join(C.HERE, "data", "pcs_ctrl_pin_plan.csv")
 C.PWR_TXT = os.path.join(L.REPO, "hardware/PCS-PWR/outputs/PCS-PWR_design_check.txt")
+PWR4_TXT = os.path.join(L.REPO, "hardware/PCS-PWR-4W/outputs/PCS-PWR-4W_design_check.txt")   # the four-wire power board
+PLAN4_CSV = os.path.join(C.HERE, "data", "pcs_ctrl_pin_plan_4w.csv")   # the four-wire view of the same routing (written each build)
+PLAN4_ROUTE = {   # what a line means on the four-wire build (the routing itself does not change)
+    "IL4_ADC": "FOUR-WIRE: N-leg current IL4 (STK-250HO/4 on PCS-PWR-4W) - ADC + CMPSS4 window = IL4 backup > TRIP4",
+    "NTC_MUX": "FOUR-WIRE: TMUX1208 D: NTC1-4 heatsink sections a, b, c, n; NTC5-7 L1 windings, NTC8 the L_N winding",
+    "VGN_ADC": "FOUR-WIRE: N terminal VGN (VMID + V/1203): N-leg loop VGN - VA, relay test of the N pole, DC-component regulator",
+    "PWM7_M": "FOUR-WIRE: N leg high side (GPIO6 = ePWM4 A, HRPWM) -> 74LVC08 AND HEALTHY -> PWM7 (PC)",
+    "PWM8_M": "FOUR-WIRE: N leg low side (GPIO7 = ePWM4 B, HRPWM) -> 74LVC08 AND HEALTHY -> PWM8 (PC)",
+    "PWM16_M": "K_ACPRE (both builds): AC precharge relay command, GPIO15 as a GPIO -> 74LVC08 AND HEALTHY -> PWM16 (PC)"}
 PCS_SPEC_PATH = os.path.join(L.REPO, "sim", "out", "pcs_design", "pcs_spec.json")
 PORT_SPEC_PATH = os.path.join(L.REPO, "sim", "out", "port_design", "port_spec.json")
 PS = json.load(open(PCS_SPEC_PATH))         # firmware limits and the upper-half analysis (PCM-04/05/06/14)
@@ -67,7 +82,7 @@ C.SUBTITLE = "PCS-P125 inverter controller, PV-CTL assembly variant: F280039C on
 C.ROOT_NOTES = ["ARCHITECTURE-PCS section 6; the PV-CTL schematic re-valued by gen/pcs_ctrl.py; PCS_PC / PCS_X levels "
                 "as built on PCS-PWR (hardware/PCS-PWR/outputs/PCS-PWR_design_check.txt).",
                 "Assembly option: the two TLV9024 marked '%s' are not fitted on the three-wire build "
-                "(bom/PCS-CTL-3W_BOM.csv)." % C.PH4,
+                "(bom/PCS-CTL-3W_BOM.csv); the four-wire build fits every part (bom/PCS-CTL-4W_BOM.csv)." % C.PH4,
                 "Pin plan: gen/data/pcs_ctrl_pin_plan.csv (from SPRSP61C, checked every build)."]
 
 # ---- phase-current sensor of PCS-PWR: Sinomags STK-250HO/4 (PCM-20). Gain, Uref, Voe, source resistances, range and step
@@ -140,7 +155,7 @@ C.PC_NC = ("IA", "IA_H", "VAX")           # held at VMID on PCS-PWR: not read he
 C.AFE_PC = tuple(n for n in C.AFE_PC if n not in C.PC_NC)
 C.ADC_SKIP, C.ADC_MUXED = C.PC_NC, tuple("NTC%d" % k for k in range(1, 9))
 C.ADC_NOTE = ("; PCS-CTL: NTC1-8 share one pin through the TMUX1208, IA / IA_H / VAX not read (VMID on PCS-PWR), plus "
-              "VG1-3, VC1-3, RCM, NTC9 from PCS_X (budget below)")
+              "VG1-3, VC1-3, VGN, RCM, NTC9 from PCS_X (budget below)")
 C.VREF_XTRA = 3.0 / 10.0e3                # NTC9 bias, probe shorted
 RCM_DIV = ("10.0k", "13.0k")              # RCM - RCM_ADC - GND: a sensor output up to its 5.25 V supply reads <= 3.0 V
 MUX_A = ("GPIO58", "GPIO59", "GPIO60")    # TMUX1208 A0-A2
@@ -164,6 +179,9 @@ def plan():
                             ("NTC9", "A9", "DC-link bank (NCP15 on PCS-PWR)"),
                             ("NTC_MUX", "A4/B8", "TMUX1208 D: NTC1-8 (heatsink 1-4, L1 windings 5-8)")):
         P.append((net, lab, "ADC", "ain", route))
+    P.append(("VGN_ADC", "B12/C2", "ADC", "ain", "N terminal (four-wire: N-leg loop VGN - VA, relay test of the N pole, DC-component "
+                                                 "regulator; ADC-B / C); 0 V on a three-wire power board (1 M pull-down: variant code)"))
+    P = [r if r[0] not in PCS_ROUTE else r[:4] + (PCS_ROUTE[r[0]],) for r in P]
     P.append(("K_AC2_M", "GPIO61", "GPIO", "out", "AND HEALTHY -> K_AC2 (AC contactor 2, PCS_X)"))
     P.append(("RCM_TST", "GPIO21", "GPIO", "out", "PCS_X RCM_TST: RCM test winding (100k pull-down on PCS-PWR); AGPIO pin "
                                                   "in GPIO mode, B11 stays on pin 30"))
@@ -172,6 +190,11 @@ def plan():
 
 
 C.plan = plan
+# PCS meaning of PV-CTL lines (the PV plan names them by PV phase): the four-wire N leg and the AC precharge relay command
+PCS_ROUTE = {"PWM7_M": "four-wire N leg high side -> 74LVC08 AND HEALTHY -> PWM7 (PC); HRPWM; ePWM4 A",
+             "PWM8_M": "four-wire N leg low side -> 74LVC08 AND HEALTHY -> PWM8 (PC); HRPWM; ePWM4 B",
+             "PWM16_M": ("K_ACPRE: AC precharge relay command (GPIO15 as a GPIO output, both builds) -> 74LVC08 AND HEALTHY -> PWM16 "
+                         "(PC) -> PCS-PWR relay driver")}
 
 
 def sheet_pcsx(B):
@@ -179,15 +202,17 @@ def sheet_pcsx(B):
                 "2x8 PCS_X contract to PCS-PWR (all LIVE): K_AC2 from the gating (sheet 05),\n"
                 "RCM_TST from GPIO21; grid voltages, RCM and NTC9 into the ADC")
     B.block("PCS_X connector (gen/interfaces.py PCS_X; AGND = GND on this board)",
-            "VGN (four-wire build) not connected (OPEN 4). K_AC2 = K_AC2_M AND HEALTHY: a trip opens AC contactor 2\n"
-            "as AC contactor 1. RCM_TST straight from GPIO21 (100k pull-down on PCS-PWR: open = no test current).")
-    B.part("J_PCX", {k: (None if v == "VGN" else v) for k, v in IF.pins(IF.PCS_X, rename={"AGND": "GND"}).items()})
+            "VGN = the N terminal of PCS-PWR-4W (left open by the three-wire PCS-PWR). K_AC2 = K_AC2_M AND HEALTHY: a trip\n"
+            "opens AC contactor 2 as AC contactor 1. RCM_TST straight from GPIO21 (100k pull-down on PCS-PWR: open = no test current).")
+    B.part("J_PCX", IF.pins(IF.PCS_X, rename={"AGND": "GND"}))
     B.block("Grid and C_f voltages (VMID + V/1203 from OPA2388 followers on PCS-PWR)",
             "100 R / 1 nF C0G charge buckets as VA / VB. VG1-3 on ADC-A/B/C and VC1-3 on ADC-A/B/C: each set\n"
-            "sampled together (synchronisation, relay test VG against VC with one contactor closed).")
-    for net in ["VG%d" % k for k in (1, 2, 3)] + ["VC%d" % k for k in (1, 2, 3)]:
+            "sampled together (synchronisation, relay test VG against VC with one contactor closed). VGN (four-wire N terminal)\n"
+            "on ADC-B/C, 1 M to GND: 0 V marks a three-wire power board.")
+    for net in ["VG%d" % k for k in (1, 2, 3)] + ["VC%d" % k for k in (1, 2, 3)] + ["VGN"]:
         B.R(C.ADC_RC[0], net, net + "_ADC")
         B.C(C.ADC_RC[1], net + "_ADC", "GND", diel="C0G", tol="5%")
+    B.R("1M", "VGN_ADC", "GND", note="VGN = 0 V without a four-wire power board (variant code); 0.01 % load on the follower")
     B.block("Residual current (type-B sensor, RFQ on PCS-PWR; output level ASSUMED, OPEN 5)",
             "10.0k / 13.0k: a sensor output up to its 5.25 V supply reads <= 3.0 V; 1 nF C0G charge bucket.")
     B.R(RCM_DIV[0], "RCM", "RCM_ADC")
@@ -247,14 +272,16 @@ C.pwr_levels = pcs_levels
 def pcs_pwr_current():
     """PCM-23: the PCS-PWR design check this board reads (C.PWR_TXT) must exist, be built from the present pcs_spec / port_spec, and
     still state the levels pcs_levels() assumes - otherwise stop instead of using a missing or stale copy"""
-    rel = os.path.relpath(C.PWR_TXT, L.REPO)
-    if not os.path.exists(C.PWR_TXT):
-        raise SystemExit("%s missing: build gen/pcs_power.py first" % rel)
-    t = open(C.PWR_TXT).read()
-    h = re.search(r"pcs_spec\.json sha256 ([0-9a-f]{16}); port_spec\.json sha256 ([0-9a-f]{16})", t)
     now = tuple(hashlib.sha256(open(p, "rb").read()).hexdigest()[:16] for p in (PCS_SPEC_PATH, PORT_SPEC_PATH))
-    if not h or h.groups() != now:
-        raise SystemExit("%s is stale (not built from the present pcs_spec.json / port_spec.json): rebuild gen/pcs_power.py first" % rel)
+    for path in (C.PWR_TXT, PWR4_TXT):                               # both builds of gen/pcs_power.py (PCS-PWR, PCS-PWR-4W)
+        rel = os.path.relpath(path, L.REPO)
+        if not os.path.exists(path):
+            raise SystemExit("%s missing: build gen/pcs_power.py first" % rel)
+        h = re.search(r"pcs_spec\.json sha256 ([0-9a-f]{16}); port_spec\.json sha256 ([0-9a-f]{16})", open(path).read())
+        if not h or h.groups() != now:
+            raise SystemExit("%s is stale (not built from the present pcs_spec.json / port_spec.json): rebuild gen/pcs_power.py first" % rel)
+    rel = os.path.relpath(C.PWR_TXT, L.REPO)
+    t = open(C.PWR_TXT).read()
     pw = pcs_levels()
     vm = re.search(r"VMID ([\d.]+)-([\d.]+) V", t)
     if not (vm and (float(vm.group(1)), float(vm.group(2))) == tuple(round(v, 3) for v in pw["vmid"]) and "V(DC+)/1203" in t
@@ -386,28 +413,61 @@ def extra_checks(B):
             ps["bandwidth_Hz"] / 1e3, C.IL_NOM_MAX * 0.9, e_cal, e_unc, STK4_ERR["voe_t"] * 1e3, STK4_ERR["g_t"] * 100,
             STK4_ERR["err_g"] * 100, STK4_ERR["lin"] * 100, C.LSB / n["g_adc"], rng[0], rng[1], pw["il_lin"], I_NORM, I_LIM, DIDT))
     n_fan = sum(1 for p in B.D.parts.values() if p.lib_id.split(":")[1] == "J_FAN")
-    ok &= C.say(n_fan == 3, "Fan headers (SELV zone)", "%d x J_FAN on the fan buck: one per heatsink section" % n_fan)
+    ok &= C.say(n_fan == 3, "Fan headers (SELV zone)", "%d x J_FAN on the fan buck: one per heatsink section (four-wire: fans 3 and 4 "
+                "on header 3 through a Y-harness - the fan buck is the PV-P100 design for four fans; fan 4's tach is not read, a "
+                "stopped fan 4 shows as NTC4 rising and the heatsink OT ladder trips)" % n_fan)
+    t4 = open(PWR4_TXT).read()
+    ph4 = sorted(r for r, p in B.D.parts.items() if C.PH4 in str(p.value))
+    ok &= C.say(("PWM16_M", "HEALTHY", "PWM16") in C.GATES and gates["K_A"] == gates["K_AC2"] == "HEALTHY" and len(ph4) == 2
+                and "FOUR-WIRE AC port: K1 + K2 4-pole" in t4 and "PC: PWM1-8" in t4,
+                "Four-wire assembly PCS-CTL-4W (with PCS-PWR-4W; bom/PCS-CTL-4W_BOM.csv: every part fitted)",
+                "PWM7 / PWM8 = the N leg (ePWM4 A/B, gated AND HEALTHY like every PWM line); the IL4 window and NTC4 / NTC8 "
+                "over-temperature comparators fitted (%s, '%s' on the three-wire build); NTC4 / NTC8 on the TMUX1208; VGN read on pin 21; "
+                "the 4-pole contactors' coils keep the 3-pole lines K_A (AC contactor 1) and K_AC2 (AC contactor 2), gated by HEALTHY; "
+                "PWM16 = K_ACPRE (the AC precharge relay of both power-board builds) gated by HEALTHY: a trip or a dead controller drops "
+                "it; the latch evaluation above covers four phases (build '%s') and three (build '%s'); trip table rows 'IL1-4' are the "
+                "four-wire build's" % (", ".join(ph4), C.P75_DNP, C.BUILDS[0], C.BUILDS[1]))
     return ok
 
 
 def check_adc_budget(P, pins):
-    """Three-wire ADC / PWM budget of the inverter plan (asserted) and the PCS_X analog ranges."""
+    """ADC / PWM budget of the inverter plan for both builds (asserted; one pin plan serves both - the routing does not differ) and
+    the PCS_X analog ranges."""
     on_pin = {r[0] for r in P if r[3] == "ain"}
     n_an = sum(1 for d in pins.values() if d["type"] == "i" and any(n[0] in "ABC" and n[1:].isdigit() for n in d["ana"]))
     need = (["IL%d" % k for k in (1, 2, 3)] + ["IB", "IB_H", "VA", "VB", "VBX", "VPE"] +
             ["V%s%d" % (x, k) for x in "GC" for k in (1, 2, 3)] + ["RCM"] + ["NTC%d" % k for k in (1, 2, 3, 5, 6, 7)] +
             ["NTC9", "NTC_IN"])
-    read = [s for s in need if s in on_pin or s + "_ADC" in on_pin or (s in C.ADC_MUXED and "NTC_MUX" in on_pin)]
+    need4 = need + ["IL4", "NTC4", "NTC8", "VGN"]                       # four-wire: the N leg's current, heatsink, L_N; N terminal
+    got = lambda lst: [s for s in lst if s in on_pin or s + "_ADC" in on_pin or (s in C.ADC_MUXED and "NTC_MUX" in on_pin)]  # noqa
+    read, read4 = got(need), got(need4)
     pwm = int(re.search(r"PC: PWM1-(\d+)", open(C.PWR_TXT).read()).group(1))
+    pwm4 = int(re.search(r"PC: PWM1-(\d+)", open(PWR4_TXT).read()).group(1))
     fn = {r[0]: r[2] for r in P}
-    pwm_ok = all(fn["PWM%d_M" % k] == "EPWM%d_%s" % ((k + 1) // 2, "AB"[(k - 1) % 2]) for k in range(1, pwm + 1))
-    ok = C.say(len(read) == len(need) == 24 and len(on_pin) <= n_an - 1 and pwm == 6 and pwm_ok,
-               "ADC / PWM budget, three-wire inverter (pin plan %s)" % os.path.relpath(C.PLAN_CSV, L.REPO),
-               "ADC: the %d signals of the three-wire build on %d of the %d analog pins with VDAC (NTC1-8 share one pin "
-               "through the TMUX1208; IL4 stays on its CMPSS4 pin; a four-wire build adds VGN on a spare pin: %d of %d, "
-               "not drawn - OPEN 4). The stage-1 count '24 of 25' took the data sheet's 25 channels, which count B5 / B11 "
-               "twice (AGPIO pins 48 / 49). PWM: %d of 16 (PCS-PWR PWM1-%d = ePWM1-3 A/B, HRPWM)" %
-               (len(need), len(on_pin), n_an, len(on_pin) + 1, n_an, pwm, pwm))
+    pwm_ok = all(fn["PWM%d_M" % k] == "EPWM%d_%s" % ((k + 1) // 2, "AB"[(k - 1) % 2]) for k in range(1, pwm4 + 1))
+    ok = C.say(len(read) == len(need) == 24 and len(read4) == len(need4) == 28 and len(on_pin) <= n_an - 1 and pwm == 6
+               and pwm4 == 8 and pwm_ok and "VGN_ADC" in on_pin,
+               "ADC / PWM budget, three- and four-wire inverter (one pin plan %s)" % os.path.relpath(C.PLAN_CSV, L.REPO),
+               "THREE-WIRE: the %d signals on %d of the %d analog pins with VDAC, VGN read as the variant code (0 V); FOUR-WIRE: "
+               "%d signals on the same %d pins - IL4 on its CMPSS4 pin (B4/C8), NTC4 (heatsink n) and NTC8 (L_N) through the "
+               "TMUX1208, VGN on pin 21 (B12/C2, the PV plan's IA_H pin): D-064's '22 of 23 by count' holds; one spare analog pin "
+               "left (pin 23, A0/B15/C15). The stage-1 count '24 of 25' took the data sheet's 25 channels, which count B5 / B11 "
+               "twice (AGPIO pins 48 / 49). PWM: three-wire %d of 16, four-wire %d of 16 (PCS-PWR-4W PWM1-%d = ePWM1-4 A/B, the N "
+               "leg on ePWM4); PWM16 = K_ACPRE on both builds (GPIO15 as a GPIO, latch-gated)" %
+               (len(need), len(on_pin), n_an, len(need4), len(on_pin), pwm, pwm4, pwm4))
+    rows = list(csv.reader(open(C.PLAN_CSV)))                        # written by the PV-CTL check above: the board as drawn
+    i_net, i_rt = rows[0].index("net"), rows[0].index("route")
+    with open(PLAN4_CSV, "w", newline="") as f:
+        csv.writer(f).writerows(rows[:1] + [r[:i_rt] + [PLAN4_ROUTE.get(r[i_net], r[i_rt])] + r[i_rt + 1:] for r in rows[1:]])
+    by = {r[i_net]: r for r in rows[1:]}
+    gp = {k: by[k][1] for k in ("PWM7_M", "PWM8_M", "PWM16_M", "HOLD") if k in by}
+    ok &= C.say(gp.get("PWM7_M") == "GPIO6" and gp.get("PWM8_M") == "GPIO7" and gp.get("PWM16_M") == "GPIO15" and "HOLD" in gp
+                and all(k in by for k in PLAN4_ROUTE),
+                "Four-wire pin plan (%s, the same routing as %s)" % (os.path.relpath(PLAN4_CSV, L.REPO), os.path.relpath(C.PLAN_CSV, L.REPO)),
+                "PWM7 / PWM8 take GPIO6 / GPIO7 (ePWM4 A / B, pins %s / %s) - routed through the latch gating on every PCS-CTL already, so "
+                "the four-wire build frees no pin and gives nothing up (GPIO 55 of 55 on both builds; the HOLD read-back stays on %s); "
+                "its additions are signals on existing pins: IL4 (B4/C8, CMPSS4), NTC4 / NTC8 through the TMUX1208, VGN on the analog "
+                "pin 21 (B12/C2); K_ACPRE on GPIO15 (PWM16) on both builds" % (by["PWM7_M"][0], by["PWM8_M"][0], gp.get("HOLD")))
     r_ntc9 = lambda t: 10e3 * math.exp(B_NCP15 * (1 / (t + 273.15) - 1 / 298.15))          # noqa: E731
     v9 = [3.0 * r_ntc9(t) / (r_ntc9(t) + 10e3) for t in (-40, 125)]
     v_rcm = 5.25 * C.val(RCM_DIV[1]) * 1.01 / (C.val(RCM_DIV[0]) * 0.99 + C.val(RCM_DIV[1]) * 1.01)
@@ -444,4 +504,9 @@ if __name__ == "__main__":
     with open(os.path.join(L.REPO, "hardware", C.PROJECT, "outputs", C.PROJECT + "_design_check.txt"), "w") as f:
         f.write("CALCULATED by gen/pcs_ctrl.py (gen/pv_ctrl.py re-valued) - not measured.\n" + buf.getvalue())
     C.write_p75_bom(B)
+    full = os.path.join(L.REPO, "bom", C.PROJECT + "_BOM.csv")       # four-wire assembly: every part fitted (the board BOM's lines)
+    rows = list(csv.reader(open(full)))
+    assert all(not r[10] for r in rows[1:]), "PCS-CTL: a not-fitted line on the full board BOM - re-check the four-wire assembly"
+    with open(os.path.join(L.REPO, "bom", C.PROJECT + "-4W_BOM.csv"), "w", newline="") as f:
+        csv.writer(f).writerows(rows)
     sys.exit(rc)

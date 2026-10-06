@@ -46,16 +46,16 @@ Result: 2 better, 24 meets, 3 below, 5 not assessed, 0 pending, out of 34 publis
 | **Other Data** | | | | |
 | Voltage Accuracy | ＜1%@100%Pn | <= 0.5 % (0.1 % dividers, ADC and reference) after the two-point calibration; a design budget, not an end-to-end calculation on the drawn boards (the control board's ADC share checks at 0.42 % worst) | **MEETS** | `docs/requirements/ARCHITECTURE-COSTFIRST.md`, `hardware/PV-CTL/outputs/PV-CTL_design_check.txt` |
 | Current Accuracy | ＜1%@100%Pn | <= 0.8 % at 135 A (shunt in the negative rail, temperature compensated) after the two-point calibration; a design budget, not an end-to-end calculation on the drawn boards (the control board's ADC share checks at 0.42 % worst) | **MEETS** | `docs/requirements/ARCHITECTURE-COSTFIRST.md`, `hardware/PV-CTL/outputs/PV-CTL_design_check.txt` |
-| Standby Power Consumption (W) | ＜20 | 11.4 with both contactors open, 21.0 with both held closed and the gates off, at 1000 V (8.1 / 15.3 at 600 V; estimate) | **BELOW** | `sim/out/pv_design/module_spec.json` |
+| Standby Power Consumption (W) | ＜20 | 12.7 with both contactors open, 22.4 with both held closed and the gates off, at 1000 V (9.1 / 16.3 at 600 V; estimate) | **BELOW** | `sim/out/pv_design/module_spec.json` |
 
 ## Boards behind the PV-P75 column
 
 | Board | Rev | Parts | Nets | Build checks |
 |---|---|---|---|---|
 | PV-PWR | A2 | 1874 | 939 | all passed |
-| PV-CTL | A1 | 285 | 192 | all passed |
+| PV-CTL | A2 | 316 | 222 | all passed |
 
-Module BOM: 309 lines, 2166 parts (`bom/PV-P75_module_BOM.csv`); cost in `bom/COST.md`.
+Module BOM: 311 lines, 2180 parts (`bom/PV-P75_module_BOM.csv`); cost in `bom/COST.md`.
 
 ## Reading this table
 

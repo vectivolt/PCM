@@ -343,33 +343,34 @@ Second named case of this file (`aux75_spec.json`). Same controller, input block
 
 | item | value |
 |---|---|
-| rev A1 | transformer = magnetics design M1 (A-51); line feed-forward R_FF into CS; clamp 6 x SMCJ33A; timer 35-80 ms; input 2 x 20 R per tap |
-| worst overload (in the self-check) | 230 W on at 1000 V, highest limit corner (3.91 A; 4.27 A without feed-forward), timer 80 ms, duty 14 %, leakage at its limit: IV2Q171R0D7Z 83/175 C, VS-8ETU04S-M3 live 146/175 C, VS-8ETU04S-M3 SELV 121/175 C, SMCJ33A (each) 144/150 C, AUX-T1 94/130 C |
-| margins at the worst corner | drain 1316 V at 1000 V (3.2 % below 1360 V), 1420 V at 1100 V (7.2 % below 1530 V); flux 328 mT on A_min (5.8 % below 349 mT); TVS 130 C at the leakage limit; 10 % on the drain at 1000 V is not reachable: VR >= 148 V (400 V SELV rectifier at 80 %) and the clamp >= 1.4 x VR put the floor at 1287 V (ideal clamp, VBR spread and 100 C) |
-| input resistors per tap (AX-01/02 rules) | 2 x 22 R: I2t 16.4 %, 9.6 W at 200 V (4.56 W each); 2 x 20 R: I2t 18.1 %, 8.8 W at 200 V (4.14 W each); 2 x 18 R: I2t 20.1 %, 8.0 W at 200 V (3.73 W each) FAILS i2t; 2 x 15 R: I2t 24.1 %, 6.7 W at 200 V (3.11 W each) FAILS i2t |
-| rev A2 ratings (one design) | 3 phases: live 20 W, SELV 40.6 W; 4 phases: live 24 W (32 W for 1 s), SELV 62.6 W -> 86.6 W continuous, 94.6 W for 1 s, from 250 V (PV-03/06); lowest current limit 103 W |
-| design point | 64.9 kHz, Lp 0.485 mH +/-7 %, Np:N_live:N_selv 48:8:9 (n 6.0, VR 148 V), Ipk 2.45 A at 86.6 W, D 0.32 at 250 V |
-| efficiency at 86.6 W | 77.6 / 79.9 / 84.3 / 85.5 / 85.3 / 84.6 % at 200 / 250 / 400 / 600 / 800 / 1000 V (200 V: gates off, fans 100 %) |
-| efficiency, PV-P75 (3 phases), full power, fans 100 % | 82.2 / 85.2 / 85.6 / 84.9 / 83.8 % |
-| efficiency, PV-P100/110 (4 phases), full power, fans 100 % | 79.9 / 84.3 / 85.5 / 85.3 / 84.6 % |
-| IV2Q171R0D7Z at 75 W | 3.35 W / Tj 134 C at 1000 V, 1.27 W / 88 C at 200 V (board 20 K/W, A-44) |
-| SG2M1K0170J2J at 75 W | 2.65 W / Tj 120 C at 1000 V, 1.72 W / 99 C at 200 V (board 20 K/W, A-44) |
-| temperatures, 75 W, 1000 V | IV2Q171R0D7Z 134 C, VS-8ETU04S-M3 live 90 C, VS-8ETU04S-M3 SELV 135 C, SMCJ33A (each) 118 C, AUX-T1 86 C |
-| temperatures, 75 W, 1000 V, worst leakage | IV2Q171R0D7Z 134 C, VS-8ETU04S-M3 live 90 C, VS-8ETU04S-M3 SELV 135 C, SMCJ33A (each) 130 C, AUX-T1 86 C |
-| temperatures, hiccup, highest limit (stress) | IV2Q171R0D7Z 83 C, VS-8ETU04S-M3 live 146 C, VS-8ETU04S-M3 SELV 121 C, SMCJ33A (each) 144 C, AUX-T1 94 C |
+| rev A1 | transformer = magnetics design M1 (A-51); line feed-forward R_FF into CS; clamp 6 x SMCJ33A; timer 39-100 ms; input 2 x 20 R per tap |
+| worst overload (in the self-check) | 201 W on at 1000 V, highest limit corner (4.07 A; 4.46 A without feed-forward), timer 100 ms, duty 17 %, leakage at its limit: IV2Q171R0D7Z 84/175 C, VS-8ETU04S-M3 live 140/175 C, VS-8ETU04S-M3 SELV 118/175 C, SMCJ33A (each) 140/150 C, AUX-T1 111/130 C |
+| margins at the worst corner | drain 1318 V at 1000 V (3.1 % below 1360 V), 1422 V at 1100 V (7.0 % below 1530 V); flux 329 mT on A_min (5.7 % below 349 mT); TVS 139 C at the leakage limit; 10 % on the drain at 1000 V is not reachable: VR >= 137 V (400 V SELV rectifier at 80 %) and the clamp >= 1.4 x VR put the floor at 1269 V (ideal clamp, VBR spread and 100 C) |
+| input resistors per tap (AX-01/02 rules) | 2 x 22 R: I2t 16.4 %, 10.8 W at 250 V (5.10 W each); 2 x 20 R: I2t 18.1 %, 9.8 W at 250 V (4.64 W each); 2 x 18 R: I2t 20.1 %, 8.9 W at 250 V (4.17 W each) FAILS i2t; 2 x 15 R: I2t 24.1 %, 7.5 W at 250 V (3.48 W each) FAILS i2t |
+| rev A3 (re-rated, one design for PV-P75, PV-P100/110, PCS-P125 three- and four-wire) | turns 50:9:10 (n 5.56, VR 137 V; rev A2 48:8:9, 148 V), Lp 0.485 mH kept, current sense 3 x 0.866R (E96, rev A2 3 x 0.91 R); the same core, switch, clamp, timer capacitor and input block; live-SELV leakage requirement 0.62 uH = 1.5 x the design's estimate (A-42's factor) |
+| ratings (one design) | live 30 W continuous, 48 W for 1 s (every build; the 3-phase row carries the same live rating), SELV 64.2 W (3 phases: 42.2 W allocation) -> 94.2 W continuous, 112.2 W for 1 s, from 250 V (PV-03/06); lowest current limit 112.8 W; SELV at the live peak with the fans at 10 %: <= 30.1 V |
+| design point | 64.9 kHz, Lp 0.485 mH +/-7 %, Np:N_live:N_selv 50:9:10 (n 5.6, VR 137 V), Ipk 2.56 A at 94.2 W, D 0.33 at 250 V |
+| efficiency at 94.2 W | 76.3 / 78.3 / 83.3 / 84.8 / 84.8 / 84.2 % at 200 / 250 / 400 / 600 / 800 / 1000 V (200 V: gates off, fans 100 %) |
+| efficiency, PV-P75 (3 phases), full power, fans 100 % | 81.3 / 84.5 / 85.0 / 84.5 / 83.4 % |
+| efficiency, PV-P100/110 (4 phases), full power, fans 100 % | 78.8 / 83.5 / 84.8 / 84.7 / 84.1 % |
+| IV2Q171R0D7Z at the rating | 3.45 W / Tj 136 C at 1000 V, 1.32 W / 89 C at 200 V (board 20 K/W, A-44) |
+| SG2M1K0170J2J at the rating | 2.79 W / Tj 124 C at 1000 V, 1.79 W / 101 C at 200 V (board 20 K/W, A-44) |
+| temperatures, rating, 1000 V | IV2Q171R0D7Z 136 C, VS-8ETU04S-M3 live 97 C, VS-8ETU04S-M3 SELV 136 C, SMCJ33A (each) 125 C, AUX-T1 102 C |
+| temperatures, rating, 1000 V, worst leakage | IV2Q171R0D7Z 136 C, VS-8ETU04S-M3 live 97 C, VS-8ETU04S-M3 SELV 136 C, SMCJ33A (each) 139 C, AUX-T1 102 C |
+| temperatures, hiccup, highest limit (stress) | IV2Q171R0D7Z 84 C, VS-8ETU04S-M3 live 140 C, VS-8ETU04S-M3 SELV 118 C, SMCJ33A (each) 140 C, AUX-T1 111 C |
 | live 24 V band | 23.62-24.68 V (set point; FB divider 0.1 %) |
-| SELV, 3 phases (fans 10 / 50 / 100 % of 40 W) | live 2.0 W: 26.3-27.8 / 24.2-26.7 / 22.1-25.7 V; live 6.7 W: 26.9-28.2 / 26.1-27.6 / 25.1-27.2 V; live 13.6 W: 27.3-28.9 / 26.6-27.9 / 26.1-27.6 V; live 17.0 W: 27.5-29.2 / 26.8-28.0 / 26.3-27.8 V; live 20.0 W: 27.6-29.5 / 26.9-28.1 / 26.5-27.8 V; live 24.0 W: 27.8-29.8 / 27.0-28.2 / 26.6-27.9 V |
-| SELV, 4 phases (fans 10 / 50 / 100 % of 62 W) | live 2.0 W: 26.0-27.6 / 23.0-26.2 / 20.3-24.9 V; live 6.7 W: 26.8-28.0 / 25.5-27.4 / 24.2-26.7 V; live 13.6 W: 27.1-28.5 / 26.3-27.8 / 25.6-27.4 V; live 17.0 W: 27.2-28.8 / 26.5-27.9 / 25.9-27.5 V; live 20.0 W: 27.4-29.0 / 26.6-27.9 / 26.0-27.6 V; live 24.0 W: 27.5-29.2 / 26.8-28.0 / 26.2-27.7 V |
-| firmware rule | full fan speed is guaranteed while the live 24 V carries >= 13.6 W (3 phases) / 17 W (4 phases), i.e. while the gate bias is on and the converter switches: SELV >= 26.1 / 25.9 V at 100 % fans (needs 24.5 V); with the gates off the SELV stays 20.3-28.2 V (fan buck 12-36 V) but full fan speed is not guaranteed |
-| standby PV-P75 (aux in / module) | 10.0/15.7 / 10.3/16.0 / 11.0/16.7 / 11.8/17.5 / 12.6/18.3 W |
-| standby PV-P100/110 (aux in / module) | 10.5/16.2 / 10.8/16.5 / 11.4/17.1 / 12.3/18.0 / 13.2/18.9 W |
-| start-up | VDD charge 3.0-6.2 s after brown-in (30 W network), then 11-22 ms to regulation; follower takes VDD at 9-14 ms (VDD hold-up 38 ms) |
+| SELV, 3 phases (fans 10 / 50 / 100 % of 40 W) | live 2.0 W: 25.9-27.3 / 24.3-26.1 / 22.8-24.9 V; live 6.7 W: 26.5-27.7 / 25.8-27.2 / 25.1-26.7 V; live 13.6 W: 26.9-28.2 / 26.3-27.6 / 25.9-27.2 V; live 17.0 W: 27.1-28.5 / 26.5-27.7 / 26.1-27.4 V; live 20.0 W: 27.2-28.6 / 26.6-27.8 / 26.2-27.5 V; live 24.0 W: 27.4-28.9 / 26.7-27.9 / 26.3-27.6 V; live 30.0 W: 27.7-29.2 / 26.8-28.1 / 26.5-27.7 V |
+| SELV, 4 phases (fans 10 / 50 / 100 % of 62 W) | live 2.0 W: 25.7-27.1 / 23.4-25.4 / 21.4-23.9 V; live 6.7 W: 26.4-27.6 / 25.4-26.9 / 24.4-26.1 V; live 13.6 W: 26.8-28.0 / 26.1-27.4 / 25.5-26.9 V; live 17.0 W: 26.9-28.2 / 26.2-27.5 / 25.7-27.1 V; live 20.0 W: 27.0-28.4 / 26.3-27.6 / 25.8-27.2 V; live 24.0 W: 27.2-28.6 / 26.5-27.7 / 26.0-27.3 V; live 30.0 W: 27.4-28.9 / 26.6-27.8 / 26.2-27.5 V |
+| firmware rule | full fan speed is guaranteed while the live 24 V carries >= 13.6 W (3 phases) / 17 W (4 phases), i.e. while the gate bias is on and the converter switches: SELV >= 25.9 / 25.7 V at 100 % fans (needs 24.5 V); with the gates off the SELV stays 21.4-27.7 V (fan buck 12-36 V) but full fan speed is not guaranteed |
+| standby PV-P75 (aux in / module) | 11.1/16.8 / 11.3/17.0 / 12.0/17.7 / 12.8/18.5 / 14.0/19.7 W |
+| standby PV-P100/110 (aux in / module) | 11.5/17.2 / 11.8/17.5 / 12.4/18.1 / 13.3/19.0 / 14.4/20.1 W |
+| start-up | VDD charge 3.0-6.2 s after brown-in (30 W network), then 11-21 ms to regulation; follower takes VDD at 9-14 ms (VDD hold-up 38 ms) |
 | brown-in / out, OV lockout | 206-215 V / 179-192 V, 1107-1162 V |
 | hold-up (live, 11 W to 8 V) | 52 ms with 2400 uF (-20 %) |
-| current limit / timer | 2.90-3.91 A (103-294 W); timer 35-80 ms, trip above 103 / 160 / 256 W |
-| V_DS | 1316 V at 1000 V (limit 1360), 1420 V at 1100 V (limit 1530); clamp 4 x SMCJ54A >= 220 V vs VR 148 V |
-| loop | crossover 241, 483, 667 Hz, phase margin 58, 71, 74 deg |
+| current limit / timer | 3.04-4.07 A (113-320 W); timer 39-100 ms, trip above 113 / 175 / 278 W |
+| V_DS | 1318 V at 1000 V (limit 1360), 1422 V at 1100 V (limit 1530); clamp 6 x SMCJ33A >= 220 V vs VR 137 V |
+| loop | crossover 259, 526, 727 Hz, phase margin 60, 71, 74 deg |
 
-Assumptions of this case: A-41 leakage (M1 1-D value scaled: 13.5 uH nominal, 16.2 uH worst), A-42 live-SELV leakage 0.30 uH, A-43 switched capacitance 54 pF (limit 64 pF), A-44 switch board 20 K/W (>= 8 cm2 2-oz Cu both sides with vias), A-45 ETD 39-class core, A-46 winding resistances 2.26 / 0.100 / 0.050 R, A-47 transformer 13.5 K/W, A-48 two-output cycle model, A-49 loop with the referred SELV capacitance, A-50 start-up model.
+Assumptions of this case: A-41 leakage (M1 1-D value scaled: 15.2 uH nominal, 18.3 uH worst), A-42 live-SELV leakage 0.41 uH, A-43 switched capacitance 56 pF (limit 63 pF), A-44 switch board 20 K/W (>= 8 cm2 2-oz Cu both sides with vias), A-45 ETD 39-class core, A-46 winding resistances 3.24 / 0.144 / 0.072 R, A-47 transformer 15.8 K/W, A-48 two-output cycle model, A-49 loop with the referred SELV capacitance, A-50 start-up model.
 
-Open (AUX75 rev A2): module standby < 20 W needs the contactor economiser at <= 1.5 W per coil (2 x 2.5 W: 21.4 W module at 1000 V); the flux margin at the 4-phase current limit is 5.8 % (10 % needs Np x A_min >= 6465 mm2, M1 has 6178: a larger core, or the 4-phase fans capped near 55 W); the drain margin is 3.2 %; a continuous load between 95 W and the timer threshold (256 W at the high corner) is not stopped by this block; the switch needs the A-44 copper area (20 K/W); the input path costs 8.0 W at 250 V, full load.
+Open (AUX75 rev A3): module standby < 20 W needs the contactor economiser at <= 1.5 W per coil (2 x 2.5 W: 22.4 W module at 1000 V); the flux margin at the highest current limit is 5.7 % (10 % needs Np x A_min >= 6740 mm2, the design has 6435: a larger core); the drain margin is 3.1 %; a continuous load between 112.2 W and the timer threshold (278 W at the high corner) is not stopped by this block; the switch needs the A-44 copper area (20 K/W); the input path costs 9.8 W at 250 V, full load. Rev A3: AUX-T1 is re-wound (50:9:10, gap re-ground for Lp 0.485 mH) - a new sample set is needed (Lp, both leakages, switched capacitance, PD); the Lp window that holds both the flux margin and the peak delivery with 3 x 0.866R is about +/-0.5 % of the nominal (the +/-7 % build tolerance is inside the checks); the E96 sense resistor value must be confirmed in the chosen low-ohm series.

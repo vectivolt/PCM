@@ -1,22 +1,22 @@
 {
   "project": "PV-CTL",
-  "rev": "A1",
-  "date": "2026-10-05",
-  "sheets": 7,
-  "parts": 285,
-  "nets": 192,
+  "rev": "A2",
+  "date": "2026-10-06",
+  "sheets": 8,
+  "parts": 316,
+  "nets": 222,
   "erc_waivers": {},
   "passed": true,
   "checks": [
     {
       "check": "Isolation domains (only declared isolators/crossings bridge two domains)",
       "result": "pass",
-      "detail": "5 isolators, 5 crossings, 283 other parts each in one domain"
+      "detail": "6 isolators, 7 crossings, 312 other parts each in one domain"
     },
     {
       "check": "Stress: jellybean capacitor voltage <= 80 %, resistor power <= 60 % and working voltage",
       "result": "pass",
-      "detail": "185 parts inside the rules, 32 on nets without a DC range (left to the design check)"
+      "detail": "192 parts inside the rules, 32 on nets without a DC range (left to the design check)"
     },
     {
       "check": "ERC (kicad-cli, all severities)",
@@ -26,7 +26,7 @@
     {
       "check": "Netlist identity (kicad-cli XML export == design table)",
       "result": "pass",
-      "detail": "192 nets, 285 components identical"
+      "detail": "222 nets, 316 components identical"
     },
     {
       "check": "Schematic PDF rendered",
@@ -36,7 +36,7 @@
     {
       "check": "BOM: every line has manufacturer + MPN + datasheet on file, or is GENERIC/RFQ/CUSTOM",
       "result": "pass",
-      "detail": "98 lines, 285 parts -> bom/PV-CTL_BOM.csv"
+      "detail": "115 lines, 316 parts -> bom/PV-CTL_BOM.csv"
     }
   ]
 }

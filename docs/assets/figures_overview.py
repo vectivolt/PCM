@@ -3,7 +3,9 @@
 Run:  .venv/bin/python docs/assets/figures_overview.py
 In :  bom/<module>_costed_BOM.csv, bom/<module>_module_BOM.csv, bom/COST.md      (gen/cost.py, gen/build_all.py)
       gen/data/costfirst_pcs_bom.csv, gen/data/market_prices.csv, sim/out/pcs_design/pcs_spec.json
-      sim/out/compare_megarevo/comparison.csv + report.md, hardware/*/outputs/*_report.json
+      sim/out/compare_megarevo/comparison.csv + report.md (PV-P75 against the PMD-75-G3)
+      sim/out/compare_megarevo_pcs/comparison.csv + report.md (PCS-P125 / PCS-P125-4W against the PMA0125)
+      gen/data/megarevo_2026_parity.csv (module parity register, D-073), hardware/*/outputs/*_report.json
       docs/requirements/DECISIONS.md (the working budget of D-044)
 Out:  docs/assets/img/*.png, and the blocks between <!-- BEGIN:name --> and <!-- END:name --> in the pages of PAGES.
 Every number is read from those files at run time; the benchmark arithmetic is gen/cost.py's own (imported).
@@ -29,8 +31,24 @@ import cost as C  # noqa: E402        group_of(), benchmark constants, load_mark
 PAGES = {"README.md": ["cost-summary"],
          "docs/guide/01-overview.md": ["board-status"],
          "docs/guide/07-sourcing-and-cost.md": ["cost-summary"],
-         "docs/guide/11-megarevo-comparison.md": ["megarevo-score", "megarevo-table"]}
+         "docs/guide/11-megarevo-comparison.md": ["megarevo-score", "megarevo-table", "megarevo-pcs-score", "megarevo-pcs-table",
+                                                 "megarevo-parity"]}
 LIGHT_TEAL, PALE = "#7FD4CE", "#C5CED6"
+# the two row-by-row comparisons: folder, script, the report's board section, their column, our column(s), chart
+CMP = {"pv": {"dir": "sim/out/compare_megarevo", "script": "sim/compare_megarevo.py", "boards": "## Boards behind the PV-P75 column",
+              "theirs": ("megarevo_pmd_75_g3_published", "Megarevo PMD-75-G3 · published"),
+              "ours": [("pv_p75_calculated", "PV-P75 · calculated or simulated")],
+              "fig": "megarevo_scorecard", "who": "PV-P75 against Megarevo PMD-75-G3", "table": "PMD-75-G3", "note": ""},
+       "pcs": {"dir": "sim/out/compare_megarevo_pcs", "script": "sim/compare_megarevo_pcs.py",
+               "boards": "## Boards behind the PCS-P125 columns",
+               "theirs": ("megarevo_pma0125_published", "Megarevo PMA0125 · published"),
+               "ours": [("pcs_p125_calculated", "PCS-P125 (three-wire) · calculated"), ("pcs_p125_4w_calculated", "PCS-P125-4W (four-wire) · calculated")],
+               "fig": "megarevo_pcs_scorecard", "who": "PCS-P125 / PCS-P125-4W against Megarevo PMA0125", "table": "PMA0125",
+               "note": "one verdict per row, the better of the two builds where a row applies to both. "}}
+PARITY = "gen/data/megarevo_2026_parity.csv"
+AREA = {"scope": "Scope", "direction": "Direction of power flow", "DC/DC": "DC/DC module: PMD-75-G3 and PV-P75 / P100 / P110",
+        "PCS": "Inverter module: PMA0125 and PCS-P125 / PCS-P125-4W", "protection": "Protection", "product": "Product",
+        "DAB": "Isolated DC/DC"}
 
 
 def need(path):
@@ -49,7 +67,7 @@ def usd(x):
 
 
 def subtitle(ax, title, sub):
-    ax.set_title(title, pad=24)
+    ax.set_title(title, pad=24 + 11 * sub.count("\n"))
     ax.text(0, 1.02, sub, transform=ax.transAxes, fontsize=8.5, color=SLATE, va="bottom")
 
 
@@ -99,8 +117,8 @@ def benchmark():
 
 
 def pcs_costs():
-    """PCS-P125: the design study of D-053 (pcs_spec.json, the current figure) and the three-level T-type estimate of the
-    architect's list that D-053 withdrew (TOTAL row of costfirst_pcs_bom.csv, still printed in bom/COST.md)."""
+    """PCS-P125: the design study (pcs_spec.json cost_usd; the drawn boards are module_cost('PCS-P125') / ('PCS-P125-4W'))
+    and the three-level T-type estimate of the architect's list that D-053 withdrew (TOTAL row of costfirst_pcs_bom.csv)."""
     spec = json.load(open(need("sim/out/pcs_design/pcs_spec.json"), encoding="utf-8"))
     c = spec["cost_usd"]
     out = {"3-wire": {"cat": c["three_wire"]["catalogue"], "k5": c["three_wire"]["5k"], "real": 100 * c["evidence_share_5k"]},
@@ -196,8 +214,9 @@ def fig_benchmark(costs, pcs, bm):
     data = [  # label, catalogue USD/kW, 5k USD/kW, current-adjusted equivalent USD/kW or None, colour
         ("PV-P75 · cost-first, drawn boards", costs["PV-P75"]["cat"] / 75, costs["PV-P75"]["k5"] / 75, eqkw("PV-P75", 75), TEAL),
         ("PV-P100/110 · cost-first, at 100 kW", costs["PV-P100-110"]["cat"] / 100, costs["PV-P100-110"]["k5"] / 100, eqkw("PV-P100-110", 100), TEAL),
-        ("PCS-P125 3-wire · design study, no boards", pcs["3-wire"]["cat"] / 125, pcs["3-wire"]["k5"] / 125, None, AMBER),
-        ("PCS-P125 4-wire · design study, no boards", pcs["4-wire"]["cat"] / 125, pcs["4-wire"]["k5"] / 125, None, AMBER),
+        ("PCS-P125 · three-wire, drawn boards", costs["PCS-P125"]["cat"] / 125, costs["PCS-P125"]["k5"] / 125, eqkw("PCS-P125", 125), TEAL),
+        ("PCS-P125-4W · four-wire, drawn boards", costs["PCS-P125-4W"]["cat"] / 125, costs["PCS-P125-4W"]["k5"] / 125,
+         eqkw("PCS-P125-4W", 125), TEAL),
         ("DAB-D60 · earlier platform", costs["DAB-D60-FULL"]["cat"] / 60, costs["DAB-D60-FULL"]["k5"] / 60, eqkw("DAB-D60-FULL", 60), SLATE),
         ("PV-P75 · earlier platform", costs["PV-P75-FULL"]["cat"] / 75, costs["PV-P75-FULL"]["k5"] / 75, eqkw("PV-P75-FULL", 75), SLATE)][::-1]
     fig, ax = plt.subplots(figsize=(8.2, 4.9))
@@ -217,12 +236,12 @@ def fig_benchmark(costs, pcs, bm):
     handles = [Patch(facecolor="#B8C2CB", label="catalogue prices (light bar)"), Patch(facecolor=SLATE, label="5,000-unit build (dark bar)"),
                Line2D([], [], color=CORAL, ls="--", label="benchmark selling price %.2f USD/kW" % bm["price_kw"]),
                Line2D([], [], color=CORAL, ls=":", label="benchmark BOM at a %.0f %% BOM share: %.2f USD/kW" % (100 * bm["share"], bm["bom_kw"])),
-               Line2D([], [], color=CORAL, marker="D", ls="", label="benchmark-equivalent BOM, adjusted for current (DC/DC)")]
+               Line2D([], [], color=CORAL, marker="D", ls="", label="benchmark-equivalent BOM, adjusted for the rated port current")]
     ax.legend(handles=handles, loc="upper right", fontsize=8)
     fig.subplots_adjust(bottom=0.14)
     subtitle(ax, "Cost per kW against the owner's benchmark (Megarevo 1500 V string PCS, 228 kW, 1,500 USD)",
-             "Teal: drawn boards · amber: estimate without boards · slate: earlier platform. PCS current adjustment: ARCHITECTURE-PCS.md §12")
-    return save(fig, "benchmark_usd_per_kw", "bom/*_costed_BOM.csv, sim/out/pcs_design/pcs_spec.json, gen/data/market_prices.csv",
+             "Teal: drawn boards · slate: earlier platform. Diamonds: gen/cost.py (DC port current); the AC-side adjustment of ARCHITECTURE-PCS §12: guide 07")
+    return save(fig, "benchmark_usd_per_kw", "bom/*_costed_BOM.csv, gen/data/market_prices.csv, gen/cost.py",
                 "estimated - not quoted; benchmark price stated by the owner")
 
 
@@ -261,18 +280,30 @@ def fig_parts(before, after, nb):
 VERDICTS = (("BETTER", TEAL, "better"), ("MEETS", NAVY, "meets"), ("BELOW", CORAL, "below"), ("PENDING", AMBER, "pending"), ("NOT ASSESSED", PALE, "not assessed"))
 
 
-def megarevo():
-    rr = rows("sim/out/compare_megarevo/comparison.csv")
+def megarevo(key):
+    """Rows of one comparison CSV (verdicts and columns checked) and the boards behind our column, with revisions."""
+    c = CMP[key]
+    rr = rows(c["dir"] + "/comparison.csv")
     unknown = {r["verdict"] for r in rr} - {v for v, _, _ in VERDICTS}
     if unknown:
-        sys.exit("unknown verdict(s) in comparison.csv: %s" % ", ".join(sorted(unknown)))
-    rep = open(need("sim/out/compare_megarevo/report.md"), encoding="utf-8").read()
-    sec = re.search(r"## Boards behind the PV-P75 column\n\n(.*?)\n\n", rep, re.S)
-    boards = [ln.split("|")[1].strip() for ln in sec.group(1).splitlines()[2:]] if sec else []
+        sys.exit("unknown verdict(s) in %s/comparison.csv: %s" % (c["dir"], ", ".join(sorted(unknown))))
+    missing = [col for col, _ in [c["theirs"]] + c["ours"] if not rr or col not in rr[0]]
+    if missing:
+        sys.exit("%s/comparison.csv: column(s) %s missing - re-run %s" % (c["dir"], ", ".join(missing), c["script"]))
+    rep = open(need(c["dir"] + "/report.md"), encoding="utf-8").read()
+    sec = re.search(re.escape(c["boards"]) + r"\n\n(.*?)\n\n", rep, re.S)
+    boards = []
+    if sec:
+        lines = sec.group(1).splitlines()
+        head = [h.strip() for h in lines[0].strip("|").split("|")]
+        for ln in lines[2:]:
+            cells = [x.strip() for x in ln.strip("|").split("|")]
+            boards.append(cells[0] + (" rev %s" % cells[head.index("Rev")] if "Rev" in head else ""))
     return rr, boards
 
 
-def fig_scorecard(rr, boards):
+def fig_scorecard(rr, boards, key):
+    c = CMP[key]
     sections = list(dict.fromkeys(r["section"] for r in rr))
     count = collections.Counter((r["section"], r["verdict"]) for r in rr)
     total = collections.Counter(r["verdict"] for r in rr)
@@ -287,15 +318,18 @@ def fig_scorecard(rr, boards):
                 left += n
     ax.set_yticks(range(len(sections)), sections[::-1], fontsize=9)
     ax.grid(axis="y", visible=False)
-    ax.set_xlabel("published rows of the PMD-75-G3 table")
+    ax.set_xlabel("published rows of the %s table" % c["table"])
     ax.xaxis.get_major_locator().set_params(integer=True)
     fig.subplots_adjust(bottom=0.18)
-    ax.legend(handles=[Patch(color=c, label="%s (%d)" % (lab, total[v])) for v, c, lab in VERDICTS if total[v] or v == "BELOW"],
-              loc="lower right", fontsize=8.5)
-    subtitle(ax, "PV-P75 against Megarevo PMD-75-G3: %d better · %d meets · %d below · %d not assessed" % (
-        total["BETTER"], total["MEETS"], total["BELOW"], total["NOT ASSESSED"]),
-        "Ours calculated / simulated, theirs published. Boards behind our column: %s" % (", ".join(boards) or "see report.md"))
-    return save(fig, "megarevo_scorecard", "sim/out/compare_megarevo/comparison.csv (sim/compare_megarevo.py)", "calculated against published - not measured")
+    ax.legend(handles=[Patch(color=col, label="%s (%d)" % (lab, total[v])) for v, col, lab in VERDICTS if total[v] or v == "BELOW"],
+              loc="center left", bbox_to_anchor=(1.01, 0.5), fontsize=8.5)
+    subtitle(ax, "%s: %d better · %d meets · %d below · %d not assessed%s" % (
+        c["who"], total["BETTER"], total["MEETS"], total["BELOW"], total["NOT ASSESSED"],
+        " · %d pending" % total["PENDING"] if total["PENDING"] else ""),
+        "Ours calculated / simulated, theirs published. %s%s: %s" % (
+            c["note"][0].upper() + c["note"][1:] + "\n" if c["note"] else "", "Boards behind our column" + ("s" if len(c["ours"]) > 1 else ""),
+            ", ".join(boards) or "see report.md"))
+    return save(fig, c["fig"], "%s/comparison.csv (%s)" % (c["dir"], c["script"]), "calculated against published - not measured")
 
 
 def fig_status(reps):
@@ -307,8 +341,10 @@ def fig_status(reps):
                                           None, None, ("done", "drawn\nboards", "bom/PV-P75_costed_BOM.csv"), ("none", "not\nstarted", None)]),
         ("PV-P100/110", ["PV-PWR-4", "PV-CTL"], [("done", "§2 + §7", REQ), ("done", "cost-first", ACF), ("part", "thermal\nopen", "sim/out/pv_design/module_spec.json"),
                                                  None, None, ("done", "drawn\nboards", "bom/PV-P100-110_costed_BOM.csv"), ("none", "not\nstarted", None)]),
-        ("PCS-P125", [], [("done", "§8", REQ), ("part", "revised\nD-053", ACP), ("part", "power\nstage only", "sim/out/pcs_design/pcs_spec.json"),
-                          ("none", "not\nstarted", None), ("none", "—", None), ("part", "estimate", "sim/out/pcs_design/pcs_spec.json"), ("none", "not\nstarted", None)]),
+        ("PCS-P125", ["PCS-PWR", "PCS-PWR-4W", "PCS-CTL"], [("done", "§8", REQ), ("part", "revised\nD-053", ACP),
+                                                            ("done", "power stage\n+ control", "sim/out/pcs_control/pcs_control_spec.json"),
+                                                            None, None, ("done", "drawn\nboards", "bom/PCS-P125-4W_costed_BOM.csv"),
+                                                            ("none", "not\nstarted", None)]),
         ("DAB-D60", ["DAB60"], [("done", "§3", REQ), ("part", "§16\noutline", ACF), ("done", "re-run,\nCN devices", "sim/out/dab_design/dab_spec.json"),
                                 ("part", "rev B\nfrozen", None), None, ("part", "earlier\nplatform", "bom/DAB-D60-FULL_costed_BOM.csv"), ("none", "not\nstarted", None)]),
         ("Earlier platform", full_boards, [("done", "roadmap", "docs/requirements/00-roadmap-source.md"), ("done", "roadmap", "docs/requirements/00-roadmap-source.md"),
@@ -356,7 +392,9 @@ def rel(page_dir, path):
 
 def block_cost_summary(page_dir, costs, pcs, bm):
     def ev(t):
-        return "%.0f %% of catalogue on estimates · %.0f %% of 5k on published breaks" % (100 * t["basis"]["estimate"] / t["cat"], 100 * t["real5"] / t["k5"])
+        return "%.0f %% of catalogue on estimates · %.0f %% of 5k on published breaks%s" % (
+            100 * t["basis"]["estimate"] / t["cat"], 100 * t["real5"] / t["k5"],
+            " · %d unpriced line%s (lower bound)" % (t["unpriced"], "s" if t["unpriced"] > 1 else "") if t["unpriced"] else "")
     p75, p100, f75, dab = costs["PV-P75"], costs["PV-P100-110"], costs["PV-P75-FULL"], costs["DAB-D60-FULL"]
     lines = ["| Product | What the figure is | kW | Catalogue USD | USD/kW | 5,000 units USD | USD/kW | Evidence | 5k ÷ benchmark-equivalent BOM |",
              "|---|---|---:|---:|---:|---:|---:|---|---:|",
@@ -365,9 +403,14 @@ def block_cost_summary(page_dir, costs, pcs, bm):
              "| **PV-P100/110** | BOM of drawn boards (PV-PWR-4 + PV-CTL) | 100 / 110 | %s | %.1f / %.1f | %s | %.1f / %.1f | %s | %.1f× / %.1f× |" % (
                  usd(p100["cat"]), p100["cat"] / 100, p100["cat"] / 110, usd(p100["k5"]), p100["k5"] / 100, p100["k5"] / 110, ev(p100),
                  p100["k5"] / bm["eq"]("PV-P100-110", 100), p100["k5"] / bm["eq"]("PV-P100-110", 110))]
+    for m, wire in (("PCS-P125", "three-wire"), ("PCS-P125-4W", "four-wire")):
+        t = costs[m]
+        lines.append("| **%s** | BOM of drawn boards, %s (%s) | 125 | %s | %.1f | %s | %.1f | %s | %.1f× (≈ %s USD) |" % (
+            m, wire, " + ".join(BA.MODULES[m]), usd(t["cat"]), t["cat"] / 125, usd(t["k5"]), t["k5"] / 125, ev(t),
+            t["k5"] / bm["eq"](m, 125), usd(bm["eq"](m, 125))))
     for key in ("3-wire", "4-wire"):
         t = pcs[key]
-        lines.append("| **PCS-P125** | design study, %s (%s), design point D-060; the three-wire boards are drawn and cost more, see D-063 | 125 | %s | %.1f | %s | %.1f | %s | see note |" % (
+        lines.append("| PCS-P125 | design study, %s (%s, pcs_spec.json); the drawn boards above cost more (D-063) | 125 | %s | %.1f | %s | %.1f | %s | — |" % (
             key, pcs["topology"].split(",")[0], usd(t["cat"]), t["cat"] / 125, usd(t["k5"]), t["k5"] / 125,
             "%.0f %% of 5k on published prices" % t["real"] if t["real"] is not None else "not stated for 4-wire"))
     for name, t, m, kw in (("PV-P75 earlier platform", f75, "PV-P75-FULL", 75), ("DAB-D60 earlier platform", dab, "DAB-D60-FULL", 60)):
@@ -386,18 +429,27 @@ def block_cost_summary(page_dir, costs, pcs, bm):
 
 
 def block_board_status(page_dir, reps):
-    role = {}
+    role, inv = {}, collections.defaultdict(list)
     for m, boards in BA.MODULES.items():
         for b in boards:
-            b = {"PV-CTL-P75": "PV-CTL", "PCS-CTL-3W": "PCS-CTL", "AUX-HV_DAB": "AUX-HV"}.get(b, b)
-            role.setdefault(b, "inverter (PCS-P125)" if m.startswith("PCS") else "cost-first module" if m in BA.PHASES else "earlier platform")
+            b = {"PV-CTL-P75": "PV-CTL", "PCS-CTL-3W": "PCS-CTL", "PCS-CTL-4W": "PCS-CTL", "AUX-HV_DAB": "AUX-HV"}.get(b, b)
+            if m.startswith("PCS"):
+                inv[b].append(m)
+            else:
+                role.setdefault(b, "cost-first module" if m in BA.PHASES else "earlier platform")
+    for b, ms in inv.items():
+        role[b] = "inverter (%s)" % ", ".join(ms)
     for b in BA.VARIANTS.get("PV-PORT", []):
         role.setdefault(b, "earlier platform")
     for b in BA.FROZEN:
         role[b] = "frozen: rev B outputs kept"
-    order = {"cost-first module": 0, "inverter (PCS-P125)": 0.5, "earlier platform": 1}
+
+    def rank(p):
+        r = role.get(p, "")
+        return (0 if r == "cost-first module" else 0.5 if r.startswith("inverter") else 1 if r == "earlier platform"
+                else 2 if p in BA.FROZEN else 3, p)
     lines = ["| Board | Role | Rev | Sheets | Drawn symbols | Nets | Build checks | Schematic |", "|---|---|---|---:|---:|---:|---|---|"]
-    for p, r in sorted(reps.items(), key=lambda kv: (order.get(role.get(kv[0], ""), 2 if kv[0] in BA.FROZEN else 3), kv[0])):
+    for p, r in sorted(reps.items(), key=lambda kv: rank(kv[0])):
         checks = r["checks"]
         n_ok = sum(1 for c in checks if c.get("result") == "pass")
         pdf = "hardware/%s/outputs/%s_schematic.pdf" % (p, p)
@@ -419,11 +471,14 @@ def block_megarevo_score(page_dir, rr):
     return " ".join(badges) + " &nbsp;of %d published rows" % len(rr)
 
 
-def block_megarevo_table(page_dir, rr):
-    mark = {"BETTER": "▲ better", "MEETS": "● meets", "BELOW": "▼ **below**", "PENDING": "◌ pending", "NOT ASSESSED": "○ not assessed"}
+def cell(x):
+    return x.replace("|", "\\|").replace("\n", " ").strip()
 
-    def cell(x):
-        return x.replace("|", "\\|").strip()
+
+def block_megarevo_table(page_dir, rr, key):
+    c = CMP[key]
+    cols = [c["theirs"]] + c["ours"]
+    mark = {"BETTER": "▲ better", "MEETS": "● meets", "BELOW": "▼ **below**", "PENDING": "◌ pending", "NOT ASSESSED": "○ not assessed"}
 
     def evidence(text):
         out = []
@@ -432,18 +487,40 @@ def block_megarevo_table(page_dir, rr):
             out.append("[%s](%s)%s" % (os.path.basename(path), rel(page_dir, path), " " + rest if rest else "")
                        if os.path.exists(os.path.join(REPO, path)) else "`%s`" % tok)
         return "<br/>".join(out)
-    lines = ["| Parameter | Megarevo PMD-75-G3 · published | PV-P75 · calculated or simulated | Verdict | Evidence |", "|---|---|---|---|---|"]
+    lines = ["| Parameter | %s | Verdict | Evidence |" % " | ".join(h for _, h in cols), "|---|" + "---|" * len(cols) + "---|---|"]
     section = None
     for r in rr:
         if r["section"] != section:
             section = r["section"]
-            lines.append("| **%s** | | | | |" % section)
-        lines.append("| %s | %s | %s | %s | %s |" % (cell(r["parameter"]), cell(r["megarevo_pmd_75_g3_published"]), cell(r["pv_p75_calculated"]),
-                                                    mark[r["verdict"]], evidence(r["evidence"])))
+            lines.append("| **%s** |" % section + " |" * (len(cols) + 2))
+        lines.append("| %s | %s | %s | %s |" % (cell(r["parameter"]), " | ".join(cell(r[k]) for k, _ in cols), mark[r["verdict"]],
+                                               evidence(r["evidence"])))
     lines += ["", "<sub>Generated by <a href=\"%s\">figures_overview.py</a> from <a href=\"%s\">comparison.csv</a> "
-              "(written by <a href=\"%s\">sim/compare_megarevo.py</a>). Do not edit between the markers.</sub>" % (
-                  rel(page_dir, "docs/assets/figures_overview.py"), rel(page_dir, "sim/out/compare_megarevo/comparison.csv"),
-                  rel(page_dir, "sim/compare_megarevo.py"))]
+              "(written by <a href=\"%s\">%s</a>)%s. Do not edit between the markers.</sub>" % (
+                  rel(page_dir, "docs/assets/figures_overview.py"), rel(page_dir, c["dir"] + "/comparison.csv"),
+                  rel(page_dir, c["script"]), c["script"], "; " + c["note"].rstrip(". ") if c["note"] else "")]
+    return "\n".join(lines)
+
+
+def block_megarevo_parity(page_dir):
+    """The module parity register (D-073) as a table grouped by area; the verdicts are the register's own words."""
+    rr = rows(PARITY)
+    cols = {"area", "item", "megarevo_published", "ours", "verdict", "action"}
+    if not rr or cols - set(rr[0]):
+        sys.exit("%s: expected the columns %s" % (PARITY, ", ".join(sorted(cols))))
+    areas = list(dict.fromkeys(r["area"] for r in rr))
+    gaps = sum(1 for r in rr if re.match(r"(partial )?GAP|BELOW", r["verdict"]))
+    lines = ["| Item | Megarevo · published | Ours · calculated, simulated or declared | Verdict |", "|---|---|---|---|"]
+    for a in areas:
+        lines.append("| **%s** | | | |" % AREA.get(a, a))
+        for r in (x for x in rr if x["area"] == a):
+            v = cell(r["verdict"]) or "—"
+            lines.append("| %s | %s | %s | %s |" % (cell(r["item"]), cell(r["megarevo_published"]), cell(r["ours"]),
+                                                    "**%s**" % v if re.match(r"(partial )?GAP|BELOW", v) else v))
+    lines += ["", "<sub>Generated by <a href=\"%s\">figures_overview.py</a> from <a href=\"%s\">megarevo_2026_parity.csv</a> "
+              "(%d rows, %d still marked GAP or BELOW; its <code>action</code> column names the decision behind each row). "
+              "Theirs: published, not verified; ours: calculated, simulated or declared, not measured. "
+              "Do not edit between the markers.</sub>" % (rel(page_dir, "docs/assets/figures_overview.py"), rel(page_dir, PARITY), len(rr), gaps)]
     return "\n".join(lines)
 
 
@@ -474,21 +551,25 @@ def self_check(images):
 
 
 def main():
-    costs = {m: module_cost(m) for m in ("PV-P75", "PV-P100-110", "PV-P75-FULL", "DAB-D60-FULL")}
+    costs = {m: module_cost(m) for m in ("PV-P75", "PV-P100-110", "PCS-P125", "PCS-P125-4W", "PV-P75-FULL", "DAB-D60-FULL")}
     check_against_cost_md(costs)
     bm, pcs, reps = benchmark(), pcs_costs(), board_reports()
-    rr, boards = megarevo()
+    cmp = {k: megarevo(k) for k in CMP}
     nb = {"before": sum(BA.MODULES["PV-P75-FULL"].values()), "after": sum(BA.MODULES["PV-P75"].values())}
     images = [fig_cost_journey(costs["PV-P75"], costs["PV-P75-FULL"], bm["eq"]("PV-P75", 75), budget(), nb["before"]),
               fig_cost_blocks(costs["PV-P75"]),
               fig_benchmark(costs, pcs, bm),
               fig_parts(parts_by_board("PV-P75-FULL"), parts_by_board("PV-P75"), nb),
-              fig_scorecard(rr, boards),
+              fig_scorecard(*cmp["pv"], "pv"),
+              fig_scorecard(*cmp["pcs"], "pcs"),
               fig_status(reps)]
     write_blocks({"cost-summary": lambda d: block_cost_summary(d, costs, pcs, bm),
                   "board-status": lambda d: block_board_status(d, reps),
-                  "megarevo-score": lambda d: block_megarevo_score(d, rr),
-                  "megarevo-table": lambda d: block_megarevo_table(d, rr)})
+                  "megarevo-score": lambda d: block_megarevo_score(d, cmp["pv"][0]),
+                  "megarevo-table": lambda d: block_megarevo_table(d, cmp["pv"][0], "pv"),
+                  "megarevo-pcs-score": lambda d: block_megarevo_score(d, cmp["pcs"][0]),
+                  "megarevo-pcs-table": lambda d: block_megarevo_table(d, cmp["pcs"][0], "pcs"),
+                  "megarevo-parity": block_megarevo_parity})
     for p in images:
         print("wrote", p)
     self_check(images)

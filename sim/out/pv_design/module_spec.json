@@ -31,7 +31,7 @@
   ],
   "min_speed_fraction": 0.3,
   "speed_law_note": "supply-voltage control, no PWM input; never below 30 % (7 V of 24 V ~ 29 %, speed ~ voltage ASSUMED); capped so that all fans stay <= 65 dB(A) at 1 m and within the per-fan power cap",
-  "cold_restriction": "RESTRICTION: both Delta fans are rated -10..60 C operating (p.3 4-1; storage -40..+75 C); PV-20 asks for -30 C. FIRMWARE RULE: while the inlet NTC reads below -10 C the fans stay OFF and the module delivers at most the passive power of the table row of the inlet reading at start-up (sustained, steady state): PV-P75: 19.2 / 17.5 / 15.5 kW at -30 / -20 / -10 C inlet (lowest of the corner points 950/611, 611/950, 1000/500 V; 0.0 / 0.0 / 0.0 kW at 611/611 V); PV-P100/110: 19.9 / 14.9 / 5.0 kW at -30 / -20 / -10 C inlet (lowest of the corner points 950/611, 611/950, 1000/500 V; 0.0 / 0.0 / 0.0 kW at 611/611 V) (ESTIMATE, +-50 %: natural convection between the fins and on the inductors, an enclosure that loses heat through its walls only, no credit for a chimney draft; limits: heatsink 75 C, inductor hot spot 130 C, junction 125 C). At V_A = V_B = 611 V (both legs hard-switching) even 5 % load exceeds the passive limits in steady state: there the start relies on the warm-up, not on a power limit. The fans are enabled once the inlet NTC reads above -10 C - the air near the intake warms from -30 to -10 C in about 48 min at PV-P75's module loss of 192 W (the 30 kg structure it follows; the air alone in 2 s) - and the fans start at ANY heatsink NTC above 80 C or inductor NTC above 135 C whatever the inlet reads (5 K above the passive-mode limits, below the 85 / 145 C derating levels of the second layer: a fan outside its rating beats an over-temperature trip; at 611/611 V and -30 C that happens after about 350 min). Open until a bench test: the passive capability itself. Fan alternatives (the fan selection is NOT changed): Sanyo Denki 9GT1224P1S001 (120 x 120 x 38 mm, -40..+85 C, 26.4 W at 100 %, i.e. over the 36 W SELV allocation of 3 fans) is the only fan ON FILE that reaches -30 C, at 88-113 USD each against 12.85 USD @504 for the Delta (gen/data/prices.csv): +225..+300 USD per module (3 fans). ebm-papst 4414/2HHP (119 x 119 x 38 mm, 24 V, 12 W, 285 m3/h, -20..+70 C, datasheet p.1 on file) reaches -20 C only, its supply range is 18..28 V (p.1; the 7-24 V supply-voltage speed law of the fan buck does not apply to it) and the speed signal is an option; price not on file, web-search snippets of 2026-10-05 (NOT verified on the pages, not in prices.csv): 33.94-78.89 USD (Octopart range), 55.92 USD (eBay, single), 64.59 USD (Newark), i.e. +63..+198 USD per module",
+  "cold_restriction": "RESTRICTION: both Delta fans are rated -10..60 C operating (p.3 4-1; storage -40..+75 C); PV-20 asks for -30 C. FIRMWARE RULE: while the inlet NTC reads below -10 C the fans stay OFF and the module delivers at most the passive power of the table row of the inlet reading at start-up (sustained, steady state): PV-P75: 19.2 / 17.5 / 15.5 kW at -30 / -20 / -10 C inlet (lowest of the corner points 950/611, 611/950, 1000/500 V; 0.0 / 0.0 / 0.0 kW at 611/611 V); PV-P100/110: 19.9 / 14.9 / 4.9 kW at -30 / -20 / -10 C inlet (lowest of the corner points 950/611, 611/950, 1000/500 V; 0.0 / 0.0 / 0.0 kW at 611/611 V) (ESTIMATE, +-50 %: natural convection between the fins and on the inductors, an enclosure that loses heat through its walls only, no credit for a chimney draft; limits: heatsink 75 C, inductor hot spot 130 C, junction 125 C). At V_A = V_B = 611 V (both legs hard-switching) even 5 % load exceeds the passive limits in steady state: there the start relies on the warm-up, not on a power limit. The fans are enabled once the inlet NTC reads above -10 C - the air near the intake warms from -30 to -10 C in about 48 min at PV-P75's module loss of 192 W (the 30 kg structure it follows; the air alone in 2 s) - and the fans start at ANY heatsink NTC above 80 C or inductor NTC above 135 C whatever the inlet reads (5 K above the passive-mode limits, below the 85 / 145 C derating levels of the second layer: a fan outside its rating beats an over-temperature trip; at 611/611 V and -30 C that happens after about 349 min). Open until a bench test: the passive capability itself. Fan alternatives (the fan selection is NOT changed): Sanyo Denki 9GT1224P1S001 (120 x 120 x 38 mm, -40..+85 C, 26.4 W at 100 %, i.e. over the 36 W SELV allocation of 3 fans) is the only fan ON FILE that reaches -30 C, at 88-113 USD each against 12.85 USD @504 for the Delta (gen/data/prices.csv): +225..+300 USD per module (3 fans). ebm-papst 4414/2HHP (119 x 119 x 38 mm, 24 V, 12 W, 285 m3/h, -20..+70 C, datasheet p.1 on file) reaches -20 C only, its supply range is 18..28 V (p.1; the 7-24 V supply-voltage speed law of the fan buck does not apply to it) and the speed signal is an option; price not on file, web-search snippets of 2026-10-05 (NOT verified on the pages, not in prices.csv): 33.94-78.89 USD (Octopart range), 55.92 USD (eBay, single), 64.59 USD (Newark), i.e. +63..+198 USD per module",
   "selection": [
    {
     "fan": "PFC1224DE-F00",
@@ -314,29 +314,29 @@
    "efficiency_basis": "everything inside the enclosure: phases (gate bias excluded there), port conduction (contactors, shunts, busbars, battery-port aR links), aux flyback input (gate bias, logic incl. the control board, contactor coils held, fans through the fan buck), varistor monitors, bleeders, dividers",
    "efficiency_corners_25C": {
     "550->950": 0.98943,
-    "950->550": 0.98886,
+    "950->550": 0.98885,
     "550->550": 0.98859,
     "950->950": 0.99153,
-    "611->950": 0.99056,
+    "611->950": 0.99055,
     "950->611": 0.99006,
     "611->611": 0.98914
    },
    "efficiency_corners_45C": {
     "550->950": 0.98888,
     "950->550": 0.98827,
-    "550->550": 0.98773,
+    "550->550": 0.98772,
     "950->950": 0.99071,
     "611->950": 0.99001,
-    "950->611": 0.98948,
-    "611->611": 0.98835
+    "950->611": 0.98947,
+    "611->611": 0.98834
    },
    "losses_by_group_W_611V_611V_full_45C": {
     "cells": 836.7,
     "port": 64.9,
-    "ctrl_aux": 24.2,
-    "fans": 46.8
+    "ctrl_aux": 24.4,
+    "fans": 47.0
    },
-   "heat_rejected_W_max_45C": 972.6,
+   "heat_rejected_W_max_45C": 973.0,
    "airflow_m3h_full_45C": 402.4,
    "airflow_per_cell_m3h": 134.1,
    "fan_speed_full_45C": 1.0,
@@ -468,7 +468,7 @@
     "port_X_caps_uF": null,
     "note": "PV-PWR: FCSA3DS456 45 uF on the common bus as drawn (design check 'Port banks'; PV-P75 rev A2: 6 + 7, the 7th on phase 2, D-056); no separate port-board X caps"
    },
-   "standby_W_estimate": 21.0,
+   "standby_W_estimate": 22.4,
    "port_current_limit_fraction_vs_inlet": [
     1.0,
     1.0,
@@ -507,7 +507,7 @@
     550.0,
     950.0
    ],
-   "efficiency_peak_megarevo_comparable": 0.99457,
+   "efficiency_peak_megarevo_comparable": 0.99456,
    "efficiency_peak_at": {
     "va": 900.0,
     "vb": 1000.0,
@@ -517,29 +517,29 @@
    "efficiency_basis": "everything inside the enclosure: phases (gate bias excluded there), port conduction (contactors, shunts, busbars, battery-port aR links), aux flyback input (gate bias, logic incl. the control board, contactor coils held, fans through the fan buck), varistor monitors, bleeders, dividers",
    "efficiency_corners_25C": {
     "550->950": 0.98928,
-    "950->550": 0.98942,
-    "550->550": 0.9896,
-    "950->950": 0.99133,
-    "611->950": 0.99036,
+    "950->550": 0.98941,
+    "550->550": 0.98959,
+    "950->950": 0.99132,
+    "611->950": 0.99035,
     "950->611": 0.9906,
-    "611->611": 0.99008
+    "611->611": 0.99007
    },
    "efficiency_corners_45C": {
-    "550->950": 0.98872,
-    "950->550": 0.98874,
-    "550->550": 0.9886,
-    "950->950": 0.99056,
-    "611->950": 0.98985,
+    "550->950": 0.98871,
+    "950->550": 0.98873,
+    "550->550": 0.98859,
+    "950->950": 0.99055,
+    "611->950": 0.98984,
     "950->611": 0.98993,
     "611->611": 0.98916
    },
    "losses_by_group_W_611V_611V_full_45C": {
     "cells": 801.0,
     "port": 74.9,
-    "ctrl_aux": 28.4,
-    "fans": 66.3
+    "ctrl_aux": 28.6,
+    "fans": 66.8
    },
-   "heat_rejected_W_max_45C": 1129.5,
+   "heat_rejected_W_max_45C": 1130.1,
    "airflow_m3h_full_45C": 455.9,
    "airflow_per_cell_m3h": 114.0,
    "fan_speed_full_45C": 0.96,
@@ -671,7 +671,7 @@
     "port_X_caps_uF": null,
     "note": "PV-PWR: FCSA3DS456 45 uF on the common bus as drawn (design check 'Port banks'; PV-P75 rev A2: 6 + 7, the 7th on phase 2, D-056); no separate port-board X caps"
    },
-   "standby_W_estimate": 21.6,
+   "standby_W_estimate": 22.8,
    "port_current_limit_fraction_vs_inlet": [
     0.806,
     0.806,
@@ -810,8 +810,8 @@
     },
     "efficiency_eu_weighted": {
      "750->750": 0.98804,
-     "min": 0.98525,
-     "max": 0.99301,
+     "min": 0.98524,
+     "max": 0.993,
      "grid_V": [
       550,
       750,
@@ -828,22 +828,22 @@
       1000
      ],
      "contactors_open_W": [
-      6.4,
-      7.0,
-      8.1,
-      9.7,
-      11.4
+      7.4,
+      8.0,
+      9.1,
+      10.7,
+      12.7
      ],
      "contactors_held_W": [
-      12.4,
-      13.5,
-      15.3,
-      18.0,
-      21.0
+      13.4,
+      14.5,
+      16.3,
+      19.0,
+      22.4
      ]
     },
     "standby_note": "gates off, fans off; open = contactors open (banks discharged, true standby); held = both contactors on the economiser (2.35 W typ each), banks charged (bleeders + bank dividers on)",
-    "aux_input_W_full_45C": 68.6,
+    "aux_input_W_full_45C": 69.1,
     "port_conduction_W_full_45C": 64.9,
     "port_film_bank": {
      "A": {
@@ -924,9 +924,9 @@
      "note": "below these the battery port carries LEAN_I_B x V_B"
     },
     "efficiency_eu_weighted": {
-     "750->750": 0.98779,
+     "750->750": 0.98778,
      "min": 0.98512,
-     "max": 0.99271,
+     "max": 0.9927,
      "grid_V": [
       550,
       750,
@@ -943,22 +943,22 @@
       1000
      ],
      "contactors_open_W": [
-      6.9,
-      7.5,
-      8.6,
-      10.1,
-      12.0
+      7.9,
+      8.4,
+      9.6,
+      11.2,
+      13.2
      ],
      "contactors_held_W": [
-      12.9,
       13.9,
-      15.8,
-      18.4,
-      21.6
+      14.9,
+      16.8,
+      19.4,
+      22.8
      ]
     },
     "standby_note": "gates off, fans off; open = contactors open (banks discharged, true standby); held = both contactors on the economiser (2.35 W typ each), banks charged (bleeders + bank dividers on)",
-    "aux_input_W_full_45C": 92.4,
+    "aux_input_W_full_45C": 93.1,
     "port_conduction_W_full_45C": 74.9,
     "port_film_bank": {
      "A": {
@@ -1080,7 +1080,7 @@
      "L_45A_uH": 301.2,
      "inductor_usd_per_phase": 47.3,
      "peak_eff": 0.99545,
-     "loss_at_peak_point_W": 226.0,
+     "loss_at_peak_point_W": 226.1,
      "tj_max_45C_C": 98.2,
      "t_sink_45C_C": 75.4,
      "heatsink_extra_usd": 0.0,
@@ -1094,7 +1094,7 @@
      "L_45A_uH": 225.9,
      "inductor_usd_per_phase": 40.5,
      "peak_eff": 0.9947,
-     "loss_at_peak_point_W": 263.7,
+     "loss_at_peak_point_W": 263.8,
      "tj_max_45C_C": 109.5,
      "t_sink_45C_C": 82.2,
      "heatsink_extra_usd": 0.0,
@@ -1107,8 +1107,8 @@
      "fsw_kHz": 40.0,
      "L_45A_uH": 180.7,
      "inductor_usd_per_phase": 36.1,
-     "peak_eff": 0.99393,
-     "loss_at_peak_point_W": 302.4,
+     "peak_eff": 0.99392,
+     "loss_at_peak_point_W": 302.6,
      "tj_max_45C_C": 122.1,
      "t_sink_45C_C": 89.9,
      "heatsink_extra_usd": 2.1,
@@ -1122,7 +1122,7 @@
      "L_45A_uH": 150.6,
      "inductor_usd_per_phase": 33.1,
      "peak_eff": 0.99313,
-     "loss_at_peak_point_W": 342.4,
+     "loss_at_peak_point_W": 342.5,
      "tj_max_45C_C": 136.2,
      "t_sink_45C_C": 98.5,
      "heatsink_extra_usd": 7.2,
@@ -1136,7 +1136,7 @@
      "L_45A_uH": 112.9,
      "inductor_usd_per_phase": 29.0,
      "peak_eff": 0.98221,
-     "loss_at_peak_point_W": 896.4,
+     "loss_at_peak_point_W": 896.8,
      "tj_max_45C_C": 171.1,
      "t_sink_45C_C": 119.8,
      "heatsink_extra_usd": 39.1,
@@ -1217,21 +1217,21 @@
         "611/611": {
          "kW": 0.0,
          "fraction_of_P_max": 0.0,
-         "enclosure_air_C": 45.6,
+         "enclosure_air_C": 45.7,
          "heatsink_C": 91.4,
-         "junction_C": 97.7,
-         "inductor_hot_spot_C": 48.8,
-         "module_loss_W": 181.5,
-         "override_after_min": 350.0
+         "junction_C": 97.8,
+         "inductor_hot_spot_C": 48.9,
+         "module_loss_W": 181.7,
+         "override_after_min": 349.0
         },
         "950/611": {
          "kW": 23.3,
          "fraction_of_P_max": 0.282,
-         "enclosure_air_C": 46.1,
+         "enclosure_air_C": 46.2,
          "heatsink_C": 74.4,
-         "junction_C": 79.3,
+         "junction_C": 79.4,
          "inductor_hot_spot_C": 108.1,
-         "module_loss_W": 182.7,
+         "module_loss_W": 182.8,
          "override_after_min": null
         },
         "611/950": {
@@ -1239,26 +1239,26 @@
          "fraction_of_P_max": 0.284,
          "enclosure_air_C": 45.9,
          "heatsink_C": 74.4,
-         "junction_C": 79.0,
-         "inductor_hot_spot_C": 108.0,
-         "module_loss_W": 182.1,
+         "junction_C": 79.1,
+         "inductor_hot_spot_C": 108.1,
+         "module_loss_W": 182.2,
          "override_after_min": null
         },
         "1000/500": {
          "kW": 19.2,
          "fraction_of_P_max": 0.284,
-         "enclosure_air_C": 49.8,
+         "enclosure_air_C": 49.9,
          "heatsink_C": 74.8,
-         "junction_C": 77.8,
-         "inductor_hot_spot_C": 124.4,
-         "module_loss_W": 191.6,
+         "junction_C": 77.9,
+         "inductor_hot_spot_C": 124.5,
+         "module_loss_W": 191.8,
          "override_after_min": null
         }
        },
        "kW_at_equal_voltages": 0.0,
-       "kW_pessimistic": 6.8,
+       "kW_pessimistic": 6.6,
        "kW_optimistic": 24.2,
-       "module_loss_W": 191.6,
+       "module_loss_W": 191.8,
        "R_sa_natural_K_W": 0.453
       },
       {
@@ -1272,31 +1272,31 @@
         "611/611": {
          "kW": 0.0,
          "fraction_of_P_max": 0.0,
-         "enclosure_air_C": 58.6,
-         "heatsink_C": 108.0,
-         "junction_C": 114.6,
-         "inductor_hot_spot_C": 61.6,
-         "module_loss_W": 188.6,
+         "enclosure_air_C": 58.7,
+         "heatsink_C": 108.1,
+         "junction_C": 114.7,
+         "inductor_hot_spot_C": 61.7,
+         "module_loss_W": 188.8,
          "override_after_min": 199.0
         },
         "950/611": {
          "kW": 21.4,
          "fraction_of_P_max": 0.26,
          "enclosure_air_C": 49.1,
-         "heatsink_C": 74.0,
-         "junction_C": 77.8,
-         "inductor_hot_spot_C": 108.9,
-         "module_loss_W": 165.7,
+         "heatsink_C": 74.1,
+         "junction_C": 77.9,
+         "inductor_hot_spot_C": 109.0,
+         "module_loss_W": 165.9,
          "override_after_min": null
         },
         "611/950": {
          "kW": 21.6,
          "fraction_of_P_max": 0.262,
          "enclosure_air_C": 48.9,
-         "heatsink_C": 74.1,
+         "heatsink_C": 74.2,
          "junction_C": 77.7,
-         "inductor_hot_spot_C": 108.9,
-         "module_loss_W": 165.3,
+         "inductor_hot_spot_C": 109.0,
+         "module_loss_W": 165.5,
          "override_after_min": null
         },
         "1000/500": {
@@ -1304,16 +1304,16 @@
          "fraction_of_P_max": 0.26,
          "enclosure_air_C": 53.2,
          "heatsink_C": 74.9,
-         "junction_C": 76.9,
+         "junction_C": 77.0,
          "inductor_hot_spot_C": 125.5,
-         "module_loss_W": 175.7,
+         "module_loss_W": 175.8,
          "override_after_min": null
         }
        },
        "kW_at_equal_voltages": 0.0,
        "kW_pessimistic": 0.0,
        "kW_optimistic": 22.4,
-       "module_loss_W": 175.7,
+       "module_loss_W": 175.8,
        "R_sa_natural_K_W": 0.507
       },
       {
@@ -1327,11 +1327,11 @@
         "611/611": {
          "kW": 0.0,
          "fraction_of_P_max": 0.0,
-         "enclosure_air_C": 71.6,
-         "heatsink_C": 125.0,
-         "junction_C": 131.8,
+         "enclosure_air_C": 71.7,
+         "heatsink_C": 125.1,
+         "junction_C": 131.9,
          "inductor_hot_spot_C": 74.5,
-         "module_loss_W": 195.9,
+         "module_loss_W": 196.1,
          "override_after_min": 125.0
         },
         "950/611": {
@@ -1339,36 +1339,36 @@
          "fraction_of_P_max": 0.237,
          "enclosure_air_C": 52.8,
          "heatsink_C": 74.7,
-         "junction_C": 77.4,
+         "junction_C": 77.5,
          "inductor_hot_spot_C": 110.6,
-         "module_loss_W": 150.6,
+         "module_loss_W": 150.8,
          "override_after_min": null
         },
         "611/950": {
          "kW": 19.7,
          "fraction_of_P_max": 0.239,
          "enclosure_air_C": 52.7,
-         "heatsink_C": 74.8,
+         "heatsink_C": 74.9,
          "junction_C": 77.4,
-         "inductor_hot_spot_C": 110.6,
-         "module_loss_W": 150.4,
+         "inductor_hot_spot_C": 110.7,
+         "module_loss_W": 150.5,
          "override_after_min": null
         },
         "1000/500": {
          "kW": 15.5,
          "fraction_of_P_max": 0.23,
-         "enclosure_air_C": 56.5,
-         "heatsink_C": 74.7,
-         "junction_C": 76.0,
-         "inductor_hot_spot_C": 126.4,
-         "module_loss_W": 159.7,
+         "enclosure_air_C": 56.6,
+         "heatsink_C": 74.8,
+         "junction_C": 76.1,
+         "inductor_hot_spot_C": 126.5,
+         "module_loss_W": 159.8,
          "override_after_min": null
         }
        },
        "kW_at_equal_voltages": 0.0,
        "kW_pessimistic": 0.0,
        "kW_optimistic": 20.5,
-       "module_loss_W": 159.7,
+       "module_loss_W": 159.8,
        "R_sa_natural_K_W": 0.585
       }
      ],
@@ -1392,48 +1392,48 @@
         "611/611": {
          "kW": 0.0,
          "fraction_of_P_max": 0.0,
-         "enclosure_air_C": 82.8,
-         "heatsink_C": 148.4,
-         "junction_C": 155.4,
-         "inductor_hot_spot_C": 85.5,
-         "module_loss_W": 270.7,
-         "override_after_min": 113.0
+         "enclosure_air_C": 82.9,
+         "heatsink_C": 148.6,
+         "junction_C": 155.6,
+         "inductor_hot_spot_C": 85.6,
+         "module_loss_W": 271.0,
+         "override_after_min": 112.0
         },
         "950/611": {
          "kW": 25.6,
          "fraction_of_P_max": 0.233,
-         "enclosure_air_C": 50.7,
-         "heatsink_C": 74.7,
+         "enclosure_air_C": 50.8,
+         "heatsink_C": 74.8,
          "junction_C": 77.3,
-         "inductor_hot_spot_C": 108.5,
-         "module_loss_W": 193.8,
+         "inductor_hot_spot_C": 108.6,
+         "module_loss_W": 194.0,
          "override_after_min": null
         },
         "611/950": {
-         "kW": 25.9,
-         "fraction_of_P_max": 0.236,
-         "enclosure_air_C": 50.6,
-         "heatsink_C": 75.0,
-         "junction_C": 77.3,
-         "inductor_hot_spot_C": 108.6,
-         "module_loss_W": 193.5,
+         "kW": 25.7,
+         "fraction_of_P_max": 0.234,
+         "enclosure_air_C": 50.0,
+         "heatsink_C": 74.0,
+         "junction_C": 76.3,
+         "inductor_hot_spot_C": 108.0,
+         "module_loss_W": 192.0,
          "override_after_min": null
         },
         "1000/500": {
          "kW": 19.9,
          "fraction_of_P_max": 0.221,
-         "enclosure_air_C": 55.1,
-         "heatsink_C": 74.7,
-         "junction_C": 75.9,
+         "enclosure_air_C": 55.2,
+         "heatsink_C": 74.8,
+         "junction_C": 76.0,
          "inductor_hot_spot_C": 124.8,
-         "module_loss_W": 204.3,
+         "module_loss_W": 204.5,
          "override_after_min": null
         }
        },
        "kW_at_equal_voltages": 0.0,
        "kW_pessimistic": 0.0,
        "kW_optimistic": 26.9,
-       "module_loss_W": 204.3,
+       "module_loss_W": 204.5,
        "R_sa_natural_K_W": 0.515
       },
       {
@@ -1447,53 +1447,53 @@
         "611/611": {
          "kW": 0.0,
          "fraction_of_P_max": 0.0,
-         "enclosure_air_C": 99.1,
-         "heatsink_C": 171.7,
-         "junction_C": 178.9,
-         "inductor_hot_spot_C": 101.7,
-         "module_loss_W": 285.9,
+         "enclosure_air_C": 99.3,
+         "heatsink_C": 171.9,
+         "junction_C": 179.1,
+         "inductor_hot_spot_C": 101.8,
+         "module_loss_W": 286.2,
          "override_after_min": 75.0
         },
         "950/611": {
-         "kW": 23.4,
-         "fraction_of_P_max": 0.212,
-         "enclosure_air_C": 54.0,
-         "heatsink_C": 74.9,
-         "junction_C": 76.7,
-         "inductor_hot_spot_C": 110.1,
-         "module_loss_W": 177.7,
+         "kW": 23.2,
+         "fraction_of_P_max": 0.211,
+         "enclosure_air_C": 53.6,
+         "heatsink_C": 74.3,
+         "junction_C": 76.0,
+         "inductor_hot_spot_C": 109.7,
+         "module_loss_W": 176.7,
          "override_after_min": null
         },
         "611/950": {
          "kW": 23.5,
          "fraction_of_P_max": 0.213,
-         "enclosure_air_C": 53.4,
-         "heatsink_C": 74.4,
-         "junction_C": 76.0,
-         "inductor_hot_spot_C": 109.6,
-         "module_loss_W": 176.3,
+         "enclosure_air_C": 53.5,
+         "heatsink_C": 74.5,
+         "junction_C": 76.1,
+         "inductor_hot_spot_C": 109.7,
+         "module_loss_W": 176.4,
          "override_after_min": null
         },
         "1000/500": {
          "kW": 14.9,
          "fraction_of_P_max": 0.165,
-         "enclosure_air_C": 57.8,
+         "enclosure_air_C": 57.9,
          "heatsink_C": 74.9,
          "junction_C": 75.9,
-         "inductor_hot_spot_C": 124.2,
-         "module_loss_W": 186.8,
+         "inductor_hot_spot_C": 124.3,
+         "module_loss_W": 187.0,
          "override_after_min": null
         }
        },
        "kW_at_equal_voltages": 0.0,
        "kW_pessimistic": 0.0,
        "kW_optimistic": 24.7,
-       "module_loss_W": 186.8,
+       "module_loss_W": 187.0,
        "R_sa_natural_K_W": 0.58
       },
       {
        "inlet_C": -10.0,
-       "kW": 5.0,
+       "kW": 4.9,
        "limiting_point_V": [
         1000,
         500
@@ -1502,49 +1502,49 @@
         "611/611": {
          "kW": 0.0,
          "fraction_of_P_max": 0.0,
-         "enclosure_air_C": 115.8,
-         "heatsink_C": 195.8,
-         "junction_C": 203.2,
-         "inductor_hot_spot_C": 118.1,
-         "module_loss_W": 301.8,
+         "enclosure_air_C": 115.9,
+         "heatsink_C": 196.0,
+         "junction_C": 203.4,
+         "inductor_hot_spot_C": 118.3,
+         "module_loss_W": 302.2,
          "override_after_min": 50.0
         },
         "950/611": {
-         "kW": 20.6,
-         "fraction_of_P_max": 0.187,
-         "enclosure_air_C": 57.4,
-         "heatsink_C": 75.0,
-         "junction_C": 76.0,
-         "inductor_hot_spot_C": 111.6,
-         "module_loss_W": 161.7,
+         "kW": 20.4,
+         "fraction_of_P_max": 0.186,
+         "enclosure_air_C": 57.1,
+         "heatsink_C": 74.5,
+         "junction_C": 75.5,
+         "inductor_hot_spot_C": 111.3,
+         "module_loss_W": 161.0,
          "override_after_min": null
         },
         "611/950": {
-         "kW": 20.8,
-         "fraction_of_P_max": 0.189,
-         "enclosure_air_C": 57.2,
-         "heatsink_C": 75.0,
-         "junction_C": 76.1,
-         "inductor_hot_spot_C": 111.5,
-         "module_loss_W": 161.2,
+         "kW": 20.6,
+         "fraction_of_P_max": 0.187,
+         "enclosure_air_C": 56.8,
+         "heatsink_C": 74.3,
+         "junction_C": 75.4,
+         "inductor_hot_spot_C": 111.1,
+         "module_loss_W": 160.3,
          "override_after_min": null
         },
         "1000/500": {
-         "kW": 5.0,
-         "fraction_of_P_max": 0.056,
+         "kW": 4.9,
+         "fraction_of_P_max": 0.054,
          "enclosure_air_C": 60.5,
          "heatsink_C": 74.9,
          "junction_C": 75.7,
          "inductor_hot_spot_C": 123.3,
-         "module_loss_W": 169.1,
+         "module_loss_W": 169.2,
          "override_after_min": null
         }
        },
        "kW_at_equal_voltages": 0.0,
        "kW_pessimistic": 0.0,
        "kW_optimistic": 22.3,
-       "module_loss_W": 169.1,
-       "R_sa_natural_K_W": 0.666
+       "module_loss_W": 169.2,
+       "R_sa_natural_K_W": 0.667
       }
      ],
      "R_sa_forced_K_W": 0.0475,

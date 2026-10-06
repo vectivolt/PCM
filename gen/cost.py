@@ -25,9 +25,9 @@ REPO = os.path.dirname(HERE)
 DATA = os.path.join(HERE, "data")
 sys.path.insert(0, HERE)
 
-MODULES = {"PV-P75": [75.0], "PV-P100-110": [100.0, 110.0], "PCS-P125": [125.0],   # cost-first baseline (D-044, D-061)
+MODULES = {"PV-P75": [75.0], "PV-P100-110": [100.0, 110.0], "PCS-P125": [125.0], "PCS-P125-4W": [125.0],   # cost-first (D-044, D-061)
            "PV-P75-FULL": [75.0], "PV-P100-110-FULL": [100.0, 110.0], "DAB-D60-FULL": [60.0]}   # rated kW (REQUIREMENTS PV-01, PV-15, DAB-01)
-MODULE_AMPS = {"PV-P75": 135.0, "PV-P100-110": 180.0, "PCS-P125": 250.0, "PV-P75-FULL": 135.0, "PV-P100-110-FULL": 180.0, "DAB-D60-FULL": 135.0}   # rated port current (PV-05/PV-08, PV-PORT-180, DAB port fuses)
+MODULE_AMPS = {"PV-P75": 135.0, "PV-P100-110": 180.0, "PCS-P125": 250.0, "PCS-P125-4W": 250.0, "PV-P75-FULL": 135.0, "PV-P100-110-FULL": 180.0, "DAB-D60-FULL": 135.0}   # rated port current (PV-05/PV-08, PV-PORT-180, DAB port fuses)
 QTY_CAP = 1000          # catalogue price: the break at the highest quantity at or below this many pieces
 BUILD_UNITS = 5000      # SRC-6: the volume basis; the annual quantity of a line is BUILD_UNITS x its per-module quantity
 EVIDENCE_MIN_BREAK = 1000   # a 5,000-unit price is REAL only if it is a published price at a break of at least this many pieces
@@ -155,7 +155,7 @@ RULES = [   # (group, regex on the descriptor = Description without its leading 
     (G_POWER, r"^(SiC |N-MOSFET 1[2-9]\d\d|IGBT|Rectifier 1[2-9]00|dual rectifier diode module|diode module|full-bridge)"),
     (G_THERM, r"^(Fan |Gravity backflow|Plate-fin|Liquid cold plate|low-level bimetal|bimetal thermostat|reed flow switch|heatsink|Finger guard|TO-247 heatsink INSULATOR)"),
     (G_MAG, r"^(flyback transformer|series inductor|HF power transformer|common-mode choke|power inductor|Power inductor|Push-pull transformer \d|Ferrite bead|bolted busbar link|AUX-T1|Gate-bias transformer|nanocrystalline ring core)"),
-    (G_PROT, r"^(fuse|Fuse|TVS|DC terminal|main contactor|SPD|PV surge|DC SPD|Precharge relay|Varistor|Y1 capacitor|2-channel 24 V CAN bus ESD|RS-485 asymmetric TVS|precharge resistor|discharge resistor|DC surge|aR fuse|Isolated 1700 V back-to-back|Thermally protected varistor|Relay|Contactor|[A-Za-z0-9 ]*contactor|Hongfa)|SPD backup fuse|surge arrester|varistor"),
+    (G_PROT, r"^(fuse|Fuse|TVS|DC terminal|AC terminal|main contactor|SPD|PV surge|DC SPD|Precharge relay|Varistor|Y1 capacitor|2-channel 24 V CAN bus ESD|RS-485 asymmetric TVS|precharge resistor|discharge resistor|DC surge|aR fuse|Isolated 1700 V back-to-back|Thermally protected varistor|Relay|Contactor|[A-Za-z0-9 ]*contactor|Hongfa)|SPD backup fuse|surge arrester|varistor"),
     (G_SENSE, r"^(shunt|Closed-loop Hall|Open-loop|Reinforced isolated amplifier|HV thin-film resistor|HV chip resistor|Thin-film resistor|NTC probe|NTC lug|NTC 10 k|shunt NTC|I2C temperature sensor|Shunt NTC|Current sense resistor|NTC leads)"),
     (G_CONN, r"^(PCB header|Pluggable header|Shrouded box header|Socket strip|Header |cTI-20|Board-to-board|Host header|SDFM expansion|Debug UART|Service jumper|Control connector|PORT connector|HV wire terminal|PCB HV connection|RJ45|\d+-pole|\d+-way|Port A and port B|PORT 1 ONLY|AUX-HV to SYS-IO-AUX|PV-PORT control connector|DAB60 control connector|A_BUS|Fan header|SELV 24 V|REDCUBE|Press-fit|Ring lug)"),
     (G_CAP, r"^(Capacitor|DC-link PP film|PP film|Film capacitor|Aluminium electrolytic|Aluminium polymer|X capacitor film|snubber MLCC|DC-link terminal MLCC)"),
@@ -167,7 +167,7 @@ BOARD_DEFAULT = {"CTRL-C2000": G_CTRL, "BMU-GW": G_CTRL, "SYS-IO-AUX": G_CTRL, "
                  "DAB60": G_GATE, "PV-PORT": G_PROT, "PV-PORT-180": G_PROT, "PV-CTL": G_CTRL, "PV-PWR": G_GATE, "PV-PWR-4": G_GATE}
 NAMED = (("cell harness", G_CONN), ("port harness", G_CONN), ("coil/feedback harness", G_CONN), ("J801 link plug", G_CONN), ("busbar", G_CONN),
          ("AUX-HV input harness", G_CONN), ("AUX-HV output harness", G_CONN), ("harness set", G_CONN), ("heatsink", G_THERM), ("cold plate", G_THERM),
-         ("backflow shutter", G_THERM), ("120 mm wire guard", G_THERM), ("PAD AlN", G_THERM), ("PA66 standoff", G_CONN), ("DC terminal", G_PROT),
+         ("backflow shutter", G_THERM), ("120 mm wire guard", G_THERM), ("PAD AlN", G_THERM), ("PA66 standoff", G_CONN), ("DC terminal", G_PROT), ("AC terminal", G_PROT),
          ("Gate-bias transformer", G_MAG), ("NTC 10k lug probe", G_SENSE))
 
 
@@ -580,7 +580,7 @@ def pcs_section(results):
 ALIAS = {   # architect's part name -> BOM Value / MPN it stands for (the list and the BOM name some parts differently)
     "FCSA3DS456 (CBB138 DS)": "FCSA3DS456K050H8F9DE3", "FCSA3DS225 (CBB138 DS)": "FCSA3DS225K050IC90BE3", "AlN pad TO-247 (Innovacera class)": "PAD AlN 1 mm (CUSTOM)",
     "4.7n 2000V C0G 2220": "4.7n 2000V", "Al extrusion (CUSTOM)": "heatsink", "TO-247 spring clip": "heatsink", "G-779 class": "heatsink",
-    "DC terminal (CUSTOM)": "DC terminal", "STK-HO/A 130": "STK-HO/A 75", "NTC probe 10k B3950 (insulated lug)": "NTC 10k lug probe", "CA-IS3062W": "CA-IS3062VW",
+    "DC terminal (CUSTOM)": "DC terminal", "AC terminal (CUSTOM)": "AC terminal", "STK-HO/A 130": "STK-HO/A 75", "NTC probe 10k B3950 (insulated lug)": "NTC 10k lug probe", "CA-IS3062W": "CA-IS3062VW",
     "IV2Q171R0D7Z / SG2M1K0170J2J": "IV2Q171R0D7Z", "REDCUBE-class press-fit M4": "7461057", "X 2.2u 1300V (RFQ)": "X 2.2u 1300V RFQ", "CNY65B + 12 x 2512": "CNY65B",
     "GDB-T1 (CUSTOM, EP10 class)": "Gate-bias transformer", "AUX-T1 (CUSTOM, EC41/ETD39 class)": "AUX-T1 75 W", "3920 metal-strip 0.2 mOhm (CSS2H-3920 class)": "CSS2H-3920R-L200F",
     "nanocrystalline ring ~63x38x25 mm": "N-C-644025", "RXLG 200 W 220R class": "220R RFQ", "CA-IS3821LW (or LWW, 15 mm)": "CA-IS3821LG", "X9555WV-2x30 + socket": "X9555WV-2x32-6TV01"}

@@ -6,7 +6,7 @@
 	(paper "A3")
 	(title_block
 		(title "PCS-P125 power - Cover / Hierarchy")
-		(date "2026-10-05")
+		(date "2026-10-06")
 		(rev "A0")
 		(comment 1 "Live board referenced to DC-; gate islands functional; HV-PE basic")
 		(comment 2 "Schematics authored by Chinmoy Bhuyan")
@@ -24,6 +24,17 @@
 			(justify left top)
 		)
 		(uuid "0b7e35e3-3356-5c66-a3b8-37b80f5f6e46")
+	)
+	(text "Grid tap (K2O_x): 20 ohm, 1.6 A / 500 V AC fuse, 6 x BYG10Y; OR diode into the aux\ninput; AC precharge G7L-2A-X + 220 ohm from the tap's + rail to DC+ (K_ACPRE)"
+		(exclude_from_sim no)
+		(at 214.5 318 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "0d0b4f99-2589-5492-aa5c-e86171802331")
 	)
 	(text "PCS_PC (= PC pin for pin, 2x32) and PCS_X (2x8) to PV-CTL (PCS assembly);\ncommand pull-downs, RDY pull-up, DC- star points"
 		(exclude_from_sim no)
@@ -47,7 +58,7 @@
 		)
 		(uuid "127d2825-1735-5380-92c3-09caf80be1d1")
 	)
-	(text "Stages 1-6 drawn (gen/pcs_power.py header); OPEN items listed there and in the design check."
+	(text "Stages 1-7 drawn (gen/pcs_power.py header); OPEN items listed there and in the design check."
 		(exclude_from_sim no)
 		(at 20 240 0)
 		(effects
@@ -69,7 +80,7 @@
 		)
 		(uuid "1ead411c-92ff-51d4-b7b7-37d7a383519a")
 	)
-	(text "Rev A0  |  2026-10-05  |  Schematics authored by Chinmoy Bhuyan  |  PCS-P125: two-level SiC bridge (6 x SG2M040170HJ per switch), split DC link, LCL, ports"
+	(text "Rev A0  |  2026-10-06  |  Schematics authored by Chinmoy Bhuyan  |  PCS-P125: two-level SiC bridge (6 x SG2M040170HJ per switch), split DC link, LCL, ports"
 		(exclude_from_sim no)
 		(at 20 36 0)
 		(effects
@@ -201,7 +212,7 @@
 		)
 		(uuid "7d9eb531-e6d8-531e-8dff-4259518ac0f3")
 	)
-	(text "As AUX-HV rev C1 sheet 02: 3 x BSS126 cascode, TPS3710 brown-in 206-215 V,\nTLV3202 OV lockout 1107-1162 V and overload timer 35-80 ms"
+	(text "As AUX-HV rev C1 sheet 02: 3 x BSS126 cascode, TPS3710 brown-in 206-215 V,\nTLV3202 OV lockout 1107-1162 V and overload timer 39-100 ms"
 		(exclude_from_sim no)
 		(at 310.5 274 0)
 		(effects
@@ -223,7 +234,7 @@
 		)
 		(uuid "8006160e-bbf9-5ca0-9c05-d01627ce26d2")
 	)
-	(text "Live 23.62-24.68 V (FB); SELV 20.3-29.8 V over the load table,\ngates off 20.3-28.2 V; hold-up 52 ms at 11 W;\nstatus = TPS3700 OUTA (UV); OUTB (OV) pulls SS low"
+	(text "Live 23.62-24.68 V (FB); SELV 21.4-30.1 V over the load table,\ngates off 21.4-27.7 V; hold-up 52 ms at 11 W;\nstatus = TPS3700 OUTA (UV); OUTB (OV) pulls SS low"
 		(exclude_from_sim no)
 		(at 118.5 318 0)
 		(effects
@@ -268,7 +279,7 @@
 		)
 		(uuid "c86bffdf-7d3f-58b9-ab1a-439cfe39ca75")
 	)
-	(text "UCC28C59-Q1 64.9 kHz, IV2Q171R0D7Z, Lp 0.485 mH, Np:Nlive:Nselv 48:8:9;\nlive 24 V regulated by the FB divider (no opto); VDD from the live 24 V\nthrough the BC817 follower; foldback detector on the live winding"
+	(text "UCC28C59-Q1 64.9 kHz, IV2Q171R0D7Z, Lp 0.485 mH, Np:Nlive:Nselv 50:9:10;\nlive 24 V regulated by the FB divider (no opto); VDD from the live 24 V\nthrough the BC817 follower; foldback detector on the live winding"
 		(exclude_from_sim no)
 		(at 22.5 318 0)
 		(effects
@@ -1574,6 +1585,53 @@
 			(project "PCS-PWR"
 				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
 					(page "26")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 212 314)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "fd88399b-ecad-52e1-9472-e7e98286ca65")
+		(property "Sheetname" "27 AC start-up: grid tap, AC precharge"
+			(at 212 313.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/27_acstart.kicad_sch"
+			(at 212 340.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCS-PWR"
+				(path "/e78e18d1-aa0f-5e79-9283-dd22b813bb9f"
+					(page "28")
 				)
 			)
 		)

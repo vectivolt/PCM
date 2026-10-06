@@ -20,9 +20,11 @@ docs/requirements/ARCHITECTURE-COSTFIRST.md sections 0, 1.2, 2, 5, 6, 7, 10).
              active. 6 x 74LVC08 gate the 16 PWM lines, EN, K_PRE and STATUS with HEALTHY; K_A / K_B with HEALTHY OR
              HOLD (a trip never commands a held contactor open); fan PWM with BIAS_EN. +24V / +5V of PC unused.
   barrier B1 (reinforced): CA-IS3050W (CAN, 12.8 kV), CA-IS3082WNX (RS-485), 2 x CA-IS3821LG + CA-IS3820LG (ENABLE
-             in, STATUS out, fan speed out, 3 tachs in). Conformal coating PD1 over the B1 zone is mandatory.
+             in, STATUS out, fan speed out, 3 tachs in), CA-IS3842HW (Ethernet UART, DI1). Conformal coating PD1 over the
+             B1 zone is mandatory.
   SELV zone  SELV 12-36 V in (AUX-T1 reinforced winding), TPS54360B 5 V and TPS54360B fan supply (7-24 V, set by the
-             isolated PWM), 3 fan headers, CAN / RS-485 field protection, ENABLE / STATUS terminal.
+             isolated PWM), 3 fan headers, CAN / RS-485 field protection, stop (chainable) / ready / DI1 / relay terminals,
+             Ethernet bridge option (sheet NN_eth).
 Nothing here is bench-validated: every number in design_check() is calculated.
 Usage: .venv/bin/python gen/pv_ctrl.py
 Rev A1 (2026-10-05, D-056): IL trip thresholds from each sensor's Uref (ILnR, PV-PWR rev A2): 68.9-79.9 A, was 66.2-79.9 A.
@@ -30,6 +32,15 @@ PCM review (same revision letter, values re-calculated): every TLV9024 band now 
 dB at 3.3 V, risk C9) and the data-sheet propagation delay at the overdrive the ramp builds: IL window 67.9-80.5 A (the 68.5 A floor is
 NOT met: see the [OPEN] item of the design check), OV ladder 2.05k / 11.3k (1074 V nominal, 1039-1110 V); fan supply contract with PV-PWR;
 firmware table row for the fans' cold-start rule (module_spec.json).
+Rev A2 (2026-10-06, Megarevo PMA parity): (1) Ethernet for the EMS (Modbus TCP) on the SELV side: WCH CH9121T UART-to-Ethernet
+bridge (10/100, MAC + PHY + TCP/IP) + HanRun HR913550AE RJ45 (magnetics, LEDs, -40..85 C) + SRV05-4 + TPS7A2033 3.3 V; the UART
+crosses B1 on a CA-IS3842HW (4-ch, VIOSM 8 kV) on SCIB (GPIO56/57). FITTED on the PCS variants, NOT FITTED (footprints only) on
+PV-CTL / PV-CTL-P75 (variant from PROJECT). The W5500 alternative is costed in the design check. (2) Recorder flash GD25Q32E 4 MB
+on SPIA (GPIO18/54/55, CS GPIO37) replaces the I2C EEPROM (fault records, two firmware images, calibration). Pins: cJTAG only
+(TDI/TDO = GPIO35/37 as GPIO), TACH1/2 to GPIO35/34, the run LED on WD_OK (no GPIO), the MCU reads PRE_N instead of OC_N and
+OVT_N (GPIO17; GPIO52 = DI1). (3) SELV I/O: stop input with loop-through (chain), ready permissive in series with it, DI1
+(battery fault / BMS contact, 5 V wetting) through the CA-IS3842HW, changeover relay (ready / fault) on the STATUS channel.
+(4) Altitude: B1 isolator ratings parsed from the data sheets; the 15 mm (WW) set costs more than 1 USD per board: 2000 m kept.
 """
 import csv
 import hashlib
@@ -47,7 +58,7 @@ import interfaces as IF
 import port
 import sys_io_aux
 
-PROJECT, REV, DATE = "PV-CTL", "A1", "2026-10-05"
+PROJECT, REV, DATE = "PV-CTL", "A2", "2026-10-06"
 HERE = os.path.dirname(os.path.abspath(__file__))
 MCU_DS = "docs/datasheets/controllers/TMS320F28003x.pdf"
 PLAN_CSV = os.path.join(HERE, "data", "pv_ctrl_pin_plan.csv")
@@ -199,8 +210,8 @@ def ic(mfr, mpn, pkg, ds, desc, left, right, prefix="U"):
 
 
 SIO, PRT = sys_io_aux.CATALOG, port.PARTS
-PARTS = {k: SIO[k] for k in ("SN74LVC08A", "SN74LVC1G74", "2N7002BK", "LED_G", "LED_R", "MH")}
-PARTS.update({k: PRT[k] for k in ("REF3030E", "LVC1G32")})
+PARTS = {k: SIO[k] for k in ("SN74LVC08A", "SN74LVC1G74", "2N7002BK", "LED_G", "LED_R", "MH", "TPS7A2033")}
+PARTS.update({k: PRT[k] for k in ("REF3030E", "LVC1G32", "BAS16")})
 PARTS.update({
     # CA-IS382x v1.06 section 6 pin figures (SOIC8-WB "G"): 3820 = 2 forward, 3821 = 1 forward + 1 reverse;
     # section 4 ordering table: suffix L = default output LOW when the input side is unpowered or the input open
@@ -250,10 +261,48 @@ PARTS.update({
     "REF3030": ic(TI, "REF3030AIDBZR", "SOT-23-3 (DBZ)", "sensing/REF3030.pdf",
                   "Voltage reference 3.0 V 0.2 % 75 ppm/K, 25 mA, VIN >= VOUT + 50 mV (ADC / CMPSS / NTC reference)",
                   ["1 IN pi", "3 GND pi"], ["2 OUT po"]),
-    # Belling BL24C256A pin configuration (SOP-8): 1 A0, 2 A1, 3 A2, 4 GND, 5 SDA, 6 SCL, 7 WP, 8 VCC
-    "BL24C256A": ic("Shanghai Belling", "BL24C256A-PARC", "SOP-8", "controllers/Belling-BL24C256A.pdf",
-                    "EEPROM 256 kbit I2C 1 MHz, hardware write protect", ["8 VCC pi", "1 A0 i", "2 A1 i", "3 A2 i",
-                                                                         "7 WP i", "4 GND pi"], ["5 SDA b", "6 SCL i"]),
+    # GigaDevice GD25Q32E rev 1.1 table 1 (SOP8 208 mil, p.6): 1 CS#, 2 SO (IO1), 3 WP# (IO2), 4 VSS, 5 SI (IO0), 6 SCLK,
+    # 7 HOLD# (IO3), 8 VCC; QE = 0 as shipped (WP# and HOLD# active, 'QE bit'); grade I = -40..85 C (rev A2: replaces the I2C EEPROM)
+    "GD25Q32E": ic("GigaDevice", "GD25Q32ESIGR", "SOP-8 208 mil", "controllers/GD25Q32E.pdf",
+                   "SPI NOR flash 32 Mbit (4 MB), 133 MHz, 100k cycles, 20 y retention, -40..85 C (fault recorder, images)",
+                   ["8 VCC pi", "1 CS# i", "6 SCLK i", "5 SI b", "4 VSS pi"], ["2 SO b", "3 WP# b", "7 HOLD# b"]),
+    # CA-IS384x v1.05 table 6-1 (SOIC16 WB and WWB, one pinout): CA-IS3842 = 2 forward (A -> B: VI1 / VI2 -> VO1 / VO2) + 2 reverse
+    # (B -> A: VI3 / VI4 -> VO3 / VO4); ENA / ENB output enables pulled up inside (tied high here); suffix H = default output HIGH
+    "CA_IS3842": ic(CA, "CA-IS3842HW", "SOIC-16 WB (W) 10.3x7.5 mm, 8 mm CLR/CPG", "isolation-interface/CA-IS384x.pdf",
+                    "Reinforced 4-ch digital isolator 2 fwd + 2 rev, default HIGH, 5.7 kVrms, VIOSM 8 kV",
+                    ["1 VDDA pi", "3 VI1 i", "4 VI2 i", "5 VO3 o", "6 VO4 o", "7 ENA i", "2 GNDA pi", "8 GNDA pi"],
+                    ["16 VDDB pi", "14 VO1 o", "13 VO2 o", "12 VI3 i", "11 VI4 i", "10 ENB i", "9 GNDB pi", "15 GNDB pi"]),
+    # WCH CH9121 data sheet V2.6 table 4-1 (CH9121T, TSSOP20) and figure 9-1 (reference circuit): 50 ohm MDI termination and the
+    # load capacitors of a 12 pF crystal are inside; the magnetics' centre taps go to GND through 1 uF, never to a supply
+    "CH9121T": ic("WCH (Nanjing Qinheng)", "CH9121T", "TSSOP-20", "isolation-interface/WCH-CH9121.pdf",
+                  "Ethernet-UART transparent bridge, 10/100 MAC + PHY + TCP/IP, 2 UART, VCC33 3.2-3.4 V, -40..85 C",
+                  ["18 VCC33 pi", "8 VCCIO pi", "3 VDDK p", "4 XI i", "5 XO o", "13 RXD1 i", "14 TXD1 o", "15 CTS i",
+                   "16 TNOW1/RTS o", "11 CFG i", "17 GND pi"],
+                  ["1 TXP b", "2 TXN b", "19 RXP b", "20 RXN b", "6 LINK/RESET b", "7 ACT o", "9 TXD2 o", "10 RXD2 i",
+                   "12 TNOW2 o"]),
+    # HanRun HR913550AE (rev 00, image-only, 4 pp): p.1 schematic - 1 TD+, 2 TD-, 3 RD+, 6 RD-, 4 / 5 the TX / RX centre taps (printed
+    # 'P4' / 'P5' only), 7 NC, 8 CHS GND (4 x 75 R Bob-Smith + 1000 pF / 2 kV inside), LEDs 9 -> 10 green, 12 -> 11 yellow (anode
+    # first); p.3 PCB layout: two shield legs, unnumbered (drawn as SH); p.4 -40..+85 C; isolation 2250 V DC UTP side to chip side
+    "HR913550AE": ic("HanRun (Zhongshan HanRun Elec)", "HR913550AE", "RJ45 THT right angle, 1:1 magnetics, 2 LEDs",
+                     "connectors/HanRun-HR913550AE.pdf",
+                     "RJ45 10/100BASE-T, integrated magnetics + Bob-Smith, green / yellow LED, -40..+85 C, 2250 V DC",
+                     ["1 TD+ p", "2 TD- p", "4 P4 p", "3 RD+ p", "6 RD- p", "5 P5 p", "7 NC nc", "8 CHS_GND p"],
+                     ["9 LEDG_A p", "10 LEDG_K p", "12 LEDY_A p", "11 LEDY_K p", None, "SH SHIELD p"], prefix="J"),
+    # MSKSEMI SRV05-4 p.1 'Pin Configuration and Functions' (SOT-23-6): 1 IO1, 2 GND, 3 IO2, 4 IO3, 5 Vcc, 6 IO4; CJ 0.6-0.8 pF
+    "SRV05": ic("MSKSEMI", "SRV05-4", "SOT-23-6", "protection/MSKSEMI-SRV05-4.pdf",
+                "ESD array 4 lines + rail, VRWM 5 V, CJ <= 0.8 pF, IEC 61000-4-2 +/-12 kV contact (Ethernet MDI, chip side)",
+                ["1 IO1 p", "3 IO2 p", "4 IO3 p", "6 IO4 p"], ["5 Vcc p", "2 GND p"], prefix="D"),
+    # YXC YSX321SL family sheet (X322525MOB4SI = 25 MHz, 12 pF, +/-10 ppm, +/-20 ppm over -40..85 C, LCSC C9006): p.1 'Top View
+    # Crystal Connection': 1 and 3 crystal, 2 and 4 GND (KiCad Crystal_GND24)
+    "XTAL25": dict(mfr="YXC Crystal Oscillators", mpn="X322525MOB4SI", prefix="Y", pkg="SMD 3225 4-pad",
+                   stock=("Device", "Crystal_GND24"), ds=DS + "timing/YXC-X322525MOB4SI.pdf",
+                   desc="Crystal 25 MHz 12 pF +/-10 ppm, +/-20 ppm -40..85 C, ESR <= 50 ohm (CH9121T)"),
+    # Hongfa HFD27 (2023 rev 1.00) p.3 wiring diagram (bottom view): coil 1-16; pole 1 COM 4 / NC 6 / NO 8; pole 2 COM 13 / NC 11 /
+    # NO 9; p.2 sensitive type 005-S: 5 V, 125 ohm +/-10 %, pick-up <= 3.75 V, drop-out >= 0.5 V at 23 C; p.1 -40..85 C, 2 A 30 V DC
+    "HFD27": ic("Hongfa", "HFD27/005-S", "DIP-16 relay 20.2x10.2 mm", "protection/Hongfa-HFD27.pdf",
+                "Signal relay 2 Form C, 5 V 200 mW coil (125 ohm), 2 A 30 V DC / 1 A 125 V AC, 1500 V AC coil-contact, -40..85 C",
+                ["1 COIL1 p", "16 COIL2 p"], ["4 COM1 p", "6 NC1 p", "8 NO1 p", "13 COM2 p", "11 NC2 p", "9 NO2 p"],
+                prefix="K"),
     # Epson SG-210STF 25.000000 MHz L (X1G0041710033xx) terminal table: 1 /ST, 2 GND, 3 OUT, 4 VCC; +/-50 ppm all-in
     "OSC25": ic("Seiko Epson", "X1G0041710033", "SMD 2.5x2.0 mm 4-pad", "timing/Epson-SG-210STF.pdf",
                 "SPXO SG-210STF 25.000000 MHz L, CMOS 1.6-3.63 V, +/-50 ppm, -40..85 C", ["4 VCC pi", "1 ~{ST} i",
@@ -315,12 +364,13 @@ PARTS.update({
     "J_KF2": dict(mfr="Cixi Kefa Electronic", mpn="KF2EDGR-3.81-2P", prefix="J", pkg="pluggable 2-pos 3.81 mm R/A",
                   ds=DS + "connectors/KEFA-KF2EDGR-3.81.pdf", stock=("Connector_Generic", "Conn_01x02"),
                   desc="Pluggable header 2-pos 3.81 mm 300 V 8 A (plug KF2EDGK-3.81-2P): SELV 24 V input"),
-    "J_KF4": dict(mfr="Cixi Kefa Electronic", mpn="KF2EDGR-3.81-4P", prefix="J", pkg="pluggable 4-pos 3.81 mm R/A",
-                  ds=DS + "connectors/KEFA-KF2EDGR-3.81.pdf", stock=("Connector_Generic", "Conn_01x04"),
-                  desc="Pluggable header 4-pos 3.81 mm (plug KF2EDGK-3.81-4P): ENABLE / STATUS (SELV)"),
     "J_KF6": dict(mfr="Cixi Kefa Electronic", mpn="KF2EDGR-3.81-6P", prefix="J", pkg="pluggable 6-pos 3.81 mm R/A",
                   ds=DS + "connectors/KEFA-KF2EDGR-3.81.pdf", stock=("Connector_Generic", "Conn_01x06"),
-                  desc="Pluggable header 6-pos 3.81 mm (plug KF2EDGK-3.81-6P): bus in/out + 0 V + shield (SELV)"),
+                  desc="Pluggable header 6-pos 3.81 mm (plug KF2EDGK-3.81-6P): bus or stop loop in/out + 0 V + screen (SELV)"),
+    "J_KF8": dict(mfr="Cixi Kefa Electronic", mpn="KF2EDGR-3.81-8P", prefix="J", pkg="pluggable 8-pos 3.81 mm R/A",
+                  ds=DS + "connectors/KEFA-KF2EDGR-3.81.pdf", stock=("Connector_Generic", "Conn_01x08"),
+                  desc="Pluggable header 8-pos 3.81 mm (plug KF2EDGK-3.81-8P): relay NO / COM / NC, DI1, ready permissive, 0 V "
+                       "(SELV)"),
 })
 
 
@@ -343,7 +393,9 @@ def plan():
             "phase %d leg %s %s side -> 74LVC08 AND HEALTHY -> PWM%d (PC); HRPWM; ePWM%d" %
             ((k + 3) // 4, "AB"[((k - 1) // 2) % 2], "high" if k % 2 else "low", k, m))
     add("TRIP", "GPIO16", route="INPUTXBAR1>TZ1: one-shot trip of every ePWM (latch Q, 1 = tripped)")
-    add("OC_N", "GPIO17", route="INPUTXBAR4>XINT1: any IL or port current window (diagnosis, latched by the XINT flag)")
+    add("PRE_N", "GPIO17", route="INPUTXBAR4>XINT1: any trip source active now (wired-AND of OC_N, OVT_N, FLT_N, RDY, STOP_OK, "
+        "WD_OK); rev A2: read instead of OC_N and OVT_N, which comparator tripped comes from the ADC and the recorder")
+    add("SPI_CLK", "GPIO18", "SPIA_CLK", "out", "recorder flash SCLK (X2 pin; X1 takes the single-ended clock)")
     add("TACH3", "GPIO20", "EQEP1_A", "in", "eQEP1 up-count + unit timer = fan 3 speed (AGPIO pin: GPIO mode, B5 on "
         "pin 32)")
     add("K_A_M", "GPIO22", d="out", route="AND (HEALTHY OR HOLD) -> K_A")
@@ -360,7 +412,9 @@ def plan():
     add("EN_M", "GPIO31", d="out", route="AND HEALTHY -> EN")
     add("CAN_TX", "GPIO32", "CANA_TX", "out", "DCAN boot option 1 (BOOTDEF 0x22); 10k pull-up = boot-mode pin 0 high")
     add("CAN_RX", "GPIO33", "CANA_RX", "in", "DCAN boot option 1")
-    add("LED_RUN_N", "GPIO34", d="out", route="green LED, low = on")
+    add("TACH2", "GPIO34", route="INPUTXBAR8>eCAP3 capture (fan 2 period); rev A2: the run LED moved to WD_OK")
+    add("TACH1", "GPIO35", route="INPUTXBAR7>eCAP2 capture (fan 1 period); TDI pin as GPIO: debug is cJTAG (TMS / TCK) only")
+    add("FLASH_CS_N", "GPIO37", d="out", route="recorder flash CS# (10k pull-up: deselected in reset); TDO pin as GPIO (cJTAG)")
     add("BIAS_EN", "GPIO40", d="out", route="PC BIAS_EN (gate-bias converters on)")
     add("IMD_SW1", "GPIO41", d="out", route="PC IMD_SW1")
     add("IMD_SW2", "GPIO44", d="out", route="PC IMD_SW2")
@@ -369,14 +423,12 @@ def plan():
     add("STATUS_M", "GPIO49", d="out", route="AND HEALTHY -> isolated STATUS output")
     add("FLT_N", "GPIO50", route="INPUTXBAR5>XINT2: driver fault (diagnosis)")
     add("RDY_M", "GPIO51", route="INPUTXBAR14>XINT5: gate supplies ready (diagnosis; 1k from RDY)")
-    add("OVT_N", "GPIO52", route="INPUTXBAR6>XINT3: port OV or over-temperature (diagnosis)")
-    add("STOP_OK", "GPIO53", route="INPUTXBAR13>XINT4: ENABLE contact closed (diagnosis)")
-    add("TACH1", "GPIO54", route="INPUTXBAR7>eCAP2 capture (fan 1 period)")
-    add("TACH2", "GPIO55", route="INPUTXBAR8>eCAP3 capture (fan 2 period)")
-    add("I2C_SDA", "GPIO56", "I2CA_SDA", "io", "EEPROM 0x50")
-    add("I2C_SCL", "GPIO57", "I2CA_SCL", "io", "EEPROM 0x50")
-    add("TDI", "GPIO35", "TDI", "in", "JTAG (mux 15 default at reset)")
-    add("TDO", "GPIO37", "TDO", "out", "JTAG")
+    add("DI1", "GPIO52", route="INPUTXBAR6>XINT3: DI1 battery fault / BMS contact (CA-IS3842HW VO3, 1 = contact closed)")
+    add("STOP_OK", "GPIO53", route="INPUTXBAR13>XINT4: stop loop and ready permissive closed (diagnosis)")
+    add("SPI_SIMO", "GPIO54", "SPIA_SIMO", "out", "recorder flash SI")
+    add("SPI_SOMI", "GPIO55", "SPIA_SOMI", "in", "recorder flash SO")
+    add("ETH_TXD", "GPIO56", "SCIB_TX", "out", "Ethernet bridge UART: CA-IS3842HW VI1 -> CH9121T RXD1")
+    add("ETH_RXD", "GPIO57", "SCIB_RX", "in", "Ethernet bridge UART: CH9121T TXD1 -> CA-IS3842HW VO4")
     add("OSC_CLK", "GPIO19", "X1", "in", "single-ended 25 MHz clock (SG-210STF)")
     # analog: IL1-4 on one CMPSS each (H and L positive inputs on the same pin); IB on a CMPSS4 pin as well
     ana = [("IL1_ADC", "A2/B6/C9", "CMP1_HP0+CMP1_LP0", "CMPSS1 window = IL1 backup > ePWM X-BAR TRIP4 (all ePWM)"),
@@ -441,7 +493,7 @@ def check_plan(P, pins):
 
 
 # ============================================================================ 4. schematic
-RAILS = ["+3V3", "+3V3A", "VDD12", "VREF", "S_24V", "S_5V"]
+RAILS = ["+3V3", "+3V3A", "VDD12", "VREF", "S_24V", "S_5V", "S_3V3"]
 RETURNS = ["GND", "S_GND", "PE"]
 PH4 = "PV-P100/110 only"          # value tag of the phase-4 comparators (not fitted on PV-P75: bom/PV-CTL-P75_BOM.csv)
 # assembly-variant knobs (gen/pcs_ctrl.py re-values them; these defaults leave PV-CTL unchanged)
@@ -492,9 +544,9 @@ def sheet_supply(B):
 
 
 def sheet_mcu(B, mcu):
-    B.new_sheet("02_mcu", "F280039C, clock, debug, EEPROM",
-                "TMS320F280039C (100-pin PZ), decoupling, 25 MHz SPXO, cTI-20 JTAG (LIVE),\n"
-                "EEPROM, boot straps, command pull-downs, run LED")
+    B.new_sheet("02_mcu", "F280039C, clock, debug, recorder flash",
+                "TMS320F280039C (100-pin PZ), decoupling, 25 MHz SPXO, cTI-20 header in cJTAG mode\n"
+                "(LIVE), 4 MB recorder flash, boot straps, command pull-downs")
     B.block("F280039CSPZR", "Pins as gen/data/pv_ctrl_pin_plan.csv (checked against SPRSP61C table 5-1 on every\n"
                             "build). VREGENZ = GND: internal 1.2 V VREG; VDD only decoupled.")
     B.part("F280039C", mcu)
@@ -514,24 +566,28 @@ def sheet_mcu(B, mcu):
                                               "f(X1) 10-25 MHz, tr/tf <= 6 ns (SPRSP61C 6.12.3.2.1).")
     B.part("OSC25", {"4": "+3V3", "1": "+3V3", "2": "GND", "3": "OSC_CLK"})
     B.C("100n", "+3V3", "GND")
-    B.block("JTAG cTI-20 - HAZARDOUS LIVE (isolated probe only)",
-            "Label: 'HAZARDOUS VOLTAGE - up to 1000 V DC to earth - isolated debug probe only'. TMS 2.2k pull-up\n"
-            "(no TRSTn on F28003x, table 5-1); TRST (2) open; EMU0/1 4.7k pull-ups; RESET (15) on XRSn; 17-19 GND.\n"
-            "Field firmware update over CAN (DCAN boot option 1 or application loader): no live access needed.")
-    B.part("J_JTAG", {"1": "TMS", "2": None, "3": "TDI", "4": "GND", "5": "JTAG_VREF", "6": None, "7": "TDO",
+    B.block("JTAG cTI-20 in cJTAG mode - HAZARDOUS LIVE (isolated probe only)",
+            "Label: 'HAZARDOUS VOLTAGE - up to 1000 V DC to earth - isolated debug probe only'. cJTAG (IEEE 1149.7,\n"
+            "TMS + TCK; SPRSP61C 6.12.6): TDI (3) / TDO (7) open, GPIO35 / 37 are TACH1 / flash CS#. TMS 2.2k pull-up;\n"
+            "TRST (2) open; EMU0/1 4.7k; RESET (15) on XRSn. Field update over Ethernet / RS-485 / CAN: no live access.")
+    B.part("J_JTAG", {"1": "TMS", "2": None, "3": None, "4": "GND", "5": "JTAG_VREF", "6": None, "7": None,
                       "8": "GND", "9": "TCK", "10": "GND", "11": "TCK", "12": "GND", "13": "JTAG_EMU0",
                       "14": "JTAG_EMU1", "15": "XRSn", "16": "GND", "17": "GND", "18": "GND", "19": "GND", "20": "GND"})
     B.R("2.2k", "+3V3", "TMS")
     B.R("100R", "+3V3", "JTAG_VREF", pkg="1206")              # survives a VTref short to GND
     B.R("4.7k", "+3V3", "JTAG_EMU0")
     B.R("4.7k", "+3V3", "JTAG_EMU1")
-    B.block("EEPROM (calibration, serial number, event log)", "BL24C256A at 0x50 (A2-A0 low), WP low (writable; firmware\n"
-                                                             "guards the calibration pages), I2C 4.7k pull-ups.")
-    B.part("BL24C256A", {"8": "+3V3", "1": "GND", "2": "GND", "3": "GND", "7": "GND", "4": "GND", "5": "I2C_SDA",
-                         "6": "I2C_SCL"})
+    B.block("Recorder flash: fault records, two firmware images, calibration, serial number, event log",
+            "GD25Q32E 4 MB on SPIA (SCLK GPIO18, SI GPIO54, SO GPIO55, CS# GPIO37). CS# 10k pull-up: deselected in reset\n"
+            "and boot (TDO floats until firmware owns it). HOLD# 10k up. WP# 10k up + write-protect strap JP to GND (closed\n"
+            "at end of line with SRP0 = 1: status register and the golden-image blocks locked). Replaces the I2C EEPROM.")
+    B.part("GD25Q32E", {"8": "+3V3", "1": "FLASH_CS_N", "6": "SPI_CLK", "5": "SPI_SIMO", "4": "GND", "2": "SPI_SOMI",
+                        "3": "FLASH_WP_N", "7": "FLASH_HOLD_N"})
     B.C("100n", "+3V3", "GND")
-    B.R("4.7k", "+3V3", "I2C_SDA")
-    B.R("4.7k", "+3V3", "I2C_SCL")
+    B.R("10k", "+3V3", "FLASH_CS_N")
+    B.R("10k", "+3V3", "FLASH_HOLD_N")
+    B.R("10k", "+3V3", "FLASH_WP_N")
+    B.part("JP_OPEN", {"1": "FLASH_WP_N", "2": "GND"})
     B.block("Boot straps", "Flash boot = GPIO24 high and GPIO32 high at reset (SPRSP61C table 7-8): 10k pull-ups on\n"
                            "LATCH_CLR (GPIO24) and CAN_TX (GPIO32, also recessive while the MCU is in reset).")
     B.R("10k", "+3V3", "LATCH_CLR")
@@ -551,9 +607,11 @@ def sheet_mcu(B, mcu):
         n = pd[i:i + 4]
         B.part("RPACK10K", {"1": n[0], "2": n[1], "3": n[2], "4": n[3], "8": "GND", "7": "GND", "6": "GND", "5": "GND"},
                value="4 x 10k")
-    B.block("Run LED", "Green, GPIO34 low = on (firmware heartbeat), 680 R: ~2 mA.")
-    B.R("680R", "+3V3", "LED_RUN_A")
-    B.part("LED_G", {"2": "LED_RUN_A", "1": "LED_RUN_N"})
+    B.block("Run LED on WD_OK (rev A2: GPIO34 freed; WD_OK from sheet 05)",
+            "Green, lit while the heartbeat monoflop holds WD_OK high (control ISR running, no MCU reset): the hardware's\n"
+            "own view of 'firmware alive'. 680 R, ~2 mA from the 74LVC1G123 output (IOH 24 mA at 3.0 V).")
+    B.R("680R", "WD_OK", "LED_RUN_A")
+    B.part("LED_G", {"2": "LED_RUN_A", "1": "GND"})
 
 
 # ---- analog front end (as built on PV-PWR: hardware/PV-PWR/outputs/PV-PWR_design_check.txt "PC:" lines)
@@ -707,7 +765,7 @@ def sheet_latch(B):
     B.block("Trip sources -> PRE_N (open-drain wired-AND, 4.7k to +3V3)",
             "74LVC07 (Ioff, 5 V tolerant): OC_N, OVT_N, FLT_N (driver DESAT/UVLO + port OC of PV-PWR), RDY (gate supplies,\n"
             "+5V, live 24 V on PV-PWR), STOP_OK (ENABLE), WD_OK (heartbeat and MCU reset). Any low -> PRE_N low ->\n"
-            "latch set asynchronously (Q = TRIP = 1).")
+            "latch set asynchronously (Q = TRIP = 1). The MCU reads PRE_N on GPIO17 (rev A2, diagnosis only).")
     B.part("LVC07", {"1": "OC_N", "3": "OVT_N", "5": "FLT_N", "9": "RDY", "11": "STOP_OK", "13": "WD_OK",
                      "2": "PRE_N", "4": "PRE_N", "6": "PRE_N", "8": "PRE_N", "10": "PRE_N", "12": "PRE_N",
                      "14": "+3V3", "7": "GND"})
@@ -767,7 +825,7 @@ def sheet_latch(B):
 def sheet_iso(B, iso, xing):
     B.new_sheet("06_iso", "Barrier B1: isolators, CAN, RS-485",
                 "Reinforced barrier B1: CA-IS3050W CAN, CA-IS3082WNX RS-485, 2 x CA-IS3821LG,\n"
-                "CA-IS3820LG; bus TVS, jumper terminations, pluggable field terminals (SELV)")
+                "CA-IS3820LG, CA-IS3842HW (Ethernet UART, DI1); bus TVS, jumper terminations (SELV)")
     B.block("Barrier B1 rules (insulation_spec 'Reinforced HV-PELV, DC pole')",
             "Every part on this sheet that touches LIVE and SELV is a declared isolator: VIOSM >= 8 kV, VISO >= 5 kVrms,\n"
             "VIOWM >= 1414 V DC, CLR/CPG 8 mm. 8 mm < 10 mm (PD2 creepage) -> conformal coating PD1 over the B1 zone\n"
@@ -815,6 +873,15 @@ def sheet_iso(B, iso, xing):
     for _ in range(3):
         B.C("100n", "+3V3", "GND")
         B.C("100n", "S_5V", "S_GND")
+    B.block("Ethernet UART and DI1 across B1: CA-IS3842HW (rev A2, fitted on every variant)",
+            "A side LIVE (+3V3): VI1 <- ETH_TXD (SCIB TX), VO4 -> ETH_RXD (SCIB RX), VO3 -> DI1 (GPIO52), VI2 spare (GND).\n"
+            "B side SELV (S_5V): VO1 -> 1.0k / 2.0k -> CH9121T RXD1 (3.3 V I/O), VI4 <- CH9121T TXD1, VI3 <- S_DI1 (sheet 07).\n"
+            "Default HIGH: the UART lines idle high with either side unpowered or the bridge not fitted (PV-CTL).")
+    iso.add(B.part("CA_IS3842", {"1": "+3V3", "3": "ETH_TXD", "4": "GND", "5": "DI1", "6": "ETH_RXD", "7": "+3V3",
+                                 "2": "GND", "8": "GND", "16": "S_5V", "14": "S_ETH_RXD5", "13": None, "12": "S_DI1",
+                                 "11": "S_ETH_TXD", "10": "S_5V", "9": "S_GND", "15": "S_GND"}).ref)
+    B.C("100n", "+3V3", "GND")
+    B.C("100n", "S_5V", "S_GND")
 
 
 FAN_FB = ("100k", "2.87k", "15.0k")   # TPS54360B fan supply: Rtop (S_FAN_V-FB), Rbot (FB-S_GND), Rinj (S_FAN_VF-FB)
@@ -826,6 +893,9 @@ V5_COMP = ("2.15k", "150n")
 V5_RT = "200k"                        # 500 kHz
 N_FAN = 3
 EN_DIV = ("33k", "10k", "100n")       # ENABLE input divider (ON >= 8.8 V, OFF <= 3.4 V) + debounce C
+DI_NET = ("1.0k", "10k", "10k", "100n")   # DI1: wetting from S_5V, pull-down, series, filter C (rev A2)
+RELAY = dict(r_coil=125.0, tol=0.10, v_pick=3.75, v_drop=0.5, t_amb=(-40.0, 85.0))   # HFD27/005-S, Hongfa HFD27 p.1-2 (23 C)
+S5_DESIGN = 0.5                        # A: SELV 5 V design allocation (rev A2: was 0.3 A; L22U 1.5 A, TPS54360B >= 4.5 A limit)
 S24 = (12.0, 36.0)                    # SELV input range: cross-regulated fan winding (PV-PWR / aux75_spec)
 # ---- fan supply (PCM-26): ONE contract with the power board. gen/pv_power.py imports these functions, prints the SELV minimum at its worst
 # cross-regulation point (aux75_spec) and what this buck passes from it, and applies the resulting airflow in its thermal line; this board
@@ -922,9 +992,9 @@ def buck(B, vin, vout, en, rt, fb, comp, lkey, tag):
 
 
 def sheet_selv(B, iso, xing):
-    B.new_sheet("07_selv", "SELV supply, fans, enable / status",
+    B.new_sheet("07_selv", "SELV supply, fans, stop, DI1, relay",
                 "SELV 24 V input (AUX-T1 reinforced winding, 12-36 V), TPS54360B 5 V and fan supply,\n"
-                "3 fan headers + tach, ENABLE / STATUS terminal, SELV 0 V to PE")
+                "3 fan headers + tach, stop (chainable) / ready / DI1 terminals, relay, SELV 0 V to PE")
     B.block("SELV input (2-pin, double-insulated leads, >= 10 mm from LIVE copper)",
             "AUX-T1 fan winding, cross-regulated: 12-36 V (sags to ~15 V without gate-bias load, PV-PWR). SMBJ36A\n"
             "clamp (36 V working), 2 x 10 uF 50 V. Both bucks have no under-voltage lock-out above 4.5 V.")
@@ -963,18 +1033,34 @@ def sheet_selv(B, iso, xing):
         B.R("10k", "S_5V", "S_TACH%d" % n)
         B.R("10k", "S_TACH%d" % n, "S_TACH%d_I" % n)
         B.C("1n", "S_TACH%d_I" % n, "S_GND")
-    B.block("ENABLE (external stop) and STATUS terminal",
-            "1 S_EN_SRC (S_24V via 10k: dry-contact supply), 2 S_EN_IN (contact return or a PLC output), 3 STATUS\n"
-            "(open drain 2N7002BK, conducting = healthy), 4 0 V. S_EN_IN -> 33k / 10k (5.1 V clamp, 100 nF: 0.77 ms)\n"
-            "-> isolator: open contact, broken wire or lost SELV = STOP_OK low = latch set (no firmware).")
-    B.part("J_KF4", {"1": "S_EN_SRC", "2": "S_EN_IN", "3": "S_STATUS", "4": "S_GND"})
+    B.block("Stop input (hardware, chainable) and ready permissive",
+            "J_STOP 1 S_EN_SRC (S_24V via 10k: dry-contact supply for ONE module), 2 / 3 stop line in / out (loop-through:\n"
+            "chain a cabinet 24 V stop line module to module), 4 / 5 0 V in / out, 6 screen to PE. J_IO 6-7: ready permissive\n"
+            "in series (wire link if unused) -> S_EN_IN -> 33k / 10k, 5.1 V clamp, 100 nF -> isolator -> STOP_OK -> latch\n"
+            "(no firmware): open stop contact, open permissive, broken wire or lost SELV = gates off.")
+    xing.add(B.part("J_KF6", {"1": "S_EN_SRC", "2": "S_EN_BUS", "3": "S_EN_BUS", "4": "S_GND", "5": "S_GND",
+                              "6": "PE"}).ref)
     B.R("10k", "S_24V", "S_EN_SRC", pkg="1206")
     B.R(EN_DIV[0], "S_EN_IN", "S_EN", pkg="0805")
     B.R(EN_DIV[1], "S_EN", "S_GND")
     B.C(EN_DIV[2], "S_EN", "S_GND")
     B.part("BZX84C5V1", {"3": "S_EN", "1": "S_GND", "2": None})
-    B.part("2N7002BK", {"1": "S_STATUS_G", "3": "S_STATUS", "2": "S_GND"})
+    B.block("Relay output (ready / fault) and DI1 (battery fault / BMS contact)",
+            "STATUS channel -> 2N7002BK -> HFD27/005-S coil from S_5V, BAS16 across it: energised = healthy (NO closed); a\n"
+            "trip, stop, lost SELV or live side = NC closed. Both poles in parallel; SELV circuits only (<= 30 V AC / 60 V DC).\n"
+            "J_IO 4 = 5 V wetting (1.0k from S_5V), 5 = DI1 (10k down, 10k + 100 nF = 1 ms, 5.1 V clamp) -> CA-IS3842HW VI3.")
+    B.part("J_KF8", {"1": "S_RLY_NO", "2": "S_RLY_COM", "3": "S_RLY_NC", "4": "S_DI1_SRC", "5": "S_DI1_IN",
+                     "6": "S_EN_BUS", "7": "S_EN_IN", "8": "S_GND"})
+    B.part("2N7002BK", {"1": "S_STATUS_G", "3": "S_RLY_K", "2": "S_GND"})
     B.R("100k", "S_STATUS_G", "S_GND")
+    B.part("HFD27", {"1": "S_5V", "16": "S_RLY_K", "4": "S_RLY_COM", "13": "S_RLY_COM", "6": "S_RLY_NC",
+                     "11": "S_RLY_NC", "8": "S_RLY_NO", "9": "S_RLY_NO"})
+    B.part("BAS16", {"1": "S_RLY_K", "3": "S_5V", "2": None})
+    B.R(DI_NET[0], "S_5V", "S_DI1_SRC")
+    B.R(DI_NET[1], "S_DI1_IN", "S_GND", pkg="0805")
+    B.R(DI_NET[2], "S_DI1_IN", "S_DI1")
+    B.C(DI_NET[3], "S_DI1", "S_GND")
+    B.part("BZX84C5V1", {"3": "S_DI1", "1": "S_GND", "2": None})
     B.block("SELV 0 V to PE (SELV may be earthed by the installer: PELV)",
             "1 M || 4.7 nF 1 kV plus SMBJ58CA: a common-mode surge on the field cables is clamped to PE; a solid\n"
             "PELV bond by the installer is harmless. Plated M3 hole = PE / shield bond near the terminals.")
@@ -983,6 +1069,59 @@ def sheet_selv(B, iso, xing):
     xing.add(B.part("SMBJ58CA", {"1": "S_GND", "2": "PE"}).ref)
     B.part("MH", {"1": "PE"})
     B.flag("PE")
+
+
+def eth_fitted():
+    """The Ethernet bridge (sheet NN_eth) is an assembly option: fitted on the inverter variants (PCS-CTL, PCS-CTL-3W), not fitted
+    on PV-CTL / PV-CTL-P75 - read from the project name at build time, as the PV-P75 / three-wire option is"""
+    return PROJECT.startswith("PCS")
+
+
+ETH_LDO_R = "10R"                     # S_5V -> TPS7A2033 IN: takes part of the LDO's drop (its SOT-23 would reach ~122 C at an 85 C board)
+
+
+def sheet_eth(B, xing):
+    dnp = not eth_fitted()
+    B.new_sheet("%02d_eth" % (8 + len(EXTRA_SHEETS)), "Ethernet bridge (EMS, Modbus TCP)",
+                "WCH CH9121T UART-to-Ethernet bridge on the SELV side, HR913550AE RJ45 with magnetics,\n"
+                "SRV05-4, TPS7A2033 3.3 V. %s" % ("FITTED on this variant." if not dnp else
+                                                    "NOT FITTED on PV-CTL / PV-CTL-P75: footprints only (DNP)."))
+    B.block("SELV 3.3 V: TPS7A2033 from S_5V through %s" % ETH_LDO_R,
+            "VCC33 needs 3.2-3.4 V (CH9121 V2.6 table 7-2): +/-1.5 %% LDO. The %s 1206 takes ~1 V of the drop so the\n"
+            "LDO stays below 125 C at an 85 C board (design check). EN tied to IN. 1 uF in, 10 uF + 100 nF out." % ETH_LDO_R)
+    B.R(ETH_LDO_R, "S_5V", "S_ETH_5V", pkg="1206", dnp=dnp)
+    B.flag("S_ETH_5V")
+    B.part("TPS7A2033", {"1": "S_ETH_5V", "3": "S_ETH_5V", "2": "S_GND", "5": "S_3V3", "4": None}, dnp=dnp)
+    B.C("1u", "S_ETH_5V", "S_GND", volt="16V", tol="10%", dnp=dnp)
+    B.C("10u", "S_3V3", "S_GND", pkg="0805", volt="10V", tol="10%", dnp=dnp)
+    B.C("100n", "S_3V3", "S_GND", dnp=dnp)
+    B.block("CH9121T (CH9121 V2.6 figure 9-1)",
+            "Port 1 (RXD1 / TXD1) to SCIB through the CA-IS3842HW (sheet 06); port 2, CTS, TNOW open. 25 MHz 12 pF crystal, no\n"
+            "load C (inside); VDDK 1 uF; power-on reset inside. Straps (pull-ups inside): CFG low at power-up = serial set-up\n"
+            "(end-of-line test point); LINK/RESET low for 2 s = factory reset - its LED path holds it high. UART 1.0k / 2.0k.")
+    B.part("CH9121T", {"18": "S_3V3", "8": "S_3V3", "3": "S_ETH_VDDK", "4": "S_ETH_XI", "5": "S_ETH_XO",
+                       "13": "S_ETH_RXD", "14": "S_ETH_TXD", "15": None, "16": None, "11": "S_ETH_CFG", "17": "S_GND",
+                       "1": "S_ETH_TXP", "2": "S_ETH_TXN", "19": "S_ETH_RXP", "20": "S_ETH_RXN", "6": "S_ETH_LINK",
+                       "7": "S_ETH_ACT", "9": None, "10": None, "12": None}, dnp=dnp)
+    B.C("1u", "S_ETH_VDDK", "S_GND", volt="10V", tol="10%", dnp=dnp)
+    B.C("100n", "S_3V3", "S_GND", dnp=dnp)
+    B.part("XTAL25", {"1": "S_ETH_XI", "3": "S_ETH_XO", "2": "S_GND", "4": "S_GND"}, dnp=dnp)
+    B.R("1.0k", "S_ETH_RXD5", "S_ETH_RXD", dnp=dnp)
+    B.R("2.0k", "S_ETH_RXD", "S_GND", dnp=dnp)
+    B.TP("S_ETH_CFG")
+    B.block("RJ45 with magnetics (HR913550AE), MDI protection, link / activity LEDs",
+            "Chip side straight to the CH9121T (50 R inside: no 49.9 R); centre taps P4 / P5 to S_GND through 1 uF (maker:\n"
+            "no supply on them). Bob-Smith 4 x 75 R + 1000 pF / 2 kV inside, CHS GND and the shield legs to PE (as the bus\n"
+            "terminals' screen pins). SRV05-4 on the chip side (0.8 pF). LEDs: green = link, yellow = activity, 470 R.")
+    xing.add(B.part("HR913550AE", {"1": "S_ETH_TXP", "2": "S_ETH_TXN", "4": "S_ETH_TCT", "3": "S_ETH_RXP",
+                                   "6": "S_ETH_RXN", "5": "S_ETH_RCT", "7": None, "8": "PE", "9": "S_ETH_LINK_A",
+                                   "10": "S_ETH_LINK", "12": "S_ETH_ACT_A", "11": "S_ETH_ACT", "SH": "PE"}, dnp=dnp).ref)
+    B.C("1u", "S_ETH_TCT", "S_GND", volt="16V", tol="10%", dnp=dnp)
+    B.C("1u", "S_ETH_RCT", "S_GND", volt="16V", tol="10%", dnp=dnp)
+    B.part("SRV05", {"1": "S_ETH_TXP", "3": "S_ETH_TXN", "4": "S_ETH_RXP", "6": "S_ETH_RXN", "5": "S_3V3",
+                     "2": "S_GND"}, dnp=dnp)
+    B.R("470R", "S_3V3", "S_ETH_LINK_A", dnp=dnp)
+    B.R("470R", "S_3V3", "S_ETH_ACT_A", dnp=dnp)
 
 
 def domain_of(net):
@@ -1004,6 +1143,8 @@ def build_design():
                       "levels as built on PV-PWR (hardware/PV-PWR/outputs/PV-PWR_design_check.txt).",
                       "Assembly option: the two TLV9024 marked '%s' are not fitted on PV-P75 "
                       "(bom/PV-CTL-P75_BOM.csv)." % PH4,
+                      "Assembly option: the Ethernet bridge (sheet 08_eth) is NOT FITTED on PV-CTL / PV-CTL-P75 (DNP); fitted on "
+                      "PCS-CTL. Debug header in cJTAG mode only.",
                       "Pin plan: gen/data/pv_ctrl_pin_plan.csv (from SPRSP61C, checked every build)."])
     iso, xing = set(), set()
     sheet_supply(B)
@@ -1015,6 +1156,7 @@ def build_design():
     sheet_selv(B, iso, xing)
     for f in EXTRA_SHEETS:
         f(B)
+    sheet_eth(B, xing)
     return B, pins, P, iso, xing
 
 
@@ -1748,14 +1890,26 @@ def check_latch(B, pw):
                ("/".join(HOLD_KEEPS), BUILDS[1], ", ".join(sorted(ph4))))
 
 
-BARRIER = {"CA-IS3050W": dict(viosm=12800, vimp=9846, viotm=7070, viso=5000, viowm_dc=1414, clr=8.0, cpg=8.0,
-                              src="CA-IS305x v1.10 7.4"),
-           "CA-IS3082WNX": dict(viosm=8000, vimp=None, viotm=7070, viso=5000, viowm_dc=1414, clr=8.0, cpg=8.0,
-                                src="CA-IS308x v1.10 7.5"),
-           "CA-IS3821LG": dict(viosm=8000, vimp=None, viotm=8000, viso=5700, viowm_dc=2121, clr=8.0, cpg=8.0,
-                               src="CA-IS382x v1.06 7.6 (G/W)"),
-           "CA-IS3820LG": dict(viosm=8000, vimp=None, viotm=8000, viso=5700, viowm_dc=2121, clr=8.0, cpg=8.0,
-                               src="CA-IS382x v1.06 7.6 (G/W)")}
+# B1 isolators: (data sheet in docs/datasheets/isolation-interface, package column, the insulation table's columns in order).
+# CLR / CPG / VIOWM (DC) / VIOTM / VIOSM / VISO are read from that table on every build (iso_rating); the WW rows are the
+# altitude candidates (15 mm), the same data sheets
+ISO_DS = {"CA-IS3050W": ("CA-IS305x.pdf", "G/W", ("U", "G/W", "WG")), "CA-IS3050WG": ("CA-IS305x.pdf", "WG", ("U", "G/W", "WG")),
+          "CA-IS3082WNX": ("CA-IS308x.pdf", "W", ("W",)),
+          "CA-IS3821LG": ("CA-IS382x.pdf", "G/W", ("G/W", "WW")), "CA-IS3820LG": ("CA-IS382x.pdf", "G/W", ("G/W", "WW")),
+          "CA-IS3822LWW": ("CA-IS382x.pdf", "WW", ("G/W", "WW")), "CA-IS3820LWW": ("CA-IS382x.pdf", "WW", ("G/W", "WW")),
+          "CA-IS3842HW": ("CA-IS384x.pdf", "W", ("W", "WW")), "CA-IS3842HWW": ("CA-IS384x.pdf", "WW", ("W", "WW"))}
+# altitude: the 15 mm (WW) counterpart of each drawn B1 part (CA-IS308x v1.10 has no WW RS-485: a SELV transceiver + 3 WW channels)
+WW_OF = {"CA-IS3050W": ["CA-IS3050WG"], "CA-IS3082WNX": ["CA-IS3831LWW", "RS-485 transceiver (SELV, non-isolated)"],
+         "CA-IS3821LG": ["CA-IS3822LWW"], "CA-IS3820LG": ["CA-IS3820LWW"], "CA-IS3842HW": ["CA-IS3842HWW"]}
+ALT_PRICE = {   # USD at 1000 pieces; LCSC 2026-10-06 (python read of the product pages) or ESTIMATE with its basis - candidates, not drawn
+    "CA-IS3050WG": (0.7159 * 0.90 / 0.54, "ESTIMATE: not on LCSC; CA-IS3050W x 1.67 (CA-IS3820LWW 0.90 / CA-IS3820HW 0.54)"),
+    "CA-IS3831LWW": (1.03, "ESTIMATE: CA-IS3831HWW LCSC C20598892 1.03 (the L variant is not listed)"),
+    "RS-485 transceiver (SELV, non-isolated)": (0.15, "ESTIMATE (3485 class)"),
+    "CA-IS3822LWW": (0.90, "LCSC C20598889 @1000 (CA-IS3821LWW C20598887 1.1325, stock 0)"),
+    "CA-IS3820LWW": (0.90, "LCSC C20598885 @1000"),
+    "CA-IS3842HWW": (1.12, "ESTIMATE: CA-IS3840LWW LCSC C20598893 1.12 (the 3842 WW is not listed)"),
+    "4-ch WW (CA-IS384x)": (1.12, "CA-IS3840LWW LCSC C20598893 @1000")}
+ALT_FACTOR = {3000: 1.14, 4000: 1.29, 5000: 1.48}       # IEC 60664-1 table A.2 (the factors of sim/insulation.py, from memory)
 REJECTED = {"CA-IS3062W/VW (CAN + DC-DC)": "VIOSM 8000 Vpk (meets) but needs up to 125 mA from the live +5V (PV-PWR "
                                              "allocates 50 mA): replaced by CA-IS3050W (12.8 kV) on S_5V",
             "CA-IS374x (4-ch)": "VIOSM 7070 Vpk < 8 kV (CA-IS374x v1.05)",
@@ -1808,12 +1962,15 @@ def firmware_table(rows):
          "heatsink <= 85 C (hw %s), inductor <= 145 C (hw %s)" % (r["OT heatsink NTC1-4"][2], r["OT inductor NTC5-8"][2]),
          "1 s mean", "s",
          "cold start: every NTC within 10 K of the inlet NTC; open / short flagged (hw trips anyway)"),
-        ("FLT_N / RDY / STOP_OK / OC_N / OVT_N", "GPIO inputs (X-BAR -> XINT), read and logged before any clear",
+        ("PRE_N / FLT_N / RDY / STOP_OK / DI1", "GPIO inputs (X-BAR -> XINT), read and logged before any clear. Trip cause: FLT_N, "
+         "RDY or STOP_OK low -> that source; PRE_N low with those high and the heartbeat running -> an on-board comparator (IL "
+         "window, port OV, NTC OT / open probe), which one from the ADC and the recorder (rev A2: OC_N / OVT_N are not read); DI1 "
+         "= battery fault / BMS contact (NO / NC set by parameter) -> controlled stop, K_B open after the current is low",
          "-", "3-sample qualification", "-", "BIAS_EN low -> RDY low (latch sets); BIAS_EN high -> RDY high"),
         ("heartbeat", "GPIO27 toggled in the control ISR (period <= 2 ms)", "monoflop 4.7-5.8 ms; TPS3828 0.9-2.5 s",
          "-", "-", "stop toggling 10 ms -> TRIP must set; then clear"),
         ("latch clear", "GPIO24 rising edge only with every source inactive, OST flags cleared, PWM commands low, cause in "
-         "EEPROM; no automatic clear after a watchdog reset, OC or OV trip", "-", "-", "-",
+         "the recorder flash; no automatic clear after a watchdog reset, OC or OV trip", "-", "-", "-",
          "power-up: TRIP = 1 must be read before the first clear"),
         ("dead time", "ePWM dead-band generator (the drivers' cross-wired inputs still block an overlap)",
          "%.0f ns rising and falling" % dt, "-", "-", "read back"),
@@ -1829,7 +1986,24 @@ def firmware_table(rows):
          "lock; command pins without pull-up; CMPSS, PPB, TZ, dead band read back every 10 ms -> trip on mismatch",
          "-", "-", "10 ms", "-"),
         ("PV-P75 build", "phase 4 idle: ePWM7/8 held by a forced one-shot, IL4 / NTC4 / NTC8 ignored, CMPSS4 on IB; "
-         "the phase-4 TLV9024 pair is not fitted (assembly option)", "-", "-", "-", "build code from the EEPROM"),
+         "the phase-4 TLV9024 pair is not fitted (assembly option)", "-", "-", "-", "build code from the recorder flash"),
+        ("Ethernet (EMS, Modbus TCP; fitted on the PCS variants)", "SCIB %d 8-N-1 (LSPCLK %.0f MHz) to the CH9121T in TCP SERVER "
+         "mode, port 502: the bridge forwards the TCP payload byte for byte, so the Modbus server parses Modbus TCP (MBAP + PDU), "
+         "or RTU framing when the EMS uses RTU over TCP; one register map for RS-485 and Ethernet (firmware hand-over); IP / port "
+         "written by the MCU through the CH9121 serial configuration (CFG test point pulled low once at end of line to enable the "
+         "serial handshake); the TSSOP-20 cannot disable the maker's LAN set-up tool (no CFGEN pin): every write to the module "
+         "is authorised in firmware; clients per port not stated by WCH (ASSUMED one)" % (SCI_BAUD, SCI_CLK / 1e6), "-", "-",
+         "-", "end of line: link, loop-back through the EMS port"),
+        ("fault recorder (GD25Q32E)", "32 channels in a RAM ring at the decimated rate (100 ms) + a 2 ms full-rate snapshot; "
+         "trigger = TRIP or a firmware fault; 100 ms after the trigger; written into the next pre-erased slot of the flash ring "
+         "with time stamp and cause; calibration, serial number and event log in two copies with CRC (R-WS-9)", "-", "-",
+         "write <= 0.2 s", "read-back of the last record header at start"),
+        ("firmware upgrade", "authenticated dual image: the new image is staged in the recorder flash over Ethernet, RS-485 "
+         "or CAN, signature + CRC checked, copied by a bootloader in a DCSM-protected sector; the golden image stays for "
+         "roll-back; only in SERVICE with authorisation and timeout (R-WS-8)", "-", "-", "-", "image CRC at every boot"),
+        ("module address, ports", "module address by software over the module CAN (no DIP); port roles as the design check "
+         "(module bus = CAN, BMS = RS-485 or CAN, EMS = Ethernet or RS-485, PC tool 9600-8-N-1 on RS-485); relay = STATUS_M "
+         "(healthy) through the latch gating", "-", "-", "-", "-"),
         ("firmware practice adopted from the Wolfspeed firmware cross-check (docs/requirements/REFERENCE-LESSONS.md section 6, R-WS-1..9)",
          "range-checked bus/service inputs (switching frequency and dead time not writable in operation); ramp to zero and stop on "
          "communication loss (ASSUMED 1 s on CAN); lock-out after the third hazard trip of a class within 10 min (ASSUMED) and at once "
@@ -1855,24 +2029,301 @@ def cold_start_rows():
              "-")]
 
 
+_ISO_CACHE = {}
+
+
+def iso_rating(mpn):
+    """CLR, CPG (mm), VIOWM (V DC), VIOTM, VIOSM (Vpk), VISO (Vrms) of one isolator, read from the insulation table of its data sheet:
+    each row's numbers (footnote digits and out-of-range numbers dropped), one value spread over every column when the cell is merged"""
+    f, col, cols = ISO_DS[mpn]
+    if f not in _ISO_CACHE:
+        _ISO_CACHE[f] = subprocess.run(["pdftotext", "-layout", os.path.join(L.REPO, DS, "isolation-interface", f), "-"],
+                                       capture_output=True, text=True, check=True).stdout
+    t = _ISO_CACHE[f]
+    lines = t.split("\n")
+    a = next(i for i, ln in enumerate(lines) if re.match(r"\s*CLR\s", ln))
+    z = next(i for i in range(a, len(lines)) if re.match(r"\s*VISO\s", lines[i]))
+    tbl = lines[a:z + 4]
+
+    def row(key, lo, hi, unit):
+        i = next(k for k, ln in enumerate(tbl) if re.match(r"\s*%s\b" % key, ln))
+        ln = next(x for x in tbl[i:] if re.search(r"\b%s\b" % unit, x))
+        v = [float(x) for x in re.findall(r"(?<![\w.])>?(\d+(?:\.\d+)?)(?![\w.])", ln) if lo <= float(x) <= hi]
+        v = v * len(cols) if len(v) == 1 else v
+        assert len(v) == len(cols), "%s %s row not read: %s" % (f, key, ln.strip())
+        return v[cols.index(col)]
+    return dict(clr=row("CLR", 2, 40, "mm"), cpg=row("CPG", 2, 40, "mm"), viowm_dc=row("VIOWM", 500, 2e4, "VDC"),
+                viotm=row("VIOTM", 500, 2e4, "VPK"), viosm=row("VIOSM", 500, 2e4, "VPK"), viso=row("VISO", 500, 2e4, "VRMS"),
+                src="%s v%s" % (f[:-4], re.search(r"Version\s*(\d+\.\d+)", t).group(1)))
+
+
+def b1_clearances(req):
+    """{altitude m: clearance mm} for B1 without and with the port-SPD credit; 3000 / 4000 m from insulation_spec, 5000 m from the
+    table A.2 factor on the 2000 m value (insulation_spec stops at 4000 m), rounded up to 0.1 mm as sim/insulation.py does"""
+    up = lambda x: math.ceil(x * 10 - 1e-9) / 10                                          # noqa: E731
+    for alt in (3000, 4000):                       # the factor table reproduces the spec's own values
+        assert up(req["cl_2000"] * ALT_FACTOR[alt]) == req["cl_%d" % alt], "ALT_FACTOR vs insulation_spec"
+    plain = {2000: req["cl_2000"], 3000: req["cl_3000"], 4000: req["cl_4000"], 5000: up(req["cl_2000"] * ALT_FACTOR[5000])}
+    credit = {2000: req["cl_good_2000"], 3000: req["cl_good_3000"], 4000: req["cl_good_4000"],
+              5000: up(req["cl_good_2000"] * ALT_FACTOR[5000])}
+    return plain, credit
+
+
+def alt_reach(clr, table):
+    """highest altitude (m) of the table whose clearance the part meets; 0 if none"""
+    return max([a for a, need in table.items() if clr >= need], default=0)
+
+
 def check_barrier(B, iso):
     req = next(r for r in INS["requirements"] if r["label"].startswith("Reinforced HV-PELV, DC pole"))
-    ok, parts = True, []
+    plain, credit = b1_clearances(req)
+    ok, parts, drawn = True, [], []
     for ref in sorted(iso):
         m = B.bom[ref]["mpn"]
-        r = BARRIER[m]
+        r = iso_rating(m)
+        drawn.append((ref, m, r))
         ok &= (r["viosm"] >= req["imp"] and r["viso"] >= req["ac"] and r["viowm_dc"] >= req["u_tov"] and
                r["clr"] >= max(8.0, req["cl_2000"]) and r["cpg"] >= max(8.0, req["cr_pd1"]))
         parts.append("%s %s (VIOSM %d, VISO %d, VIOWM %d VDC, %.0f/%.0f mm, %s)" % (ref, m, r["viosm"], r["viso"],
                                                                                 r["viowm_dc"], r["clr"], r["cpg"],
                                                                                 r["src"]))
-    ok = say(ok, "Barrier B1 ratings (%d isolators) vs insulation_spec '%s'" % (len(iso), req["label"][:34]),
+    alt = min(alt_reach(r["clr"], plain) for _, _, r in drawn)
+    alt_c = min(alt_reach(r["clr"], credit) for _, _, r in drawn)
+    ok = say(ok and alt >= 2000, "Barrier B1 ratings (%d isolators, read from the data sheets) vs insulation_spec '%s'" %
+             (len(iso), req["label"][:34]),
              "need impulse %.0f V, AC %.0f Vrms 60 s, working %.0f V DC at the OV trip, clearance >= %.1f mm (2000 m), "
              "creepage >= 8 mm: %s. Creepage 8 mm < %.1f mm (PD2): conformal coating to PD1 (>= %.1f mm) over the B1 "
-             "zone is MANDATORY; clearance at 3000 / 4000 m needs %.1f / %.1f mm (WW 15 mm variants)" %
-             (req["imp"], req["ac"], req["u_tov"], req["cl_2000"], "; ".join(parts), req["cr_pd2"], req["cr_pd1"],
-              req["cl_3000"], req["cl_4000"]))
+             "zone is MANDATORY. ALTITUDE THE BARRIER REACHES: %d m (clearance %.1f / %.1f / %.1f / %.1f mm needed at 2000 / "
+             "3000 / 4000 / 5000 m; %d m with a port SPD credit, which needs Up,eff <= %.1f kV - not given by the drawn SPD)" %
+             (req["imp"], req["ac"], req["u_tov"], req["cl_2000"], "; ".join(parts), req["cr_pd2"], req["cr_pd1"], alt,
+              plain[2000], plain[3000], plain[4000], plain[5000], alt_c, INS["spd_max_up_eff_for_8mm"]["3000"] / 1e3))
     info("Rejected B1 candidates", "; ".join("%s: %s" % kv for kv in REJECTED.items()))
+    return ok & check_altitude(drawn, plain, credit, alt, alt_c, req)
+
+
+def check_altitude(drawn, plain, credit, alt, alt_c, req):
+    """Task 3 (owner, 2026-10-05: the PMA is rated to 4000-5000 m with derating above 3000 m): what limits the rating, what the
+    15 mm parts would cost, the decision. Thermal derating from module_spec; the clearance, not the thermal model, sets the ceiling."""
+    ww = {}
+    for _, m, _ in drawn:
+        for c in WW_OF[m]:
+            ww[c] = iso_rating(c) if c in ISO_DS else None
+    cost_now = sum(PRICE[m][0] for _, m, _ in drawn)
+    cost_ww = sum(ALT_PRICE[c][0] for _, m, _ in drawn for c in WW_OF[m])
+    # consolidated alternative: every digital channel and the RS-485 onto 4-ch WW parts, CAN on CA-IS3050WG
+    ch = 3 + 6 + 3                                       # STATUS, FAN, ETH_TX + STOP, TACH1-3, ETH_RX, DI1 + RS-485 TX / DE / RX
+    cost_cons = (math.ceil(ch / 4) * ALT_PRICE["4-ch WW (CA-IS384x)"][0] + ALT_PRICE["CA-IS3050WG"][0] +
+                 ALT_PRICE["RS-485 transceiver (SELV, non-isolated)"][0])
+    ww_alt = min(alt_reach(r["clr"], plain) for r in ww.values() if r)
+    mod = MOD["modules"]
+    thermal = "; ".join("%s %s %% at %s m" % (n, " / ".join("%.1f" % (100 * f) for f in m["derating_fraction_45C_vs_altitude"]),
+                                               " / ".join("%d" % a for a in m["altitude_m"])) for n, m in mod.items())
+    t_alt = max(max(m["altitude_m"]) for m in mod.values())
+    fit = cost_ww - cost_now <= 1.0 or cost_cons - cost_now <= 1.0
+    ok = say(not fit and alt == 2000, "Altitude rating (task 3, calculated) - DECLARED %d m" % alt,
+             "BARRIER: %d m (B1 isolators %.1f mm minimum clearance). THERMAL MODEL (module_spec, 45 C inlet, PV only; the inverter has "
+             "no altitude model): %s - it reaches %d m with derating. DECLARED CEILING: %d m, set by the clearance, not the thermal "
+             "model. The 15 mm (WW) parts exist and reach %d m (read from the same data sheets: %s); RS-485 has no integrated part "
+             ">= 9.2 mm (CA-IS308x v1.10: W only; NOVOSENSE / 2Pai searched, none found), so a SELV transceiver + 3 WW channels. "
+             "Cost per board (1 ku): drawn B1 set %.2f USD; part for part WW %.2f USD (+%.2f); consolidated on 4-ch WW parts (%d "
+             "channels) %.2f USD (+%.2f): %s the ~1 USD rule -> %s. Cheapest other route: a port SPD with Up,eff <= %.1f kV and its "
+             "own altitude rating (module decision, power board): the 8 mm parts then reach %d m (%.1f / %.1f mm needed at 3000 / "
+             "4000 m)%s" %
+             (alt, min(r["clr"] for _, _, r in drawn), thermal, t_alt, alt, ww_alt,
+              ", ".join("%s %.0f/%.0f mm VIOSM %d" % (c, r["clr"], r["cpg"], r["viosm"]) for c, r in ww.items() if r),
+              cost_now, cost_ww, cost_ww - cost_now, ch, cost_cons, cost_cons - cost_now, "within" if fit else "above",
+              "fit them and rate 3000 m" if fit else "NOT fitted, the boards stay rated 2000 m",
+              INS["spd_max_up_eff_for_8mm"]["3000"] / 1e3, alt_c, credit[3000], credit[4000],
+              " - the rule now says FIT: re-decide and draw the WW set" if fit else ""))
+    aux = json.load(open(os.path.join(L.REPO, "sim/out/aux_hv_design/aux75_spec.json")))["transformer_requirement"]["insulation"][
+        "primary + live + shield - SELV"]
+    info("Altitude - what is missing for 3000 m (and 4000 / 5000 m)",
+         "(1) B1 isolators: the WW set above (+%.2f USD per board at least) or the SPD credit; (2) AUX-T1 (power board, custom): its "
+         "specification already lists clearance %s mm at 2000 / 3000 / 4000 m (aux75_spec); the drawing must state the rated altitude, "
+         "clearance >= %.1f mm and the sea-level impulse type test %.1f kV for 3000 m (%.1f mm / %.1f kV for 4000 m; %.1f mm for "
+         "5000 m), PD <= 10 pC routine as now; (3) layout: every SELV connector (fans, stop / IO, CAN, RS-485, Ethernet) and the SELV "
+         "harness >= %.1f mm clearance from LIVE copper and >= %.1f mm creepage (PD2) - the architecture's 10 mm keep-out holds to "
+         "3000 m, 4000 m needs %.1f mm; (4) module level, not this board: power board B2 %.1f / %.1f mm at 3000 / 4000 m, the port SPDs' "
+         "own altitude ratings (Raycap 59.D040: 3000 m max; DEHN 952515 not stated), contactors, fuses and fans not assessed" %
+         (min(cost_ww, cost_cons) - cost_now, aux["clearance_mm"], plain[3000], req["imp_test_3000"] / 1e3, plain[4000],
+          req["imp_test_4000"] / 1e3, plain[5000], plain[3000], req["cr_pd2"], plain[4000],
+          next(r for r in INS["requirements"] if r["label"].startswith("Basic HV-PE, DC pole"))["cl_3000"],
+          next(r for r in INS["requirements"] if r["label"].startswith("Basic HV-PE, DC pole"))["cl_4000"]))
+    return ok
+
+
+# ---- rev A2: Ethernet bridge, recorder flash, SELV I/O (calculated from the data sheets named; ASSUMED where marked)
+CH9121 = dict(i_typ=76.2e-3, k_max=1.3, vcc=(3.2, 3.4), rx_tol=0.02, f_tol_ppm=40.0, f_rec_ppm=30.0)
+#   CH9121 V2.6 table 7-3: 76.2 mA typical with 100BASE-TX traffic, all currents incl. the magnetics (no maximum published: x1.3
+#   ASSUMED); table 7-2 VCC33 3.2-3.4 V; 6.1.1 receive tolerance <= 2 %; table 7-4 crystal 24.999-25.001 MHz, 'within 30 ppm' advised
+XTAL_PPM = (10.0, 20.0, 3.0)          # X322525MOB4SI: +/-10 ppm at 25 C, +/-20 ppm over -40..85 C, aging +/-3 ppm/year (YSX321SL p.1)
+LED_VF = (1.8, 2.8)                   # HR913550AE p.2 LED table (V at 20 mA)
+RDS_DRV = 3.0                         # ohm: 2N7002BK at VGS >= 4.47 V (CA-IS3821 VOH at 5 V, 4 mA) - ASSUMED bound
+SCI_CLK, SCI_BAUD = 60e6, 115200      # firmware: SCIB from LSPCLK = SYSCLK / 2 (LOSPCP), 115.2 kbit/s on both ends of the bridge
+T_BOARD = 85.0                        # C: the board temperature the fan buck already uses (FAN_BUCK t_board)
+REC = dict(pre=0.100, post=0.100, ch=32, nbytes=2, ram=24 * 1024, img=384 * 1024, n_img=2, cal=2 * 64 * 1024, page=256,
+           t_page=0.5e-3, flash=4 * 1024 * 1024)
+#   pre / post / channels: the PMA's recorder (manual p.10, the coordinator's bar); ram: pre-trigger buffer budget of the F280039C's
+#   69 KB RAM (ASSUMED share); img: one image = the whole 384 KB flash (SPRSP61C 1); two images (new + golden) and two 64 KB
+#   calibration sectors (A / B, CRC); GD25Q32E: 256 B pages, 0.5 ms typical page program, 4 MB
+ETH_B = [   # option B (W5500 on SPI), parts beyond what option A also needs (RJ45, LDO, TVS); WIZnet reference schematic
+    #         'W5500-Ref-RJ45WithMag' (docs.wiznet.io, 2015-09-25): USD at 1 ku
+    ("W5500 (LCSC C32843 @1000)", 1, 1.8261), ("25 MHz crystal + 2 x 18 pF + 1 M", 1, 0.0584 + 3 * 0.002),
+    ("EXRES1 12.4k 1 %, 1V2O 10 nF, TOCAP 4.7 uF", 3, 0.015), ("AVDD / VDD 7 x 100 nF + 2 x 10 uF + bead", 10, 0.06),
+    ("TX 2 x 49.9 R + 10 R + 22 nF, RX 2 x 6.8 nF + 2 x 49.9 R + 10 nF", 9, 0.02), ("LED 2 x 330 R", 2, 0.002),
+    ("RSTn 10k + 100 nF", 2, 0.004), ("74LVC1G125 + 100 nF: MISO off the shared SPI bus (ESTIMATE)", 2, 0.05),
+    ("second isolator for SCSn (CA-IS3821, ESTIMATE as LG)", 1, 0.45), ("its 2 x 100 nF", 2, 0.004)]
+ASM_USD = 0.02                        # USD per placement (ARCHITECTURE-COSTFIRST section 10)
+
+
+def s3_load():
+    """S_3V3 maximum (A): CH9121T, both LEDs fully on, the LDO's ground current at load (SBVS338H: <= 2 mA at 300 mA)"""
+    return CH9121["i_typ"] * CH9121["k_max"] + 2 * (3.4 - LED_VF[0]) / 470.0 + 2e-3
+
+
+def s5_budget():
+    """S_5V without the Ethernet option, the option's share, the S_3V3 load (A) and the itemised rows (mA): data-sheet maxima, the
+    relay coil at -40 C with -10 % resistance (its largest current)"""
+    v5 = v5_range()[1]
+    coil = v5 / (RELAY["r_coil"] * (1 - RELAY["tol"]) * (1 + 0.00393 * (RELAY["t_amb"][0] - 23.0)))
+    rows = [("CAN bus side", 73.0), ("transceiver quiescent (rev A1 item)", 6.8), ("RS-485 into 54 R", 3600 / 54),
+            ("3 x CA-IS382x", 15.0), ("CA-IS3842HW", 7.1), ("tach pull-ups", 3 * 5000 / 20e3), ("stop divider", 5000 / 43e3),
+            ("DI1 wetting", 1e3 * v5 / (val(DI_NET[0]) + val(DI_NET[1]))), ("relay coil at -40 C", 1e3 * coil)]
+    i3 = s3_load()
+    eth = i3 + v5 / 3.0e3
+    return 1e-3 * sum(r[1] for r in rows), eth, i3, rows + [("Ethernet option", 1e3 * eth)]
+
+
+def check_ethernet(B):
+    """Task 1: Ethernet for the EMS. The two implementations against each other (cost, parts, barrier, pins), the drawn one as built."""
+    ok = True
+    no = next(i for i, s in enumerate(B.D.sheets, 1) if s.key.endswith("_eth"))          # refs are <prefix><sheet><nn>
+    eth = [r for r, m in B.bom.items() if not r.startswith("#") and m["sourcing"] != "NOPART" and
+           int(re.fullmatch(r"[A-Z]+(\d+)\d\d", r).group(1)) == no]
+    cost_a = sum(generic_price(B.bom[r]["desc"], B.bom[r]["value"]) if B.bom[r]["sourcing"] == "GENERIC" else
+                 PRICE[B.bom[r]["mpn"]][0] for r in eth)
+    common = sum(PRICE[x][0] for x in ("HR913550AE", "TPS7A2033PDBVR", "SRV05-4")) + 0.002 + 0.012 + 0.012 + 0.002
+    cost_b = common + sum(c for _, _, c in ETH_B)                 # common: RJ45, LDO + 10 R + 1 / 10 uF + 100 nF, TVS (7 parts)
+    n_b = 7 + sum(n for _, n, _ in ETH_B)
+    vb = v5_range()
+    i3 = s3_load()
+    r_d = val(ETH_LDO_R)
+    p_ldo = (vb[1] - r_d * i3 - 3.3 * 0.985) * i3
+    tj, tj_no = T_BOARD + 187.1 * p_ldo, T_BOARD + 187.1 * (vb[1] - 3.3 * 0.985) * i3
+    head = vb[0] - r_d * i3 - 3.3 * 1.015
+    p_r = r_d * i3 ** 2
+    brr = round(SCI_CLK / (8 * SCI_BAUD) - 1)
+    err = SCI_CLK / ((brr + 1) * 8) / SCI_BAUD - 1
+    ppm = XTAL_PPM[0] + XTAL_PPM[1]
+    v_rx = vb[1] * 2.0 * 1.01 / (1.0 * 0.99 + 2.0 * 1.01)        # isolator VOH <= VDDB = S_5V, 1 % divider
+    ok &= say(cost_a + len(eth) * ASM_USD < cost_b + n_b * ASM_USD and 3.3 * 0.985 >= CH9121["vcc"][0] and
+              3.3 * 1.015 <= CH9121["vcc"][1] and tj <= 125.0 and head >= 0.145 and p_r <= 0.6 * 0.25 and
+              abs(err) <= CH9121["rx_tol"] / 2 and ppm <= CH9121["f_rec_ppm"] and v_rx <= 3.3 * 0.985 + 0.4,
+              "Ethernet for the EMS (task 1) - option A drawn: CH9121T UART bridge, %s" %
+              ("FITTED on this variant" if eth_fitted() else "NOT FITTED on PV-CTL / PV-CTL-P75 (DNP, footprints only)"),
+              "A (CH9121T 10/100 transparent TCP/UDP, maker's MAC, HR913550AE, TPS7A2033, SRV05-4, crystal, UART across B1 on 2 "
+              "channels of the CA-IS3842HW that DI1 needs anyway, 2 MCU pins SCIB GPIO56/57): %d parts, %.2f USD BOM + %.2f USD "
+              "assembly = %.2f USD. B (W5500 on the recorder flash's SPI bus with a 74LVC1G125 on MISO, WIZnet reference circuit, a "
+              "second isolator for SCSn, 1 MCU pin, no MAC of its own: an IEEE address block or a locally administered address): %d "
+              "parts, %.2f + %.2f = %.2f USD. On the BOM alone B is %.2f USD cheaper; with the placements A is cheaper by %.2f USD, "
+              "and A has 1 barrier part instead of 2 (both meet the B1 rule: CA-IS382x / 384x VIOSM 8 kV), its own MAC and the "
+              "maker's reference circuit (CH9121 V2.6 fig. 9-1); B saves one MCU pin -> A. "
+              "CH9120 (10 Mbit only, 2.83 USD, LCSC stock 0) not taken. As drawn: VCC33 %.2f-%.2f V in 3.2-3.4 V; S_3V3 %.0f mA "
+              "(CH9121T 76.2 mA typ x%.1f ASSUMED, LEDs, LDO); TPS7A2033 Tj %.0f C at a %.0f C board (%.0f C without the %s "
+              "dropper, limit 125 C; RthJA 187.1 K/W), headroom %.2f V >= 0.145 V dropout, dropper %.0f mW (1206); SCIB %d bit/s from "
+              "%.0f MHz LSPCLK, BRR %d -> %+.2f %% (bridge tolerates 2 %%); crystal +/-%.0f ppm (25 C + temperature) <= the maker's "
+              "30 ppm (+ aging 3 ppm/year: OPEN at end of life against the 40 ppm table limit); isolator to RXD1 through 1.0k / 2.0k "
+              "<= %.2f V (<= VCCIO min + 0.4 V abs max); MDI straight (50 R inside), centre taps 1 uF to S_GND, SRV05-4 0.8 pF; straps: CFG on an end-of-line test point, LINK/RESET held high by its LED path (2 s low = factory reset); "
+              "RJ45 -40..+85 C, 2250 V DC magnetics; CHS GND (Bob-Smith 1000 pF / 2 kV) and shield legs to PE like the bus "
+              "terminals' screens; one more B1 part adds ~2 pF across B1 (CA-IS384x CIO): micro-amp touch current, D-048 measures "
+              "unchanged" %
+              (len(eth), cost_a, len(eth) * ASM_USD, cost_a + len(eth) * ASM_USD, n_b, cost_b, n_b * ASM_USD, cost_b + n_b * ASM_USD,
+               cost_a - cost_b, cost_b + n_b * ASM_USD - cost_a - len(eth) * ASM_USD, 3.3 * 0.985, 3.3 * 1.015, i3 * 1e3, CH9121["k_max"], tj,
+               T_BOARD, tj_no, ETH_LDO_R, head, p_r * 1e3, SCI_BAUD, SCI_CLK / 1e6, brr, 100 * err, ppm, v_rx))
+    return ok
+
+
+def check_recorder():
+    """Task 2 and the coordinator's bar (PMA: 100 ms before + 100 ms after the trigger, 32 channels, several records)."""
+    f_ctrl = CS["sampling"]["outer_loop_kHz"] * 1e3                  # every channel converted once per PWM period (control_spec)
+    full = (REC["pre"] + REC["post"]) * f_ctrl * REC["ch"] * REC["nbytes"]
+    ram_full = REC["pre"] * f_ctrl * REC["ch"] * REC["nbytes"]
+    dec = math.ceil(ram_full / REC["ram"])                            # decimation that fits the pre-trigger buffer into RAM
+    f_rec = f_ctrl / dec
+    ev = (REC["pre"] + REC["post"]) * f_rec * REC["ch"] * REC["nbytes"]
+    free = REC["flash"] - REC["n_img"] * REC["img"] - REC["cal"]
+    n_ev, n_full = int(free // ev), int(free // full)
+    t_wr = math.ceil(ev / REC["page"]) * REC["t_page"]                  # the whole event, into a pre-erased slot
+    # the task's own sizing: 50 events x 20 ms x 16 channels at the control rate + one image
+    task = 50 * 0.020 * f_ctrl * 16 * REC["nbytes"] + REC["img"]
+    return say(n_ev >= 50 and task <= REC["flash"] and free > 0,
+               "Recorder flash GD25Q32E 4 MB (task 2, calculated)",
+               "the task's sizing (50 events x 20 ms x 16 ch x 2 B at %.0f kHz + one image) %.2f MB <= 4 MB. The PMA bar (100 ms before "
+               "+ 100 ms after, 32 ch): at the control rate %.0f kHz one event is %.0f kB and its pre-trigger buffer %.0f kB - more than "
+               "the F280039C's 69 KB RAM, so the pre-trigger record runs at %.1f kHz (every %d-th period; %.0f kB of RAM, ASSUMED budget "
+               "%.0f kB), %.0f kB per event; beside two images (%d kB each: new + golden) and two 64 kB calibration sectors %.2f MB stay "
+               "free = %d events (%d at the full control rate - the RAM, not the flash, is the limit); writing one event takes %.2f s "
+               "(pages 0.5 ms typ; slots erased ahead). The PMA publishes no rate or count. The fast trips are seen by the hardware latch; the recorder adds a 2 ms full-rate snapshot from RAM "
+               "(firmware). Replaces the 32 kB I2C EEPROM (calibration, serial number, event log now in the flash, two copies + CRC, "
+               "R-WS-9)" %
+               (f_ctrl / 1e3, task / 2 ** 20, f_ctrl / 1e3, full / 1024, ram_full / 1024, f_rec / 1e3, dec,
+                REC["pre"] * f_rec * REC["ch"] * REC["nbytes"] / 1024, REC["ram"] / 1024, ev / 1024, REC["img"] // 1024,
+                free / 2 ** 20, n_ev, n_full, t_wr))
+
+
+def check_io(B):
+    """The coordinator's PMA interface bar (manual pp. 10-21, 29): what existed, what rev A2 adds, the port roles - declared."""
+    ok = True
+    v5 = v5_range()
+    kd = (val(EN_DIV[0]) + val(EN_DIV[1])) / val(EN_DIV[1])
+    v_on = 2.0 * kd * 1.02                                             # ON threshold at the terminal (as the stop trip line)
+    r_in = val(EN_DIV[0]) + val(EN_DIV[1])
+    n_src = max(n for n in range(1, 10) if S24[0] * (r_in / n) / (r_in / n + 10e3 * 1.01) >= v_on)
+    i_mod = S24[1] / r_in
+    v_di = v5[0] * val(DI_NET[1]) / (val(DI_NET[0]) + val(DI_NET[1]))
+    t_di = val(DI_NET[2]) * val(DI_NET[3]) + val(DI_NET[0]) * val(DI_NET[1]) / (val(DI_NET[0]) + val(DI_NET[1])) * val(DI_NET[3])
+    hot = 1 + 0.00393 * (RELAY["t_amb"][1] - 23.0)
+    v_pick = RELAY["v_pick"] * hot                                      # pick-up rises with the coil resistance (copper)
+    i_hot = v5[0] / (RELAY["r_coil"] * (1 + RELAY["tol"]) * hot)
+    v_coil = v5[0] - i_hot * RDS_DRV
+    ok &= say(n_src >= 1 and v_di >= 2.0 * 1.1 and v_coil >= v_pick and t_di <= 5e-3,
+              "SELV I/O (PMA interface bar)",
+              "STOP (existed): ENABLE -> default-low CA-IS3821LG -> STOP_OK -> 74LVC07 -> the latch: gates, EN, K_PRE, K_A/K_B "
+              "(unless held), STATUS off in hardware, no firmware (trip table). Rev A2: J_STOP 2 / 3 stop line in / out and 4 / 5 0 V "
+              "in / out (loop-through) to chain a cabinet 24 V stop line (each module %.2f mA at 36 V); the S_EN_SRC dry-contact "
+              "supply serves %d module (ON >= %.1f V at S_24V >= %.0f V); READY permissive (PMA rocker p.13) = J_IO 6-7 in series "
+              "(wire link if unused): open = stop in hardware - the firmware sees one STOP_OK for both. DI1 battery fault / BMS "
+              "contact (PMA BAT_FAULT): J_IO 4 = 5 V wetting via 1.0k, 5 = input, 10k down, 10k + 100 nF (%.1f ms), 5.1 V clamp -> "
+              "CA-IS3842HW -> GPIO52 (XINT3): closed contact %.2f V >= 2.2 V (VIT+ 2.0 V + 10 %%); NO / NC meaning set in firmware. "
+              "Relay (PMA NO / COM / NC): HFD27/005-S on the STATUS channel through the 2N7002BK, energised = healthy, NC on any "
+              "trip, stop or supply loss; pick-up at %.0f C %.2f V <= coil %.2f V (S_5V %.2f V - %.0f mA x %.0f ohm ASSUMED); "
+              "SELV contacts only (<= 30 V AC / 60 V DC, 2 A 30 V DC). A firmware-read DI2 would need a 56th GPIO (the PCS plan "
+              "uses 55 of 55: OPEN, e.g. drop the HOLD read-back, which the firmware can mirror from IB_H)" %
+              (i_mod * 1e3, n_src, v_on, S24[0], t_di * 1e3, v_di, RELAY["t_amb"][1], v_pick, v_coil, v5[0], i_hot * 1e3,
+               RDS_DRV))
+    can_j = sum(1 for p in B.D.parts.values() if p.lib_id.endswith(":JP_OPEN") and "S_CAN_TH" in p.pins.values())
+    rs_j = sum(1 for p in B.D.parts.values() if p.lib_id.endswith(":JP_OPEN") and "S_RS_TA" in p.pins.values())
+    info("Terminations and addressing (existed)",
+         "CAN: split 2 x 60.4 R + 4.7 nF switched in by a solder jumper (%d); RS-485: 120 R by a solder jumper (%d); open = not "
+         "terminated (the two bus ends close theirs; fail-safe receiver). Selectable today, no DIP added. Module address: by "
+         "software over the module CAN (firmware row), no address DIP" % (can_j, rs_j))
+    info("Port roles (firmware / configuration, declared)",
+         "module bus (paralleling, carrier synchronisation by CAN time-stamping, software addressing) = the one CAN; BMS = RS-485 "
+         "(Modbus RTU) or, when the module is not paralleled, CAN; EMS = Ethernet (Modbus TCP, port 502, %s) or RS-485; HMI / "
+         "local PC tool = Modbus TCP over the Ethernet bridge or the RS-485 at 9600-8-N-1 (the HMI panel and its 12 V supply are a "
+         "cabinet accessory, not added; no web server: the bridge is transparent); upgrade = authenticated dual-image (signed, "
+         "CRC, staging slot + golden image in the recorder flash, bootloader in a DCSM-protected sector) over Ethernet / RS-485 / "
+         "CAN, only in SERVICE with authorisation (R-WS-8 / 9). One Ethernet port, not the PMA's two: a daisy chain is the "
+         "cabinet's switch. No hardware sync pair: a second isolated pair across B1 is not fitted (one more isolator ~%.2f USD, a SELV "
+         "differential transceiver and 2 GPIO the PCS plan does not have). Where it fails: a CAN-only BMS whose bit rate or identifiers cannot share the module bus "
+         "while the modules run in parallel -> BMS on RS-485 needed (the EMS then on Ethernet); on PV-CTL (Ethernet not fitted) "
+         "fit the Ethernet option first" % ("fitted" if eth_fitted() else "not fitted on PV-CTL", PRICE["CA-IS3842HW"][0]))
+    adc = {r[0] for r in plan()}
+    info("Insulation and leakage telemetry (PMA p.29)",
+         "insulation resistance: VPE_ADC %s with the IMD switches IMD_SW1 / IMD_SW2 on both variants; leakage (residual) current: "
+         "RCM_ADC on the PCS variant only (PCS_X, %s here); PV-P75/100/110 has no residual-current sensor (DC/DC: insulation "
+         "monitoring only)" % ("on the ADC" if "VPE_ADC" in adc else "MISSING", "on the ADC" if "RCM_ADC" in adc else
+                               "not on this variant"))
     return ok
 
 
@@ -1886,24 +2337,47 @@ def check_budget(B, pw):
             4 * 3.0 / val(ILR_PU)) + VREF_XTRA
     ok &= say(vref <= 10e-3, "Budget VREF (REF3030E, +/-10 mA)", "%.1f mA: VREFHI 3 x 130 uA, VDAC 4 CMPSS x 6 kOhm min, "
               "NTC biases at 150 C, ladders, IL offset resistors" % (vref * 1e3))
+    # rev A2: the I2C EEPROM (2 mA) out; the recorder flash at its program / erase maximum (GD25Q32E ICC4-6 25 mA, -40..85 C), the
+    # CA-IS3842HW live side (IDDA DC-signal maximum 7.1 mA at 5 V, CA-IS384x 7.9.1) and the three flash pull-ups in
     i33 = (106e-3 + 2.5e-3 + vref + 37e-6 + 4 * 0.75e-3 + 7 * 4 * 35e-6 + 3 * 2 * 2.5e-3 + 7.6e-3 + 3.6e-3 + 2.2e-3 +
-           2e-3 + 2e-3 + 1.3e-3 + 0.7e-3 + 2 * 0.33e-3 + 0.66e-3 + 0.7e-3 + 1.4e-3)
+           25e-3 + 7.1e-3 + 2e-3 + 1.3e-3 + 0.7e-3 + 2 * 0.33e-3 + 0.66e-3 + 0.7e-3 + 1.4e-3 + 3 * 3.3 / 10e3)
     ok &= say(i33 <= pw["alloc"][2] and "+5V" not in used and "+24V" not in used,
               "Budget live rails (PV-PWR allocation +24V %.0f / +5V %.0f / +3V3 %.0f mA)" % tuple(x * 1e3 for x in pw["alloc"]),
-              "+3V3 <= %.0f mA (F280039C 106 + 2.5 mA flash-program worst, REF3030E %.1f mA, TLV9064, 7 x TLV9024, "
-              "isolator live sides, RS-485 VDDA 7.6 mA, CAN VCC1 3.6 mA, SPXO, EEPROM, LEDs, pull-ups); +5V and +24V not "
-              "used" % (i33 * 1e3, vref * 1e3))
-    s5 = 73e-3 + 6.8e-3 + 3.6 / 54 + 3 * 2 * 2.5e-3 + 3 * 5.0 / 20e3 + 5.0 / 43e3
+              "+3V3 <= %.0f mA = %.0f %% (F280039C 106 + 2.5 mA flash-program worst, REF3030E %.1f mA, TLV9064, 7 x TLV9024, "
+              "isolator live sides incl. the CA-IS3842HW 7.1 mA, RS-485 VDDA 7.6 mA, CAN VCC1 3.6 mA, SPXO, recorder flash "
+              "25 mA program / erase maximum (the I2C EEPROM's 2 mA is gone), LEDs, pull-ups); +5V and +24V not used" %
+              (i33 * 1e3, 100 * i33 / pw["alloc"][2], vref * 1e3))
+    s5, s5_eth, i3, rows5 = s5_budget()
     fan = {"PV-P75": 3 * 12.0, "PV-P100/110": 3 * 17.0}
     ifan = max(fan.values()) / 24.0
-    ok &= say(s5 <= 0.3 and ifan + 0.5 * 0.64 <= 3.0 and ifan + 0.3 < 4.5,
-              "Budget SELV rails", "S_5V %.0f mA (CAN bus side 73 mA dominant, RS-485 driving 54 R, isolator SELV sides, "
-              "pull-ups) <= 0.3 A design (L22U 1.5 A); S_FAN_V %.2f A at 3 x 17 W (PV-P100/110) <= FXL0840-330 Irms 3.0 A "
-              "with ripple, TPS54360B current limit >= 4.5 A, SS56 5 A" % (s5 * 1e3, ifan))
-    p_selv = max(fan.values()) / 0.90 + 5.0 * s5 / 0.80
-    info("Budget SELV input (AUX-T1 winding)", "<= %.1f W (fans %.0f / %.0f W at 90 %%, 5 V branch %.1f W); "
-         "architecture section 3: 39.6 / 56.1 W; input range %.0f-%.0f V (PV-PWR), both bucks rated 60 V, no "
-         "under-voltage lock-out above 4.5 V" % (p_selv, fan["PV-P75"], fan["PV-P100/110"], 5.0 * s5 / 0.8, *S24))
+    s5_max = s5 + (s5_eth if eth_fitted() else 0.0)
+    ok &= say(s5 + s5_eth <= S5_DESIGN and ifan + 0.5 * 0.64 <= 3.0 and ifan + 0.3 < 4.5,
+              "Budget SELV rails", "S_5V %.0f mA without / %.0f mA with the Ethernet option (this variant: %.0f mA; %s) <= %.1f A "
+              "design (rev A2, was 0.3 A: L22U Irms 1.5 A, TPS54360B limit >= 4.5 A); S_FAN_V %.2f A at 3 x 17 W (PV-P100/110) "
+              "<= FXL0840-330 Irms 3.0 A with ripple, TPS54360B current limit >= 4.5 A, SS56 5 A" %
+              (s5 * 1e3, (s5 + s5_eth) * 1e3, s5_max * 1e3, ", ".join("%s %.1f" % kv for kv in rows5), S5_DESIGN, ifan))
+    p_selv = max(fan.values()) / 0.90 + 5.0 * s5_max / 0.80
+    info("Budget SELV input (AUX-T1 winding)", "<= %.1f W (fans %.0f / %.0f W at 90 %%, 5 V branch %.1f W: %.1f W without / "
+         "%.1f W with the Ethernet option, was 1.0 W before rev A2); architecture section 3: 39.6 / 56.1 W; input range %.0f-%.0f V "
+         "(the power board), both bucks rated 60 V, no under-voltage lock-out above 4.5 V" %
+         (p_selv, fan["PV-P75"], fan["PV-P100/110"], 5.0 * s5_max / 0.8, 5.0 * s5 / 0.8, 5.0 * (s5 + s5_eth) / 0.8, *S24))
+    # the power boards carry 0.6 W for this board's SELV logic (gen/pv_power.py SELV_W, gen/pcs_power.py p_selv: ARCHITECTURE section 3)
+    rt = json.load(open(os.path.join(L.REPO, "sim/out/aux_hv_design/aux75_spec.json")))["ratings"]
+    logic = 5.0 * s5_max / 0.80
+    rows_a = []
+    for b, n_ph in (("PV-P75", 3), ("PV-P100/110", 4)):
+        r_ = next(v for k, v in rt.items() if k.startswith("%d phases" % n_ph))
+        rows_a.append((b, FAN_W[b] * 1.1 + logic, r_["selv_W"]))
+    if logic > 0.6:
+        open_item("SELV winding allocation on the power board (stacked maxima)",
+                  "this board's SELV logic is %.2f W (%s; rev A1 was already 1.0 W), the power boards carry 0.6 W (gen/pv_power.py "
+                  "SELV_W, gen/pcs_power.py p_selv). Against aux75_spec: %s. The aux hardware is one design (its 4-phase row %.1f W); "
+                  "the power-board owners raise the 0.6 W term to >= %.2f W and %s" %
+                  (logic, "Ethernet fitted" if eth_fitted() else "Ethernet not fitted",
+                   "; ".join("%s fans x1.1 + logic %.1f W vs %.1f W%s" % (b, ld, cap, " OVER by %.2f W" % (ld - cap) if ld > cap else "")
+                             for b, ld, cap in rows_a), rows_a[1][2], logic,
+                   "re-allocate the PV-P75 row (fans at 100 % and the relay coil cold do not coincide: the fans stay off below "
+                   "-10 C inlet)" if any(ld > cap for _, ld, cap in rows_a) else "keep the rows"))
     rt, rbot, rinj = (val(x) for x in FAN_FB)
     d_on, d_full = fan_d_on(), fan_d_full()
     v_hi, v_lo, v_hys = fan_vout(d_on), fan_vout(1.0), 0.8 + rt * (0.8 / rbot + (0.8 - 1.1) / rinj)
@@ -1939,7 +2413,7 @@ def check_budget(B, pw):
     v5 = v5_range()
     ok &= say(4.5 <= v5[0] and v5[1] <= 5.5, "SELV 5 V set point", "%.2f-%.2f V inside CA-IS3050 VCC2 4.5-5.5 V, "
               "CA-IS3082 VDDB 3.0-5.5 V, CA-IS382x 2.5-5.5 V" % v5)
-    for tag, vo, io_, cout, rc, cc, fsw in (("SELV 5 V", 5.0, 0.3, 44e-6, V5_COMP[0], V5_COMP[1], 500e3),
+    for tag, vo, io_, cout, rc, cc, fsw in (("SELV 5 V", 5.0, S5_DESIGN, 44e-6, V5_COMP[0], V5_COMP[1], 500e3),
                                            ("fan 24 V", 24.0, 2.13, 20e-6, FAN_COMP[0], FAN_COMP[1], 300e3)):
         fp = io_ / (2 * math.pi * vo * cout)
         fco = val(rc) * 12 * 0.8 * 350e-6 / (2 * math.pi * cout * vo)
@@ -2028,10 +2502,20 @@ def check_resources(pins, P):
               "pin (port OC backup on PV-P75 where CMPSS4 is free)")
     gp_used = sum(1 for net, key, fn, d, r in P if key.startswith("GPIO"))
     gp_all = sum(1 for d in pins.values() if any(nm.startswith("GPIO") for nm in d["names"]))
-    ok &= say(gp_used <= gp_all - 1, "F280039C GPIO / peripherals",
-              "%d of %d GPIO pins used (incl. X1, TDI/TDO); DCAN on GPIO32/33 (boot option 1), SCIA on GPIO28/29 (SCI "
-              "boot), I2CA on GPIO56/57, eCAP1 APWM + eCAP2/3 capture (3 of 3), eQEP1 (1 of 2), INPUTXBAR 1, 4-8, 13, 14"
-              % (gp_used, gp_all))
+    free = sorted((d["label"] for p, d in pins.items() if "GPIO" in d["label"] and
+                   not any(key in d["names"] for _, key, _, _, _ in P)), key=L.natural)
+    ok &= say(gp_used <= gp_all, "F280039C GPIO / peripherals",
+              "%d of %d GPIO pins used (incl. X1 and GPIO35 / 37, the TDI / TDO pins in cJTAG mode), free: %s; DCAN on GPIO32/33 "
+              "(boot option 1), SCIA on GPIO28/29 (SCI boot, RS-485), SCIB on GPIO56/57 (Ethernet bridge), SPIA on GPIO18/54/55 "
+              "+ CS# GPIO37 (recorder flash), eCAP1 APWM + eCAP2/3 capture (3 of 3), eQEP1 (1 of 2), INPUTXBAR 1, 4-8, 13, 14. "
+              "Rev A2 pins came from: the I2C EEPROM (GPIO56/57), cJTAG (GPIO35/37), the run LED moved to WD_OK (GPIO34), "
+              "PRE_N read instead of OC_N + OVT_N (GPIO52), X2 (GPIO18, the only pin free in both plans before)"
+              % (gp_used, gp_all, ", ".join(free) or "none"))
+    if gp_used == gp_all:
+        open_item("F280039C GPIO - no spare pin on this variant",
+                  "%d of %d used (the four-wire inverter build needed none: its N-leg PWM7/8 sit on the already routed ePWM4 A/B, GPIO6/7); "
+                  "a later addition needs a pin from the plan: the HOLD read-back (GPIO47, the firmware can mirror it from IB_H) or the "
+                  "PCS-only lines (TMUX address GPIO58-60, RCM_TST GPIO21)" % (gp_used, gp_all))
     t_soc = 0.4e-6 + 11 / 60e6
     socs = 2 * 4 + 2 * 31.25 / 10 + 2 + 14 * 32 / 1000
     info("ADC load", "%.0f conversions per 31.25 us on 3 ADCs = %.0f %% (sampling plan of control_spec); the CLA "
@@ -2044,8 +2528,7 @@ def write_plan(B, pins, P, rows):
     and what the net reaches on the board."""
     trip = {"IL%d_ADC" % k: [rows[1]] for k in range(1, 5)}
     trip.update({"IA_ADC": [rows[3]], "IB_ADC": [rows[3]], "VA_ADC": [rows[13]], "VB_ADC": [rows[13]],
-                 "OC_N": [rows[0]], "OVT_N": [rows[4], rows[5], rows[6], rows[7]], "STOP_OK": [rows[9]],
-                 "FLT_N": [rows[2], rows[10]], "RDY_M": [rows[11]], "TRIP": rows})
+                 "PRE_N": rows, "STOP_OK": [rows[9]], "FLT_N": [rows[2], rows[10]], "RDY_M": [rows[11]], "TRIP": rows})
     reach = defaultdict(list)
     for ref, p in B.D.parts.items():
         for num, net in p.pins.items():
@@ -2077,7 +2560,12 @@ PRICE = {"F280039CSPZR": (4.395, "TI.com 1ku (prices.csv)"), "CA-IS3050W": (0.71
          "SN74LVC08APWR": (0.179, "LCSC C465737 @4000"), "SN74LVC1G74DCUR": (0.187, "TI 1ku (prices.csv)"),
          "SN74LVC1G32DBVR": (0.036, "LCSC C10096 @9000"), "SN74LVC1G123DCUR": (0.163, "ESTIMATE (LCSC (LX) variant)"),
          "TPS3828-33DBVR": (0.19, "ESTIMATE (LCSC DBVT tier)"), "REF3030EAIDBZR": (0.45, "ESTIMATE"),
-         "BL24C256A-PARC": (0.1138, "LCSC @500 (prices.csv)"), "X1G0041710033": (0.262, "LCSC C70560 @1000"),
+         "GD25Q32ESIGR": (0.4294, "LCSC C2832998 @1000"), "X1G0041710033": (0.262, "LCSC C70560 @1000"),
+         "CA-IS3842HW": (0.60, "LCSC C20598875 @1000"), "CH9121T": (2.4845, "LCSC C45354919 @1008"),
+         "HR913550AE": (0.8166, "LCSC C192706 @1000"), "SRV05-4": (0.0204, "LCSC C2836319 @600"),
+         "X322525MOB4SI": (0.0584, "LCSC C9006 @500"), "TPS7A2033PDBVR": (0.099, "TI.com 1ku (prices.csv)"),
+         "HFD27/005-S": (0.6162, "LCSC C23911 @1000"), "BAS16": (0.0078, "LCSC C79997 @1000"),
+         "KF2EDGR-3.81-8P": (0.21, "LCSC C441188 @500 0.1146 + plug ESTIMATE"),
          "TPS54360BDDAR": (0.4686, "LCSC C524806 @1000"), "SS56": (0.035, "LCSC C65009 @1000"),
          "FXL0840-330-M": (0.12, "ESTIMATE"), "FXL0530-220-M": (0.08, "ESTIMATE"), "SM712": (0.021, "LCSC (mirror)"),
          "ESD2CAN24DBZRQ1": (0.118, "TI 1ku (prices.csv)"), "SMBJ36A": (0.03, "ESTIMATE (SMBJ33A 0.029)"),
@@ -2087,7 +2575,6 @@ PRICE = {"F280039CSPZR": (4.395, "TI.com 1ku (prices.csv)"), "CA-IS3050W": (0.71
          "150060VS75000": (0.05, "ESTIMATE"), "150060RS75000": (0.05, "ESTIMATE"),
          "X6521FV-2x32-C85D32": (0.40, "ESTIMATE (XKB 2x40 class)"), "X1270WVS-2x10B-9TV01": (0.2685, "LCSC C5147196"),
          "X6511WV-03H-C60D30": (0.0471, "LCSC C706875 @4000"), "KF2EDGR-3.81-2P": (0.08, "ESTIMATE incl. plug"),
-         "KF2EDGR-3.81-4P": (0.13, "LCSC C441184 @500 + plug ESTIMATE"),
          "KF2EDGR-3.81-6P": (0.16, "LCSC C441186 @500 + plug ESTIMATE")}
 
 
@@ -2106,34 +2593,46 @@ def generic_price(desc, value):
 
 
 def check_cost(B):
-    tot, est, lines = 0.0, 0.0, defaultdict(float)
+    tot, est, lines, dnp, n_dnp = 0.0, 0.0, defaultdict(float), 0.0, 0
     ph4 = 0.0
     for ref, m in B.bom.items():
         if ref.startswith("#") or m["sourcing"] == "NOPART":
             continue
         if m["sourcing"] == "GENERIC":
             p = generic_price(m["desc"], m["value"])
+        else:
+            p, src = PRICE[m["mpn"]]
+        if m["dnp"]:                                  # not-fitted option (the Ethernet bridge on PV-CTL): not in the board total
+            dnp, n_dnp = dnp + p, n_dnp + 1
+            continue
+        if m["sourcing"] == "GENERIC":
             lines["passives (GENERIC)"] += p
             est += p
         else:
-            p, src = PRICE[m["mpn"]]
             lines[m["mpn"]] += p
             est += p if src.startswith("ESTIMATE") else 0.0
             ph4 += p if PH4 in str(m["value"]) else 0.0
         tot += p
-    n = sum(1 for r in B.bom if not r.startswith("#"))
+    n = sum(1 for r, m in B.bom.items() if not r.startswith("#") and not m["dnp"])
     big = sorted(lines.items(), key=lambda kv: -kv[1])[:6]
-    info("Board cost (1 ku, catalogue / estimate)", "%s %.2f USD, %s %.2f USD for %d parts (%.2f USD of it "
-         "estimated); architecture CONTROL + INTERFACE 17.29 USD; largest: %s" % (BUILDS[0], tot, BUILDS[1], tot - ph4, n,
-                                                                                 est, ", ".join("%s %.2f" % kv for kv in
-                                                                                               big)))
+    info("Board cost (1 ku, catalogue / estimate)", "%s %.2f USD, %s %.2f USD for %d fitted parts (%.2f USD of it "
+         "estimated)%s; architecture CONTROL + INTERFACE 17.29 USD; largest: %s" %
+         (BUILDS[0], tot, BUILDS[1], tot - ph4, n, est, "; Ethernet option NOT FITTED here: %d parts, %.2f USD if fitted" %
+          (n_dnp, dnp) if n_dnp else "", ", ".join("%s %.2f" % kv for kv in big)))
     return tot
 
 
+ETH_DNP = "DNP (Ethernet option: fitted on PCS-CTL only)"
+
+
 def write_p75_bom(B):
-    """PV-P75 assembly variant: the phase-4 comparators not fitted (same schematic, same netlist)."""
+    """The board BOM's not-fitted Ethernet rows say why; then the PV-P75 assembly variant: the phase-4 comparators not fitted as
+    well (same schematic, same netlist)."""
     src = os.path.join(L.REPO, "bom", PROJECT + "_BOM.csv")
     rows = list(csv.reader(open(src)))
+    rows = rows[:1] + [r[:10] + [ETH_DNP] if r[10] == "DNP" else r for r in rows[1:]]
+    with open(src, "w", newline="") as f:
+        csv.writer(f).writerows(rows)
     out = [rows[0]]
     for r in rows[1:]:
         if PH4 in r[3]:
@@ -2153,6 +2652,9 @@ def design_check(B, pins, P, iso):
     ok &= check_interface(B, pw)
     ok &= check_resources(pins, P)
     ok &= check_reset_state(B, P)
+    ok &= check_ethernet(B)
+    ok &= check_recorder()
+    ok &= check_io(B)
     check_cost(B)
     print("Trip table (as built):")
     for r in rows:
@@ -2170,10 +2672,13 @@ def vrange(net):
     None = no DC range (switch node, bootstrap, bus line) or a filter node without DC current (ADC inputs)."""
     fixed = {"GND": (0, 0), "S_GND": (0, 0), "PE": (0, 0), "+3V3": (0, 3.63), "+3V3A": (0, 3.63), "VDD12": (0, 1.32),
              "VREF": (2.99, 3.01),  # steady state (ladder taps rise with it at power-up)
-             "JTAG_VREF": (3.0, 3.63), "S_24V": S24, "S_EN_SRC": (0, 36.0), "S_EN_IN": (0, 36.0),
-             "S_STATUS": (0, 36.0), "S_5V": (0, 5.5), "S_FAN_V": (0, 27.0), "S_EN": (0, 5.4)}
+             "JTAG_VREF": (3.0, 3.63), "S_24V": S24, "S_EN_SRC": (0, 36.0), "S_EN_IN": (0, 36.0), "S_EN_BUS": (0, 36.0),
+             "S_5V": (0, 5.5), "S_FAN_V": (0, 27.0), "S_EN": (0, 5.4), "S_3V3": (0, 3.4), "S_ETH_VDDK": (0, 1.5),
+             "S_ETH_TCT": (0, 3.4), "S_ETH_RCT": (0, 3.4), "S_ETH_LINK_A": (1.5, 3.4), "S_ETH_ACT_A": (1.5, 3.4)}
     if net in fixed:
         return fixed[net]
+    if net == "S_ETH_5V":                                       # behind the 10 R dropper: its load is the design check's line
+        return None
     th = {n: lad_th(k)[i][0] for k, ns in TH_NETS.items() for i, n in enumerate(ns)}
     if net in th:                                               # ladder taps from VREF
         return (th[net] * 0.98, min(3.01, th[net] * 1.02))

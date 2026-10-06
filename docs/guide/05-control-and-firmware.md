@@ -3,7 +3,7 @@
 
 # 🎛️ Control and firmware
 
-> How the PV module is controlled — loops, modulation and mode transitions, interleaving and current sharing, MPPT — with the plant numbers, the simulated stability margins and transients, the controller's resource use, and the list of firmware requirements the hardware relies on.
+> How the PV module is controlled — loops, modulation and mode transitions, interleaving and current sharing, MPPT — with the plant numbers, the simulated stability margins and transients, the controller's resource use, the list of firmware requirements the hardware relies on, the control board's ports, recorder and upgrade path, and a summary of the inverter's firmware specification.
 
 ![loops](https://img.shields.io/badge/stability-640%20cases%2C%200%20unstable-00A99D?style=flat-square)
 ![mppt](https://img.shields.io/badge/MPPT%20static-%E2%89%A5%2099.95%20%25%20simulated-00A99D?style=flat-square)
@@ -201,13 +201,16 @@ build and the plan is written to [pv_ctrl_pin_plan.csv](../../gen/data/pv_ctrl_p
 |---|---:|---|
 | PWM outputs | 16 | GPIO0–15 = ePWM1–8 A/B, all with HRPWM; phase p uses ePWM(2p−1) for leg A and ePWM(2p) for leg B on one carrier |
 | Analog inputs | 23 | all 23 analog pins: 4 inductor currents, 4 port currents, 5 port voltages, 8 NTCs, inlet NTC, V<sub>DAC</sub>; IL1–4 also on CMPSS1–4 |
-| Digital inputs | 13 | FLT_N, RDY, HOLD, MOV_OK, OVT_N, OC_N, STOP_OK, TRIP, 3 tachs (eCAP2/3, eQEP1), TDI, crystal |
-| Digital outputs | 13 | EN, K_A, K_B, K_PRE, BIAS_EN, IMD_SW1/2, STATUS, fan PWM (eCAP1 APWM), heartbeat, latch clear, LED, TDO |
-| Communication and EEPROM | 7 | DCAN on GPIO32/33 (boot option 1), SCIA on GPIO28/29 (SCI boot), I2C on GPIO56/57 |
-| Power, reference, test, not connected | 28 | — |
+| Digital inputs | 12 | FLT_N, RDY, HOLD, MOV_OK, STOP_OK, TRIP, PRE_N (the combined on-board comparator trip, read since rev A2 instead of OC_N and OVT_N), DI1 (battery fault), 3 tachs (GPIO35 / GPIO34 to eCAP2/3, eQEP1), crystal |
+| Digital outputs | 11 | EN, K_A, K_B, K_PRE, BIAS_EN, IMD_SW1/2, STATUS (also drives the status relay), fan PWM (eCAP1 APWM), heartbeat, latch clear; the run LED hangs on the watchdog's WD_OK, not on a GPIO |
+| Communication and recorder flash | 11 | DCAN on GPIO32/33 (boot option 1); SCIA on GPIO28/29 + DE (RS-485, SCI boot); SCIB on GPIO56/57 (Ethernet bridge); SPIA on GPIO18/54/55 + CS# on GPIO37 (recorder flash GD25Q32E, in place of the I2C EEPROM) |
+| Power, reference, cJTAG debug, not connected | 27 | — |
 
-<sub>Counted from [pv_ctrl_pin_plan.csv](../../gen/data/pv_ctrl_pin_plan.csv). ADC load: 17 conversions per 31.25 µs on
-three ADCs = 10 %.</sub>
+<sub>Counted from [pv_ctrl_pin_plan.csv](../../gen/data/pv_ctrl_pin_plan.csv) (rev A2, [D-075](../requirements/DECISIONS.md)):
+50 of 55 GPIO used, GPIO58–61 free. The inverter's plan ([pcs_ctrl_pin_plan.csv](../../gen/data/pcs_ctrl_pin_plan.csv),
+four-wire view [pcs_ctrl_pin_plan_4w.csv](../../gen/data/pcs_ctrl_pin_plan_4w.csv)) uses 55 of 55. The pins for the flash
+and the Ethernet UART came from the EEPROM's I2C pair, cJTAG in place of 4-wire JTAG, the run LED moved to WD_OK and the
+single PRE_N read. ADC load: 17 conversions per 31.25 µs on three ADCs = 10 %.</sub>
 
 | Measurement the control design needs | Requirement ([control_spec.json](../../sim/out/pv_control/control_spec.json)) | As built on PV-CTL / PV-PWR |
 |---|---|---|
@@ -252,7 +255,7 @@ from the [PV-CTL design check](../../hardware/PV-CTL/outputs/PV-CTL_design_check
 | Dead time and modulation | dead band 200 ns (the hardware stretch is the floor); compensate with the 375 ns midpoint, sign from the slew-limited reference; band-exit hysteresis 0.02 on the filtered integrator; mode changes at a carrier zero | residual ≤ 225 ns per edge |
 | Supervision and limits | inductor-current limit by mode — 45 A in buck / boost, 47.70 A in the band — plus 27.5 kW at the port-A node and the port limits converted through each phase's actual duty with a slow trim on the measured port current, all slewed; feed-forward set by port type (needs to know whether a BMS is present); slew-limit external commands; MPPT oversampling; one-sample computation delay | feed-forward 1 on a bus port, 0 on PV or battery; port limits PV 135 / 180 A, battery 135 / 145 A |
 | Thermal and fans | over-temperature derating below the hardware bands; NTC plausibility at a cold start; fans only with BIAS_EN, duty 0 or ≥ 0.34; full speed is available only while switching; the cold-start rule below | heatsink ≤ 85 °C, inductor ≤ 145 °C; every NTC within 10 K of the inlet NTC at a cold start; one fan-supply contract: S_24V ≥ 24.50 V, the fan buck passes ≥ 23.59 V (PV-P75: airflow × 0.983) |
-| Variant handling | PV-P75 build: phase 4 held off by a forced one-shot, IL4 / NTC4 / NTC8 ignored, CMPSS4 used for the IB backup | build code from the EEPROM |
+| Variant handling | PV-P75 build: phase 4 held off by a forced one-shot, IL4 / NTC4 / NTC8 ignored, CMPSS4 used for the IB backup | build code from the recorder flash |
 | Practice adopted from the Wolfspeed firmware cross-check (R-WS-1…9, [REFERENCE-LESSONS §6](../requirements/REFERENCE-LESSONS.md), [D-071](../requirements/DECISIONS.md)) | range-check every bus or service input (switching frequency and dead time not writable in operation); ramp to zero and stop on communication loss; lock out after the third hazard trip of a class and at once on an over-voltage seen by both the hardware and the firmware; explicit recovery threshold, dwell and restart-rate limit per non-latched limit; every exception path forces the one-shot trip and stops the heartbeat; no bus-reachable mode disables a protection; the self-test fires each fault line alone and the read-back covers the trip routing; calibration stored redundantly and range-checked | communication loss 1 s on CAN, third trip within 10 min (both assumed) |
 
 None of these is implemented or tested; they are requirements on future firmware. The same practice is written into the
@@ -282,6 +285,67 @@ crossing, with its deglitch filter inside it (NSI66x1A Fig. 8.10); the shared ch
 on top until the review (PCM-10). Each preset now prints a short-circuit acceptance rule — twice the energy-equivalent
 full-current time and fault energy of its chain, to be confirmed by the maker: PV t<sub>SC</sub> ≥ 2.10 µs / E<sub>SC</sub>
 ≥ 0.87 J at 1100 V, PCS 2.07 µs / 0.82 J at 1050 V, DAB study 2.22 µs / 2.18 J at 1000 V (release blocks, risk C2).
+
+## 🧰 Ports, recorder and upgrade — control board rev A2
+
+Added on 2026-10-06 for parity with the competitor's module ([D-075](../requirements/DECISIONS.md); one schematic for
+PV-CTL, PV-CTL-P75 and the inverter's PCS-CTL). Everything here is calculated or declared in the
+[PV-CTL](../../hardware/PV-CTL/outputs/PV-CTL_design_check.txt) and
+[PCS-CTL](../../hardware/PCS-CTL/outputs/PCS-CTL_design_check.txt) design checks; no firmware exists.
+
+| Port | Role (declared) | Hardware |
+|---|---|---|
+| CAN | **module bus**: paralleling, carrier synchronisation by CAN time-stamping, software addressing (no address switch) | CA-IS3050W across B1; split termination on a solder jumper |
+| RS-485 | **BMS** (Modbus RTU), or the EMS; service / PC tool at 9600-8-N-1 | CA-IS3082WNX across B1; 120 Ω on a solder jumper |
+| CAN for the BMS | only when the module is **not** paralleled (the one CAN is the module bus) | — |
+| Ethernet | **EMS**: Modbus TCP on port 502 (or RTU over TCP), one register map shared with RS-485; also the PC tool | WCH CH9121T UART-to-Ethernet bridge (10/100, transparent TCP server) on SCIB at 115,200 baud through a CA-IS3842HW, HanRun HR913550AE RJ45 with magnetics, SRV05-4 surge array, TPS7A2033; **fitted on PCS-CTL, footprints only on PV-CTL** |
+
+Where the allocation fails: a CAN-only BMS whose bit rate or identifiers cannot share the module bus while modules run
+in parallel — the BMS then needs RS-485 and the EMS Ethernet; on PV-CTL the Ethernet option is fitted first. One Ethernet
+port only (a daisy chain is the cabinet switch's job), no web server (the bridge is transparent), no hardware
+synchronisation pair across the barrier; the HMI panel and its 12 V supply are a cabinet accessory. The bridge was
+chosen over a W5500 SPI controller with a second isolator: 17 against 40 parts, 3.89 against 4.26 USD with assembly,
+one barrier part instead of two.
+
+| Function | As drawn (calculated) |
+|---|---|
+| **Fault recorder** (GD25Q32E, 4 MB SPI NOR, in place of the 32 kB I2C EEPROM) | 32 channels for 100 ms before and after the trigger (the competitor's published bar); the F280039C's 69 kB RAM allows a pre-trigger buffer of about 24 kB (ASSUMED), so the record runs at 3.6 kHz = 44 kB per event: **71 events** beside two 384 kB firmware images and two 64 kB calibration sectors (8 events at the full 32 kHz control rate — the RAM, not the flash, is the limit); a 2 ms full-rate snapshot from RAM is added; one event is written in about 0.09 s. Calibration, serial number and event log move into the flash in two copies with CRC (R-WS-9) |
+| **Upgrade** | authenticated dual image (R-WS-8): the new image is staged in the recorder flash over Ethernet, RS-485 or CAN, its signature and CRC checked, then copied by a bootloader in a DCSM-protected sector; the golden image stays for roll-back; only in SERVICE, with authorisation and a timeout |
+| **Stop chain** | the stop input already gated the PWM in hardware through the latch; terminals 2 / 3 (stop line in / out) and 4 / 5 (0 V in / out) chain a cabinet 24 V stop line from module to module (0.84 mA per module at 36 V) |
+| **Ready permissive** | an installed / ready contact in series with the stop input: open = stop in hardware; the firmware sees one STOP_OK for both (a readable ready input would need a 56th GPIO) |
+| **DI1, battery fault** | BMS or battery-fault dry contact: 5 V wetting through 1.0 kΩ, 10 kΩ down, 1.1 ms filter, 5.1 V clamp, through the CA-IS3842HW to GPIO52 (an interrupt); NO / NC meaning set in firmware |
+| **Status relay** | Hongfa HFD27/005-S changeover on the STATUS channel: energised = healthy, NC on any trip, stop or supply loss; SELV contacts only; pick-up 4.66 V needed at 85 °C against 4.79 V at the coil with a ≤ 3 Ω driver (ASSUMED) |
+| **SELV and live budgets** | SELV 5 V 231 mA without / 340 mA with the Ethernet bridge (allocation 0.5 A, was 0.3 A); SELV logic 1.44 / 2.13 W → the auxiliary supply carries 2.2 W for every variant ([D-076](../requirements/DECISIONS.md)); live +3.3 V 188 of 200 mA (94 %) |
+
+**Open on the control board:** the CH9121T publishes a typical supply current only (× 1.3 assumed) and LCSC showed 1,155
+in stock; its LAN set-up tool cannot be disabled, so the firmware must authorise every write; one TCP client per port is
+assumed; the 25 MHz crystal's ageing reaches the 40 ppm limit near end of life; the relay's pick-up margin is thin; the
+inverter's plan has no spare GPIO ([risks E8–E10](12-risks-and-open-items.md#e--control-and-firmware)).
+
+<a id="inverter-firmware"></a>
+
+## 🎛️ The inverter's firmware specification (summary)
+
+The inverter's hand-over to firmware is the list `handover.firmware_requirements` of
+[pcs_spec.json](../../sim/out/pcs_design/pcs_spec.json) — **30 rows**, 15 of them added on 2026-10-06
+([D-074](../requirements/DECISIONS.md)) — plus the grid-start sequence of its `ac_start` key and the control study's
+rows ([pcs_control report §9](../../sim/out/pcs_control/report.md), [D-066](../requirements/DECISIONS.md),
+[D-077](../requirements/DECISIONS.md)). Rows that restate a competitor claim without published parameters say so, and
+their values are labelled ASSUMED; grid-code values are FROM MEMORY.
+
+| Group | What the rows require (calculated or ASSUMED as labelled there) |
+|---|---|
+| Protection and sequencing | the second layer of every discrete trip; a start-up self-test of each trip path; DC precharge, insulation test, synchronisation and relay test; the upper DC-link half by firmware; one contactor coil pulling in at a time |
+| Operating map | modulation-index limiter, the AC-contactor closing permissive (624 V DC at 400 V, 718 V at 460 V), a controlled stop before the bridge would rectify, overload tiers in kVA per grid voltage (198 A continuous, 216 A for 2 min, 259 A for 200 ms) |
+| Modes | PQ, CP / CC, CV, VF (grid forming off-grid), generator following (ASSUMED parameters), standby; mode changes only through stop → start except PQ ↔ CC / CP |
+| Off-grid quality | VF secondary restoration with a 0.5 s time constant: voltage accuracy **0.59 %** worst-case sum, frequency **±60 ppm**; THDu ≤ 1.31 % (three-wire) / 1.98 % (four-wire) on a linear balanced load, analytical; a DC-component regulator per phase (and for the neutral leg) |
+| Ride-through | LVRT / HVRT profiles (FROM MEMORY); a ride-through state at 1.0 I<sub>r</sub> with the PLL frozen below 0.2 pu and a per-sample clamp at 380 A keep every in-dip and recovery peak ≤ 382 A; on a stiff connection the first-millisecond peak is out of firmware's reach, so the power is derated to 95.5 / 105.5 / 115 kW for 0 / 0.1 / 0.2 pu dips; from SCR 50 down the whole assumed profile passes at rated current |
+| Four-wire | the neutral leg in mode A (at 50 %) from 724 V DC, mode B (zero sequence on four legs) below it to 624 V; the neutral leg runs the off-grid cascade in every mode (worst PM 57°, GM 8.7 dB); per-phase power, each phase at most its tier |
+| Transfers and paralleling | charge ↔ discharge ≤ 15.7 ms; grid-to-island automatic with about 150 ms interruption (detection and contactor drop-out ASSUMED; seamless needs a static transfer switch, out of scope); parallel modules on the module CAN with droop, carrier synchronisation and zero-sequence control on a shared battery |
+| Grid start, recorder, upgrade, map | the AC-side start-up sequence ([09 · PCS-P125](09-pcs-p125.md#-start-up-from-the-grid)); the fault recorder and the authenticated upgrade of the section above; the Modbus TCP map scope (telemetry, set points, SERVICE-only parameters, files) |
+
+<sub>ISR budget of the four-wire build in the control study: 46.7 % of the period (operation count, not timed on the
+target). Details, figures and open items of each row: [09 · PCS-P125](09-pcs-p125.md#-control-study-calculated).</sub>
 
 ---
 

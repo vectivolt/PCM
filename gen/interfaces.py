@@ -166,7 +166,7 @@ def pins(table, prefix="", rename=None):
 # plugs in); only the meaning of some lines changes. PCS_X = the extra 2x8 header of ARCHITECTURE-PCS section 6.
 # Both boards live: GND = AGND = DC- (the controller's reference).
 #   PWM1/2, PWM3/4, PWM5/6  phase a, b, c: high / low switch (6 x SG2M040170HJ each); PWM7/8 neutral leg (four-wire
-#              only); PWM9-16 not connected on PCS-PWR
+#              only); PWM9-15 not connected on PCS-PWR; PWM16 = K_ACPRE (AC precharge relay, both builds, latch-gated)
 #   K_A = K_AC1 (AC contactor 1), K_B = K_DC (DC contactor), K_PRE (DC precharge relay); K_AC2 on PCS_X
 #   IL1-IL3 (IL4 four-wire): phase currents (open-loop sensor on the C_f side of L1), ILnR the sensor's reference
 #   IB / IB_H: DC-port current (shunt in DC-, as PV port B); IA / IA_H / VAX: not used, held at VMID by PCS-PWR

@@ -2398,12 +2398,141 @@
    },
    "L_cm_uH": 126.07057747044962
   },
+  "aux_budget": {
+   "rating": {
+    "live_W": 30.0,
+    "live_peak_W": 48.0,
+    "selv_W": 64.2,
+    "total_W": 94.2,
+    "rev": "A3"
+   },
+   "builds": {
+    "three-wire": {
+     "board": "PCS-PWR",
+     "live_W": 22.9,
+     "selv_W": 44.5,
+     "total_W": 67.4,
+     "steps": [
+      [
+       "DC contactor pulls in at the end of the precharge, precharge relay on, gates idle",
+       21.7
+      ],
+      [
+       "relay test, AC contactor 1 alone (DC held, gates idle)",
+       31.4
+      ],
+      [
+       "relay test, AC contactor 2 alone (AC 1 released, gates idle)",
+       31.4
+      ],
+      [
+       "synchronised close: the second AC contactor (AC 1) with the PWM running, AC 2 and DC held",
+       38.9
+      ],
+      [
+       "running, every coil on its economiser",
+       22.9
+      ],
+      [
+       "grid start (DC side dead, aux from the grid tap): AC precharge relay on, gates idle",
+       11.7
+      ],
+      [
+       "grid start: AC contactor 2 pulls in after the AC precharge relay released (gates idle)",
+       28.1
+      ],
+      [
+       "grid start: AC contactor 1 pulls in, AC 2 held (gates idle)",
+       32.1
+      ],
+      [
+       "grid start: DC contactor pulls in with the PWM running as a rectifier, both AC contactors held",
+       29.6
+      ]
+     ],
+     "peak_W": 38.9,
+     "peak_step": "synchronised close: the second AC contactor (AC 1) with the PWM running, AC 2 and DC held",
+     "coil_assumed": {
+      "pull_W": 20.0,
+      "t_pull_s": 0.1,
+      "hold_W": 4.0
+     },
+     "margin_live_W": 7.100000000000001,
+     "margin_selv_W": 19.700000000000003,
+     "margin_total_W": 26.80000000000001,
+     "margin_peak_W": 9.100000000000001,
+     "hold_room_W": 7.550000000000001,
+     "pull_room_W_at_assumed_hold": 29.1
+    },
+    "four-wire": {
+     "board": "PCS-PWR-4W",
+     "live_W": 26.2,
+     "selv_W": 58.7,
+     "total_W": 84.9,
+     "steps": [
+      [
+       "DC contactor pulls in at the end of the precharge, precharge relay on, gates idle",
+       23.8
+      ],
+      [
+       "relay test, AC contactor 1 alone (DC held, gates idle)",
+       33.5
+      ],
+      [
+       "relay test, AC contactor 2 alone (AC 1 released, gates idle)",
+       33.5
+      ],
+      [
+       "synchronised close: the second AC contactor (AC 1) with the PWM running, AC 2 and DC held",
+       42.2
+      ],
+      [
+       "running, every coil on its economiser",
+       26.2
+      ],
+      [
+       "grid start (DC side dead, aux from the grid tap): AC precharge relay on, gates idle",
+       13.8
+      ],
+      [
+       "grid start: AC contactor 2 pulls in after the AC precharge relay released (gates idle)",
+       30.2
+      ],
+      [
+       "grid start: AC contactor 1 pulls in, AC 2 held (gates idle)",
+       34.2
+      ],
+      [
+       "grid start: DC contactor pulls in with the PWM running as a rectifier, both AC contactors held",
+       32.8
+      ]
+     ],
+     "peak_W": 42.2,
+     "peak_step": "synchronised close: the second AC contactor (AC 1) with the PWM running, AC 2 and DC held",
+     "coil_assumed": {
+      "pull_W": 20.0,
+      "t_pull_s": 0.1,
+      "hold_W": 4.0
+     },
+     "margin_live_W": 3.8000000000000007,
+     "margin_selv_W": 5.5,
+     "margin_total_W": 9.299999999999997,
+     "margin_peak_W": 5.799999999999997,
+     "hold_room_W": 5.9,
+     "pull_room_W_at_assumed_hold": 25.799999999999997
+    }
+   },
+   "pull_req_W": 24,
+   "hold_req_W": 5.5,
+   "estimate_fits": true,
+   "rfq": "24 V DC electronic coil (economiser inside the coil module), per contactor: pull-in <= 24 W for <= 100 ms, hold <= 5.5 W - what the live 24 V budget of both builds allows against the aux rating (aux75_spec rev A3: 30 W continuous, 48 W for 1 s; one coil pulls in at a time); ESTIMATE 20 W pull-in / 4 W hold: inside"
+  },
   "ac_contactor": {
    "arrangement": "two 3-pole contactors in series (4-pole for four-wire), relay test before every connection",
    "Ie_AC1_A_min": 248.39999999999998,
    "Ui_V": 1000,
    "Uimp_kV": 8,
-   "coil": "24 V DC with economiser (ESTIMATE 20 W pull-in / 4 W hold)",
+   "coil": "24 V DC electronic coil (economiser inside the coil module), per contactor: pull-in <= 24 W for <= 100 ms, hold <= 5.5 W - what the live 24 V budget of both builds allows against the aux rating (aux75_spec rev A3: 30 W continuous, 48 W for 1 s; one coil pulls in at a time); ESTIMATE 20 W pull-in / 4 W hold: inside",
    "candidates": "CHINT NXC-225 / CJX2-185, Delixi CJX2s-185 class - no data sheet on file (R-06, RFQ)"
   },
   "precharge": {
@@ -4683,18 +4812,18 @@
  },
  "cost_usd": {
   "three_wire": {
-   "catalogue": 1408.9406999999999,
-   "5k": 1130.6102799999999,
-   "per_kW_cat": 11.271525599999999,
-   "per_kW_5k": 9.04488224
+   "catalogue": 1430.7386999999999,
+   "5k": 1148.78308,
+   "per_kW_cat": 11.445909599999998,
+   "per_kW_5k": 9.190264639999999
   },
   "four_wire": {
-   "catalogue": 1694.2745,
-   "5k": 1361.0760799999998
+   "catalogue": 1730.7724999999998,
+   "5k": 1391.74388
   },
   "four_wire_increment": {
-   "cat": 285.3338,
-   "5k": 230.4658
+   "cat": 300.0338,
+   "5k": 242.9608
   },
   "blocks": {
    "POWER": {
@@ -4722,8 +4851,8 @@
     "5k": 134.1
    },
    "AUX SUPPLY": {
-    "catalogue": 37.3,
-    "5k": 31.0
+    "catalogue": 59.1,
+    "5k": 49.17
    },
    "CONTROL": {
     "catalogue": 11.63,
@@ -4742,7 +4871,7 @@
     "5k": 10.7
    }
   },
-  "evidence_share_5k": 0.0512024355554241,
+  "evidence_share_5k": 0.050392542341414014,
   "architect": {
    "three_wire": [
     1037.04,
@@ -5172,16 +5301,29 @@
    },
    {
     "block": "AUX SUPPLY",
-    "function": "75 W flyback (PV AUX) on the DC link + 6-diode AC tap",
+    "function": "75 W flyback (PV AUX) on the DC link and the DC terminal",
     "qty": 1,
-    "part": "AUX block (PV) + 6 x 1600 V diode",
+    "part": "AUX block (PV)",
     "maker": "TI / InventChip / CUSTOM",
-    "unit_cat_usd": 37.3,
-    "unit_5k_usd": 31.0,
-    "ext_cat_usd": 37.3,
-    "ext_5k_usd": 31.0,
-    "basis_cat": "PV costfirst_bom + 3.0 estimate",
+    "unit_cat_usd": 34.3,
+    "unit_5k_usd": 28.6,
+    "ext_cat_usd": 34.3,
+    "ext_5k_usd": 28.6,
+    "basis_cat": "PV costfirst_bom (its 3.0 USD AC-tap estimate moved to the next row)",
     "basis_5k": "MIXED: TI 1ku list, rest ASSUMED"
+   },
+   {
+    "block": "AUX SUPPLY",
+    "function": "AC start-up path (step i, drawn on PCS-PWR): 6-diode grid tap behind 3 x 20 ohm + 3 x 1.6 A / 500 V AC fuses into the aux (diode OR) and the AC precharge (G7L-2A-X + 220 ohm from the tap's + rail to DC+, latch-gated driver)",
+    "qty": 1,
+    "part": "3 x ABB-A 1.60 + 3 x AC10 20R + 7 x BYG10Y + G7L-2A-X + RPRE_AL + driver",
+    "maker": "Conquer / Vishay / Omron / RFQ",
+    "unit_cat_usd": 24.798,
+    "unit_5k_usd": 20.573,
+    "ext_cat_usd": 24.8,
+    "ext_5k_usd": 20.57,
+    "basis_cat": "prices.csv (BYG10Y; the fuse at its 2 A sibling ABB-A 002's breaks) and cost_estimates.csv rows (AC10, G7L-2A-X DC24, 220R RFQ)",
+    "basis_5k": "BYG10Y REAL breaks, the 1.6 A fuse ESTIMATED from the 2 A REAL breaks, rest ASSUMED x0.80-0.85"
    },
    {
     "block": "CONTROL",
@@ -5328,7 +5470,7 @@
    },
    {
     "block": "4-WIRE OPTION",
-    "function": "4-pole instead of 3-pole AC contactors, N terminal and busbar, GDT N-PE",
+    "function": "4-pole instead of 3-pole AC contactors, N terminal and busbar",
     "qty": 1,
     "part": "class",
     "maker": "class",
@@ -5338,17 +5480,43 @@
     "ext_5k_usd": 28.0,
     "basis_cat": "ESTIMATE (architect)",
     "basis_5k": "ASSUMED x0.80"
+   },
+   {
+    "block": "4-WIRE OPTION",
+    "function": "Neutral filter node (step i): C_fN = 2 x 25 uF 450 V AC MKP + R_d 2 ohm / C_d 10 uF to the DC midpoint (the N leg's ripple returns locally; the C_f star stays on M)",
+    "qty": 1,
+    "part": "2 x 25 uF MKP + RX24 2R + 10 uF MKP",
+    "maker": "class",
+    "unit_cat_usd": 9.0,
+    "unit_5k_usd": 7.65,
+    "ext_cat_usd": 9.0,
+    "ext_5k_usd": 7.65,
+    "basis_cat": "ESTIMATE (C_f and damping rows above)",
+    "basis_5k": "ASSUMED x0.85"
+   },
+   {
+    "block": "4-WIRE OPTION",
+    "function": "N-PE surge (TVT25751 + Y1 4.7 nF), VGN divider + buffer, 4-conductor RCM aperture and 4-bar CM choke assembly (same cores)",
+    "qty": 1,
+    "part": "TVT25751 + VY1 + 7 x ARHV + OPA2388",
+    "maker": "Thinking / Vishay / Viking / TI",
+    "unit_cat_usd": 5.7,
+    "unit_5k_usd": 4.845,
+    "ext_cat_usd": 5.7,
+    "ext_5k_usd": 4.84,
+    "basis_cat": "ESTIMATE (rows above; RCM / CM-choke assembly +1 USD)",
+    "basis_5k": "ASSUMED x0.85"
    }
   ],
   "basis": "catalogue = LCSC @1 / maker list / estimate as named per row; 5,000 units = the row's 5k basis; nothing quoted or bought",
   "protection_D050": {
    "control_3W": [
     3.9063999999999988,
-    3.6696999999999975
+    3.6697999999999973
    ],
    "control_4W": [
     4.406399999999997,
-    4.094699999999999
+    4.094799999999998
    ],
    "port_holdoff": [
     1.448,
@@ -5658,6 +5826,990 @@
    }
   ]
  },
+ "four_wire": {
+  "decision_cf_star": {
+   "star": "M (the DC midpoint), unchanged from the three-wire build; the neutral filter node N_F gets its own C_f set (C_fN = 2 x 25 uF + the R_d / C_d branch) to M",
+   "why": "this study's four-wire model (pwm_wave / l2_for_limit wire='4W') takes each phase as 'leg minus an unmodulated N leg = leg vs midpoint', i.e. the N leg holds N at M; step f calls the star-to-midpoint tie necessary (it returns the 440 V carrier common-mode voltage locally and leaves 1.8 V at the terminals); L_N is specified 'as L1: the neutral leg's ripple is that of a phase leg', which holds only if L_N ends on a node that is quiet at f_sw - a capacitor from N_F to M; and sim/magnetics.py keeps L_N = the L1 part only if the phases' common-mode ripple does not return through L_N.  Moving the star to N_F would put the converter's carrier common-mode voltage (hundreds of volts at 32 kHz) between the DC side and N / earth, past the CM choke, and the phases' common-mode ripple through L_N - a new magnetic and a new common-mode design"
+  },
+  "filter": {
+   "L_N_uH": 119.99999999999997,
+   "C_fN_uF": 49.99999999999999,
+   "R_d_ohm": 2.0,
+   "C_d_uF": 10.0,
+   "L_N_C_fN_resonance_Hz": 2054.6814802049994,
+   "N_leg_ripple_pp_950V_A": 61.84895833333334,
+   "C_fN_ripple_V_pp_950V": 4.831949869791668
+  },
+  "window": {
+   "basis": "CALCULATED with the operating map's model (pcs_spec operating_map: L = L1 + L2, R per phase, 5 % loop headroom, dead-time compensation 2 x 510 ns x 32 kHz, 2 % minimum pulse), rated current 180 A, 50 Hz; mode A usable modulation 0.9474 (sinusoidal, N leg at 50 %), mode B 1.0990 (min-max zero sequence on all four legs = the three-wire figure)",
+   "m_usable_mode_A": 0.94736,
+   "m_usable_mode_B": 1.0989665276116665,
+   "rows": {
+    "-15 %": {
+     "V_LN": 196.29909152447277,
+     "bare_2sqrt2_V_LN": 555.2176750308538,
+     "mode_A": {
+      "PF 1 inverter": 624.8132983866612,
+      "PF 1 rectifier": 606.74081213285,
+      "PF 0, Q > 0 (over-excited, current lags)": 637.7721770498357,
+      "PF 0, Q < 0 (under-excited, current leads)": 593.1043088104843,
+      "closing (no load)": 615.3717264634315
+     },
+     "mode_B": {
+      "PF 1 inverter": 538.6179756047591,
+      "PF 1 rectifier": 523.038656173967,
+      "PF 0, Q > 0 (over-excited, current lags)": 549.7891286671053,
+      "PF 0, Q < 0 (under-excited, current leads)": 511.2833592992278,
+      "closing (no load)": 530.4789037108865
+     }
+    },
+    "nominal": {
+     "V_LN": 230.94010767585033,
+     "bare_2sqrt2_V_LN": 653.1972647421809,
+     "mode_A": {
+      "PF 1 inverter": 733.3491712348375,
+      "PF 1 rectifier": 715.2733835024703,
+      "PF 0, Q > 0 (over-excited, current lags)": 746.3578607724218,
+      "PF 0, Q < 0 (under-excited, current leads)": 701.6886515835276,
+      "closing (no load)": 723.9667370158019
+     },
+     "mode_B": {
+      "PF 1 inverter": 632.1809203515003,
+      "PF 1 rectifier": 616.5987548934213,
+      "PF 0, Q > 0 (over-excited, current lags)": 643.3950126925188,
+      "PF 0, Q < 0 (under-excited, current leads)": 604.888087364085,
+      "closing (no load)": 624.0928278951606
+     }
+    },
+    "+10 %": {
+     "V_LN": 254.03411844343537,
+     "bare_2sqrt2_V_LN": 718.5169912163991,
+     "mode_A": {
+      "PF 1 inverter": 805.715273694824,
+      "PF 1 rectifier": 787.6379936753933,
+      "PF 0, Q > 0 (over-excited, current lags)": 818.749691047077,
+      "PF 0, Q < 0 (under-excited, current leads)": 774.0798762120354,
+      "closing (no load)": 796.3634107173821
+     },
+     "mode_B": {
+      "PF 1 inverter": 694.5638493161193,
+      "PF 1 rectifier": 678.9803974375383,
+      "PF 0, Q > 0 (over-excited, current lags)": 705.8001202239025,
+      "PF 0, Q < 0 (under-excited, current leads)": 667.2926728004641,
+      "closing (no load)": 686.5021106846767
+     }
+    },
+    "+15 %": {
+     "V_LN": 265.5811238272279,
+     "bare_2sqrt2_V_LN": 751.1768544535081,
+     "mode_A": {
+      "PF 1 inverter": 841.9002961720386,
+      "PF 1 rectifier": 823.8224115792506,
+      "PF 0, Q > 0 (over-excited, current lags)": 854.9459137795928,
+      "PF 0, Q < 0 (under-excited, current leads)": 810.2758536612056,
+      "closing (no load)": 832.5617475681721
+     },
+     "mode_B": {
+      "PF 1 inverter": 725.7570131047505,
+      "PF 1 rectifier": 710.1730400559596,
+      "PF 0, Q > 0 (over-excited, current lags)": 737.0029391508801,
+      "PF 0, Q < 0 (under-excited, current leads)": 698.4952802818475,
+      "closing (no load)": 717.7067520794346
+     }
+    }
+   },
+   "windows_at_400_230V": {
+    "3W+PE": {
+     "competitor": [
+      590.0,
+      950.0,
+      600.0,
+      900.0
+     ],
+     "operating_from": 624.0928278951606,
+     "full_load_from": 643.3950126925188,
+     "operating_to": 950.0,
+     "full_load_to": 900.0
+    },
+    "3W+N+PE, mode A (N leg at 50 %)": {
+     "competitor": [
+      650.0,
+      950.0,
+      680.0,
+      900.0
+     ],
+     "operating_from": 723.9667370158019,
+     "full_load_from": 746.3578607724218,
+     "operating_to": 950.0,
+     "full_load_to": 900.0,
+     "no_headroom_from": 653.1972647421809
+    },
+    "3W+N+PE, mode B (zero sequence on four legs)": {
+     "competitor": [
+      650.0,
+      950.0,
+      680.0,
+      900.0
+     ],
+     "operating_from": 624.0928278951606,
+     "full_load_from": 643.3950126925188,
+     "operating_to": 950.0,
+     "full_load_to": 900.0
+    }
+   },
+   "mode_A_reach_V_LN": {
+    "650 V": 207.34525816484614,
+    "680 V": 216.91503931091597
+   },
+   "baseline": "firmware baseline = the three-wire policy carried to four legs: mode A (N leg at 50 %, sinusoidal phase legs: no 150 Hz common-mode voltage between the DC side and N / earth) wherever the phase peak fits V_dc / 2 with the map's headroom (from 724 V DC at 230 V), mode B (the min-max zero sequence on all four legs) below it, down to the three-wire window (624 V to connect, 643 V for rated current at 400 / 230 V) - the four-wire build's advantage over a split-capacitor neutral, which stops at 2 sqrt2 V_LN; in mode B the DC side carries the 150 Hz zero sequence to N / earth as the three-wire build does (step f installation limit on the battery's capacitance to earth)"
+  },
+  "midpoint_neutral_alternative": {
+   "C_mid_uF": 1399.9999999999998,
+   "dV_peak_V": {
+    "rated 180 A": 578.7747746724255,
+    "2-min 216 A": 694.5297296069106
+   },
+   "V_half_nominal_750V": 375.0,
+   "half_OV_trip_V": 560.0,
+   "I_N_rms_at_half_trip_A": 57.53533404915083,
+   "limit_V": 18.75,
+   "C_needed_mF": 43.21518317554109,
+   "C_needed_per_half_mF": 21.607591587770546,
+   "electrolytic": {
+    "part": "Samyoung TDC400V470M35*35 V",
+    "strings_per_half": 92,
+    "by_capacitance": 92,
+    "by_ripple_current": 63,
+    "cans": 368,
+    "usd_cat": 2336.7999999999997,
+    "usd_5k": 1376.3200000000002,
+    "life_h_105C": 2000.0
+   },
+   "fourth_leg_increment_usd": {
+    "cat": 300.0338,
+    "5k": 242.9608
+   }
+  },
+  "unbalance": {
+   "per_phase_kW_at_230V": {
+    "rated": 41.569219381653056,
+    "continuous": 45.72614131981837,
+    "2_min": 49.883063257983665,
+    "200_ms": 59.8596759095804
+   },
+   "single_phase_full_module_power_A": 270.6329386826371,
+   "cases": {
+    "one phase at I, two at 0 (100 % unbalance)": "I_N = I",
+    "two phases at I, one at 0": "I_N = I (two equal currents 120 deg apart)",
+    "phase a at I, phase b at I / 2, phase c at 0": "I_N = 0.866 I",
+    "per-phase P / Q set points with the three currents in phase": "I_N up to 3 I - the firmware limits I_N to the N leg's tiers"
+   },
+   "n_leg": {
+    "198 A, 750 V, 45 C": {
+     "m": 0.0281501062961714,
+     "leg_W": 569.3165621921428,
+     "t_hs_C": 73.64425344142973,
+     "tj_max_C": 114.35570936525946
+    },
+    "198 A, 900 V, 45 C": {
+     "m": 0.023458421913476166,
+     "leg_W": 621.0556447570896,
+     "t_hs_C": 76.24742273640136,
+     "tj_max_C": 120.47285993653466
+    },
+    "216 A, 750 V, 45 C": {
+     "m": 0.03070920686855062,
+     "leg_W": 707.0543920275732,
+     "t_hs_C": 80.57431233711144,
+     "tj_max_C": 131.3477450401675
+    },
+    "216 A, 900 V, 45 C": {
+     "m": 0.025591005723792182,
+     "leg_W": 771.4227451246162,
+     "t_hs_C": 83.81290320581844,
+     "tj_max_C": 139.00422784538154
+    },
+    "198 A, 750 V, 60 C": {
+     "m": 0.0281501062961714,
+     "leg_W": 621.3058169354442,
+     "t_hs_C": 91.26000974994825,
+     "tj_max_C": 135.77339883488378
+    },
+    "198 A, 900 V, 60 C": {
+     "m": 0.023458421913476166,
+     "leg_W": 675.9199006417391,
+     "t_hs_C": 94.00783013502709,
+     "tj_max_C": 142.24121647602917
+    }
+   },
+   "phase_leg_same_current_tj_C": {
+    "198 A, 750 V, 45 C": 114.63098981280639,
+    "198 A, 900 V, 45 C": 120.7566878912402,
+    "216 A, 750 V, 45 C": 131.62345776951224,
+    "216 A, 900 V, 45 C": 139.28678169998147,
+    "198 A, 750 V, 60 C": 136.04775718687114,
+    "198 A, 900 V, 60 C": 142.52079353097528
+   },
+   "tj_limits_C": [
+    150.0,
+    165.0
+   ]
+  },
+  "dc_link": {
+   "cases": [
+    {
+     "vdc": 750.0,
+     "amps": [
+      198.0,
+      198.0,
+      198.0
+     ],
+     "ang": 0.0,
+     "idc_A": 182.9046190427672,
+     "lf_half_A": 0.3033515495378941,
+     "hf_half_A": 116.58196206542642,
+     "I_N_rms_A": 8.62111283670589e-14,
+     "battery_lf_A_rms": 4.7302225948856804e-14,
+     "cm_half_A": 19.502583515935992,
+     "per_cap_A": 23.640393095564704
+    },
+    {
+     "vdc": 750.0,
+     "amps": [
+      216.0,
+      0.0,
+      0.0
+     ],
+     "ang": 0.0,
+     "idc_A": 66.5008307951422,
+     "lf_half_A": 47.12935107757579,
+     "hf_half_A": 102.94799846404604,
+     "I_N_rms_A": 216.00000000000003,
+     "battery_lf_A_rms": 47.03020306143703,
+     "cm_half_A": 19.502583515935992,
+     "per_cap_A": 20.955802205164357
+    },
+    {
+     "vdc": 750.0,
+     "amps": [
+      216.0,
+      216.0,
+      0.0
+     ],
+     "ang": 0.0,
+     "idc_A": 133.03346838255544,
+     "lf_half_A": 47.04438462186471,
+     "hf_half_A": 126.48470784574256,
+     "I_N_rms_A": 216.00000000000006,
+     "battery_lf_A_rms": 47.030203061437014,
+     "cm_half_A": 19.502583515935992,
+     "per_cap_A": 25.595884108675683
+    },
+    {
+     "vdc": 750.0,
+     "amps": [
+      216.0,
+      108.0,
+      0.0
+     ],
+     "ang": 0.0,
+     "idc_A": 99.744434680993,
+     "lf_half_A": 42.42193697533304,
+     "hf_half_A": 102.91988721875738,
+     "I_N_rms_A": 187.06148721743878,
+     "battery_lf_A_rms": 40.72935059634513,
+     "cm_half_A": 19.502583515935992,
+     "per_cap_A": 20.95027823100953
+    },
+    {
+     "vdc": 750.0,
+     "amps": [
+      216.0,
+      0.0,
+      0.0
+     ],
+     "ang": 90.0,
+     "idc_A": 1.7763568394002505e-15,
+     "lf_half_A": 50.43578683868038,
+     "hf_half_A": 81.8848246480747,
+     "I_N_rms_A": 216.0,
+     "battery_lf_A_rms": 47.03020306143703,
+     "cm_half_A": 19.502583515935992,
+     "per_cap_A": 16.835053039942583
+    },
+    {
+     "vdc": 950.0,
+     "amps": [
+      198.0,
+      198.0,
+      198.0
+     ],
+     "ang": 0.0,
+     "idc_A": 144.38494778759824,
+     "lf_half_A": 0.27875806497195255,
+     "hf_half_A": 127.63068419465428,
+     "I_N_rms_A": 8.62111283670589e-14,
+     "battery_lf_A_rms": 3.7343862591202744e-14,
+     "cm_half_A": 28.436896642749417,
+     "per_cap_A": 26.152054327464207
+    },
+    {
+     "vdc": 950.0,
+     "amps": [
+      216.0,
+      0.0,
+      0.0
+     ],
+     "ang": 0.0,
+     "idc_A": 52.50594552003752,
+     "lf_half_A": 37.22262927123052,
+     "hf_half_A": 97.32261572857534,
+     "I_N_rms_A": 216.00000000000003,
+     "battery_lf_A_rms": 37.129107680081866,
+     "cm_half_A": 28.436896642749417,
+     "per_cap_A": 20.27841080846559
+    },
+    {
+     "vdc": 950.0,
+     "amps": [
+      216.0,
+      216.0,
+      0.0
+     ],
+     "ang": 0.0,
+     "idc_A": 105.02747384318405,
+     "lf_half_A": 37.08815408027492,
+     "hf_half_A": 126.27373392120914,
+     "I_N_rms_A": 216.00000000000006,
+     "battery_lf_A_rms": 37.12910768008185,
+     "cm_half_A": 28.436896642749417,
+     "per_cap_A": 25.887226942316353
+    },
+    {
+     "vdc": 950.0,
+     "amps": [
+      216.0,
+      108.0,
+      0.0
+     ],
+     "ang": 0.0,
+     "idc_A": 78.75811878893157,
+     "lf_half_A": 33.50529187173875,
+     "hf_half_A": 101.57386578700242,
+     "I_N_rms_A": 187.06148721743878,
+     "battery_lf_A_rms": 32.15475047079879,
+     "cm_half_A": 28.436896642749417,
+     "per_cap_A": 21.095883296592625
+    },
+    {
+     "vdc": 950.0,
+     "amps": [
+      216.0,
+      0.0,
+      0.0
+     ],
+     "ang": 90.0,
+     "idc_A": 1.7763568394002505e-15,
+     "lf_half_A": 39.81033572108851,
+     "hf_half_A": 75.64910624014551,
+     "I_N_rms_A": 216.0,
+     "battery_lf_A_rms": 37.129107680081866,
+     "cm_half_A": 28.436896642749417,
+     "per_cap_A": 16.163470376875427
+    }
+   ],
+   "per_cap_limit_A": 28.14,
+   "per_cap_max_A": 26.152054327464207,
+   "three_wire_per_cap_A": 25.821753213248837,
+   "C_local_films_uF": 79.2,
+   "C_total_uF": 429.19999999999993,
+   "lf_note": "LF (to 2 kHz) goes to the battery: the bank is 3.9 ohm at 100 Hz, the battery path tens of mOhm"
+  },
+  "half_wave": {
+   "I_pk_limit_A": 280.1,
+   "I_dc_A": 89.1585807875769,
+   "I_rms_A": 140.05,
+   "L_N_peak_A": 311.0,
+   "L1_part_continuous_peak_A": 311,
+   "P_mean_kW": 22.870069231785607,
+   "battery_lf_A_rms_750V": 43.12421610667046,
+   "midpoint_lf_A": 0.0,
+   "dc_component_limit_V": 1.1547005383792517,
+   "dc_measurement_divider_V": 0.5625,
+   "basis": "the half-wave current's DC and 50 / 100 Hz parts flow phase -> load -> N -> L_N -> N leg -> DC+ / DC- (the N leg draws from both rails, nothing enters M at low frequency: M sees only the C_f / C_fN currents); limit: L_N's peak (DC + AC + half the ripple) <= the L1 part's continuous peak; the output voltage's DC component is regulated by firmware"
+  },
+  "grid_hf": {
+   "750 V 3W stiff": {
+    "h": 638,
+    "pct_of_rated": 0.14618411332143888
+   },
+   "750 V 3W SCR 50": {
+    "h": 638,
+    "pct_of_rated": 0.009254194169018574
+   },
+   "750 V 4W stiff": {
+    "h": 640,
+    "pct_of_rated": 0.3888592092209253
+   },
+   "750 V 4W SCR 50": {
+    "h": 640,
+    "pct_of_rated": 0.02462951402311968
+   },
+   "950 V 3W stiff": {
+    "h": 638,
+    "pct_of_rated": 0.12305240089089367
+   },
+   "950 V 3W SCR 50": {
+    "h": 638,
+    "pct_of_rated": 0.007789839709218518
+   },
+   "950 V 4W stiff": {
+    "h": 640,
+    "pct_of_rated": 0.62563519283406
+   },
+   "950 V 4W SCR 50": {
+    "h": 640,
+    "pct_of_rated": 0.03962640048087223
+   }
+  },
+  "midpoint_lf": {
+   "I_rms_A_at_2pct_zero_sequence": 0.26118710844972737,
+   "ripple_V_peak": 0.8398250546685184,
+   "balancing": "none needed: the two-level legs draw from DC+ / DC-; the bleeders balance the halves"
+  },
+  "bleeder": {
+   "R_elem_ohm": 88699.99999999999,
+   "n_elem": 4,
+   "R_per_half_ohm": 354799.99999999994,
+   "label_min": 15.0,
+   "t60_worst_min": 14.758333333333333,
+   "t60_nominal_min": 13.3,
+   "t60_worst_bank_and_films_only_min": 14.075,
+   "t60_worst_rev_A0_440k_min": 17.825,
+   "C_aux_bulk_uF": 6.6,
+   "C_f_plus_C_d_per_phase_uF": 59.99999999999999,
+   "P_W_950V": 1.2718432919954907,
+   "P_W_950V_rev_A0": 1.0255681818181819,
+   "P_W_per_half_950V": 0.6359216459977454,
+   "V_elem_at_half_trip_V": 140.0,
+   "P_elem_at_half_trip_W": 0.22096956031567083,
+   "basis": "worst case: every capacitor +10 %, bleeder +1 %, the 6 M dividers credited (VB, VA, VC x 3), from the 1050 V trip with the C_f charged to the 460 V AC peak at the worst of 6 phase angles; aux input bulk on the bus (its strings not credited); the C_f nodes held inside the bus by the body diodes; criterion: the largest voltage between any two conductors <= 60 V"
+  },
+  "precharge": {
+   "C_eq_uF": 429.19999999999993,
+   "E_J_max": 260.25615,
+   "tau_max_s": 0.10905971999999999,
+   "E_short_J": 791.0869637799042,
+   "t_short_s": 0.14996569199999998,
+   "rating": {
+    "R": 220.0,
+    "tol": 0.05,
+    "e_charge_J": 280.0,
+    "tau_s": 0.105,
+    "e_short_J": 900.0,
+    "t_short_s": 0.15
+   },
+   "four_wire_R": {
+    "R_ohm": 200.0,
+    "E_J_max": 260.25615,
+    "tau_max_s": 0.09914519999999999,
+    "E_short_J": 806.912322631579,
+    "t_short_s": 0.13905972,
+    "I_pk_A": 5.526315789473684,
+    "relay_A": 25.0,
+    "t_to_10V_max_s": 0.4614178297084376,
+    "board": "drawn on PCS-PWR-4W as RPRE_AL 200 R (gen/port.py lean_port r_pre, catalog entry RPRE_AL_200; D-076): the shared 220 ohm would sit above the 105 ms rating point"
+   }
+  }
+ },
+ "ac_start": {
+  "tap": {
+   "fuse": "ABB-A 1.60",
+   "fuse_In_A": 1.6,
+   "fuse_i2t_melt_A2s": 2.3454,
+   "fuse_break_A_500V": 200.0,
+   "R_lim_ohm": 20.0,
+   "diode": "BYG10Y-E3/TR 1600 V avalanche",
+   "rectified_V": {
+    "340 V": [
+     416.41325627314035,
+     480.83261120685233
+    ],
+    "460 V": [
+     563.3826408401309,
+     650.5382386916236
+    ]
+   },
+   "aux_input_range_V": "the 75 W block's full rating from 250 V (aux75_spec ratings 'design': from_V 250), the brown-in below it",
+   "bulk_inrush": {
+    "I_pk_A": 16.958975424711184,
+    "I2t_A2s": 0.03991240269244455,
+    "E_per_R_J": 0.7629215862258083,
+    "C_bulk_uF": 7.26
+   },
+   "fault_L_L": {
+    "I_rms_A": 12.032498208204071,
+    "t_melt_s": 0.016199637986280796,
+    "E_per_R_J": 44.5626,
+    "R_pulse_J": 52.0
+   },
+   "diode_reverse_max_V": 1145.1,
+   "domain": "LIVE: the tap ties DC- to the grid phases through its lower diodes (the converter does the same through its body diodes once the AC contactors close); functional insulation inside the live domain, basic OVC III to PE (4 kV, 2.5 kV with the AC SPD credit; clearance 3.0 / 3.5 / 3.9 mm at 2000 / 3000 / 4000 m - ARCHITECTURE-PCS section 3); the reinforced barrier B1 on the control board is unchanged"
+  },
+  "precharge": {
+   "by_build": {
+    "3W": {
+     "340": {
+      "I_pk_A": 1.9359826817270906,
+      "E_pre_J": 40.36818555112485,
+      "E_lim_J": 2.483549672887317,
+      "I2t_fuse_A2s": 0.13071314067828302,
+      "t_to_10V_s": 0.8635899999987046,
+      "V_end_V": 478.63261120685235
+     },
+     "400": {
+      "I_pk_A": 2.279197026204923,
+      "E_pre_J": 55.95256508444439,
+      "E_lim_J": 3.4423396192581,
+      "I2t_fuse_A2s": 0.18117576943463304,
+      "t_to_10V_s": 0.9436399999983403,
+      "V_end_V": 563.485424949238
+     },
+     "460": {
+      "I_pk_A": 2.6224113706827556,
+      "E_pre_J": 74.07515682633034,
+      "E_lim_J": 4.557286827973358,
+      "I2t_fuse_A2s": 0.23985720147228073,
+      "t_to_10V_s": 1.019739999998213,
+      "V_end_V": 648.3382386916236
+     }
+    },
+    "4W": {
+     "340": {
+      "I_pk_A": 1.9359826817270906,
+      "E_pre_J": 42.32042675590228,
+      "E_lim_J": 2.601802781106049,
+      "I2t_fuse_A2s": 0.1369369884792632,
+      "t_to_10V_s": 0.9065099999985092,
+      "V_end_V": 478.63261120685235
+     },
+     "400": {
+      "I_pk_A": 2.279197026204923,
+      "E_pre_J": 58.65847178946335,
+      "E_lim_J": 3.6062444873299717,
+      "I2t_fuse_A2s": 0.18980234143842348,
+      "t_to_10V_s": 0.9900399999981291,
+      "V_end_V": 563.485424949238
+     },
+     "460": {
+      "I_pk_A": 2.6224113706827556,
+      "E_pre_J": 77.65748513137724,
+      "E_lim_J": 4.774279158959916,
+      "I2t_fuse_A2s": 0.2512778504715758,
+      "t_to_10V_s": 1.0670899999985233,
+      "V_end_V": 648.3382386916236
+     }
+    }
+   },
+   "R_pre_ohm": 220.0,
+   "R_tot_ohm": [
+    247.0,
+    273.0
+   ],
+   "tau_max_4W_s": 0.12888876,
+   "t_abort_s": 0.171777636,
+   "P_pre_shorted_W": 1324.35658730687,
+   "E_pre_shorted_J": 227.49484378860177,
+   "V_rect_rms_460V": 621.7650098230155,
+   "rating": {
+    "e_charge_J": 280.0,
+    "tau_s": 0.105,
+    "e_short_J": 900.0,
+    "t_short_s": 0.15
+   }
+  },
+  "sequence": [
+   "grid present, DC side dead (battery absent, empty or its own contactors open): the 6-diode tap feeds the 75 W aux through its OR diode -> live 24 V, 5 V, 3.3 V, the controller boots (latch tripped at power-up)",
+   "self-test of the trip paths, relay test of K1 and K2 with the converter passive (VG against VC, one contactor at a time), welded-precharge check (with K_ACPRE off the link must stay below 50 V)",
+   "AC precharge: K_ACPRE (PWM16 line, latch-gated) closes; the link charges from the tap through 220 ohm to the line-to-line peak minus two diode drops; firmware aborts on the shorted-bank or timeout rule",
+   "open K_ACPRE (the precharged link holds: bleeder time constant about 5 min), then close K2, then K1 (one coil at a time, the live 24 V budget) with V_dc >= 0.95 x sqrt2 x V_LL,meas and the DC contactor open: no battery on the link, the bridge closes onto its own precharged link through the body diodes (inrush <= 5 % of the peak over sqrt(L / C): tens of amperes)",
+   "the bridge starts as a rectifier on the control study's DC-link loop (PI 40 Hz + DC-current feed-forward) and raises V_dc to the battery's terminal voltage (VBX) - or 750 V without a battery (standby, STATCOM, communication)",
+   "DC port: the link matched to the battery within the hardware dV window (3.5-16.5 V) -> K_B closes directly; or K_PRE closes from the link side first (reverse current through 220 ohm: G7L-2A-X reverse-polarity rating 30 A / 600 V DC, 5,000 operations - ample at <= 0.1 A for <= 20 V of difference) and then K_B; the hardware polarity interlock needs >= 187-213 V at the battery terminal",
+   "normal operation (CV / CC / PQ) from there; the aux keeps both feeds (DC-link tap and grid tap, diode OR)"
+  ],
+  "interlocks": [
+   "K_ACPRE only with K_B, K_PRE, K_A and K_AC2 open (firmware; the latch drops it with every trip and with a dead controller)",
+   "no AC precharge with the DC contactor closed onto a live battery below the grid peak (it would charge the battery through 220 ohm for as long as the relay stays closed): K_ACPRE and K_B mutually exclusive in firmware",
+   "grid-start closing permissive replaces the operating-map permissive only while K_B is open (no battery on the link); with K_B closed the map's permissive (V_dc >= 1.02 sqrt2 V_LL + 10 V and the map for the commanded P / Q) applies unchanged",
+   "abort: V_dc below 63 % of the tap peak at 1.1 tau_max + 30 ms (shorted bank) or not within 10 V of it within 3 x the calculated time; <= 3 attempts per start >= 30 s apart, then lock-out"
+  ],
+  "consequences": [
+   "the tap ties the DC side to the grid through its lower diodes with the AC contactors open: with a battery connected and the grid present, DC- is peak-clamped to the most negative phase; the insulation monitor's PE -> DC- state is then not valid (R_iso- is covered by the residual-current monitor once connected): firmware runs the full two-state insulation test with the grid absent or treats the DC- result as 'clamped by the grid'",
+   "the aux input and, with a welded precharge relay, the DC link are live whenever the AC terminals are live: enclosure label 'isolate AC and DC, wait 15 min'",
+   "the tap and the precharge path can only draw from the grid (diodes): with the AC contactors open the converter cannot export through them, a welded precharge relay included"
+  ]
+ },
+ "declarations": {
+  "ac_short_circuit": {
+   "I_L1_sat_100C_A": 574.533121824161,
+   "rows": {
+    "stiff": {
+     "L_g_uH": 0.0,
+     "I_prospective_unsaturated_A_rms": 5834.168205521611,
+     "I_peak_asymmetric_A": 16501.51960282913,
+     "t_to_L1_saturation_ms": 0.22165179573560312,
+     "L1_saturates": true
+    },
+    "SCR 50": {
+     "L_g_uH": 81.48733086305042,
+     "I_prospective_unsaturated_A_rms": 3542.891948332597,
+     "I_peak_asymmetric_A": 10020.811686708796,
+     "t_to_L1_saturation_ms": 0.36499951966811395,
+     "L1_saturates": true
+    },
+    "SCR 20": {
+     "L_g_uH": 203.71832715762602,
+     "I_prospective_unsaturated_A_rms": 2229.494490745419,
+     "I_peak_asymmetric_A": 6305.9626920965375,
+     "t_to_L1_saturation_ms": 0.5800211055668801,
+     "L1_saturates": true
+    },
+    "SCR 5": {
+     "L_g_uH": 814.8733086305041,
+     "I_prospective_unsaturated_A_rms": 781.3009330296672,
+     "I_peak_asymmetric_A": 2209.8527515706173,
+     "t_to_L1_saturation_ms": 1.655129035060711,
+     "L1_saturates": true
+    }
+   },
+   "module": "converter running: the circular current limiter holds 367 A peak (259 A rms) for <= 200 ms, then trips (control study: a terminal short in grid forming is held at 366 A with no hardware trip); a faster rise reaches the phase window (426-486 A, gates off <= 3.5 us) and the CMPSS backup (493-571 A); a device short is cleared by DESAT (detected <= 0.88 us, off 0.40 us later); a shorted leg is fed from the battery through the two 400 A aR fuses (2.0-7.4 kA, port coordination) and from the grid through the body diodes of the healthy legs - that grid-fed current is limited only by L2 + L1 until L1 saturates, then by the installation",
+   "contactors": "The two AC contactors in series are disconnecting devices, not short-circuit protective devices: AC-1 >= 248 A (RFQ class), making / breaking about 1.5 x Ie at cos phi 0.95 (IEC 60947-4-1 AC-1, from memory), opened by firmware at zero current only; they must withstand the upstream device's let-through (conditional short-circuit current with that device: an RFQ item)",
+   "installation": "upstream AC protection rated >= 250 A (the 216 A 2-min tier must not trip it), breaking capacity >= the prospective short-circuit current at the connection point, let-through within the module's AC-path withstand (contactor conditional current, busbars, L2 / L1 - RFQ / test item); gG fuses 250 A or an MCCB with an instantaneous release; residual-current protection upstream type B if the code requires an RCD (the module has its own RCM, IEC 62109-2 style); earthing TN-S or TT (three-wire build in TN: step f limit on the battery's earth capacitance); the DC side: the port declaration (battery-side protection 0.97-2.01 kA within 2.5 s, prospective current <= 7.5 kA at the DC terminals or interrupted within the contactor's capacity)",
+   "competitor": "DC 1000 V DC 200 A (50 / 62.5 kW) or 300 A (80 / 105 kW); AC 400 V AC 200 A or 250 A; no prospective short-circuit current, fuse type, earthing system or RCD type stated (user manual pp. 25, 28)"
+  },
+  "stabilized_precision": {
+   "requirement": "competitor: DC voltage +/-1 %, DC current +/-2 % of rated (PMA datasheet 'voltage / current stabilization accuracy')",
+   "voltage": {
+    "a: 115 K span, no re-zero": {
+     "600": {
+      "terms_V": {
+       "ADC reference": 6.321338100000001,
+       "VMID drift (power board REF3030E)": 4.8513381,
+       "ADC gain residual 5 LSB": 3.14958251953125,
+       "ADC INL 2 LSB": 1.76220703125,
+       "divider TCR mismatch 0.15 %": 0.9
+      },
+      "worst_V": 16.98446575078125,
+      "rss_V": 8.793750076238634,
+      "worst_pct": 2.8307442917968753,
+      "rss_pct": 1.465625012706439
+     },
+     "750": {
+      "terms_V": {
+       "ADC reference": 6.688838100000001,
+       "VMID drift (power board REF3030E)": 4.8513381,
+       "ADC gain residual 5 LSB": 3.33268798828125,
+       "ADC INL 2 LSB": 1.76220703125,
+       "divider TCR mismatch 0.15 %": 1.125
+      },
+      "worst_V": 17.760071219531252,
+      "rss_V": 9.151712645004993,
+      "worst_pct": 2.3680094959375,
+      "rss_pct": 1.2202283526673323
+     },
+     "950": {
+      "terms_V": {
+       "ADC reference": 7.178838100000001,
+       "VMID drift (power board REF3030E)": 4.8513381,
+       "ADC gain residual 5 LSB": 3.57682861328125,
+       "ADC INL 2 LSB": 1.76220703125,
+       "divider TCR mismatch 0.15 %": 1.425
+      },
+      "worst_V": 18.79421184453125,
+      "rss_V": 9.64369739136902,
+      "worst_pct": 1.9783380888980264,
+      "rss_pct": 1.0151260411967389
+     }
+    },
+    "b: re-zero at cold start, 30 K swing (ASSUMED)": {
+     "600": {
+      "terms_V": {
+       "ADC reference": 1.9351035,
+       "VMID drift (power board REF3030E)": 1.4851035,
+       "ADC gain residual 5 LSB": 3.14958251953125,
+       "ADC INL 2 LSB": 1.76220703125,
+       "divider TCR mismatch 0.15 %": 0.9
+      },
+      "worst_V": 9.23199655078125,
+      "rss_V": 4.448078419918905,
+      "worst_pct": 1.538666091796875,
+      "rss_pct": 0.7413464033198175
+     },
+     "750": {
+      "terms_V": {
+       "ADC reference": 2.0476035,
+       "VMID drift (power board REF3030E)": 1.4851035,
+       "ADC gain residual 5 LSB": 3.33268798828125,
+       "ADC INL 2 LSB": 1.76220703125,
+       "divider TCR mismatch 0.15 %": 1.125
+      },
+      "worst_V": 9.75260201953125,
+      "rss_V": 4.677180811893589,
+      "worst_pct": 1.3003469359375,
+      "rss_pct": 0.6236241082524785
+     },
+     "950": {
+      "terms_V": {
+       "ADC reference": 2.1976035,
+       "VMID drift (power board REF3030E)": 1.4851035,
+       "ADC gain residual 5 LSB": 3.57682861328125,
+       "ADC INL 2 LSB": 1.76220703125,
+       "divider TCR mismatch 0.15 %": 1.425
+      },
+      "worst_V": 10.44674264453125,
+      "rss_V": 4.996468262552952,
+      "worst_pct": 1.0996571204769736,
+      "rss_pct": 0.5259440276371529
+     }
+    }
+   },
+   "current": {
+    "a: 115 K span, no re-zero": {
+     "600": {
+      "I_rated_A": 208.33333333333334,
+      "terms_A": {
+       "shunt TCR 50 ppm/K x 60 K (self-heating + swing, ASSUMED)": 0.625,
+       "difference-amplifier resistor drift 2 x 25 ppm/K": 1.1979166666666667,
+       "OPA2388 offset 5 uV x 31.1": 0.05166112956810631,
+       "VMID drift since the idle null": 1.339767441860465,
+       "ADC reference": 1.8501841085271318,
+       "ADC gain residual 5 LSB": 0.9218471522875138,
+       "ADC INL 2 LSB": 0.48665905315614616
+      },
+      "worst_A": 6.47303555206603,
+      "rss_A": 2.8518582455131143,
+      "worst_pct_of_rated": 3.107057064991694,
+      "rss_pct_of_rated": 1.3688919578462948
+     },
+     "750": {
+      "I_rated_A": 166.66666666666666,
+      "terms_A": {
+       "shunt TCR 50 ppm/K x 60 K (self-heating + swing, ASSUMED)": 0.5,
+       "difference-amplifier resistor drift 2 x 25 ppm/K": 0.9583333333333333,
+       "OPA2388 offset 5 uV x 31.1": 0.05166112956810631,
+       "VMID drift since the idle null": 1.339767441860465,
+       "ADC reference": 1.748100775193799,
+       "ADC gain residual 5 LSB": 0.8709845220791806,
+       "ADC INL 2 LSB": 0.48665905315614616
+      },
+      "worst_A": 5.955506255191031,
+      "rss_A": 2.64902922602014,
+      "worst_pct_of_rated": 3.5733037531146183,
+      "rss_pct_of_rated": 1.5894175356120839
+     },
+     "950": {
+      "I_rated_A": 131.57894736842104,
+      "terms_A": {
+       "shunt TCR 50 ppm/K x 60 K (self-heating + swing, ASSUMED)": 0.3947368421052631,
+       "difference-amplifier resistor drift 2 x 25 ppm/K": 0.756578947368421,
+       "OPA2388 offset 5 uV x 31.1": 0.05166112956810631,
+       "VMID drift since the idle null": 1.339767441860465,
+       "ADC reference": 1.662135862913097,
+       "ADC gain residual 5 LSB": 0.8281528334826892,
+       "ADC INL 2 LSB": 0.48665905315614616
+      },
+      "worst_A": 5.519692110454188,
+      "rss_A": 2.4922368116011846,
+      "worst_pct_of_rated": 4.194966003945183,
+      "rss_pct_of_rated": 1.8940999768169007
+     }
+    },
+    "b: re-zero at cold start, 30 K swing (ASSUMED)": {
+     "600": {
+      "I_rated_A": 208.33333333333334,
+      "terms_A": {
+       "shunt TCR 50 ppm/K x 60 K (self-heating + swing, ASSUMED)": 0.625,
+       "difference-amplifier resistor drift 2 x 25 ppm/K": 0.3125,
+       "OPA2388 offset 5 uV x 31.1": 0.05166112956810631,
+       "VMID drift since the idle null": 0.4101328903654485,
+       "ADC reference": 0.5663828903654484,
+       "ADC gain residual 5 LSB": 0.9218471522875138,
+       "ADC INL 2 LSB": 0.48665905315614616
+      },
+      "worst_A": 3.374183115742663,
+      "rss_A": 1.4375631793997523,
+      "worst_pct_of_rated": 1.619607895556478,
+      "rss_pct_of_rated": 0.690030326111881
+     },
+     "750": {
+      "I_rated_A": 166.66666666666666,
+      "terms_A": {
+       "shunt TCR 50 ppm/K x 60 K (self-heating + swing, ASSUMED)": 0.5,
+       "difference-amplifier resistor drift 2 x 25 ppm/K": 0.25,
+       "OPA2388 offset 5 uV x 31.1": 0.05166112956810631,
+       "VMID drift since the idle null": 0.4101328903654485,
+       "ADC reference": 0.5351328903654485,
+       "ADC gain residual 5 LSB": 0.8709845220791806,
+       "ADC INL 2 LSB": 0.48665905315614616
+      },
+      "worst_A": 3.10457048553433,
+      "rss_A": 1.328606842575705,
+      "worst_pct_of_rated": 1.862742291320598,
+      "rss_pct_of_rated": 0.7971641055454229
+     },
+     "950": {
+      "I_rated_A": 131.57894736842104,
+      "terms_A": {
+       "shunt TCR 50 ppm/K x 60 K (self-heating + swing, ASSUMED)": 0.3947368421052631,
+       "difference-amplifier resistor drift 2 x 25 ppm/K": 0.19736842105263155,
+       "OPA2388 offset 5 uV x 31.1": 0.05166112956810631,
+       "VMID drift since the idle null": 0.4101328903654485,
+       "ADC reference": 0.5088171008917642,
+       "ADC gain residual 5 LSB": 0.8281528334826892,
+       "ADC INL 2 LSB": 0.48665905315614616
+      },
+      "worst_A": 2.877528270622049,
+      "rss_A": 1.2438723085574166,
+      "worst_pct_of_rated": 2.1869214856727575,
+      "rss_pct_of_rated": 0.9453429545036367
+     }
+    }
+   },
+   "meets_rss_b": {
+    "voltage": true,
+    "current": true
+   },
+   "worst_b_max_pct": {
+    "voltage": 1.538666091796875,
+    "current": 2.1869214856727575
+   },
+   "closure": "the regulation itself adds nothing at DC (integral action); the error is the measurement's.  Met by RSS with the firmware re-zero; the worst-case linear sum is not guaranteed - the largest terms are the ADC gain residual (kept whole, as the board check does) and the two REF3030E drifts.  Cheapest closure if a guarantee is wanted: read VMID on the 23rd analog pin (PCS_PC VAX carries it on PCS-PWR) and trim the DC-voltage reading against the BMS pack voltage (firmware)"
+  },
+  "kva_tiers_400V": {
+   "rated 180 A": 124.70765814495915,
+   "110 % continuous 198 A": 137.17842395945507,
+   "120 % 2 min 216 A": 149.64918977395098,
+   "200 ms 259.2 A": 179.57902772874118
+  },
+  "operating_windows": {
+   "3W+PE": {
+    "competitor": [
+     590.0,
+     950.0,
+     600.0,
+     900.0
+    ],
+    "operating_from": 624.0928278951606,
+    "full_load_from": 643.3950126925188,
+    "operating_to": 950.0,
+    "full_load_to": 900.0
+   },
+   "3W+N+PE, mode A (N leg at 50 %)": {
+    "competitor": [
+     650.0,
+     950.0,
+     680.0,
+     900.0
+    ],
+    "operating_from": 723.9667370158019,
+    "full_load_from": 746.3578607724218,
+    "operating_to": 950.0,
+    "full_load_to": 900.0,
+    "no_headroom_from": 653.1972647421809
+   },
+   "3W+N+PE, mode B (zero sequence on four legs)": {
+    "competitor": [
+     650.0,
+     950.0,
+     680.0,
+     900.0
+    ],
+    "operating_from": 624.0928278951606,
+    "full_load_from": 643.3950126925188,
+    "operating_to": 950.0,
+    "full_load_to": 900.0
+   }
+  },
+  "frequency": {
+   "ours": "the operating map holds at 50 and 60 Hz (both computed); PLL integrator clamp +/-5 Hz (control study), trip windows = the grid code's parameters (EN 50549-1 47.5-51.5 Hz class, FROM MEMORY)",
+   "competitor": "datasheet 50 +/- 5 / 60 +/- 5 Hz; user manual 50 +/- 2 / 60 +/- 2 Hz (pp. 38, 41-42)"
+  },
+  "environment": "operating -30..+60 C (> 45 C derating, the fans rated -10 C: open risk), storage -40..+70 C (ASSUMED: parts' storage ratings to confirm), altitude: see the control board's barrier rating, OVC DC II / AC III, pollution degree external 3 / internal 2; IP rating and enclosure out of scope (schematic and BOM only)",
+  "communication": "the control board's declared port roles: module bus = CAN (paralleling, carrier synchronisation by CAN time-stamping, software addressing); BMS = RS-485 (Modbus RTU) or CAN when not paralleled; EMS = Ethernet (Modbus TCP, port 502, over the isolated Ethernet bridge) or RS-485; service RS-485 at 9600-8-N-1",
+  "airflow": {
+   "sections": {
+    "three-wire": 3,
+    "four-wire": 4
+   },
+   "m3h_per_section": 149.49624060150376,
+   "CFM": {
+    "three-wire": 263.9721729279054,
+    "four-wire": 351.9628972372072
+   },
+   "CFM_per_kW_125kW": {
+    "three-wire": 2.111777383423243,
+    "four-wire": 2.8157031778976576
+   },
+   "competitor_CFM_per_kW": 3.8,
+   "competitor_scaled_125kW_CFM": 475.0
+  },
+  "offgrid_load_acceptance": {
+   "resistive": "up to rated (180 A per phase, 125 kW), 110 % continuous, 120 % for 2 min",
+   "crest_factor": {
+    "limiter_peak_A": 366.56415536710625,
+    "CF_at_rated_rms": 2.0364675298172568,
+    "rms_at_CF": {
+     "2.5": 146.6256621468425,
+     "3.0": 122.18805178903541
+    }
+   },
+   "motor_DOL": {
+    "I_start_A_2min": 216.0,
+    "I_start_A_200ms": 259.2,
+    "I_n_max_A_at_6x": 36.0,
+    "P_kW_at_0.85_0.92": 19.50427773387161
+   },
+   "half_wave_four_wire": {
+    "I_pk_limit_A": 280.1,
+    "I_dc_A": 89.1585807875769,
+    "I_rms_A": 140.05,
+    "L_N_peak_A": 311.0,
+    "L1_part_continuous_peak_A": 311,
+    "P_mean_kW": 22.870069231785607,
+    "battery_lf_A_rms_750V": 43.12421610667046,
+    "midpoint_lf_A": 0.0,
+    "dc_component_limit_V": 1.1547005383792517,
+    "dc_measurement_divider_V": 0.5625,
+    "basis": "the half-wave current's DC and 50 / 100 Hz parts flow phase -> load -> N -> L_N -> N leg -> DC+ / DC- (the N leg draws from both rails, nothing enters M at low frequency: M sees only the C_f / C_fN currents); limit: L_N's peak (DC + AC + half the ripple) <= the L1 part's continuous peak; the output voltage's DC component is regulated by firmware"
+   },
+   "competitor": "resistive below rated power, RCD-type loads below 60 % of the module kVA, VFD motors below 60 % of one module, direct-on-line motors 'ask the maker' (user manual p. 11)"
+  },
+  "modes": "PQ (grid following, P / Q set points, PF -1..+1 at full current), CP / CC on the DC side (power or DC current set point), CV (DC-link / battery voltage, the control study's DC-link loop), VF (grid forming off-grid), generator-following, standby; competitor: on-grid charge / discharge in CV, CC and CP, standby, off-grid constant V/f (user manual pp. 10-11, 30-31); generator mode, LVRT / HVRT, anti-islanding, per-phase control and droop are datasheet / catalogue claims without published parameters",
+  "transfer_ms_control_study": {
+   "stiff": 0.390625,
+   "SCR 5": 5.6875
+  },
+  "parameter_set": [
+   "battery voltage window (min / max, charge-end CV limit)",
+   "charge / discharge current limits (DC)",
+   "SOC limits (from the BMS) and the off-grid lower voltage and SOC",
+   "power reference -1.2..+1.2 Pn, ramps",
+   "reactive set point / PF / Q(U), cos phi(P), P(f) curves",
+   "grid-code windows, times, LVRT / HVRT curves",
+   "leakage-detect (RCM) enable and limits, insulation-test enable and limit",
+   "parallel enable, module address",
+   "protection hysteresis and restart dwell",
+   "mode (PQ / CC / CP / CV / VF / generator / standby)"
+  ],
+  "telemetry": [
+   "device (heatsink sections), L1 / L_N, DC-link and inlet temperatures",
+   "insulation resistance (kOhm) and leakage (mA)",
+   "DC voltage, current, power; DC-link (bus) voltage and both halves",
+   "phase output voltages (C_f nodes) and grid line voltages (terminals), phase currents, P, Q, S, PF, frequency",
+   "contactor states, relay-test results, latch and fault cause, event log, fault records",
+   "energy counters (charge / discharge kWh), operating hours"
+  ]
+ },
  "handover": {
   "control_engineer": {
    "plant": {
@@ -5691,7 +6843,7 @@
    "modulation": "two-level, sinusoidal where m <= 0.98, min-max zero sequence above (V_dc < ~680 V at 400 V, < ~780 V at 460 V)",
    "midpoint": "no control (two-level); firmware plausibility of the half voltages; C_f-star 150 Hz current <= 9 A rms, ripple <= 19 V pp",
    "grid_forming": "voltage control on C_f (L1-C_f with the damping branch), current limit 1.2 x 216 A for 200 ms (Tj 161 C at the worst corner, step b), 120 % for 2 min, transitions grid <-> off-grid < 20 ms (Megarevo)",
-   "four_wire": "neutral leg two-level with L_N = 120 uH, reference = -sum of the phase currents' zero sequence; 100 Hz battery current of single-phase load (~39 A rms at 750 V) is an installation item",
+   "four_wire": "neutral leg two-level with L_N = 120 uH (the L1 part) into N_F, C_fN 50 uF + R_d / C_d from N_F to M (the C_f star stays on M, step i); mode A (N leg at 50 %, reference L_N di_N/dt + a v(N_F - M) loop on VGN - VA) where the phase peak fits V_dc / 2, mode B (the min-max zero sequence on all four legs) below; neutral current = -(i_a + i_b + i_c) limited to the phase tiers; 100 Hz battery current of single-phase load (~39 A rms at 750 V) is an installation item; the N leg runs the off-grid cascade (inner current loop + voltage loop) in every mode with its own DC regulator (worst PM 57 deg, GM 8.7 dB; D-077)",
    "limits": {
     "I_phase_trip_A": 450.0,
     "I_dc_trip_A": 400.0,
@@ -5702,7 +6854,7 @@
    "device_acceptance": "R_DS(on) of the six devices of one switch within +/-5 % of their mean at V_GS 18 V, I_D 38 A pulsed (< 200 us), T_J 25 C (incoming measurement or the maker's bin; the data sheet allows 40 typ / 52 max mOhm) - bounds the conduction share at k <= 1.086; V_GS(th) within +/-0.25 V (V_DS = V_GS, I_D 12 mA, 25 C; data-sheet spread 2.5-4.0 V) for the switching share; one lot per switch",
    "power_stage": "3 two-level legs (4 for four-wire): 6 x SG2M040170HJ per switch (TO-247-4L, Kelvin source), Al2O3 pads on one earthed section per leg; per device pair 3 x 2.2 uF / 1300 V film at the pins + RC damper (2 x 4.7 nF 2 kV C0G, 6 x 15 ohm 2512); DC link 5 + 5 x C3D1U147 in two series halves, midpoint to the C_f star",
    "gate_drive": "6 channels (8 four-wire): NSI6651ASC + NPN/PNP buffer per channel driving 6 gates, R_G,on 8.75 / R_G,off 7.5 ohm per device, R_KS 0.5 ohm, per-gate clamp FET, DESAT 100 ohm + 2 x US1MH (PCM-07), booster, RC dead-time stretch and negative-rail detector (stretch=True, neg_det=True - new '6 x SG2M040170HJ' preset needed), rails +18 / -3.5 V; bias: one SN6505B transformer per phase (2 secondaries); default-off pull-downs; EN from the external stop (wired-AND); FLT/RDY to the latch and the trip zone (D-050)",
-   "control_board": "PV-CTL as drawn (gen/pv_ctrl.py), PV-P75 assembly for three-wire, PV-P100/110 assembly for four-wire: discrete window comparators for each phase current (ladders re-valued for +-450 A on the STK-250HO/4), DC over-voltage 1050 V, over-temperature and open probe, the set-dominant latch, heartbeat watchdog, AND gating of 6 (8) PWM, EN, K_DC, K_PRE, K_AC1 and K_AC2 (a spare LVC08 gate); the controller's CMPSS / ADC limits / trip zone as the second layer",
+   "control_board": "PCS-CTL as drawn (gen/pcs_ctrl.py: the PV-CTL design with the PCS_X header), assemblies PCS-CTL-3W / PCS-CTL-4W: discrete window comparators for each phase current (ladders re-valued for +-450 A on the STK-250HO/4), DC over-voltage 1050 V, over-temperature and open probe, the set-dominant latch, heartbeat watchdog, AND gating of 6 (8) PWM, EN, K_DC, K_PRE, K_AC1 and K_AC2 (a spare LVC08 gate) and K_ACPRE (the PWM16 line); the controller's CMPSS / ADC limits / trip zone as the second layer",
    "sensing": {
     "phase_current": "3 (4) Sinomags STK-250HO/4 (open-loop Hall, I_PN 250 A, +-625 A, 3.2 mV/A around its Uref pin, 200 kHz, <= 2 us step response; pcs_spec phase_current_sensor, PCM-20) on the C_f side of L1, the busbar through its aperture; windows at +-450 A",
     "grid_voltage": "terminal and C_f nodes, L1-L3 (+N), dividers to DC-: signal V_dc/2 +-375 V peak + 20 % surge headroom",
@@ -5710,7 +6862,7 @@
     "residual_current": "type-B fluxgate over L1-L3 (+N), 30 mA resolution, 1.25 A continuous range",
     "temperatures": "NTC: 3 (4) heatsink sections, 3 (4) L1, DC link, inlet"
    },
-   "ports": "DC: HFE82V-300C/1000, 2 x aR 400 A, precharge 220 ohm, gen/port.py lean_port interlocks='full', oc_trip=True (hold-off, polarity and precharge-dV interlocks, over-current window, all discrete); AC: 2 x 3-pole contactor in series (4-pole four-wire), coil drivers with economiser gated by the latch, type II SPD, CM choke >= 150 uH (3 nanocrystalline cores)"
+   "ports": "DC: HFE82V-300C/1000, 2 x aR 400 A, precharge 220 ohm, gen/port.py lean_port interlocks='full', oc_trip=True (hold-off, polarity and precharge-dV interlocks, over-current window, all discrete); AC: 2 x 3-pole contactor in series (4-pole four-wire), coil drivers with economiser gated by the latch, type II SPD, CM choke >= 150 uH (3 nanocrystalline cores); AC start-up (step i, both builds): 6-diode grid tap behind 20 ohm + 1.6 A fuses into the aux, AC precharge relay (G7L-2A-X + 220 ohm, latch-gated, PWM16 line) from the tap to DC+"
   },
   "firmware_requirements": [
    "firmware practice adopted from the Wolfspeed firmware cross-check (docs/requirements/REFERENCE-LESSONS.md section 6, R-WS-1..9, 2026-10-05): range-checked bus/service inputs (no writable switching frequency or dead time in operation); ramp to zero and stop on communication loss (grid-following: fallback to zero power; grid-forming keeps forming); lock-out after the third hazard trip of a class within 10 min (assumed) and at once when hardware and firmware both see an over-voltage; explicit recovery threshold, dwell and restart-rate limit per non-latched limit; every exception path forces the one-shot trip and stops the heartbeat, clock-fail and emulation-stop trips enabled; the start-up self-test fires each fault line alone and the 10 ms read-back covers the trip routing; no bus-reachable mode disables a protection, parameter writes only in SERVICE with authorisation and timeout; redundant range-checked calibration whose failed load blocks the start",
@@ -5726,7 +6878,23 @@
    "AC contactor closing permissive: V_dc >= 1.02 x sqrt(2) x V_LL,rms(measured) + 10 V and >= the map's V_dc for the commanded P / Q: 624 V at 400 V, 718 V at 460 V (no load) - VB against the line-to-line peak of VG1-3 (terminal side) before K_A_M / K_AC2_M go high - through the relay test and the final close; otherwise no close (the bridge would rectify into the battery)",
    "V_dc below the rectification threshold while running: meanwhile the body-diode rectifier drives 846 A peak / 730 A mean DC (460 V AC on 590 V, stiff grid, L1 saturation and R not modelled; 113 / 98 A at SCR 5) for <= 50 ms (AC contactor release, ASSUMED); above 387-413 A DC the port window opens the DC contactor first (<= 10 ms release) - outer loop: V_dc < 1.05 x sqrt(2) x V_LL,rms(measured) (the map's no-load limit without the loop headroom) -> controlled stop (current to zero within one grid period, both AC contactors open at zero current); V_dc < sqrt(2) x V_LL,rms + 5 V (the body diodes conduct) -> one-shot on all ePWM, K_A_M and K_AC2_M low (both break the pulsed diode current at its zeros), K_B kept unless the port's hardware over-current window (387-413 A) opens it",
    "current limit and overload tiers: 110 % continuous 198 A = 117 / 137 / 158 kVA at 340 / 400 / 460 V; 120 % 2 min 216 A = 127 / 150 / 172 kVA at 340 / 400 / 460 V; 200 ms limit (1.2 x 216 A) 259 A = 153 / 180 / 206 kVA at 340 / 400 / 460 V; at 60 C inlet: 120 % 2 min 216 A, 200 ms 246 A - rms of IL1-3 over each grid period, one timer / I2t per tier; reference limited to min(tier, 150 kVA / (sqrt(3) V_ac), the operating map); inlet above 45 C: derated tiers",
-   "contactor coil sequencing (live 24 V budget, PCS-PWR): settled = pull-in window (AC coil module: ASSUMED <= 100 ms) + 100 ms; budget and limits in the PCS-PWR design check - K_PRE_M, K_B_M, K_A_M, K_AC2_M: never two coils pulling in at once; the DC contactor pulls in at the end of the precharge with the gates idle; the second AC contactor only after the first has settled on its economiser; a coil that does not reach its state (relay test VG / VC, the bank following the terminal) is released and retried after >= 10 s (ASSUMED: coil module and aux recovery), at most 3 attempts per start, then lock-out with the cause logged until a reset; a welded contact found by the relay test locks out at once; the DC precharge keeps the port's 3 attempts / 30 s lock-out (port_spec precharge)"
+   "contactor coil sequencing (live 24 V budget, PCS-PWR): settled = pull-in window (AC coil module: ASSUMED <= 100 ms) + 100 ms; budget and limits in the PCS-PWR design check - K_PRE_M, K_B_M, K_A_M, K_AC2_M: never two coils pulling in at once; the DC contactor pulls in at the end of the precharge with the gates idle; the second AC contactor only after the first has settled on its economiser; a coil that does not reach its state (relay test VG / VC, the bank following the terminal) is released and retried after >= 10 s (ASSUMED: coil module and aux recovery), at most 3 attempts per start, then lock-out with the cause logged until a reset; a welded contact found by the relay test locks out at once; the DC precharge keeps the port's 3 attempts / 30 s lock-out (port_spec precharge)",
+   "four-wire N leg (PCS-PWR-4W): modes A / B: mode A from 724 V DC at 230 V (746 V for rated current at the worst PF; 796 / 833 V at +10 / +15 %), mode B below it down to the three-wire window (624 / 643 V); neutral current IL4 <= the phase tiers (198 A rms continuous, 216 A 2 min, 259 A 200 ms), IL4 window and CMPSS4 as the phases - ePWM4 A/B = PWM7/8 (the N leg); mode A: reference = L_N di_N/dt + the v(N_F - M) loop on VGN - VA (contactors closed; 6.8 kHz dividers), sinusoidal phase legs; mode B: the min-max zero sequence of the phase references added to all four legs (3D-SVM-equivalent)",
+   "per-phase power control (four-wire, on-grid split-phase): each phase <= its tier (45.7 kW at 230 V and 198 A continuous, 49.9 kW for 2 min); |i_a + i_b + i_c| <= 198 A rms (the N leg; in-phase currents could reach 3 x); competitor claim, no published parameters; our values ASSUMED (standards not on file) - per-phase P / Q set points through the PR current loops of each phase (positive, negative and zero sequence)",
+   "operating modes PQ / CP / CC / CV / VF / generator-following / standby: PQ: P, Q inside the operating map, PF -1..+1 at full current; CP / CC: DC power / current set point (IB), ramps <= 125 kW in 20 ms (the control study's DC-link rule); CV: the DC-link loop (PI 40 Hz + DC-current feed-forward), battery voltage from VBX; VF and generator-following: rows below - mode state above the protection state machine; mode changes only through the stop -> start path except PQ <-> CC / CP",
+   "VF (grid forming, off-grid): voltage +/-1 % (C_f dividers 0.5 % after calibration), frequency 50 / 60 Hz +/-0.2 % (crystal clock), THDu < 3 % on linear load, imbalance +/-1 % and 120 +/-1 deg on linear balanced load, 100 % unbalanced load (four-wire only), DC component < 0.5 % Un (row below); load acceptance: the declaration (crest factor <= 2.04 at rated rms, DOL motors <= 36 A rated at 6 x start) - droop + virtual impedance + C_f-voltage PR loop (control study); per-phase voltage loops in the four-wire build",
+   "DC-component regulator (VF, half-wave loads): |DC| <= 0.5 % Un = 1.15 V; measurement after calibration: divider TCR mismatch 0.56 V at 750 V (calculated) plus the ADC gain drift of the two channels - pair VG_x and VGN on one ADC module or null them at no load (OPEN); half-wave load <= 280 A peak (89 A DC, 140 A rms) per phase: L_N's peak within the L1 part's 311 A - one-cycle mean of each phase-to-N voltage (VG_x - VGN; three-wire: the line-to-line means) -> integrator -> offset on that phase's reference; the N leg carries the DC current",
+   "generator-following (small diesel genset): frequency window 45-55 Hz (60 Hz: 55-65 Hz), ROCOF ride-through <= 4 Hz/s, voltage 0.85-1.10 Un; no reverse power: the genset keeps >= 30 % of its rating (wet-stacking floor), so discharge <= P_load - 0.3 P_gen and charge <= 0.9 P_gen - P_load; power ramps <= 10 % of P_gen per s; P(f) droop following the genset's 4 %; competitor claim, no published parameters; our values ASSUMED (standards not on file) - grid-following on the genset's voltage with a power envelope from the measured frequency / voltage",
+   "LVRT / HVRT ride-through profiles: LVRT: 0 pu for 150 ms, 0.2 pu to 625 ms, linear to 0.9 pu at 2 s, reactive current k = 1.5 (dI_q / dU) up to 1.0 Ir; HVRT: 1.2 pu 10 s, 1.25 pu 1 s, 1.3 pu 0.5 s (absorbing reactive current) - FROM MEMORY; hardware limits: the firmware ride-through state with the per-sample clamp at 380 A keeps every in-dip / recovery peak <= 382 A from stiff to SCR 5; only the first-millisecond peak on a stiff grid (484 / 465 / 445 A at 0 / 0.1 / 0.2 pu against the 426 A window) remains, handled by the stiff-grid derating rule (95.5 / 105.5 / 115 kW) - no hardware change (control study, D-077); 1.3 pu needs V_dc above the operating map at 520 V; competitor claim, no published parameters; our values ASSUMED (standards not on file) - grid-code parameter sets (EN 50549-1, VDE-AR-N 4105, GB/T 34120 class) selected per country",
+   "anti-islanding: cease to energise within 2 s (IEC 62116 class, FROM MEMORY; not simulated); competitor claim, no published parameters; our values ASSUMED (standards not on file) - U / f windows, ROCOF, vector shift + an active frequency shift",
+   "charge <-> discharge transfer < 20 ms: ramp <= 10 ms (ASSUMED setting) + the current loop's settling to 5 % for a 0 -> rated step (control study: stiff 0.4 ms, SCR 5 5.7 ms) -> <= 15.7 ms; CV: 40 Hz crossover, about 12 ms to 5 % (estimate 3 / (2 pi 40 Hz)) - PQ / CP / CC: current-reference reversal through a ramp; CV: the DC-link loop",
+   "grid-to-island transfer (unplanned): automatic, with an interruption of about 150 ms = detection 100 ms (ASSUMED) + the grid-tie contactor's drop-out 50 ms (CHINT NXC-225 class with its DC coil module, ASSUMED - the RFQ class of our AC contactors); planned: seamless (ramp the exchange to zero, GFM before opening - control study); a seamless unplanned transfer needs a static transfer switch: out of scope (REQUIREMENTS: not STS); competitor: by hand - islanding detection, cease to energise, the site's grid-tie switch opens, GFL -> GFM on the island",
+   "parallel operation of modules on one AC bus: load sharing +/-5 % of rated by droop, +/-2 % with the shared CAN set point; carrier jitter +/-2 us (ASSUMED); up to 16 modules on one CAN (ASSUMED bus load); competitor: up to 14 modules, 4-bit DIP address, host and last module terminated, a module CAN plus three synchronisation pairs (carrier and low-frequency sync, needed on a shared battery), sharing method unpublished (user manual pp. 13, 17-21) - GFL: independent current sources, the EMS splits P / Q (shared set point); GFM: P-f / Q-V droop; the module bus = the control board's CAN (paralleling, carrier synchronisation by CAN time-stamping, software addressing) and zero-sequence circulating-current control on a shared battery; no hardware sync pair fitted",
+   "grid start (DC side dead): AC precharge and closing: precharge to the tap peak minus 2 V_F: 0.99 s to 10 V at 400 V (0.91 s at 340 V), 78 J in 220 ohm at 460 V (rating 280 J), shorted bank 227 J in 0.17 s (rating 900 J in 0.15 s); close only with K_B open and V_dc >= 0.95 x sqrt2 V_LL,meas - K_ACPRE = PWM16 line (latch-gated, PCS-PWR relay driver); K2, K1, K_B sequence of pcs_spec ac_start",
+   "local fault recorder: the control board's figure: 71 events of 32 channels x 200 ms at 3.6 kHz beside two firmware images; each event with its cause, the latch state and a time stamp (from the EMS over Modbus TCP or the module bus) - the control board's recorder flash (GD25Q32 class)",
+   "authenticated remote upgrade: signed image with CRC, staging slot + golden image in the recorder flash, bootloader in a DCSM-protected sector (the control board's declaration); this module adds: installed only in SERVICE with authorisation and every contactor open, roll-back to the golden image on a failed check - the control board's authenticated dual-image upgrade over Ethernet / RS-485 / CAN",
+   "Modbus TCP map scope: input registers: the telemetry set; holding registers: modes, set points, ramps (range-checked); parameters: SERVICE only, authenticated; files: event log, fault records, firmware image - at least the competitor's set (pcs_spec declarations parameter_set / telemetry) - EMS = Ethernet (Modbus TCP, port 502) or RS-485; BMS = RS-485 (Modbus RTU) or CAN when not paralleled; module bus = CAN; service RS-485 at 9600-8-N-1 (the control board's port roles)",
+   "grid start (AC side, DC dead; pcs_spec ac_start): grid present, DC side dead (battery absent, empty or its own contactors open): the 6-diode tap feeds the 75 W aux through its OR diode -> live 24 V, 5 V, 3.3 V, the controller boots (latch tripped at power-up) -> self-test of the trip paths, relay test of K1 and K2 with the converter passive (VG against VC, one contactor at a time), welded-precharge check (with K_ACPRE off the link must stay below 50 V) -> AC precharge: K_ACPRE (PWM16 line, latch-gated) closes; the link charges from the tap through 220 ohm to the line-to-line peak minus two diode drops; firmware aborts on the shorted-bank or timeout rule -> open K_ACPRE (the precharged link holds: bleeder time constant about 5 min), then close K2, then K1 (one coil at a time, the live 24 V budget) with V_dc >= 0.95 x sqrt2 x V_LL,meas and the DC contactor open: no battery on the link, the bridge closes onto its own precharged link through the body diodes (inrush <= 5 % of the peak over sqrt(L / C): tens of amperes) -> the bridge starts as a rectifier on the control study's DC-link loop (PI 40 Hz + DC-current feed-forward) and raises V_dc to the battery's terminal voltage (VBX) - or 750 V without a battery (standby, STATCOM, communication) -> DC port: the link matched to the battery within the hardware dV window (3.5-16.5 V) -> K_B closes directly; or K_PRE closes from the link side first (reverse current through 220 ohm: G7L-2A-X reverse-polarity rating 30 A / 600 V DC, 5,000 operations - ample at <= 0.1 A for <= 20 V of difference) and then K_B; the hardware polarity interlock needs >= 187-213 V at the battery terminal -> normal operation (CV / CC / PQ) from there; the aux keeps both feeds (DC-link tap and grid tap, diode OR)"
   ],
   "firmware_limits": [
    {
@@ -5773,6 +6941,126 @@
     "item": "contactor coil sequencing (live 24 V budget, PCS-PWR)",
     "peripheral": "K_PRE_M, K_B_M, K_A_M, K_AC2_M: never two coils pulling in at once; the DC contactor pulls in at the end of the precharge with the gates idle; the second AC contactor only after the first has settled on its economiser; a coil that does not reach its state (relay test VG / VC, the bank following the terminal) is released and retried after >= 10 s (ASSUMED: coil module and aux recovery), at most 3 attempts per start, then lock-out with the cause logged until a reset; a welded contact found by the relay test locks out at once; the DC precharge keeps the port's 3 attempts / 30 s lock-out (port_spec precharge)",
     "threshold": "settled = pull-in window (AC coil module: ASSUMED <= 100 ms) + 100 ms; budget and limits in the PCS-PWR design check",
+    "filter": "-",
+    "latency": "-",
+    "self_test": "-"
+   },
+   {
+    "item": "four-wire N leg (PCS-PWR-4W): modes A / B",
+    "peripheral": "ePWM4 A/B = PWM7/8 (the N leg); mode A: reference = L_N di_N/dt + the v(N_F - M) loop on VGN - VA (contactors closed; 6.8 kHz dividers), sinusoidal phase legs; mode B: the min-max zero sequence of the phase references added to all four legs (3D-SVM-equivalent)",
+    "threshold": "mode A from 724 V DC at 230 V (746 V for rated current at the worst PF; 796 / 833 V at +10 / +15 %), mode B below it down to the three-wire window (624 / 643 V); neutral current IL4 <= the phase tiers (198 A rms continuous, 216 A 2 min, 259 A 200 ms), IL4 window and CMPSS4 as the phases",
+    "filter": "-",
+    "latency": "every control period",
+    "self_test": "power-up: IL4 = 0 V and VGN = 0 V mark a three-wire power board -> four-wire configuration refused"
+   },
+   {
+    "item": "per-phase power control (four-wire, on-grid split-phase)",
+    "peripheral": "per-phase P / Q set points through the PR current loops of each phase (positive, negative and zero sequence)",
+    "threshold": "each phase <= its tier (45.7 kW at 230 V and 198 A continuous, 49.9 kW for 2 min); |i_a + i_b + i_c| <= 198 A rms (the N leg; in-phase currents could reach 3 x); competitor claim, no published parameters; our values ASSUMED (standards not on file)",
+    "filter": "one grid period",
+    "latency": "per period",
+    "self_test": "-"
+   },
+   {
+    "item": "operating modes PQ / CP / CC / CV / VF / generator-following / standby",
+    "peripheral": "mode state above the protection state machine; mode changes only through the stop -> start path except PQ <-> CC / CP",
+    "threshold": "PQ: P, Q inside the operating map, PF -1..+1 at full current; CP / CC: DC power / current set point (IB), ramps <= 125 kW in 20 ms (the control study's DC-link rule); CV: the DC-link loop (PI 40 Hz + DC-current feed-forward), battery voltage from VBX; VF and generator-following: rows below",
+    "filter": "-",
+    "latency": "-",
+    "self_test": "-"
+   },
+   {
+    "item": "VF (grid forming, off-grid)",
+    "peripheral": "droop + virtual impedance + C_f-voltage PR loop (control study); per-phase voltage loops in the four-wire build",
+    "threshold": "voltage +/-1 % (C_f dividers 0.5 % after calibration), frequency 50 / 60 Hz +/-0.2 % (crystal clock), THDu < 3 % on linear load, imbalance +/-1 % and 120 +/-1 deg on linear balanced load, 100 % unbalanced load (four-wire only), DC component < 0.5 % Un (row below); load acceptance: the declaration (crest factor <= 2.04 at rated rms, DOL motors <= 36 A rated at 6 x start)",
+    "filter": "-",
+    "latency": "-",
+    "self_test": "-"
+   },
+   {
+    "item": "DC-component regulator (VF, half-wave loads)",
+    "peripheral": "one-cycle mean of each phase-to-N voltage (VG_x - VGN; three-wire: the line-to-line means) -> integrator -> offset on that phase's reference; the N leg carries the DC current",
+    "threshold": "|DC| <= 0.5 % Un = 1.15 V; measurement after calibration: divider TCR mismatch 0.56 V at 750 V (calculated) plus the ADC gain drift of the two channels - pair VG_x and VGN on one ADC module or null them at no load (OPEN); half-wave load <= 280 A peak (89 A DC, 140 A rms) per phase: L_N's peak within the L1 part's 311 A",
+    "filter": "one grid period",
+    "latency": "10 grid periods",
+    "self_test": "-"
+   },
+   {
+    "item": "generator-following (small diesel genset)",
+    "peripheral": "grid-following on the genset's voltage with a power envelope from the measured frequency / voltage",
+    "threshold": "frequency window 45-55 Hz (60 Hz: 55-65 Hz), ROCOF ride-through <= 4 Hz/s, voltage 0.85-1.10 Un; no reverse power: the genset keeps >= 30 % of its rating (wet-stacking floor), so discharge <= P_load - 0.3 P_gen and charge <= 0.9 P_gen - P_load; power ramps <= 10 % of P_gen per s; P(f) droop following the genset's 4 %; competitor claim, no published parameters; our values ASSUMED (standards not on file)",
+    "filter": "-",
+    "latency": "-",
+    "self_test": "-"
+   },
+   {
+    "item": "LVRT / HVRT ride-through profiles",
+    "peripheral": "grid-code parameter sets (EN 50549-1, VDE-AR-N 4105, GB/T 34120 class) selected per country",
+    "threshold": "LVRT: 0 pu for 150 ms, 0.2 pu to 625 ms, linear to 0.9 pu at 2 s, reactive current k = 1.5 (dI_q / dU) up to 1.0 Ir; HVRT: 1.2 pu 10 s, 1.25 pu 1 s, 1.3 pu 0.5 s (absorbing reactive current) - FROM MEMORY; hardware limits: the firmware ride-through state with the per-sample clamp at 380 A keeps every in-dip / recovery peak <= 382 A from stiff to SCR 5; only the first-millisecond peak on a stiff grid (484 / 465 / 445 A at 0 / 0.1 / 0.2 pu against the 426 A window) remains, handled by the stiff-grid derating rule (95.5 / 105.5 / 115 kW) - no hardware change (control study, D-077); 1.3 pu needs V_dc above the operating map at 520 V; competitor claim, no published parameters; our values ASSUMED (standards not on file)",
+    "filter": "-",
+    "latency": "-",
+    "self_test": "-"
+   },
+   {
+    "item": "anti-islanding",
+    "peripheral": "U / f windows, ROCOF, vector shift + an active frequency shift",
+    "threshold": "cease to energise within 2 s (IEC 62116 class, FROM MEMORY; not simulated); competitor claim, no published parameters; our values ASSUMED (standards not on file)",
+    "filter": "-",
+    "latency": "-",
+    "self_test": "-"
+   },
+   {
+    "item": "charge <-> discharge transfer < 20 ms",
+    "peripheral": "PQ / CP / CC: current-reference reversal through a ramp; CV: the DC-link loop",
+    "threshold": "ramp <= 10 ms (ASSUMED setting) + the current loop's settling to 5 % for a 0 -> rated step (control study: stiff 0.4 ms, SCR 5 5.7 ms) -> <= 15.7 ms; CV: 40 Hz crossover, about 12 ms to 5 % (estimate 3 / (2 pi 40 Hz))",
+    "filter": "-",
+    "latency": "-",
+    "self_test": "-"
+   },
+   {
+    "item": "grid-to-island transfer (unplanned)",
+    "peripheral": "islanding detection, cease to energise, the site's grid-tie switch opens, GFL -> GFM on the island",
+    "threshold": "automatic, with an interruption of about 150 ms = detection 100 ms (ASSUMED) + the grid-tie contactor's drop-out 50 ms (CHINT NXC-225 class with its DC coil module, ASSUMED - the RFQ class of our AC contactors); planned: seamless (ramp the exchange to zero, GFM before opening - control study); a seamless unplanned transfer needs a static transfer switch: out of scope (REQUIREMENTS: not STS); competitor: by hand",
+    "filter": "-",
+    "latency": "-",
+    "self_test": "-"
+   },
+   {
+    "item": "parallel operation of modules on one AC bus",
+    "peripheral": "GFL: independent current sources, the EMS splits P / Q (shared set point); GFM: P-f / Q-V droop; the module bus = the control board's CAN (paralleling, carrier synchronisation by CAN time-stamping, software addressing) and zero-sequence circulating-current control on a shared battery; no hardware sync pair fitted",
+    "threshold": "load sharing +/-5 % of rated by droop, +/-2 % with the shared CAN set point; carrier jitter +/-2 us (ASSUMED); up to 16 modules on one CAN (ASSUMED bus load); competitor: up to 14 modules, 4-bit DIP address, host and last module terminated, a module CAN plus three synchronisation pairs (carrier and low-frequency sync, needed on a shared battery), sharing method unpublished (user manual pp. 13, 17-21)",
+    "filter": "-",
+    "latency": "-",
+    "self_test": "-"
+   },
+   {
+    "item": "grid start (DC side dead): AC precharge and closing",
+    "peripheral": "K_ACPRE = PWM16 line (latch-gated, PCS-PWR relay driver); K2, K1, K_B sequence of pcs_spec ac_start",
+    "threshold": "precharge to the tap peak minus 2 V_F: 0.99 s to 10 V at 400 V (0.91 s at 340 V), 78 J in 220 ohm at 460 V (rating 280 J), shorted bank 227 J in 0.17 s (rating 900 J in 0.15 s); close only with K_B open and V_dc >= 0.95 x sqrt2 V_LL,meas",
+    "filter": "-",
+    "latency": "-",
+    "self_test": "welded check: with K_ACPRE off and the grid present, V_dc stays < 50 V"
+   },
+   {
+    "item": "local fault recorder",
+    "peripheral": "the control board's recorder flash (GD25Q32 class)",
+    "threshold": "the control board's figure: 71 events of 32 channels x 200 ms at 3.6 kHz beside two firmware images; each event with its cause, the latch state and a time stamp (from the EMS over Modbus TCP or the module bus)",
+    "filter": "-",
+    "latency": "-",
+    "self_test": "flash ID / CRC at power-up"
+   },
+   {
+    "item": "authenticated remote upgrade",
+    "peripheral": "the control board's authenticated dual-image upgrade over Ethernet / RS-485 / CAN",
+    "threshold": "signed image with CRC, staging slot + golden image in the recorder flash, bootloader in a DCSM-protected sector (the control board's declaration); this module adds: installed only in SERVICE with authorisation and every contactor open, roll-back to the golden image on a failed check",
+    "filter": "-",
+    "latency": "-",
+    "self_test": "boot: image signature and CRC"
+   },
+   {
+    "item": "Modbus TCP map scope",
+    "peripheral": "EMS = Ethernet (Modbus TCP, port 502) or RS-485; BMS = RS-485 (Modbus RTU) or CAN when not paralleled; module bus = CAN; service RS-485 at 9600-8-N-1 (the control board's port roles)",
+    "threshold": "input registers: the telemetry set; holding registers: modes, set points, ramps (range-checked); parameters: SERVICE only, authenticated; files: event log, fault records, firmware image - at least the competitor's set (pcs_spec declarations parameter_set / telemetry)",
     "filter": "-",
     "latency": "-",
     "self_test": "-"

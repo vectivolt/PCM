@@ -1,5 +1,6 @@
 # Megarevo PMA modular PCS (AC side) - competitor documents
 Seven PDFs linked from https://www.megarevo.com/index.php/pm-modular-series-pma-model.html: datasheets for PMA0050/0060 (G1 V1.2, G2 V1.0), PMA0080/0105 (V1.2, G2 V1.0, US-standard V1.1), PMA0125/0135 (V1.0), and the PMA series user manual (45 pp.; site file name "PMA-Standard Neutral-A4-20250327-EN-V2.00_A").
 - **Ratings seen (pdftotext):** max continuous AC current 99 A (PMA0060, G1), 165 A (PMA0105, G2), 198 A (PMA0125) - the same 99/165/198 A the roadmap quotes; -30~+60 degC with derating above 45 degC.
-- **Informs:** nothing in scope. The AC-side PCS is out of scope for this DC-DC repo (REQUIREMENTS section 1); kept as the competitor baseline the roadmap refers to.
-- **Limitation:** public figures only; no circuit data.
+- **Informs:** the PCS-P125 inverter module (REQUIREMENTS section 8, D-046 / D-053): the PMA0125 table is transcribed in `spec-pma0125.md` (competitor target), the module-level parity register is `gen/data/megarevo_2026_parity.csv`, and `MANUAL-NOTES.md` carries the module interfaces, start-up and protection statements from the user manual.
+- **Compared:** row by row by `sim/compare_megarevo_pcs.py` (`sim/out/compare_megarevo_pcs/report.md`: 2 better, 38 meets, 4 below, 9 not assessed, 0 pending, out of 53 published rows, 2026-10-06); module-level items in the parity register, closed by D-074 to D-077 except the altitude; summary in `docs/guide/11-megarevo-comparison.md`.
+- **Limitation:** public figures only; no circuit data. The user manual covers the 50-105 kW modules, not the 125 kW one.

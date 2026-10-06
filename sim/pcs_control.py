@@ -5,9 +5,14 @@ Run:  caffeinate -i .venv/bin/python sim/pcs_control.py
 In:   read at run time, never copied: sim/out/pcs_design/pcs_spec.json (LCL, sampling, current tiers, DC link, sequencing),
       sim/out/magnetics/design_pcs_{l1,l2,cm_choke}.json (L(I), -10 % part, R_dc, DM leakage), hardware/PCS-{PWR,CTL}/
       outputs/*_design_check.txt (sensor chains, windows, dead time, ADC plan), gen/data/pcs_ctrl_pin_plan.csv (ADC pins,
-      routes), sim/dab_control.py (its PCS DC-link assumption, read only).  The phase-current sensor frozen by the design
-      study (STK-250HO/4) is not in pcs_spec yet: ASSUME['sensor'] carries it, labelled.
-Out:  sim/out/pcs_control/{report.md, pcs_control_spec.json, bode_scr.png, steps.png, faults.png, pll_weak_grid.png, gfm.png}
+      routes), sim/dab_control.py (its PCS DC-link assumption, read only), bom/{PCS-PWR,PCS-CTL,PCS-P125_module}_BOM.csv
+      (divider / charge-bucket tolerances, the controller oscillator), gen/pv_ctrl.py (ADC_RC, the charge bucket PCS-CTL re-uses);
+      sim/pcs_design.py imported for its exact PWM Fourier series and modulation policy (THDu, section 8b).  The phase-current
+      sensor frozen by the design study (STK-250HO/4) is read from pcs_spec when present, else ASSUME['sensor'], labelled.
+Out:  sim/out/pcs_control/{report.md, pcs_control_spec.json, bode_scr.png, steps.png, faults.png, pll_weak_grid.png, gfm.png,
+      vf_and_ride_through.png}
+Sections added for D-074's open items: 4b ride-through limiter, 7b VF secondary restoration and accuracy, 8b THDu, 8c output
+imbalance, 9b four-wire neutral leg and per-phase loops.
 
 CALCULATED / SIMULATED, not measured.  One plant, two views:
   * per phase (alpha-beta; three-wire, so the C_f star on the DC midpoint carries common mode only): L1 + R_dc, C_f with the
@@ -24,6 +29,7 @@ CALCULATED / SIMULATED, not measured.  One plant, two views:
 """
 import cmath
 import csv
+import itertools
 import json
 import math
 import os
@@ -41,6 +47,8 @@ SPEC = os.path.join(HERE, "out", "pcs_design", "pcs_spec.json")
 MAG = os.path.join(HERE, "out", "magnetics", "design_pcs_%s.json")
 CHK = os.path.join(ROOT, "hardware", "PCS-%s", "outputs", "PCS-%s_design_check.txt")
 PINS = os.path.join(ROOT, "gen", "data", "pcs_ctrl_pin_plan.csv")
+BOM = os.path.join(ROOT, "bom", "%s.csv")                   # drawn BOMs: oscillator, divider and charge-bucket tolerances
+PVCTL = os.path.join(ROOT, "gen", "pv_ctrl.py")             # the control board's ADC charge bucket (PCS-CTL re-uses it)
 DAB = os.path.join(HERE, "dab_control.py")
 V_LL, P_N, F0 = 400.0, 125e3, 50.0          # REQUIREMENTS AC-02
 RULE_PM, RULE_GM = 40.0, 6.0               # margin rule of the study brief (every admitted SCR, every corner)
@@ -101,6 +109,23 @@ ASSUME = {
     "r_sc_ohm": (5e-3, "terminal short: resistance (bolted fault behind a short cable)"),
     "l_sc_H": (5e-6, "terminal short: cable inductance"),
     "t_lim_s": (0.2, "firmware: current limit 1.2 x I_max held for <= this, then trip (pcs_spec hand-over)"),
+    "sec_rule": ((10.0, 0.10), "VF secondary restoration time constant (firmware parameter, 0.5-2 s class) = the smallest of "
+                               "sec_T_scan_s whose restoration modes are real, at least this x slower than the nearest primary mode (the "
+                               "5 Hz measurement filters) and move that mode by at most this fraction, and >= this x can_cycle_s"),
+    "sec_reseed_pu": (0.02, "VF secondary voltage layer: re-seeded downwards when its state exceeds the virtual-impedance drop of the "
+                            "present output current by more than this (load rejection); never upwards (the slow integrator restores)"),
+    "sec_T_scan_s": ((0.5, 1.0, 2.0), "secondary time constants compared on the linearised island at rated load"),
+    "iclamp_margin_A": (15.0, "per-sample current clamp level = window low edge - ripple/2 - this (prediction error of the sensed "
+                              "C_f voltage and of L1)"),
+    "lvrt_pu": ((0.85, 0.90), "ride-through state: entered when the sensed C_f voltage magnitude falls below the first, its hold "
+                              "timer runs down only above the second (EN 50549-1 class thresholds, FROM MEMORY)"),
+    "pll_freeze_pu": (0.2, "ride-through: PLL integrator and angle held (free-running at the pre-dip frequency) while the sensed "
+                           "C_f voltage magnitude is below this; resumes above it"),
+    "lvrt_hold_s": (0.04, "dip-time current limit kept this long after the voltage has returned (two grid periods)"),
+    "osc_ageing_ppm": (10.0, "controller oscillator ageing over the module life (Epson SG-210STF data sheet: +/-3 ppm in the first year "
+                             "at 25 C, lifetime not guaranteed by the maker; its +/-50 ppm tolerance covers initial, temperature, "
+                             "supply and load)"),
+    "can_cycle_s": (0.05, "module-CAN cycle of the paralleled modules' restoration consensus (ASSUMED; not modelled)"),
     "isr_cyc_per_op": (2.5, "C28x + FPU32 + TMU, compiled C: cycles per floating-point operation incl. loads/stores"),
     "isr_overhead_cyc": (80, "ISR entry/exit and context save with the FPU registers, cycles"),
     "codes": ({"rocof_Hz_s": 2.0, "f_band_Hz": (47.5, 51.5), "phase_jump_deg": 30.0, "dip_pu": 0.5, "deep_pu": 0.1,
@@ -232,6 +257,43 @@ def load():
     P["pins"], P["routes"] = {r["net"]: r["datasheet_name"] for r in rows}, {r["net"]: r["route"] for r in rows}
     P["va_max_us"] = grab(P["routes"]["VA_ADC"], r"<= (\d+) us", "VA conversion interval (pin plan)")[0]
     P["c_pcs_dab"] = grab(open(DAB).read(), r"'C_pcs': \(([\d.e-]+)", "the DAB study's PCS link")[0]
+    # ---- sections 4b, 7b, 8b-d, 9b (VF accuracy, THDu, imbalance, ride-through, neutral leg): inputs, fail closed
+    a = grab(ctl, r"ADC accuracy, this board's share[^\n]*?RSS ([\d.]+) %[^\n]*?worst ([\d.]+) % \(REF3030E drift ([\d.]+) %"
+                  r"[^\n]*?mismatch ([\d.]+) % = ([\d.]+) %", "ADC accuracy share")
+    P["adc_acc"] = dict(zip(("rss", "worst", "ref", "tcr", "total"), a))
+    assert abs(a[1] + a[3] - a[4]) < 0.011, "PCS-CTL ADC accuracy line: worst + divider TCR != the stated total"
+    n, rt, rb, c, fk = grab(pwr, r"VC1-3 \(C_f nodes\).*?\((\d+) x ([\d.]+) M ARHV06 \+ ([\d.]+) k, ([\d.]+) nF: ([\d.]+) kHz\)",
+                            "AC divider values")
+    rows = {k: list(csv.DictReader(open(BOM % k))) for k in ("PCS-PWR_BOM", "PCS-CTL_BOM", "PCS-P125_module_BOM")}
+
+    def bom_tol(b, pick, what):
+        hit = [r for r in rows[b] if pick(r)]
+        assert len(hit) == 1, f"bom/{b}.csv: {len(hit)} lines for {what} (one expected) - the BOM changed, re-read it"
+        return grab(hit[0]["Description"], r"([\d.]+) ?%", f"{what} tolerance")[0] / 100
+
+    P["vdiv"] = dict(n=int(n), R_top=rt * 1e6, R_bot=rb * 1e3, C=c * 1e-9, f_stated=fk * 1e3,
+                     tol_top=bom_tol("PCS-PWR_BOM", lambda r: r["MPN"] == "ARHV06BTC1004A", "1 M ARHV06"),
+                     tol_bot=bom_tol("PCS-PWR_BOM", lambda r: r["MPN"] == "TNPW12064K99BEEA", "4.99 k TNPW"),
+                     tol_c=bom_tol("PCS-PWR_BOM", lambda r: r["Value"] == "4.7n 50V" and "C0G" in r["Description"], "4.7 nF C0G"))
+    rb_, cb_ = grab(open(PVCTL).read(), r'ADC_RC = \("(\d+)R", "(\d+)n"\)', "gen/pv_ctrl.py ADC_RC")
+    P["bucket"] = dict(R=rb_, C=cb_ * 1e-9,
+                       tol_r=bom_tol("PCS-CTL_BOM", lambda r: r["Value"] == "%dR" % rb_ and r["Package"] == "0603", "100 R charge bucket"),
+                       tol_c=bom_tol("PCS-CTL_BOM", lambda r: r["Value"] == "%dn 50V" % cb_ and "C0G" in r["Description"], "1 nF C0G bucket"))
+    osc = [r for r in rows["PCS-P125_module_BOM"] if r["MPN"] == "X1G0041710033"]
+    assert len(osc) == 1, "module BOM: the controller oscillator X1G0041710033 is not one line - re-read the BOM"
+    P["osc"] = dict(ppm=grab(osc[0]["Description"], r"\+/-(\d+) ppm", "oscillator tolerance")[0], part=osc[0]["Description"].split(",")[0])
+    lv = grab(fw, r"LVRT: ([\d.]+) pu for (\d+) ms, ([\d.]+) pu to (\d+) ms, linear to ([\d.]+) pu at ([\d.]+) s, reactive current "
+                  r"k = ([\d.]+) \(dI_q / dU\) up to ([\d.]+) Ir", "LVRT profile (hand-over)")
+    P["lvrt_profile"] = [(lv[0], lv[1] / 1e3), (lv[2], lv[3] / 1e3), (lv[4], lv[5])]
+    P["lvrt_ilim"] = lv[7] * P["I_rated"]                  # dip-time limit = the profile's reactive-current cap (1.0 I_r, peak)
+    P["iclamp"] = P["win"]["lo"] - P["ripple_pp"] / 2 - A("iclamp_margin_A")
+    assert P["iclamp"] > P["I_lim"], "per-sample clamp below the 200 ms tier: the window leaves no room for it"
+    fw4 = sp.get("four_wire")
+    assert fw4, "pcs_spec has no four_wire block: re-run sim/pcs_design.py"
+    P["fw4"] = dict(fw4["filter"], half_wave=fw4["half_wave"], modeA_from=fw4["window"]["windows_at_400_230V"][
+        next(k for k in fw4["window"]["windows_at_400_230V"] if "mode A" in k)]["full_load_from"])
+    ow = sp["declarations"]["operating_windows"]["3W+PE"]
+    P["vf_vdc"] = (ow["full_load_from"], 750.0, ow["operating_to"])     # VF DC voltages for THDu (window ends + nominal)
     return P
 
 
@@ -512,7 +574,7 @@ def evaluate(P, K, cn="nom", kind="grid", scr=None, damp="passive", full=True):
 
 # ---------------------------------------------------------------------------------------------------------- nonlinear model
 CK = ("xp", "d", "xr", "xf", "xv")                          # complex states (synchronous frame)
-RK = ("th", "xi", "vd", "thv", "pf", "qf", "vdc", "vdcm", "iem", "xdc")
+RK = ("th", "xi", "vd", "thv", "pf", "qf", "vdc", "vdcm", "iem", "xdc", "dws", "dvs", "vmf", "lvt")
 
 
 def gains(P, K, Kv, f_pll=None, f_dc=None):
@@ -543,8 +605,10 @@ def step(P, G, S, X, k, inp):
     dw = min(max(dw0, -G["dwslew"]), G["dwslew"])
     if brk == "pll":
         o["brk"], dw = dw, S["ext"]
-    if dw == dw0 or (dw0 > 0) != (vp.imag > 0):               # conditional integration while the slew clamp acts
-        N["xi"] = min(max(X["xi"] + T * G["pll_ki"] * vp.imag / vm, -G["dwmax"]), G["dwmax"])
+    if S.get("lvrt") and abs(yv) < A("pll_freeze_pu") * P["V0"]:   # ride-through: below the freeze level the PLL free-runs at
+        dw = X["xi"]                                              # its held frequency (it would lock onto the module's own
+    elif dw == dw0 or (dw0 > 0) != (vp.imag > 0):             # current through the grid impedance); conditional integration
+        N["xi"] = min(max(X["xi"] + T * G["pll_ki"] * vp.imag / vm, -G["dwmax"]), G["dwmax"])   # while the slew clamp acts
     N["th"] = X["th"] + T * dw
     N["vd"] = X["vd"] + G["a_vd"] * (vp.real - X["vd"])
     o["dw"] = dw
@@ -559,19 +623,33 @@ def step(P, G, S, X, k, inp):
     if S["mode"] == "gfl":
         i2r = inp["i2ref"] if "i2ref" in inp else (Pref - 1j * Qref) / (1.5 * max(X["vd"], 0.1 * P["V0"]))
         i1r = i2r + 1j * w0 * Ceq * X["vd"]                   # + the C_f current at 50 Hz
-        o["lim"] = abs(i1r) > S["ilim"]
+        ilim = S["ilim"]
+        if S.get("lvrt"):                                     # ride-through state (section 4b): sensed |v_C| below the entry
+            vm1 = abs(yv) / P["V0"]                           # level arms a hold timer; the dip-time limit applies while it runs
+            N["lvt"] = (A("lvrt_hold_s") if vm1 < A("lvrt_pu")[0] else X["lvt"] if vm1 < A("lvrt_pu")[1] else max(0.0, X["lvt"] - T))
+            if X["lvt"] > 0:
+                ilim = min(ilim, S["lvrt"])
+        o["lim"] = abs(i1r) > ilim
         if o["lim"]:
-            i1r *= S["ilim"] / abs(i1r)
+            i1r *= ilim / abs(i1r)
         iref = inp["iref_dq"] if "iref_dq" in inp else i1r * cx(X["th"])
         Kc = G["K"]
     else:                                                     # grid forming: droop + virtual impedance + C_f voltage PR
         io = yi - 1j * w0 * Ceq * yv                          # output current at 50 Hz (no grid-current sensor)
         s = 1.5 * yv * io.conjugate()
         N["pf"], N["qf"] = X["pf"] + G["a_pq"] * (s.real - X["pf"]), X["qf"] + G["a_pq"] * (s.imag - X["qf"])
-        dwv = G["mp"] * (S["Pset"] - X["pf"])
+        dwv = G["mp"] * (S["Pset"] - X["pf"]) + X["dws"]          # droop + the secondary frequency layer (0 unless VF)
         N["thv"] = X["thv"] + T * dwv
+        if S.get("sec"):                                          # VF secondary restoration (section 7b): slow integrators on the
+            N["dws"] = X["dws"] - T * dwv / S["sec_T"]            # generator's frequency error and on the C_f-voltage magnitude
+            N["vmf"] = X["vmf"] + G["a_pq"] * (abs(yv) - X["vmf"])
+            N["dvs"] = X["dvs"] + T * (P["V0"] - X["vmf"]) / S["sec_T"]
+            if S["sec"] == "reseed":                              # downward re-seed: never more restoration than the present
+                w = G["Zv"] * io / cx(X["thv"])                   # output current's virtual-impedance drop needs (+ a margin)
+                need = w.real + math.sqrt(max(P["V0"] ** 2 - w.imag ** 2, 0.0)) - S["Vset"] - G["nq"] * (S["Qset"] - X["qf"])
+                N["dvs"] = min(N["dvs"], max(need, 0.0) + A("sec_reseed_pu") * P["V0"])
         rv = cx(X["thv"])
-        vr = (S["Vset"] + G["nq"] * (S["Qset"] - X["qf"]) - G["Zv"] * io / rv) * rv
+        vr = (S["Vset"] + X["dvs"] + G["nq"] * (S["Qset"] - X["qf"]) - G["Zv"] * io / rv) * rv
         ev = vr - yv
         Av, Bv, Cv, Dv = G["Kv"]["res"]
         iu = G["Kv"]["Kp"] * ev + Cv @ X["xv"] + Dv * ev + 1j * w0 * Ceq * vr
@@ -588,9 +666,10 @@ def step(P, G, S, X, k, inp):
     uu = Kc["Kp"] * e + (Cr @ X["xr"] + Dr * e if len(Br) else 0) + (Cf_ @ X["xf"] if len(Bf) else 0) + Df * yv
     if brk == "cur":
         o["brk"], uu = uu.real, S["ext"] + 1j * uu.imag
+    uc, o["clamp"] = iclamp(P, S["iclamp"], X, yi, yv, uu, k) if S.get("iclamp") else (uu, False)
     umax = P["u_frac"] * X["vdcm"]
-    o["usat"] = abs(uu) > umax
-    u = uu * umax / abs(uu) if o["usat"] else uu
+    o["usat"] = abs(uc) > umax
+    u = uc * umax / abs(uc) if o["usat"] else uc
     if len(Br):
         N["xr"] = R * (Ar @ X["xr"] + Br * (e + (u - uu) / Kc["Kp"]))
     if len(Bf):
@@ -613,11 +692,29 @@ def step(P, G, S, X, k, inp):
     return N, o
 
 
+def iclamp(P, Ic, X, yi, yv, uu, k):
+    """per-sample current clamp in the PWM update (firmware, section 4b).  Per phase: the converter current at the next update
+    instant follows from the sensed current and the command already committed (d - v_C over L1 of the -10 % part); with the
+    new command it is predicted one period further; a phase whose prediction leaves +/-Ic gets the command that ends that period
+    at Ic (deadbeat on the excess), added as a vector with unit gain on that phase (the floating star shares it with the others).
+    Returns the command and whether it acted."""
+    T, L = P["T"], P["L1_lo"]
+    ph, du = cx(P["w0"] * k * T), 0j
+    for p in range(3):
+        a = ph * cx(-2 * math.pi * p / 3)
+        i, v, d, u = ((x * a).real for x in (yi, yv, X["d"], uu))
+        ip = i + (d - v) * T / L
+        i2 = ip + (u - v) * T / L
+        if abs(i2) > Ic:
+            du += (math.copysign(Ic, i2) - i2) * L / T * a.conjugate()
+    return uu + du, du != 0
+
+
 def active(S):
     """states that move in this mode (the others are held, and would show as eigenvalues at 1)"""
     if S["mode"] == "gfl":
         return ("xp", "d", "xr", "xf", "th", "xi", "vd") + (("vdc", "vdcm", "iem", "xdc") if S.get("dc") else ())
-    return ("xp", "d", "xf", "xv", "thv", "pf", "qf")
+    return ("xp", "d", "xf", "xv", "thv", "pf", "qf") + (("dws", "dvs", "vmf") if S.get("sec") else ())
 
 
 def pack(X, keys):
@@ -654,12 +751,14 @@ def jac(F, x, nout=None):
 
 
 def setup(P, G, mode="gfl", scr=None, kind="grid", cn="nom", damp="passive", RL=None, Pop=0.0, Qop=0.0, vdc=750.0,
-          dc=False, pcpl=0.0, kff_dc=1.0, ilim=None, Vset=None, th_v=0.0):
+          dc=False, pcpl=0.0, kff_dc=1.0, ilim=None, Vset=None, th_v=0.0, sec=False, sec_T=None, iclamp=None, lvrt=None):
     """configuration S and a phasor initial state X (plant exact in steady state; controller states settle in equil/pre-run)"""
     pl = plant(P, cn, kind, scr, damp, RL)
     grid_on = kind in ("grid", "open", "load")
     S = dict(mode=mode, pl=pl, ilim=ilim or P["I_lim"], dc=dc, pcpl=pcpl, kff_dc=kff_dc, vdc_ref=vdc, Pset=Pop, Qset=Qop,
-             Vset=Vset or P["V0"], inp=dict(vgp=complex(P["V0"]) if grid_on else 0j, P=Pop, Q=Qop))
+             Vset=Vset or P["V0"], inp=dict(vgp=complex(P["V0"]) if grid_on else 0j, P=Pop, Q=Qop), sec=sec, sec_T=sec_T,
+             iclamp=iclamp, lvrt=lvrt)
+    assert not sec or sec_T, "secondary restoration needs its time constant"
     M = np.linalg.inv(1j * P["w0"] * np.eye(8) - pl["A"])
     xu, xg = M @ pl["Bu"], M @ pl["Bg"] * S["inp"]["vgp"]
     tgt, val = (3, (Pop - 1j * Qop) / (1.5 * P["V0"])) if mode == "gfl" else (1, S["Vset"] * cx(th_v))
@@ -672,7 +771,8 @@ def setup(P, G, mode="gfl", scr=None, kind="grid", cn="nom", damp="passive", RL=
     X = dict(xp=xp.astype(complex), d=complex(U), xr=np.zeros(len(G["K"]["res"][1]), complex),
              xf=(np.linalg.solve(np.eye(len(Bf)) - P["R"] * Af, P["R"] * Bf * yv) if len(Bf) else np.zeros(0, complex)),
              xv=np.zeros(len(G["Kv"]["res"][1]), complex), th=cmath.phase(yv), xi=0.0, vd=abs(yv), thv=th_v,
-             pf=s.real, qf=s.imag, vdc=vdc, vdcm=vdc, iem=pcpl / vdc, xdc=pcpl / vdc * (1 - kff_dc))
+             pf=s.real, qf=s.imag, vdc=vdc, vdcm=vdc, iem=pcpl / vdc, xdc=pcpl / vdc * (1 - kff_dc),
+             dws=G["mp"] * (s.real - Pop) if sec else 0.0, dvs=0.0, vmf=abs(yv), lvt=0.0)
     return S, X
 
 
@@ -734,7 +834,7 @@ def run(P, G, S, X, t_end, ev=None):
     """sample-by-sample simulation; ev(t, S, X) may change the configuration, the inputs or the mode (X in place)"""
     n, X = int(round(t_end / P["T"])), dict(X)
     rec = {k: np.zeros(n, complex) for k in ("i1", "ig", "i2", "vc", "yv", "iref", "u")}
-    rec.update({k: np.zeros(n) for k in ("t", "th", "dw", "xi", "vdc", "lim", "usat", "thv")})
+    rec.update({k: np.zeros(n) for k in ("t", "th", "dw", "xi", "vdc", "lim", "usat", "thv", "clamp", "dvs")})
     for k in range(n):
         t = k * P["T"]
         if ev:
@@ -745,7 +845,7 @@ def run(P, G, S, X, t_end, ev=None):
         rec["th"][k], rec["vdc"][k], rec["thv"][k], rec["xi"][k] = X["th"], X["vdc"], X["thv"], X["xi"]
         X, o = step(P, G, S, X, k, S["inp"])
         rec["iref"][k], rec["u"][k], rec["dw"][k] = o["iref"], o["u"], o["dw"]
-        rec["lim"][k], rec["usat"][k] = o["lim"], o["usat"]
+        rec["lim"][k], rec["usat"][k], rec["clamp"][k], rec["dvs"][k] = o["lim"], o["usat"], o["clamp"], X["dvs"]
     return rec, X
 
 
@@ -848,9 +948,9 @@ def ff_variants(P, K):
     return out
 
 
-def gfm_bw(P, Kin, Kv, kind, cn, f, z):
+def gfm_bw(P, Kin, Kv, kind, cn, f, z, pl=None):
     """closed grid-forming voltage loop: -3 dB bandwidth of v_C / v_ref (first frequency above 60 Hz below 1/sqrt 2)"""
-    pl = plant(P, cn, kind, None)
+    pl = pl or plant(P, cn, kind, None)
     Z, (_, Bref, _) = cascade(P, pl, Kin, Kv), closed(pl, Kin)
     Bv = np.concatenate([Bref * (Kv["Kp"] + Kv["res"][3]), Kv["res"][1]])
     below = np.nonzero((np.abs(ss_fr(Z, Bv, np.eye(len(Z))[6], z)) < 1 / math.sqrt(2)) & (f > 60))[0]
@@ -1263,6 +1363,486 @@ def study_gfm(P, G):
     return out
 
 
+# ---------------------------------------------------------------------------------------------------------- 4b. ride-through
+def study_ride_through(P, G):
+    """the firmware current limiter in ride-through (D-074 open item: a 0.1 pu dip at 125 kW reached 465 A against the 426 A low
+    edge of the hardware window).  Layers: the circular reference limiter of section 4; the ride-through state (sensed |v_C|
+    below lvrt_pu arms a hold timer: reference limit = the hand-over profile's dip-time cap, PLL free-running below
+    pll_freeze_pu); the per-sample predictive clamp in the PWM update at the window low edge - ripple/2 - margin.  Dips at
+    125 kW export, power reference held, 150 ms: five depths x five grids with every layer; the clamp alone at stiff and SCR 5;
+    the stiff-grid onset against the pre-dip power (derating); the study's dip instant against a 60 deg scan"""
+    c, T, lo = A("codes"), P["T"], P["win"]["lo"]
+    t0, n1 = 0.01, int(round(1e-3 / P["T"]))
+
+    def dip(depth, scr, Pop=P_N, layers="all", ts=t0, dur=None, tail=0.1):
+        dur = c["dip_s"] if dur is None else dur
+        S, X = setup(P, G, "gfl", scr, Pop=Pop, iclamp=P["iclamp"], lvrt=P["lvrt_ilim"] if layers == "all" else None)
+        X, _ = equil(P, G, S, X)
+        r, _ = run(P, G, S, X, ts + dur + tail,
+                   lambda t, S_, X_: S_["inp"].update(vgp=complex(P["V0"] * (depth if ts <= t < ts + dur else 1.0))))
+        k0, k1 = int(round(ts / T)), int(round((ts + dur) / T))
+        d = dict(scr=scr, depth=depth, P_kW=Pop / 1e3, layers=layers, pk_on=ripple_peak(P, r, slice(k0, k0 + n1)))
+        if tail:
+            ia = np.abs(pll_frame(r))[k0:k1]
+            fin = float(np.mean(ia[-int(0.02 / T):]))
+            d.update(pk_dip=ripple_peak(P, r, slice(k0 + n1, k1)), pk_rec=ripple_peak(P, r, slice(k1, None)), i_dip=fin,
+                     settle_ms=1e3 * settle(r["t"][k0:k1], ia, fin, 0.05 * fin, ts), clamp_ms=1e3 * T * float(np.sum(r["clamp"])),
+                     usat_ms=1e3 * T * float(np.sum(r["usat"])))
+            d["pk"] = max(d["pk_on"], d["pk_dip"], d["pk_rec"])
+            d["trip"] = d["pk"] > lo
+        return d
+    grids, depths = (None, 50.0) + tuple(s for s in A("scr") if s), (0.0, 0.1, 0.2, 0.3, 0.5)
+    rows = [dip(d, s) for s in grids for d in depths]
+    clamp_only = [dip(d, s, layers="clamp") for s in (None, 5.0) for d in (0.1, 0.3, 0.5)]
+    der = []                                       # the stiff-grid onset is affine in the pre-dip current: solve for the power
+    for d in depths:                               # that puts it on the window's low edge, round down, verify
+        on = next(r["pk_on"] for r in rows if r["scr"] is None and r["depth"] == d)
+        if on <= lo:
+            der.append(dict(depth=d, P_max_kW=P_N / 1e3, frac=1.0, onset=on))
+            continue
+        p2 = 0.6 * P_N
+        on2 = dip(d, None, Pop=p2, dur=0.003, tail=0.0)["pk_on"]
+        pm = math.floor((p2 + (P_N - p2) * (lo - on2) / (on - on2)) / 500.0) * 500.0
+        for _ in range(10):                        # nearly affine: step down 0.5 kW until the simulated onset is inside
+            chk = dip(d, None, Pop=pm, dur=0.003, tail=0.0)["pk_on"]
+            if chk <= lo:
+                break
+            pm -= 500.0
+        der.append(dict(depth=d, P_max_kW=pm / 1e3, frac=pm / P_N, onset=chk))
+    scan = [dip(depths[0], None, ts=t0 + j / F0 / 36, dur=0.003, tail=0.0)["pk_on"] for j in range(6)]
+    m50 = [evaluate(P, G["K"], cn, "grid", 50.0, full=False) for cn in CORNERS]
+    return dict(rows=rows, clamp_only=clamp_only, derating=der, instant_scan=scan, grids=grids, depths=depths,
+                scr50=dict(pm=min(e["pm"] for e in m50), gm=min(min(e["gm"], e["gm_lo"]) for e in m50), ok=all(e["ok"] for e in m50)))
+
+
+# ---------------------------------------------------------------------------------------------------------- 7b. VF secondary
+def study_secondary(P, G):
+    """VF (off-grid) secondary restoration: slow integrators on the generator's frequency and on the sensed C_f-voltage
+    magnitude above the droop + virtual-impedance primary.  (a) time constant: the linearised island at rated load for each
+    sec_T_scan_s value - the restoration modes and the nearest primary mode (the 5 Hz measurement filters); choice by sec_rule.
+    (b) 0 -> rated and rated -> 0 resistive steps (the second with and without the downward re-seed, and the primary layer alone
+    for reference).  (c) steady state = the Newton fixed point (it exists with the restoration: the island then runs at 50 Hz
+    in the synchronous frame)"""
+    T, (sep_min, shift_max) = P["T"], A("sec_rule")
+    scan = []
+    for Ts in A("sec_T_scan_s"):
+        S, X = setup(P, G, "gfm", kind="rl", sec="reseed", sec_T=Ts)
+        X, res = equil(P, G, S, X)
+        s = np.log(linmodes(P, G, S, X)["lam"].astype(complex)) / T
+        s = s[np.abs(s) > 1e-3]                  # the island's free angle (eigenvalue 1): no angle reference off-grid
+        s = s[np.argsort(np.abs(s))]
+        osc = s[(np.abs(s.imag) > 1e-6) & (np.abs(s.imag) < 2 * math.pi * 1e3)]
+        zo = osc[np.argmin(-osc.real / np.abs(osc))]
+        d = dict(T_s=Ts, tau_s=sorted(float(-1 / x.real) for x in s[:2]), real=bool(np.all(np.abs(s[:2].imag) < 1e-6)),
+                 sep=float(abs(s[2]) / np.max(np.abs(s[:2]))), shift_pct=float(100 * abs(abs(s[2]) / (2 * math.pi * A("f_pq_Hz")) - 1)),
+                 zeta=float(-zo.real / abs(zo)), f_osc=float(abs(zo.imag) / (2 * math.pi)), eq_res=res)
+        d["ok"] = bool(d["real"] and d["sep"] >= sep_min and d["shift_pct"] <= 100 * shift_max and Ts >= sep_min * A("can_cycle_s"))
+        scan.append(d)
+    assert any(d["ok"] for d in scan), "no secondary time constant meets sec_rule"
+    Ts, ts = min(d["T_s"] for d in scan if d["ok"]), 0.01
+
+    def stp(k0_, k1_, sec, tend, Pop=0.0):
+        S, X = setup(P, G, "gfm", kind=k0_, sec=sec, sec_T=Ts if sec else None, Pop=Pop)
+        X, _ = equil(P, G, S, X)
+        r, _ = run(P, G, S, X, tend, lambda t, S_, X_: S_.update(pl=plant(P, "nom", k1_)) if t >= ts else None)
+        k = int(ts / T)
+        vm, fv, tt = np.abs(r["vc"][k:]) / P["V0"], np.gradient(np.unwrap(r["thv"]), T)[k:] / (2 * math.pi), r["t"][k:]
+        return dict(v_min=float(vm.min()), v_max=float(vm.max()), t_v10_ms=1e3 * settle(tt, vm, 1.0, 0.10, ts),
+                    t_v1_s=settle(tt, vm, 1.0, 0.01, ts), f_min=float(fv.min()), f_max=float(fv.max()),
+                    t_f_s=settle(tt, fv, 0.0, 0.002 * F0, ts), v_end=float(vm[-1]), f_end=float(fv[-1]), pk=ripple_peak(P, r),
+                    t_end_s=tend), r
+    p_l = 1.5 * P["V0"] ** 2 / P["zb"]
+    steps, recs = {}, {}
+    for name, a in (("0 -> rated", ("nl", "rl", "reseed", 2.5)), ("rated -> 0", ("rl", "nl", "reseed", 2.5)),
+                    ("rated -> 0, no re-seed", ("rl", "nl", True, 2.5)), ("rated -> 0, primary layer only", ("rl", "nl", False, 0.3, p_l))):
+        steps[name], recs[name] = stp(*a)
+    ss = {}
+    for kind, name in (("nl", "no load"), ("rl", "rated resistive")):
+        S, X = setup(P, G, "gfm", kind=kind, sec="reseed", sec_T=Ts)
+        X, res = equil(P, G, S, X)
+        vt = abs(P["zb"] * X["xp"][3]) if kind == "rl" else abs(X["xp"][1])    # the load's voltage; no load: the C_f node
+        ss[name] = dict(v_C_pu=abs(X["xp"][1]) / P["V0"], v_t_pu=vt / P["V0"], dvs_pu=X["dvs"] / P["V0"], eq_res=res,
+                        df_Hz=(G["mp"] * (S["Pset"] - X["pf"]) + X["dws"]) / (2 * math.pi))
+    return dict(T_s=Ts, scan=scan, steps=steps, ss=ss, reseed_pu=A("sec_reseed_pu"), can_cycle_s=A("can_cycle_s"),
+                rec={k: recs[k] for k in ("0 -> rated", "rated -> 0")})
+
+
+def vf_accuracy(P, sec):
+    """voltage = regulation residual (the restoration's fixed point at the load terminals) + the control board's sensing floor
+    (its ADC share after the two-point calibration + the divider TCR, as its design check states them); frequency = the
+    oscillator (module BOM) + ageing (ASSUMED) + the angle generator's quantisation + the restoration residual"""
+    a = P["adc_acc"]
+    res = 100 * max(abs(d["v_t_pu"] - 1) for d in sec["ss"].values())
+    v = dict(residual_pct=res, adc_rss_pct=a["rss"], adc_worst_pct=a["worst"], tcr_pct=a["tcr"], sensing_worst_pct=a["total"],
+             sensing_rss_pct=math.hypot(a["rss"], a["tcr"]), bound_worst_pct=res + a["total"], bound_rss_pct=res + math.hypot(a["rss"], a["tcr"]))
+    inc = [f / P["fs"] * 2 ** 32 for f in (50.0, 60.0)]
+    acc = 1e6 * max(abs(round(x) - x) / x for x in inc)           # 32-bit per-unit phase accumulator, rounded increment
+    th, d32, pi32, tp32, turns = np.float32(0.0), np.float32(2 * math.pi * F0 / P["fs"]), np.float32(math.pi), np.float32(2 * math.pi), 0
+    for _ in range(int(P["fs"])):                                 # the rejected alternative: one second of a float32 radian
+        th = np.float32(th + d32)                                 # accumulator wrapped to +/-pi
+        if th >= pi32:
+            th, turns = np.float32(th - tp32), turns + 1
+    f32 = 1e6 * ((turns * 2 * math.pi + float(th)) / (2 * math.pi * F0) - 1)
+    fres = 1e6 * max(abs(d["df_Hz"]) for d in sec["ss"].values()) / F0
+    f = dict(oscillator_ppm=P["osc"]["ppm"], oscillator=P["osc"]["part"], ageing_ppm=A("osc_ageing_ppm"), accumulator_ppm=acc,
+             float32_radian_ppm=f32, residual_ppm=fres)
+    f["bound_ppm"] = f["oscillator_ppm"] + f["ageing_ppm"] + acc + fres
+    f["bound_pct"] = f["bound_ppm"] / 1e4
+    return dict(voltage=v, frequency=f)
+
+
+# ---------------------------------------------------------------------------------------------------------- 8b. THDu
+_PD = []
+
+
+def pcs_design_module():
+    """sim/pcs_design.py's exact PWM Fourier series and modulation policy, imported (code reuse, its import prints muted)"""
+    if not _PD:
+        import contextlib
+        import io as _io
+        import sys as _sys
+        _sys.path.insert(0, HERE)
+        with contextlib.redirect_stdout(_io.StringIO()):
+            import pcs_design
+        _PD.append(pcs_design)
+    return _PD[0]
+
+
+def vloop_eval(P, Kin, Kv, pl_of=None, kinds=("nl", "rl"), corners=CORNERS):
+    """C_f-voltage loop around the inner current loop: margins at the voltage-controller output, the cascade's largest pole"""
+    f = fgrid(P)
+    z = np.exp(2j * np.pi * f * P["T"])
+    out = []
+    for kind in kinds:
+        for cn in corners:
+            pl = pl_of(kind, cn) if pl_of else plant(P, cn, kind, None)
+            Ac, Bref, _ = closed(pl, Kin)
+            m = margins(f, (Kv["Kp"] + fr(Kv["res"], z)) * ss_fr(Ac, Bref, np.eye(len(Ac))[6], z))
+            m.update(kind=kind, cn=cn, rho=float(np.max(np.abs(np.linalg.eigvals(cascade(P, pl, Kin, Kv))))))
+            m["ok"] = bool(m["pm"] >= RULE_PM and min(m["gm"], m["gm_lo"]) >= RULE_GM and m["rho"] < 1 - 1e-9)
+            out.append(m)
+    return out
+
+
+def design_gfm_harm(P, K, Kv):
+    """h5 / h7 resonant terms in the C_f-voltage PR (VF THDu option): lead centred on the spread of the inner closed loop's phase
+    at h x 50 Hz over no load / rated load and the corners, a term considered only if the spread leaves lead_margin_deg; the
+    variant is evaluated against the margin rule at every case and against the current loop's decay rule (closed-loop mode of
+    each term decaying at >= res_decay_frac x 2 pi sigma_h); adopted only if both hold"""
+    Kin, T, w0 = p_only(K), P["T"], P["w0"]
+    Kh = 2 * Kv["Kp"] * 2 * math.pi * A("sigma_h_Hz")
+    keep, phi, spread = [], {}, {}
+    for h in (5, 7):
+        z = np.array([cx(h * w0 * T)])
+        ang = []
+        for kind in ("nl", "rl"):
+            for cn in CORNERS:
+                Ac, Bref, _ = closed(plant(P, cn, kind, None), Kin)
+                ang.append(np.angle(ss_fr(Ac, Bref, np.eye(len(Ac))[6], z)[0]))
+        ang = np.unwrap(ang)
+        phi[h] = -(ang.max() + ang.min()) / 2
+        spread[h] = math.degrees(np.max(np.abs(ang + phi[h])))
+        if spread[h] <= 90 - A("lead_margin_deg"):
+            keep.append(h)
+    Kvh = dict(Kv, res=par(Kv["res"], *[resonant(P, h, Kh, phi[h]) for h in keep]))
+    ev = vloop_eval(P, Kin, Kvh)
+    decay = {}
+    for h in keep:
+        near = []
+        for kind in ("nl", "rl"):
+            for cn in ("nom", "low"):
+                s = np.log(np.linalg.eigvals(cascade(P, plant(P, cn, kind, None), Kin, Kvh)).astype(complex)) / T
+                near += [x.real for x in s if abs(abs(x.imag) / (2 * np.pi) - h * F0) < 30]
+        decay[h] = max(near) if near else 0.0
+    need = -A("res_decay_frac") * 2 * math.pi * A("sigma_h_Hz")
+    ok_m, ok_d = all(m["ok"] for m in ev), all(v <= need for v in decay.values())
+    return dict(Kv=Kvh, harm=list(keep), phi={h: math.degrees(phi[h]) for h in phi}, spread=spread, Kh=Kh, ev=ev, ok_margin=ok_m,
+                decay=decay, decay_need=need, ok_decay=ok_d, adopted=bool(keep and ok_m and ok_d),
+                pm=min(m["pm"] for m in ev), gm=min(min(m["gm"], m["gm_lo"]) for m in ev))
+
+
+def lc_v(P, f, RL=None, term=False, L=None, C=None):
+    """continuous per-phase transfer converter voltage -> C_f voltage (term: -> load terminals) with the R_d-C_d branch, L2 + DM
+    leakage, R_dc and a resistive load RL (None: no load; L, C override L1, C_f)"""
+    w = 2 * np.pi * np.asarray(f, float)
+    zl1 = P["R1"] + 1j * w * (L or P["L1"])
+    zc = 1 / (1j * w * (C or P["Cf"]) + 1 / (P["Rd"] + 1 / (1j * w * P["Cd"])))
+    if RL is None:
+        return zc / (zl1 + zc)
+    zo = P["R2"] + 1j * w * (P["L2"] + P["Ldm"]) + RL
+    zp = zc * zo / (zc + zo)
+    return zp / (zl1 + zp) * (RL / zo if term else 1.0)
+
+
+def zs_mismatch(P, u0, hs):
+    """zero sequence u0 (one fundamental period, volts) applied to legs whose L1-C_f filters sit at opposite tolerance corners
+    (+10 % at 0 A with C_f +5 % against the -10 % part at the trip current with C_f -5 %; unloaded, R_d-C_d included): the
+    difference of the two responses per order h, and u0's amplitude per order"""
+    U0 = np.abs(np.fft.rfft(u0) / len(u0) * 2)[hs]
+    dH = np.abs(lc_v(P, hs * F0, L=P["L1_hi"], C=P["Cf"] * (1 + A("cf_tol"))) - lc_v(P, hs * F0, L=P["L1_lo"], C=P["Cf"] * (1 - A("cf_tol"))))
+    return U0, dH
+
+
+def study_thdu(P, G, R):
+    """THDu on a linear balanced load, VF mode (CALCULATED, analytical - not a switched simulation): (a) the carrier groups of
+    regular-sampled double-update PWM (sim/pcs_design.py's exact Fourier series) through the LCL with the load, at the load
+    terminals; (b) the dead-time error (the PCS-PWR band's top, and the per-leg compensation residual) with a ripple-aware shape
+    (the error saturates only where the current exceeds half the local ripple), through the closed VF loop (voltage PR with and
+    without the h5 / h7 terms); (c) three-wire with the min-max zero sequence active: its 150 Hz family leaking into the measured
+    alpha-beta through the per-channel gain error; the DC component separately.  Three-wire = line-to-neutral of the floating
+    star (non-triplen orders); four-wire mode A = phase-to-N with the N leg at 50 % (every order, the N leg's carrier term
+    included; below the mode-A window mode B, the phases' min-max zero sequence on all four legs, its carrier approximated with
+    the N leg at zero reference).  Wherever a zero sequence is modulated, the filters' tolerance mismatch leaves part of it in
+    the output (2/3 of the corner difference in the three-wire line-to-neutral, all of it phase-to-N).  Harmonics h2-h50 plus
+    the carrier groups, as a fraction of the fundamental."""
+    pd, T, w0 = pcs_design_module(), P["T"], P["w0"]
+    Kin, hv = p_only(G["K"]), R["gfm_harm"]
+    loops = {"PR h1": G["Kv"]}
+    if hv["harm"] and hv["ok_margin"]:                           # the option, adopted or not (THDu both ways)
+        loops["PR h1+" + "+".join(f"h{h}" for h in hv["harm"])] = hv["Kv"]
+    loads = {"rated": P["zb"], "50 %": 2 * P["zb"], "no load": None}
+    hs = np.arange(2, 51)
+    z = np.exp(1j * hs * w0 * T)
+    e_g = P["adc_acc"]["total"] / 100
+    dts = {f"{P['dt_gate_ns'][1]:.0f} ns, not compensated": P["dt_gate_ns"][1], "compensated per leg": A("dt_resid_ns")}
+    _, cN = pd.pwm_fourier(2, 0.0, P["fsw"], "none")
+    rows, N = [], 1280
+    th = 2 * np.pi * np.arange(N) / N
+    for lname, RL in loads.items():
+        kind = "rl" if RL else "nl"
+        pl = plant(P, "nom", kind, None, RL=RL)
+        M = np.linalg.inv(1j * w0 * np.eye(8) - pl["A"])
+        xu = M @ pl["Bu"]
+        Uv = P["V0"] / xu[1]                                     # converter voltage for V0 on C_f, angle 0
+        i1 = xu[0] * Uv
+        Hd = {}
+        for ln, Kv in loops.items():                             # converter-voltage disturbance -> load terminals, closed VF loop
+            Z = cascade(P, pl, Kin, Kv)
+            Bw = np.zeros(len(Z))
+            Bw[:8] = pl["Gu"]
+            Cv = np.zeros(len(Z))
+            Cv[3 if RL else 1] = RL if RL else 1.0
+            Hd[ln] = np.abs(ss_fr(Z, Bw, Cv, z))
+        for wire in ("3W", "4W"):
+            for vdc in P["vf_vdc"]:
+                m = abs(Uv) / (vdc / 2)
+                zs = pd.zs_policy(2, m) if wire == "3W" else ("none" if vdc >= P["fw4"]["modeA_from"] else "minmax")
+                h, cpl = pd.pwm_fourier(2, m, P["fsw"], zs)
+                sel = h > 50
+                Ht = lc_v(P, h[sel] * F0, RL, term=True)
+                if wire == "3W":
+                    vh = Ht * (cpl[0] - cpl.mean(0))[sel] * vdc / 2
+                else:
+                    vh = (Ht * cpl[0][sel] - lc_v(P, h[sel] * F0) * cN[0][sel]) * vdc / 2
+                carrier = float(np.sqrt(np.sum(np.abs(vh) ** 2)) / P["V0"])
+                refs = np.stack([m * np.cos(th + np.angle(Uv) - k * 2 * np.pi / 3) for k in range(3)])
+                u0 = pd.zero_seq(refs, zs) if zs != "none" else np.zeros(N)
+                d = refs[0] + u0
+                ia = np.real(i1 * np.exp(1j * th))
+                rip = vdc * (1 - np.clip(d, -1, 1) ** 2) / (4 * P["L1"] * P["fsw"])
+                shape = -np.clip(ia / np.maximum(rip / 2, 1e-9), -1, 1)
+                E = np.fft.rfft(shape) / N * 2
+                odd = (hs % 2 == 1) & ((hs % 3 != 0) if wire == "3W" else True)
+                leak, mism = np.zeros(len(hs)), np.zeros(len(hs))
+                if zs != "none":                                  # 150 Hz family of the zero sequence on the C_f nodes
+                    U0, dH = zs_mismatch(P, u0 * vdc / 2, hs)
+                    mism = (2 / 3 if wire == "3W" else 1.0) * dH * U0
+                    if wire == "3W":                              # ... and through the measured alpha-beta (gain error)
+                        leak = 4 / 3 * e_g * U0 * np.abs(lc_v(P, hs * F0))
+                for ln in loops:
+                    for dn, td in dts.items():
+                        dv = vdc * P["fsw"] * td * 1e-9
+                        dth = np.where(odd, Hd[ln] * np.abs(E[hs]) * dv, 0.0)
+                        lo_ = np.sqrt(dth ** 2 + leak ** 2 + mism ** 2) / P["V0"]
+                        thd = math.sqrt(carrier ** 2 + float(np.sum(lo_ ** 2)))
+                        terms = sorted([("carrier groups", carrier)] + [(f"h{x} dead time", y / P["V0"]) for x, y in zip(hs, dth) if y > 0]
+                                       + [(f"h{x} zero sequence via the gain error", y / P["V0"]) for x, y in zip(hs, leak) if y > 0]
+                                       + [(f"h{x} zero sequence via the filter mismatch", y / P["V0"]) for x, y in zip(hs, mism) if y > 0],
+                                       key=lambda t: -t[1])
+                        rows.append(dict(wire=wire, mode=("mode A" if zs == "none" else "mode B") if wire == "4W" else zs, vdc=vdc,
+                                         load=lname, m=m, zs=zs, loop=ln, dead_time=dn, thdu_pct=100 * thd, carrier_pct=100 * carrier,
+                                         dead_time_pct=100 * float(np.sqrt(np.sum(dth ** 2))) / P["V0"],
+                                         leak_pct=100 * float(np.sqrt(np.sum(leak ** 2))) / P["V0"],
+                                         mismatch_pct=100 * float(np.sqrt(np.sum(mism ** 2))) / P["V0"],
+                                         dominant=[(n, 100 * v) for n, v in terms[:3]]))
+    hw = P["fw4"]["half_wave"]
+    dc = dict(dc_V=hw["dc_measurement_divider_V"], limit_V=hw["dc_component_limit_V"],
+              dc_pct_Un=100 * hw["dc_measurement_divider_V"] / (P["V0"] / math.sqrt(2)))
+    return dict(rows=rows, loops=list(loops), dc=dc, harm=hv["harm"], harm_adopted=hv["adopted"])
+
+
+# ---------------------------------------------------------------------------------------------------------- 8c. imbalance
+def study_imbalance(P, R):
+    """output voltage imbalance on a linear balanced load (CALCULATED).  The loop regulates the MEASURED voltages exactly at
+    50 / 60 Hz (resonant terms at +/- w0), so the output carries the inverse of each channel's gain and phase error: per-channel
+    gain after the two-point calibration = the control board's ADC share + divider TCR, every term independent per channel
+    (conservative: the reference term is common to the three ADCs only if they share one reference - not credited); per-channel
+    phase = the drawn anti-alias poles at their BOM tolerances (power-board divider pole, control-board charge bucket); the
+    software angle generator's float32 constants; the ADC plan's simultaneity.  Three-wire: alpha-beta PR -> positive sequence
+    of the measured set = the reference, negative sequence = 0, zero sequence free (the line-to-line output); four-wire: one PR
+    per phase on its phase-to-N voltage.  Worst over every corner of signs."""
+    vd, bk, a = P["vdiv"], P["bucket"], np.exp(2j * np.pi / 3)
+    rth = 1 / (1 / vd["R_bot"] + 1 / (vd["n"] * vd["R_top"]))
+    assert abs(1 / (2 * math.pi * rth * vd["C"]) / vd["f_stated"] - 1) < 0.02, "AC divider pole vs the PCS-PWR design check"
+    e = P["adc_acc"]["total"] / 100
+
+    def lag(f, kt=1.0, kb=1.0, kc=1.0, kr=1.0, kk=1.0):
+        r = 1 / (1 / (vd["R_bot"] * kb) + 1 / (vd["n"] * vd["R_top"] * kt))
+        return math.atan(2 * math.pi * f * r * vd["C"] * kc) + math.atan(2 * math.pi * f * bk["R"] * kr * bk["C"] * kk)
+    tols = (vd["tol_top"], vd["tol_bot"], vd["tol_c"], bk["tol_r"], bk["tol_c"])
+    gen = max(abs(float(np.float32(math.sqrt(3) / 2)) / (math.sqrt(3) / 2) - 1),        # rad: float32 inverse-Clarke constant,
+              2 * math.pi * abs(float(np.float32(1 / 3)) - 1 / 3))                     # and the 1/3-turn offset of a per-phase reference
+    vc = [rd for rd in R["plan"]["rounds"] if set(rd["nets"]) == {"VC1_ADC", "VC2_ADC", "VC3_ADC"}]
+    assert len(vc) == 1, "ADC plan: VC1-3 are not one conversion round"
+    out = {}
+    for f in (50.0, 60.0):
+        ph0 = lag(f)
+        dphi = max(abs(lag(f, *[1 + s * t for s, t in zip(sg, tols)]) - ph0) for sg in itertools.product((-1, 1), repeat=5))
+        skew = 0.0 if vc[0]["adc"] else 2 * math.pi * f * R["plan"]["t_conv_us"] * 1e-6
+        worst = {"3W": [0.0, 0.0, 0.0], "4W": [0.0, 0.0, 0.0]}
+        for gs in np.ndindex(2, 2, 2):
+            for ps in np.ndindex(2, 2, 2):
+                c = np.array([(1 + e * (2 * gs[k] - 1)) * np.exp(-1j * ((2 * ps[k] - 1) * (dphi + skew) + ph0)) for k in range(3)])
+                v4 = np.array([a ** -k for k in range(3)]) / c * np.exp(-1j * ph0)          # per phase: measured = the reference
+                cb, s2, sm2 = c.mean(), np.mean(c * a ** (2 * np.arange(3))), np.mean(c * a ** (-2 * np.arange(3)))
+                Pp, Nn = np.linalg.solve(np.array([[cb, s2], [sm2, cb]]), np.array([1.0, 0.0]))
+                v3 = np.array([Pp * a ** -k + Nn * a ** k for k in range(3)])
+                v3 = v3 - np.roll(v3, -1)                                                     # line-to-line a-b, b-c, c-a
+                for wire, v in (("3W", v3), ("4W", v4)):
+                    amp = np.abs(v)
+                    dang = np.degrees(np.angle(v / np.roll(v, -1))) - 120.0                   # displacement to the next phase
+                    w = worst[wire]
+                    w[0] = max(w[0], 100 * float(np.max(np.abs(amp / amp.mean() - 1))))
+                    w[1] = max(w[1], float(np.max(np.abs(dang))) + math.degrees(gen))
+                    seq = [abs(np.mean(v * a ** (s * np.arange(3)))) for s in (1, -1)]
+                    w[2] = max(w[2], 100 * seq[1] / seq[0])
+        out[f"{f:g} Hz"] = dict(lag_nom_deg=math.degrees(ph0), dphi_deg=math.degrees(dphi), skew_deg=math.degrees(skew),
+                                **{w: dict(amp_pct=v[0], angle_deg=v[1], vuf_pct=v[2]) for w, v in worst.items()})
+    b = {w: dict(amp_pct=max(out[k][w]["amp_pct"] for k in out), angle_deg=max(out[k][w]["angle_deg"] for k in out),
+                 vuf_pct=max(out[k][w]["vuf_pct"] for k in out)) for w in ("3W", "4W")}
+    return dict(per_freq=out, bound=b, gain_pct=100 * e, generator_deg=math.degrees(gen), vc_round_simultaneous=bool(vc[0]["adc"]),
+                divider=dict(R_th_ohm=rth, C_nF=vd["C"] * 1e9, tol_C=vd["tol_c"], tol_R=vd["tol_bot"]),
+                bucket=dict(R_ohm=bk["R"], C_nF=bk["C"] * 1e9, tol_C=bk["tol_c"], tol_R=bk["tol_r"]))
+
+
+# ---------------------------------------------------------------------------------------------------------- 9b. neutral leg
+def zoh(Ac, B, T):
+    n = len(B)
+    M = np.zeros((n + 1, n + 1))
+    M[:n, :n], M[:n, n] = Ac, B
+    E = expm(M * T)
+    return E[:n, :n], E[:n, n]
+
+
+def nplant(P, cn, Lt=None, Rt=0.0, Ct=None, Rdt=None, Cdt=None, src=False):
+    """four-wire neutral leg: L_N (the L1 part, same corners) into N_F with C_fN (= C_f, same tolerance) and its R_d-C_d branch
+    to M; beyond N_F the path L_t + R_t into a capacitor C_t (with its R_dt-C_dt branch) to M - the phases' C_f star through
+    their L2 - or (src) into a held phase voltage, the input Gs (neither: N terminal open).  States i_N, v_N, v_dN, i_t, v_t,
+    y_i (IL4), y_v (VGN - VA), v_dt; a current drawn from N_F is the input Gi.  Discretised as plant()"""
+    L1, _, Cf, ti = corner(P, cn)
+    Ac, Bu, Bi, Bs, g = np.zeros((8, 8)), np.zeros(8), np.zeros(8), np.zeros(8), 1 / P["Rd"]
+    Ac[0, 0], Ac[0, 1], Bu[0] = -P["R1"] / L1, -1 / L1, 1 / L1
+    Ac[1, 0], Ac[1, 1], Ac[1, 2], Bi[1] = 1 / Cf, -g / Cf, g / Cf, -1 / Cf
+    Ac[2, 1], Ac[2, 2] = g / P["Cd"], -g / P["Cd"]
+    Ac[3, 3] = Ac[4, 4] = Ac[7, 7] = -1e3                         # path absent: decoupled dummy states
+    if Ct or src:
+        Ac[1, 3] = -1 / Cf
+        Ac[3, 1], Ac[3, 3] = 1 / Lt, -Rt / Lt
+    if src:
+        Bs[3] = -1 / Lt
+    elif Ct:
+        Ct, gt = Ct * Cf / P["Cf"], 1 / Rdt
+        Ac[3, 4] = -1 / Lt
+        Ac[4, 3], Ac[4, 4], Ac[4, 7] = 1 / Ct, -gt / Ct, gt / Ct
+        Ac[7, 4], Ac[7, 7] = gt / Cdt, -gt / Cdt
+    Ac[5, 0], Ac[5, 5] = 1 / ti, -1 / ti
+    Ac[6, 1], Ac[6, 6] = 1 / P["tv"], -1 / P["tv"]
+    Phi, Gu = zoh(Ac, Bu, P["T"])
+    return dict(A=Ac, Bu=Bu, Phi=Phi, Gu=Gu, Gi=zoh(Ac, Bi, P["T"])[1], Gs=zoh(Ac, Bs, P["T"])[1], ig=3, kind="n")
+
+
+def study_neutral(P, G, R):
+    """four-wire neutral leg (PCS-PWR-4W as drawn, no new topology): L_N = the L1 part, C_fN = C_f and the same R_d-C_d branch
+    (asserted from pcs_spec four_wire), but no L2 of its own: beyond N_F the neutral current returns through the load and the
+    phases' L2 to their C_f star on M (off-grid) or through the grid's neutral and the phases' L2 in parallel (grid-connected).
+    (a) the phases' PR current controller on IL4 and the phases' C_f-voltage PR on v(N_F - M), margins at every corner for the
+    N-node terminations; (b) the N-node excursion when one phase takes its rated current at once (100 % unbalance, mode A,
+    linear, the neutral current as a current source); (c) mode B: the residual of the zero-sequence feed-forward in the
+    phase-to-N voltages from the L1 / C_f tolerance mismatch; (d) the DC interaction with the DC-component regulators"""
+    fw = P["fw4"]
+    same = dict(L_N=abs(fw["L_N_uH"] * 1e-6 / P["L1"] - 1) < 1e-6, C_fN=abs(fw["C_fN_uF"] * 1e-6 / P["Cf"] - 1) < 1e-6,
+                R_d=abs(fw["R_d_ohm"] / P["Rd"] - 1) < 1e-6, C_d=abs(fw["C_d_uF"] * 1e-6 / P["Cd"] - 1) < 1e-6)
+    assert all(same.values()), ("pcs_spec four_wire: the N filter is no longer the phase filter", same)
+    K, Kin, Kv, f = G["K"], p_only(G["K"]), G["Kv"], fgrid(P)
+    dm, zb = P["Ldm"], P["zb"]
+
+    def term(case, cn, scr=None):
+        L2c = corner(P, cn)[1]
+        if case == "open":
+            return nplant(P, cn)
+        if case == "balanced":
+            return nplant(P, cn, dm + L2c / 3, (P["R2"] + zb) / 3, 3 * P["Cf"], P["Rd"] / 3, 3 * P["Cd"])
+        if case == "unbalanced":
+            return nplant(P, cn, dm + L2c, P["R2"] + zb, P["Cf"], P["Rd"], P["Cd"])
+        if case == "unbalanced, held":
+            return nplant(P, cn, dm + L2c, P["R2"] + zb, src=True)
+        x = P["zb"] / scr / math.hypot(1.0, A("grid_rx")) if scr else 0.0
+        return nplant(P, cn, dm + (L2c + x / P["w0"]) / 3, (P["R2"] + A("grid_rx") * x) / 3, 3 * P["Cf"], P["Rd"] / 3, 3 * P["Cd"])
+    cases = [("off-grid, N terminal open (balanced load: no neutral current)", "open", None),
+             ("off-grid, balanced rated load, the loads' star on N, the phase nodes as their C_f", "balanced", None),
+             ("off-grid, 100 % unbalance, the loaded phase's node as its C_f", "unbalanced", None),
+             ("off-grid, 100 % unbalance, the loaded phase's node held by its loop", "unbalanced, held", None)] + \
+            [(f"grid-connected, {scr_name(s)}: zero-sequence path to the phases' C_f star", "grid", s) for s in A("scr")]
+    rows = []
+    for name, case, scr in cases:
+        ci, cv = [], []
+        for cn in CORNERS:
+            pl = term(case, cn, scr)
+            m = margins(f, loop(P, K, pl, f))
+            m["rho"] = float(np.max(np.abs(np.linalg.eigvals(closed(pl, K)[0]))))
+            m["ok"] = bool(m["pm"] >= RULE_PM and min(m["gm"], m["gm_lo"]) >= RULE_GM and m["rho"] < 1 - 1e-9)
+            ci.append(m)
+        cv = vloop_eval(P, Kin, Kv, pl_of=lambda kind, cn: term(case, cn, scr), kinds=(case,))
+        pn = term(case, "nom", scr)
+        rows.append(dict(case=name, i_pm=min(m["pm"] for m in ci), i_gm=min(min(m["gm"], m["gm_lo"]) for m in ci),
+                         i_rho=max(m["rho"] for m in ci), i_ok=all(m["ok"] for m in ci),
+                         v_pm=min(m["pm"] for m in cv), v_gm=min(min(m["gm"], m["gm_lo"]) for m in cv),
+                         v_rho=max(m["rho"] for m in cv), v_ok=all(m["ok"] for m in cv),
+                         v_bw=gfm_bw(P, Kin, Kv, None, "nom", f, np.exp(2j * np.pi * f * P["T"]), pl=pn)))
+    ph = [r for r in R["table"] if r["damp"] == "passive" and r["cn"] in CORNERS]
+    ref = dict(i_pm=min(r["pm"] for r in ph), i_gm=min(min(r["gm"], r["gm_lo"]) for r in ph),
+               v_pm=R["gv"]["pm"], v_gm=R["gv"]["gm"], bw={m["kind"]: m["f_bw"] for m in R["gv"]["ev"] if m["cn"] == "nom"})
+    # (b) N-node excursion: a rated resistive load switched on between the held phase-a voltage (at its peak) and N, cascade closed
+    pl = term("unbalanced, held", "nom")
+    Z = cascade(P, pl, Kin, Kv)
+    B = np.zeros(len(Z))
+    B[:8] = pl["Gs"]
+    x, vN, iN, n = np.zeros(len(Z)), [], [], int(0.1 / P["T"])
+    for k in range(n):
+        x = Z @ x + B * P["V0"] * math.cos(P["w0"] * k * P["T"])
+        vN.append(x[1])
+        iN.append(x[3])
+    vN = np.abs(np.array(vN)) / P["V0"]
+    exc = dict(pk_pu=float(vN.max()), t1_ms=1e3 * settle(np.arange(n) * P["T"], vN, 0.0, 0.01, 0.0),
+               end_pu=float(vN[-int(0.02 / P["T"]):].max()), iN_pk=float(np.max(np.abs(iN))))
+    # (c) mode B: zero sequence of the phase references (min-max) at the lowest DC voltage, through the phase and N filters at
+    #     opposite tolerance corners (unloaded L-C + branch each); its DC content
+    pd = pcs_design_module()
+    th = 2 * np.pi * np.arange(1280) / 1280
+    vdc = P["vf_vdc"][0]
+    plr = plant(P, "nom", "rl", None)
+    m = abs(P["V0"] / (np.linalg.inv(1j * P["w0"] * np.eye(8) - plr["A"]) @ plr["Bu"])[1]) / (vdc / 2)   # rated resistive, V0 on C_f
+    u0 = pd.zero_seq(np.stack([m * np.cos(th - k * 2 * np.pi / 3) for k in range(3)]), "minmax") * vdc / 2
+    hs = np.arange(2, 51)
+    U0, dH = zs_mismatch(P, u0, hs)
+    k = int(np.argmax(dH * U0))
+    modeB = dict(vdc=vdc, m=m, u0_150_V=float(U0[1]), resid_pct=100 * float(np.sqrt(np.sum((dH * U0) ** 2))) / P["V0"],
+                 resid_150_pct=100 * float(dH[1] * U0[1]) / P["V0"], h_max=int(hs[k]), resid_hmax_pct=100 * float(dH[k] * U0[k]) / P["V0"],
+                 u0_mean_V=float(np.mean(u0)))
+    dc = dict(K_pv_S=Kv["Kp"], I_dc_A=P["fw4"]["half_wave"]["I_dc_A"], offset_without_V=P["fw4"]["half_wave"]["I_dc_A"] / Kv["Kp"])
+    return dict(same=same, rows=rows, phase_ref=ref, excursion=exc, modeB=modeB, dc=dc)
+
+
 # ---------------------------------------------------------------------------------------------------------- 7. firmware
 ROUNDS = (("IL1_ADC", "IL2_ADC", "IL3_ADC"), ("VC1_ADC", "VC2_ADC", "VC3_ADC"), ("VA_ADC", "VB_ADC", "IB_ADC"),
           ("VG1_ADC", "VG2_ADC", "VG3_ADC"))
@@ -1296,11 +1876,16 @@ def isr_budget(P, K):
              ("SOGI feed-forward 2 axes + re-seed test", 15, "gfl"), ("reference rotation, C_f term, circular limiter", 15, "gfl"),
              ("modulation limit, inverse Clarke, min-max zero sequence, 1/V_dc, dead-time comp.", 31, "gfl"),
              ("PWM compare writes (HRPWM)", 6, "gfl"), ("SRF-PLL with clamps", 15, "gfl"), ("software limits, flags", 15, "gfl"),
+             ("per-sample current clamp: 3 phases, prediction, correction (section 4b)", 36, "gfl"),
+             ("ride-through state, dip-time limit, PLL freeze (section 4b)", 6, "gfl"),
              ("DC-link PI + DC-current feed-forward", 7, "dc"),
-             ("grid forming: P/Q, droop, virtual impedance, voltage PR 2 axes", 34, "gfm")]
+             ("grid forming: P/Q, droop, virtual impedance, voltage PR 2 axes", 34, "gfm"),
+             ("VF secondary: magnitude filter, re-seed test (the integrators run in the 1 kHz task)", 8, "gfm"),
+             ("four-wire: third axis of the per-phase loops, N-leg cascade (P current + SOGI + voltage PR), N DC offset", 70, "4w")]
     cyc = A("isr_cyc_per_op")
     out = {}
-    for mode, keys in (("GFL", ("gfl",)), ("GFL + DC link", ("gfl", "dc")), ("GFM + DC link", ("gfl", "dc", "gfm"))):
+    for mode, keys in (("GFL", ("gfl",)), ("GFL + DC link", ("gfl", "dc")), ("GFM + DC link", ("gfl", "dc", "gfm")),
+                       ("GFM + DC link, four-wire", ("gfl", "dc", "gfm", "4w"))):
         ops = sum(t[1] for t in tasks if t[2] in keys)
         c = ops * cyc + A("isr_overhead_cyc")
         out[mode] = dict(ops=ops, cycles=c, us=c / 120.0, pct=100 * c / 120.0 / (1e6 / P["fs"]))
@@ -1406,18 +1991,22 @@ def hardware(P, R):
     act on; OK = checked and consistent"""
     w, sen, pl, hw = P["win"], A("sensor"), R["plan"], []
     nm = lambda d: f"{d['case']} ({scr_name(d['scr'])})"
-    peaks = [(nm(d), max(d["pk_dip"], d["pk_rec"])) for d in R["faults"] if d["ff"] == "sogi"]
+    peaks = [(f"{d['depth']:g} pu dip at 125 kW ({scr_name(d['scr'])}) onset", d["pk_on"]) for d in R["rt"]["rows"]]
     peaks += [(nm(d), d["pk"]) for d in R["steps"] if d["vdc"] == 750.0]
     peaks += [("GFM terminal short from rated load", R["gfm"]["short"]["pk"])]
     over = sorted(((n, p) for n, p in peaks if p > w["lo"]), key=lambda x: -x[1])
     below = max(((n, p) for n, p in peaks if p <= w["lo"]), key=lambda x: x[1])
-    hw.append(("PCS-CTL phase window", f"+/-{w['nom']:.0f} A nominal, worst band {w['lo']:.0f}-{w['hi']:.0f} A (basis 1.05 x "
-               f"the normal peak {P['win_basis'][2]:.1f} A)",
-               ("peaks above the band's low edge (averaged + ripple/2): " + "; ".join(
+    after = max(max(d["pk_dip"], d["pk_rec"]) for d in R["rt"]["rows"])
+    old = max((d for d in R["faults"] if d["ff"] == "sogi"), key=lambda d: max(d["pk_dip"], d["pk_rec"]))
+    hw.append(("PCS-CTL phase window", f"+/-{w['nom']:.0f} A nominal, worst band {w['lo']:.0f}-{w['hi']:.0f} A (basis "
+               f"{P['win_basis'][1]:.3f} x the normal peak {P['win_basis'][2]:.1f} A)",
+               "with the firmware limiter of section 4b (ride-through state, PLL freeze, per-sample clamp) every in-dip and recovery "
+               f"peak is <= {after:.0f} A; " + (("peaks above the band's low edge (averaged + ripple/2): " + "; ".join(
                    f"{n} {p:.0f} A ({'above the nominal threshold: trips' if p > w['nom'] else 'may trip'})" for n, p in over) +
                 f"; highest peak below the band: {below[0]} {below[1]:.0f} A") if over else
-               f"every studied peak below the low edge (highest: {below[0]} {below[1]:.0f} A)",
-               "MISMATCH" if over else "OK"))
+               f"every studied peak below the low edge (highest: {below[0]} {below[1]:.0f} A)") +
+               f"; without the ride-through state (section 4): {nm(old)} {max(old['pk_dip'], old['pk_rec']):.0f} A",
+               "MISMATCH (stiff-grid onset: firmware derating, section 4b)" if over else "OK"))
     k1 = next(r for r in R["sweep"] if r["fc"] == 1000.0)
     thd1 = max(r["thd_pct"] for r in R["thd"] if r["ctrl"].startswith("1 kHz") and r["dt"].startswith("compensated, id"))
     bw = {r["scr"]: r["f_bw"] for r in R["table"] if r["damp"] == "passive" and r["cn"] == "nom"}
@@ -1503,11 +2092,13 @@ def hardware(P, R):
                f"{'holds' if slow_ok else 'FAILS'} at {A('slow_sensor'):g} x that (corner 'slow'); trip: gates off "
                f"{t_off:.2f} us after the crossing -> {i_off:.0f} A <= {P['trip_t'][3]:.0f} A (at the drawn gain)",
                "OK" if slow_ok and i_off <= P["trip_t"][3] else "MISMATCH"))
-    ls = R["gfm"]["load_step"]
+    ls, st = R["gfm"]["load_step"], R["sec"]["steps"]
     hw.append(("Grid-side current", "not sensed (i_2 estimated as i_1 - C_f dv_C/dt)", f"grid forming off-grid: a 0 -> rated "
-               f"resistive step dips v_C to {ls['vmin']:.2f} pu, within 10 % after {ls['t10_ms']:.0f} ms; a load-current "
-               "feed-forward needs a measured output current (the estimate contains the inner loop's own current)",
-               "NOTE (design gap if a stiff off-grid voltage is required: three grid-side sensors)"))
+               f"resistive step dips v_C to {ls['vmin']:.2f} pu, within 10 % after {ls['t10_ms']:.0f} ms; a rated -> 0 step overshoots to "
+               f"{st['rated -> 0']['v_max']:.2f} pu with the restoration ({st['rated -> 0, primary layer only']['v_max']:.2f} pu from the "
+               f"primary layer's {ls['v_end']:.2f} pu; averaged model, first 0.2 ms: L1's current charges C_f before the inner loop turns it); a "
+               "load-current feed-forward needs a measured output current (the estimate contains the inner loop's own current)",
+               "NOTE (design gap if a stiff dynamic off-grid voltage is required: three grid-side sensors; the published rows are static)"))
     return hw
 
 
@@ -1613,6 +2204,33 @@ def plots(P, G, R):
     fig.tight_layout()
     fig.savefig(os.path.join(OUT, "gfm.png"), dpi=110)
     plt.close(fig)
+    fig, ax = plt.subplots(1, 3, figsize=(15, 4.2))
+    for name, r in R["sec"]["rec"].items():
+        ax[0].plot(r["t"], np.abs(r["vc"]) / P["V0"], label=name)
+        ax[1].plot(r["t"], np.gradient(np.unwrap(r["thv"]), P["T"]) / (2 * math.pi), label=name)
+    for a, band in ((ax[0], (0.99, 1.01)), (ax[1], (-0.002 * F0, 0.002 * F0))):
+        for y in band:
+            a.axhline(y, ls=":", color="k", lw=1)
+        a.set_xlabel("s")
+        a.grid(alpha=0.3)
+        a.legend(fontsize=8)
+    ax[0].set_ylim(0.3, 1.3)
+    ax[0].set_ylabel("|v_C| pu (clipped at 1.3)")
+    ax[0].set_title(f"VF steps, secondary T {R['sec']['T_s']:g} s (SIMULATED)")
+    ax[1].set_ylabel("generator frequency - 50 Hz, Hz")
+    ax[1].set_title("frequency (+/-0.2 % dotted)")
+    for scr in R["rt"]["grids"]:
+        rr = [d for d in R["rt"]["rows"] if d["scr"] == scr]
+        ax[2].plot([d["depth"] for d in rr], [d["pk"] for d in rr], "o-", label=scr_name(scr))
+    ax[2].axhline(P["win"]["lo"], color="r", ls=":", label="window low edge")
+    ax[2].set_xlabel("residual voltage, pu")
+    ax[2].set_ylabel("largest phase current + ripple/2, A")
+    ax[2].set_title("ride-through at 125 kW, firmware limiter (4b)")
+    ax[2].grid(alpha=0.3)
+    ax[2].legend(fontsize=8)
+    fig.tight_layout()
+    fig.savefig(os.path.join(OUT, "vf_and_ride_through.png"), dpi=110)
+    plt.close(fig)
 
 
 def clean(o):
@@ -1654,6 +2272,19 @@ def write_spec(P, G, R):
             "dc_link": {"f_c_Hz": G["f_dc"], "kp_A_per_V": G["kp_dc"], "ki": G["ki_dc"], **R["dc"]},
             "steps": R["steps"], "faults": R["faults"], "divider_whatif": R["divider"], "gfm": R["gfm"], "thd": R["thd"],
             "vdc_min_V": R["vdc_min"],
+            "ride_through": {"limiter": {"clamp_A": P["iclamp"], "clamp_basis": "window low edge - ripple/2 - iclamp_margin_A (sampled, "
+                                         "ripple-midpoint current)", "dip_limit_A_pk": P["lvrt_ilim"], "lvrt_pu": A("lvrt_pu"),
+                                         "hold_s": A("lvrt_hold_s"), "pll_freeze_pu": A("pll_freeze_pu"), "window_low_A": P["win"]["lo"],
+                                         "profile_pu_s": P["lvrt_profile"]},
+                             **{k: R["rt"][k] for k in ("rows", "clamp_only", "derating", "instant_scan", "scr50")}},
+            "vf_secondary": {k: R["sec"][k] for k in ("T_s", "scan", "steps", "ss", "reseed_pu", "can_cycle_s")},
+            "vf_accuracy": R["acc"],
+            "gfm_voltage_harmonics": {k: R["gfm_harm"][k] for k in ("harm", "phi", "spread", "Kh", "ok_margin", "decay", "decay_need",
+                                                                    "ok_decay", "adopted", "pm", "gm")},
+            "thdu": dict(R["thdu"], worst={f"{w} {d}": max(r["thdu_pct"] for r in R["thdu"]["rows"] if r["wire"] == w and
+                                                            r["loop"] == "PR h1" and r["dead_time"] == d)
+                                           for w in ("3W", "4W") for d in dict.fromkeys(r["dead_time"] for r in R["thdu"]["rows"])}),
+            "imbalance": R["imb"], "neutral_leg": R["nleg"],
             "firmware": {"sampling": R["plan"], "isr": {"tasks": R["isr"][0], "load": R["isr"][1]},
                          "limits": firmware_limits(P, G, R), "anti_islanding": anti_islanding(P),
                          "state_machine": {"table": sm_table(P, G), "transitions": {f"{a} --{e}-->": b for (a, e), b in SM_T.items()},
@@ -1687,7 +2318,57 @@ def firmware_limits(P, G, R):
              "commissioning and compensate (THDi estimate: section 8)"),
             ("synchronisation", f"close K_AC1/K_AC2 only at |dV| <= {P['sync'][0]:.0f} %, |dtheta| <= {P['sync'][1]:.0f} deg "
              "(pcs_spec), |df| <= 0.1 Hz (assumed), after the relay test"),
-            ("ADC configuration", "AGPIOCTRLA GPIO20/21 = 0: B5/B11 read on pins 32/30, pins 48/49 stay digital (TACH3, RCM_TST)")]
+            ("ADC configuration", "AGPIOCTRLA GPIO20/21 = 0: B5/B11 read on pins 32/30, pins 48/49 stay digital (TACH3, RCM_TST)")] + \
+        fw_rows_new(P, R)
+
+
+def fw_rows_new(P, R):
+    """firmware rows of sections 4b, 7b, 8b-c, 9b (limit / setting, value)"""
+    rt, sec, hv, nl, th = R["rt"], R["sec"], R["gfm_harm"], R["nleg"], R["thdu"]
+    lo, tr = P["win"]["lo"], [r for r in rt["rows"] if r["trip"]]
+    der = {d["depth"]: d for d in rt["derating"]}
+    wt = {w: max(r["thdu_pct"] for r in th["rows"] if r["wire"] == w and r["loop"] == "PR h1") for w in ("3W", "4W")}
+    mis = max((r for r in th["rows"] if r["mismatch_pct"] > 0), key=lambda r: r["mismatch_pct"])
+    ci = [r for r in nl["rows"] if not r["i_ok"]]
+    return [
+        ("ride-through state (LVRT)", f"entered when the sensed |v_C| < {A('lvrt_pu')[0]} pu, kept {A('lvrt_hold_s') * 1e3:.0f} ms after it "
+         f"is back above {A('lvrt_pu')[1]} pu; reference limit {P['lvrt_ilim']:.0f} A pk during it (the hand-over profile's "
+         f"{P['lvrt_ilim'] / P['I_rated']:.1f} I_r reactive-current cap) instead of the 200 ms tier; PLL integrator and angle held below "
+         f"{A('pll_freeze_pu')} pu (free-running at the pre-dip frequency)"),
+        ("per-sample current clamp", f"in the PWM update, per phase: the current one period after the new command, predicted from the "
+         f"sensed current and the committed command over the -10 % L1, limited to {P['iclamp']:.0f} A (sampled) = window low edge "
+         f"{lo:.0f} A - ripple/2 {P['ripple_pp'] / 2:.1f} A - {A('iclamp_margin_A'):.0f} A; deadbeat correction with unit gain on that "
+         f"phase, anti-windup through the PR back-calculation; backstop only - the ride-through state keeps the reference below it"),
+        ("stiff-grid deep-dip derating", ("the onset peak forms in the first ms, before the sensing chain and 1.5 T_s let any firmware act: "
+         f"at a stiff connection rated current reaches the window for residual voltages of {max(r['depth'] for r in tr):g} pu and below; "
+         "where ride-through below that is required at a connection stiffer than SCR 50, limit the continuous current: "
+         + ", ".join(f"to {d['depth']:g} pu {d['P_max_kW']:.1f} kW ({100 * d['frac']:.0f} %)" for d in rt["derating"] if d["frac"] < 1))
+         if tr else "none: every studied dip stays below the window"),
+        ("VF secondary restoration", f"frequency and C_f-voltage magnitude integrators, time constant {sec['T_s']:g} s (sec_rule); VF only - "
+         "off in grid-connected GFM, frozen and ramped out before re-synchronisation; voltage layer re-seeded downwards on a load "
+         f"rejection (> {sec['reseed_pu']:g} pu above the present need); paralleled modules agree the restoration terms over the module "
+         f"CAN (consensus, {A('can_cycle_s') * 1e3:.0f} ms cycle ASSUMED, not modelled) so the droop's sharing is kept"),
+        ("angle generator (VF)", f"32-bit per-unit phase accumulator, increment rounded ({R['acc']['frequency']['accumulator_ppm']:.2f} ppm), "
+         "TMU sin/cos of the per-unit angle: the output frequency is the controller oscillator's"),
+        ("voltage-loop h5 / h7 resonant terms (VF)", ("adopted" if hv["adopted"] else "not adopted") + f": margin rule met (PM "
+         f"{hv['pm']:.0f} deg, GM {hv['gm']:.1f} dB) but their modes decay at " + "/".join(f"{-v:.0f}" for v in hv["decay"].values())
+         + f" 1/s against {-hv['decay_need']:.0f} 1/s; THDu without them <= {wt['3W']:.2f} % (three-wire) / {wt['4W']:.2f} % (four-wire), "
+         "dead time not compensated"),
+        ("zero sequence in VF (THDu option)", f"min-max zero sequence (m > 0.98) excites the L1-C_f resonance through the filters' "
+         f"tolerance mismatch: up to {mis['mismatch_pct']:.2f} % ({mis['wire']}, {mis['vdc']:.0f} V); a pure third-harmonic zero sequence "
+         f"(same linear range) leaves only its 150 Hz term ({nl['modeB']['resid_150_pct']:.3f} %) - firmware option, not adopted here"),
+        ("four-wire per-phase loops", "one C_f-voltage PR per phase on its phase-to-N voltage (N held on M by the N leg): the "
+         f"alpha-beta design per axis - margins and bandwidth identical ({nl['phase_ref']['bw']['nl']:.0f} Hz no load, "
+         f"{nl['phase_ref']['bw']['rl']:.0f} Hz rated); per-phase amplitude restoration (the secondary voltage layer per phase); "
+         "per-phase virtual reactance through a quadrature generator (not simulated); DC-component regulator per phase on the "
+         "phase-to-N one-cycle mean (pcs_spec row)"),
+        ("four-wire N leg", "the VF cascade in every mode: P-only current loop on IL4 with the phases' K_p and SOGI feed-forward, the "
+         "phases' C_f-voltage PR on VGN - VA (reference 0 in mode A; mode B: the min-max zero sequence u_0 as feed-forward to its "
+         + (f"modulator and reference); not the grid-following PR alone (max |pole| {max(r['i_rho'] for r in ci):.5f} on the capacitive "
+            "N node)" if ci else "modulator and reference); the grid-following PR alone would also meet the rule") + "; N-leg DC regulator: one-cycle mean of VGN - VA -> "
+         f"integrator -> offset on its reference (without it a half-wave load's {nl['dc']['I_dc_A']:.0f} A DC shifts N_F by "
+         f"{nl['dc']['offset_without_V']:.0f} V through the voltage loop's {nl['dc']['K_pv_S']:.3f} S); the phases' DC regulators "
+         "act on the phase-to-N means - independent quantities")]
 
 
 def tab(head, rows):
@@ -1697,6 +2378,237 @@ def tab(head, rows):
 
 def g1(x, n=1):
     return "inf" if x is None or (isinstance(x, float) and not math.isfinite(x)) else f"{x:.{n}f}"
+
+
+def rep_4b(P, R):
+    """report section 4b: the firmware limiter in ride-through"""
+    rt, lo, L = R["rt"], P["win"]["lo"], []
+    a = L.append
+    a("## 4b. Cycle-by-cycle limiting in ride-through (firmware limiter; D-074 open item)\n")
+    a(f"**The limiter (firmware, three layers).** (1) The circular reference limiter of section 4 ({P['I_lim']:.0f} A pk for <= 200 ms). "
+      f"(2) A ride-through state: entered when the sensed |v_C| falls below {A('lvrt_pu')[0]} pu, left {A('lvrt_hold_s') * 1e3:.0f} ms "
+      f"after it is back above {A('lvrt_pu')[1]} pu; while it runs the reference limit is {P['lvrt_ilim']:.0f} A pk - the hand-over "
+      f"profile's {P['lvrt_ilim'] / P['I_rated']:.1f} I_r reactive-current cap (parsed from pcs_spec), not the 200 ms tier - and below "
+      f"{A('pll_freeze_pu')} pu the PLL free-runs at its pre-dip frequency (otherwise it locks onto the module's own current through the "
+      "grid impedance and the voltage comes back out of phase: without the freeze the 0 pu dip at SCR 50 recovered at 462 A). (3) A "
+      f"per-sample predictive clamp in the PWM update at {P['iclamp']:.0f} A (sampled, ripple-midpoint current) = the window's low edge "
+      f"{lo:.0f} A - ripple/2 {P['ripple_pp'] / 2:.1f} A - {A('iclamp_margin_A'):.0f} A for the prediction error (sensed C_f voltage "
+      "behind its divider, L1 tolerance): per phase, the current one period after the new command is predicted from the sensed current "
+      f"and the command already committed; a phase that would leave +/-{P['iclamp']:.0f} A gets the deadbeat command that ends that "
+      "period on the clamp (unit gain on that phase; the PR integrators are back-calculated). Dips at 125 kW export with the power "
+      "reference held, 150 ms; onset = the first ms; peaks = averaged + ripple/2 (SIMULATED, sampled averaged model).\n")
+    a(tab(("grid", "residual pu", "onset A", "in dip A", "recovery A", "in-dip current A pk", "settled to 5 % ms", "modulation limit ms",
+           "window"),
+          [(scr_name(d["scr"]), f"{d['depth']:g}", f"{d['pk_on']:.0f}", f"{d['pk_dip']:.0f}", f"{d['pk_rec']:.0f}", f"{d['i_dip']:.0f}",
+            f"{d['settle_ms']:.1f}", f"{d['usat_ms']:.1f}", "TRIP (onset)" if d["trip"] else "inside") for d in rt["rows"]]))
+    co = rt["clamp_only"]
+    a("Clamp alone (no ride-through state, reference at the 200 ms tier): " + "; ".join(
+        f"{scr_name(d['scr'])} {d['depth']:g} pu: {d['pk_on']:.0f} / {d['pk_dip']:.0f} / {d['pk_rec']:.0f} A (clamp active "
+        f"{d['clamp_ms']:.1f} ms)" for d in co) + ". Against section 4 (no clamp) the clamp lowers the SCR 5 in-dip peak but not the "
+      "recovery, where the modulation limit is reached; with the ride-through state the reference stays below it and it never acts - "
+      "it is the backstop for a reference that would exceed it. The current loop settles onto the dip-time limit within the times in "
+      "the table (SCR 5 longer: the modulation limit at the recovery and the weak-grid loop).\n")
+    tr = [d for d in rt["rows"] if d["trip"]]
+    on = {d["depth"]: d["pk_on"] for d in rt["rows"] if d["scr"] is None}
+    a(f"**What firmware cannot do.** The onset peak forms within the first ms, before the C_f divider's lag "
+      f"({P['tv'] * 1e6:.0f} us) and the 1.5 T_s delay ({1.5 * P['T'] * 1e6:.1f} us) let any firmware act: on a stiff grid it reaches "
+      + ", ".join(f"{v:.0f} A at {k:g} pu" for k, v in on.items()) + f" against the {lo:.0f} A low edge"
+      + (f" - rated current trips the window for residual voltages of {max(d['depth'] for d in tr):g} pu and below at "
+         + ", ".join(sorted({scr_name(d['scr']) for d in tr})) if tr else "") +
+      f"; from SCR 50 down every onset stays inside (SCR 50 current-loop margins: PM {rt['scr50']['pm']:.0f} deg, GM "
+      f"{rt['scr50']['gm']:.1f} dB). The study's dip instant is the worst of a 60 deg scan ("
+      + ", ".join(f"{x:.0f}" for x in rt["instant_scan"]) + " A). A CMPSS cycle-by-cycle threshold below the window or a faster "
+      "divider would be hardware (out of this firmware-only scope).\n")
+    a("**Derating (firmware) at stiff connections.** The onset is affine in the pre-dip current; the pre-dip power that puts it on the "
+      "low edge, rounded down and verified by simulation: " + "; ".join(
+          f"{d['depth']:g} pu: {d['P_max_kW']:.1f} kW ({100 * d['frac']:.0f} %, onset {d['onset']:.0f} A)" for d in rt["derating"]) + ".\n")
+    pr = P["lvrt_profile"]
+    ok_grids = [scr_name(s) for s in rt["grids"] if all(not d["trip"] for d in rt["rows"] if d["scr"] == s)]
+    a(f"**Ride-through profile** (hand-over, FROM MEMORY: {pr[0][0]:g} pu to {pr[0][1]:g} s, {pr[1][0]:g} pu to {pr[1][1]:g} s, linear to "
+      f"{pr[2][0]:g} pu at {pr[2][1]:g} s): during the dip the current is held at {P['lvrt_ilim'] / P['I_rated']:.1f} I_r, inside the continuous tier, so the profile's durations add no "
+      "limit and the peaks do not depend on the duration beyond 150 ms (the current is settled). At rated pre-dip current the whole "
+      "profile rides through at " + ", ".join(ok_grids) + "; at a stiff connection the points below "
+      f"{min((d['depth'] for d in rt['derating'] if d['frac'] >= 1), default=1.0):g} pu need the derating above.\n")
+    return L
+
+
+def rep_7b(P, R):
+    """report section 7b: VF secondary restoration and the accuracy statements; four-wire unbalance pointer"""
+    sec, acc, L = R["sec"], R["acc"], []
+    a = L.append
+    v, f = acc["voltage"], acc["frequency"]
+    a("## 7b. VF (off-grid) secondary restoration and the accuracy statements\n")
+    a(f"**Structure (firmware).** Above the droop + virtual impedance, two slow integrators: the generator's frequency deviation is "
+      "integrated into an offset of the droop (d dw_s/dt = -dw/T) and the sensed C_f-voltage magnitude (5 Hz filtered) into an offset of "
+      "the voltage set point (d dV_s/dt = (V_n - |v_C|)/T). Steady state: 50 Hz and V_n exactly (integral action); the droop and the "
+      "virtual impedance still act on every transient. VF only: in grid-connected grid forming the grid sets f and V, the "
+      "integrators would wind up against it - frozen and ramped out before re-synchronisation. The voltage layer is re-seeded "
+      f"downwards when it exceeds the virtual-impedance drop of the present output current by > {sec['reseed_pu']:g} pu (load "
+      "rejection), never upwards. Paralleled modules share the restoration over the module CAN (a consensus of the offsets, so that "
+      "each module's integrator does not pull the droop's sharing apart - stated, not modelled).\n")
+    a(f"**Time constant (firmware parameter): {sec['T_s']:g} s.** Linearised island at rated load (the fixed point exists with the "
+      "restoration); rule: the restoration modes real, >= " + f"{A('sec_rule')[0]:g} x slower than the nearest primary mode (the 5 Hz "
+      f"measurement filters), moving it by <= {100 * A('sec_rule')[1]:.0f} %, and T >= {A('sec_rule')[0]:g} x the {A('can_cycle_s') * 1e3:.0f} ms "
+      "CAN cycle; the smallest value meeting it is taken:\n")
+    a(tab(("T s", "restoration modes tau s", "real", "separation from the 5 Hz filters", "filter mode moved %", "least-damped mode",
+           "rule"),
+          [(f"{d['T_s']:g}", " / ".join(f"{x:.2f}" for x in d["tau_s"]), "yes" if d["real"] else "NO", f"{d['sep']:.1f} x",
+            f"{d['shift_pct']:.1f}", f"zeta {d['zeta']:.3f} at {d['f_osc']:.0f} Hz", "pass" if d["ok"] else "fail") for d in sec["scan"]]))
+    a("The least-damped mode of the primary loops is the same at every T: the restoration does not reach into the droop or the voltage "
+      "loop. (The island's free angle - eigenvalue 1 - is excluded: off-grid there is no angle reference.)\n")
+    st = sec["steps"]
+    fb = 0.002 * F0
+    a(tab(("step (SIMULATED)", "v_C min pu", "v_C max pu", "within 10 % ms", "within +/-1 % s", "f min / max Hz", "within +/-0.2 % s",
+           "at the end of the run"),
+          [(k, f"{s['v_min']:.3f}", f"{s['v_max']:.3f}", f"{s['t_v10_ms']:.1f}", f"{s['t_v1_s']:.3f}" if abs(s["v_end"] - 1) <= 0.01 else
+            "not restored", f"{s['f_min']:+.3f} / {s['f_max']:+.3f}", f"{s['t_f_s']:.3f}" if abs(s["f_end"]) <= fb else "not restored",
+            f"{s['v_end']:.4f} pu, {s['f_end']:+.4f} Hz at {s['t_end_s']:g} s") for k, s in st.items()]))
+    p0 = st["rated -> 0, primary layer only"]
+    a(f"Frequency band +/-0.2 % = +/-{fb:.2f} Hz. The dip ({st['0 -> rated']['v_min']:.2f} pu) and the overshoot "
+      f"({st['rated -> 0']['v_max']:.2f} pu) are the primary loops' first milliseconds (the restoration is too slow to touch them); from the "
+      f"primary layer's own rated-load voltage the same rejection reaches {p0['v_max']:.2f} pu - L1's current charges C_f before the "
+      "inner loop turns it (no measured output current, section 10); the re-seed shortens the tail above +1 % from "
+      f"{st['rated -> 0, no re-seed']['t_v1_s']:.2f} s to {st['rated -> 0']['t_v1_s']:.2f} s. Averaged model: above the DC-link half "
+      "the switched bridge's diodes would clamp sooner; the published accuracy rows are static.\n")
+    ss = sec["ss"]
+    a("Steady state (Newton fixed point with the restoration): " + "; ".join(
+        f"{k}: v_C {d['v_C_pu']:.5f} pu, load terminals {d['v_t_pu']:.5f} pu, frequency {d['df_Hz']:+.1e} Hz" for k, d in ss.items())
+      + f" - zero error by construction on the sensed C_f magnitude (the divider's 50 Hz attenuation, "
+      f"{1e6 * (1 - 1 / math.hypot(1, P['w0'] * P['tv'])):.0f} ppm, remains); the load "
+      "terminals sit below it by the L2 drop at rated load (measuring the restoration on VG1-3 instead removes it).\n")
+    a(f"**Voltage accuracy (CALCULATED):** regulation residual {v['residual_pct']:.3f} % + sensing floor (PCS-CTL design check, after the "
+      f"two-point calibration: ADC share RSS {v['adc_rss_pct']:.2f} % / worst {v['adc_worst_pct']:.2f} %, divider TCR mismatch "
+      f"{v['tcr_pct']:.2f} %) = **{v['bound_worst_pct']:.2f} % worst-case sum** ({v['bound_rss_pct']:.2f} % RSS), no load to rated.\n")
+    a(f"**Frequency accuracy (CALCULATED):** the output frequency is the angle generator's: oscillator {f['oscillator']} "
+      f"+/-{f['oscillator_ppm']:g} ppm (module BOM; covers initial, temperature, supply and load) + ageing {f['ageing_ppm']:g} ppm "
+      f"(ASSUMED) + the 32-bit per-unit accumulator's rounded increment {f['accumulator_ppm']:.2f} ppm + the restoration residual "
+      f"{f['residual_ppm']:.1e} ppm = **+/-{f['bound_ppm']:.1f} ppm = +/-{f['bound_pct']:.4f} %**. (A float32 radian accumulator, the "
+      f"alternative, would add {f['float32_radian_ppm']:.2f} ppm over one second - also negligible.)\n")
+    a("Four-wire 100 % unbalanced load: section 9b (per-phase loops, the N node).\n")
+    return L
+
+
+def rep_8b(P, R):
+    """report sections 8b (THDu) and 8c (imbalance)"""
+    th, im, hv, L = R["thdu"], R["imb"], R["gfm_harm"], []
+    a = L.append
+    a("## 8b. THDu on a linear balanced load (VF, off-grid; CALCULATED - analytical, not a switched simulation)\n")
+    a("Terms: (a) the carrier groups of regular-sampled double-update PWM (sim/pcs_design.py's exact Fourier series, imported) through "
+      "the LCL with the load, at the load terminals; (b) the dead-time error with a ripple-aware shape (it is a square wave only where "
+      "the current exceeds half the local ripple; at no load it nearly vanishes) through the closed VF loop; (c) wherever a zero "
+      "sequence is modulated (three-wire m > 0.98: min-max; four-wire mode B), its 150 Hz family through the filters' tolerance "
+      "mismatch (corner pair: +10 % L at 0 A / C_f +5 % against the -10 % part at the trip current / C_f -5 %) and, three-wire, through "
+      "the per-channel gain error into the measured alpha-beta. Three-wire = line-to-neutral of a balanced star load (non-triplen "
+      "orders); four-wire = phase-to-N (every order; mode A with the N leg at 50 %, its carrier term included; mode B's carrier "
+      "approximated with the N leg at zero reference). h2-h50 plus the carrier groups, against the fundamental.\n")
+    a(f"Voltage loop: the design (PR at h1) and the option with h5 / h7 resonant terms (lead {', '.join(f'h{h} {v:.0f} deg' for h, v in hv['phi'].items())}, "
+      f"K_h {hv['Kh']:.1f} S/s): margin rule met (PM {hv['pm']:.0f} deg, GM {hv['gm']:.1f} dB), but their closed-loop modes decay at "
+      + "/".join(f"{-x:.1f}" for x in hv["decay"].values()) + f" 1/s against the {-hv['decay_need']:.1f} 1/s the current loop's rule asks: "
+      + ("adopted." if hv["adopted"] else "not adopted - and not needed (below).") + "\n")
+    rows = []
+    for w in ("3W", "4W"):
+        for ld in ("rated", "50 %", "no load"):
+            for ln in th["loops"]:
+                for dt in dict.fromkeys(r["dead_time"] for r in th["rows"]):
+                    sel = [r for r in th["rows"] if r["wire"] == w and r["load"] == ld and r["loop"] == ln and r["dead_time"] == dt]
+                    r = max(sel, key=lambda x: x["thdu_pct"])
+                    rows.append((w, ld, ln, dt, f"{r['thdu_pct']:.2f}", f"{r['vdc']:.0f} V ({r['mode']})", f"{r['carrier_pct']:.2f}",
+                                 f"{r['dead_time_pct']:.2f}", f"{math.hypot(r['leak_pct'], r['mismatch_pct']):.2f}",
+                                 "; ".join(f"{n} {v:.2f} %" for n, v in r["dominant"])))
+    a(tab(("wire", "load", "voltage loop", "dead time", "THDu % (worst V_dc)", "at", "carrier %", "dead time %", "zero sequence %",
+           "dominant terms"), rows))
+    pv = {(w, r["vdc"]): max(x["thdu_pct"] for x in th["rows"] if x["wire"] == w and x["vdc"] == r["vdc"] and x["loop"] == "PR h1")
+          for w in ("3W", "4W") for r in th["rows"] if r["wire"] == w}
+    a("Worst over the load points per DC voltage (design loop, dead time not compensated): " + "; ".join(
+        f"{w} {v:.0f} V {x:.2f} %" for (w, v), x in pv.items()) + " - the zero-sequence term exists only where a zero sequence is "
+      f"modulated (three-wire below {max(r['m'] * r['vdc'] for r in th['rows'] if r['wire'] == '3W') / 0.98:.0f} V at rated load, where "
+      f"m > 0.98; four-wire mode B below {P['fw4']['modeA_from']:.0f} V).\n")
+    d = th["dc"]
+    a(f"DC component (separately, not part of THDu): the DC-component regulator holds it at its measurement floor, "
+      f"{d['dc_V']:.2f} V ({d['dc_pct_Un']:.2f} % of Un; divider TCR mismatch at 750 V, pcs_spec) against the {d['limit_V']:.2f} V "
+      "(0.5 % Un) limit; the ADC gain drift of the two channels is the open term of that row. What a switched model would add: the "
+      "dead-time error's dependence on the commutation (device capacitance, current-dependent switching times) and the minimum pulse "
+      "near m = 1, the ripple's sampling and aliasing in the ADC, the device voltage drops (a resistive term), the interaction of the "
+      "carrier sidebands with the loop, and the N leg's own switching in four-wire mode B.\n")
+    a("## 8c. Output voltage imbalance on a linear balanced load (CALCULATED)\n")
+    b = im["bound"]
+    p50 = im["per_freq"]["50 Hz"]
+    a(f"The loops regulate the measured voltages exactly at the fundamental (resonant terms at +/-50 / 60 Hz), so the output carries the "
+      f"inverse of each channel's gain and phase error. Gain: +/-{im['gain_pct']:.2f} % per channel after the two-point calibration (the "
+      "control board's ADC share + divider TCR, every term independent per channel - the reference drift is counted although the three "
+      "ADCs may share it). Phase: the drawn anti-alias poles - PCS-PWR divider R_th "
+      f"{im['divider']['R_th_ohm'] / 1e3:.2f} k (+/-{100 * im['divider']['tol_R']:g} %) with {im['divider']['C_nF']:g} nF "
+      f"(+/-{100 * im['divider']['tol_C']:g} % C0G), PCS-CTL charge bucket {im['bucket']['R_ohm']:.0f} R (+/-{100 * im['bucket']['tol_R']:g} %) "
+      f"with {im['bucket']['C_nF']:g} nF (+/-{100 * im['bucket']['tol_C']:g} %): common lag {p50['lag_nom_deg']:.3f} deg at 50 Hz "
+      f"(no effect on the displacement), per-channel spread +/-{p50['dphi_deg']:.4f} deg (50 Hz) / "
+      f"+/-{im['per_freq']['60 Hz']['dphi_deg']:.4f} deg (60 Hz); VC1-3 convert simultaneously "
+      f"({'yes' if im['vc_round_simultaneous'] else 'NO'}: no skew); the software angle generator's float32 constants "
+      f"{im['generator_deg']:.1e} deg. Worst over every sign corner, 50 and 60 Hz:\n")
+    a(tab(("build", "loop", "amplitude: largest deviation from the mean", "displacement: largest deviation from 120 deg",
+           "negative / positive sequence"),
+          [("three-wire (line-to-line)", "alpha-beta PR", f"+/-{b['3W']['amp_pct']:.2f} %", f"120 +/-{b['3W']['angle_deg']:.2f} deg",
+            f"{b['3W']['vuf_pct']:.2f} %"),
+           ("four-wire (phase-to-N)", "per-phase PR", f"+/-{b['4W']['amp_pct']:.2f} %", f"120 +/-{b['4W']['angle_deg']:.3f} deg",
+            f"{b['4W']['vuf_pct']:.2f} %")]))
+    a("Three-wire: the gain errors rotate the line-to-line phasors (the zero sequence of the measured set is free), so the angle term "
+      "there comes from the gains, not the filters. Regulation residual at the fundamental: zero (resonant terms on both sequences / "
+      "per phase).\n")
+    return L
+
+
+def rep_9b(P, R):
+    """report section 9b: the four-wire neutral leg and the per-phase loops"""
+    nl, L = R["nleg"], []
+    a = L.append
+    a("## 9b. Four-wire: the neutral leg and the per-phase loops (CALCULATED / SIMULATED, linear)\n")
+    a("Same parts (asserted from pcs_spec four_wire): L_N = the L1 part, C_fN = C_f, the same R_d-C_d branch, IL4 and VGN through the "
+      "same sensor and divider chains. Not the same plant beyond N_F: the N path has no L2 of its own; the neutral current returns "
+      "through the load and the phases' L2 to their C_f star on M (off-grid) or through the grid's neutral and the phases' L2 in "
+      "parallel (grid-connected, the phases current-controlled: their C_f star is the only return to M). Margins, worst over the "
+      "nom / low / high / slow corners (the phases' C_f in the path follow the same tolerance), for the phases' grid-following PR "
+      "current controller alone on IL4 and for the VF cascade (P-only inner loop with the phases' K_p and SOGI feed-forward, the "
+      "phases' C_f-voltage PR on VGN - VA):\n")
+    a(tab(("N-node termination", "PR current loop alone: PM / GM / max |pole|", "VF cascade: PM / GM / max |pole|", "cascade -3 dB Hz"),
+          [(r["case"], f"{r['i_pm']:.1f} / {r['i_gm']:.1f} / {r['i_rho']:.5f} ({'pass' if r['i_ok'] else 'FAIL'})",
+            f"{r['v_pm']:.1f} / {r['v_gm']:.1f} / {r['v_rho']:.5f} ({'pass' if r['v_ok'] else 'FAIL'})", g1(r["v_bw"], 0))
+           for r in nl["rows"]]))
+    ph = nl["phase_ref"]
+    held = next(r for r in nl["rows"] if "held" in r["case"])
+    a(f"The phases for comparison: current loop (grid-connected) worst PM {ph['i_pm']:.1f} deg / GM {ph['i_gm']:.1f} dB; VF voltage loop "
+      f"worst PM {ph['v_pm']:.1f} deg / GM {ph['v_gm']:.1f} dB, -3 dB {ph['bw']['nl']:.0f} Hz (no load) / {ph['bw']['rl']:.0f} Hz (rated). "
+      "Where the N node sees a resistive path to a held voltage (the loaded phase), it IS the phase plant and the numbers are the "
+      f"phases' (PR alone PM {held['i_pm']:.0f} deg; cascade {held['v_pm']:.0f} deg / {held['v_gm']:.1f} dB, {held['v_bw']:.0f} Hz = the "
+      "rated-load phase loop). Wherever the N node closes only through capacitors (open terminal, balanced load, grid-connected zero "
+      "sequence) the grid-following PR alone has no current path at the fundamental but its own and fails; the N leg therefore runs "
+      "the VF cascade in every mode, holding v(N_F - M) - which meets the rule at every termination.\n")
+    a("**Per-phase voltage loops (four-wire, mode A):** each phase's C_f voltage against M is its phase-to-N voltage while the N leg "
+      "holds N_F on M; the per-phase PR is the alpha-beta design per axis - same margins, same bandwidth "
+      f"({ph['bw']['nl']:.0f} Hz no load, {ph['bw']['rl']:.0f} Hz rated); amplitude restoration per phase (the 7b voltage layer on each "
+      "phase's RMS).\n")
+    ex = nl["excursion"]
+    ld = R["sec"]["steps"]["0 -> rated"]
+    a(f"**100 % unbalanced load (linear, SIMULATED):** a rated resistive load switched on between a held phase at its peak and N "
+      f"draws up to {ex['iN_pk']:.0f} A through the N leg; the N node moves by {ex['pk_pu']:.2f} pu at most and is within 1 % after "
+      f"{ex['t1_ms']:.0f} ms, {ex['end_pu']:.1e} pu after 80 ms (the 50 Hz resonant term). The unloaded phases' phase-to-N voltages "
+      f"carry that excursion; the loaded phase also its own dip, which per phase is the balanced step's ({ld['v_min']:.2f} pu, section "
+      "7b). Steady state: every phase-to-N RMS restored by its own integrator - the imbalance is the sensing bound of 8c. Not "
+      "simulated: the per-phase virtual reactance's quadrature generator, the droop seeing one third of the power, the switched N "
+      "leg, the combined nonlinear transient.\n")
+    mb = nl["modeB"]
+    a(f"**Mode B zero-sequence feed-forward:** below the mode-A window the min-max zero sequence u_0 of the phase references (at "
+      f"{mb['vdc']:.0f} V and m {mb['m']:.3f}: {mb['u0_150_V']:.0f} V at 150 Hz) is added to all four legs and is the N leg's reference "
+      "(feed-forward to its modulator, the voltage loop correcting the rest). It cancels in phase-to-N to the filters' mismatch: at "
+      f"opposite tolerance corners {mb['resid_150_pct']:.3f} % at 150 Hz but {mb['resid_hmax_pct']:.2f} % at h{mb['h_max']} near the "
+      f"L1-C_f resonance, {mb['resid_pct']:.2f} % over h2-h50 (in the THDu of 8b); a pure third-harmonic zero sequence would leave only "
+      "the 150 Hz term (firmware option).\n")
+    dc = nl["dc"]
+    a(f"**DC-component regulators:** u_0 has no DC ({mb['u0_mean_V']:.0e} V over a period), so mode B does not disturb them. The "
+      "voltage PR has no gain at DC beyond K_pv: a half-wave load's "
+      f"{dc['I_dc_A']:.0f} A DC through the N leg would shift N_F by {dc['offset_without_V']:.0f} V ({dc['I_dc_A']:.0f} A / "
+      f"{dc['K_pv_S']:.3f} S) - so the N leg needs its own DC regulator (one-cycle mean of VGN - VA -> integrator -> offset on its "
+      "reference) beside the phases' (one-cycle mean of each phase-to-N voltage): four integrators on four independent DC quantities "
+      "(three phase-to-N, one N-to-M), none fighting another. Firmware rows in section 9.\n")
+    return L
 
 
 def write_report(P, G, R, spec, t_run):
@@ -1744,17 +2656,43 @@ def write_report(P, G, R, spec, t_run):
       "transfer sequence and permissives in section 7.")
     a("- **Firmware:** sampling plan, ISR budget, limits, anti-islanding methods and a protection state machine whose "
       "transition table passes an exhaustive invariant check (section 9).")
+    rt, sec, acc, th, im, nl = R["rt"], R["sec"], R["acc"], R["thdu"], R["imb"], R["nleg"]
+    trip = [d for d in rt["rows"] if d["trip"]]
+    a(f"- **Ride-through (section 4b):** a ride-through state (dip-time limit {P['lvrt_ilim'] / P['I_rated']:.1f} I_r, PLL free-running "
+      f"below {A('pll_freeze_pu')} pu) and a per-sample clamp at {P['iclamp']:.0f} A hold every in-dip and recovery peak at <= "
+      f"{max(max(d['pk_dip'], d['pk_rec']) for d in rt['rows']):.0f} A from stiff to SCR 5 and 0 to 0.5 pu; "
+      + (f"the onset at a stiff connection still reaches {max(d['pk_on'] for d in trip):.0f} A for residual voltages <= "
+         f"{max(d['depth'] for d in trip):g} pu (latency-bound, before any firmware acts): derating "
+         + ", ".join(f"{d['P_max_kW']:.1f} kW at {d['depth']:g} pu" for d in rt["derating"] if d["frac"] < 1) + "." if trip else
+         "no studied onset reaches the window."))
+    a(f"- **VF accuracy (section 7b):** secondary restoration (T {sec['T_s']:g} s) returns the voltage within +/-1 % in "
+      f"{sec['steps']['0 -> rated']['t_v1_s']:.2f} / {sec['steps']['rated -> 0']['t_v1_s']:.2f} s and the frequency within +/-0.2 % in "
+      f"{sec['steps']['0 -> rated']['t_f_s']:.2f} / {sec['steps']['rated -> 0']['t_f_s']:.2f} s after 0 -> rated / rated -> 0 "
+      f"(dip {sec['steps']['0 -> rated']['v_min']:.2f} pu, overshoot {sec['steps']['rated -> 0']['v_max']:.2f} pu, averaged model); "
+      f"voltage accuracy {acc['voltage']['bound_worst_pct']:.2f} % worst-case sum, frequency +/-{acc['frequency']['bound_ppm']:.0f} ppm.")
+    tw = {w: max(r["thdu_pct"] for r in th["rows"] if r["wire"] == w and r["loop"] == "PR h1") for w in ("3W", "4W")}
+    a(f"- **THDu (section 8b, analytical):** <= {tw['3W']:.2f} % three-wire, <= {tw['4W']:.2f} % four-wire on a linear balanced load "
+      "(worst load point and DC voltage, dead time not compensated); output imbalance (8c) +/-"
+      f"{im['bound']['3W']['amp_pct']:.2f} % and 120 +/-{im['bound']['3W']['angle_deg']:.2f} deg three-wire, +/-{im['bound']['4W']['amp_pct']:.2f} % "
+      f"and 120 +/-{im['bound']['4W']['angle_deg']:.3f} deg four-wire.")
+    a(f"- **Four-wire N leg (section 9b):** the same parts give the same loop only where the N node sees a held phase; on its "
+      "capacitive terminations the grid-following PR alone fails, the VF cascade passes everywhere (worst PM "
+      f"{min(r['v_pm'] for r in nl['rows']):.0f} deg, GM {min(r['v_gm'] for r in nl['rows']):.1f} dB); a 100 % unbalanced load step "
+      f"moves the N node by {nl['excursion']['pk_pu']:.2f} pu for {nl['excursion']['t1_ms']:.0f} ms.")
     mm = [h[0] for h in R["hw"] if h[3].startswith("MISMATCH")]
     a(f"- **Drawn hardware:** {len(mm)} mismatches (section 10): " + "; ".join(mm) + ".\n")
     a("## What it does not establish\n")
     a("- No switched model: PWM ripple is added to peaks as +ripple/2, dead time is a voltage disturbance, no device or "
       "sensor nonlinearity. THDi is an estimate from the linear closed loop with assumed background distortion, not a "
-      "measurement or a switched simulation.")
+      "measurement or a switched simulation; THDu (8b) is analytical in the same sense.")
     a("- No standards text: grid-code limits (ROCOF, phase jump, LVRT, islanding times) are quoted from memory and labelled; "
       "no compliance is claimed, in particular not IEC 62116 anti-islanding (not simulated).")
-    a("- Not covered: four-wire neutral-leg control, parallel units, LVRT reactive-current priority profiles, the AC-side "
-      "start-up path, common-mode/leakage control (the C_f star on the DC midpoint is common mode only), switching-frequency "
-      "interactions, ADC noise and quantisation, sensor offsets.\n")
+    a("- Not covered: the four-wire build only linearly (section 9b: N-leg loop margins and the N-node excursion; no switched N "
+      "leg, no nonlinear unbalanced transient), parallel units (the restoration consensus over the module CAN is stated, not "
+      "modelled), LVRT reactive-current injection profiles (the ride-through study holds the power reference), the AC-side "
+      "start-up path as a state of the checked machine (drawn: grid tap and AC precharge, pcs_spec ac_start; the rectifier stage "
+      "after it is this study's DC-link loop), common-mode/leakage control (the C_f star on the DC midpoint is common mode only), "
+      "switching-frequency interactions, ADC noise and quantisation, sensor offsets.\n")
     a("## 1. Inputs and assumptions\n")
     a(f"Read at run time: `{os.path.relpath(SPEC, ROOT)}` (L1 {P['L1'] * 1e6:.0f} uH, C_f {P['Cf'] * 1e6:.0f} uF, L2 "
       f"{P['L2'] * 1e6:.1f} uH, R_d {P['Rd']:.1f} ohm + C_d {P['Cd'] * 1e6:.0f} uF; f_sw {P['fsw'] / 1e3:.0f} kHz, sampling "
@@ -1854,6 +2792,7 @@ def write_report(P, G, R, spec, t_run):
       f" against the {P['win']['lo']:.0f} A low edge of the band. What-if: the stiff 0.1 pu dip with a 30 kHz C_f divider "
       f"{R['divider'][30e3]:.0f} A against {R['divider'][P['f_vdiv']]:.0f} A as drawn.\n")
     a("![faults](faults.png)\n")
+    L.extend(rep_4b(P, R))
     a("## 5. PLL\n")
     a(tab(("grid", "P kW", f"PM / GM at {G['f_pll']:.0f} Hz", "rule holds up to Hz", "unstable from Hz"),
           [(scr_name(s["scr"]), f"{s['P'] / 1e3:+.0f}", f"{s['pm_design']:.0f} / {g1(s['gm_design'])}", g1(s["f_max"], 0),
@@ -1936,6 +2875,8 @@ def write_report(P, G, R, spec, t_run):
     a("**Transfer sequence (state list):**\n")
     a(tab(("state", "entry", "exit / permissive", "outputs", "measured", "hardware behind it"), sm_table(P, G)))
     a("![gfm](gfm.png)\n")
+    L.extend(rep_7b(P, R))
+    a("![vf](vf_and_ride_through.png)\n")
     a("## 8. THDi estimate and dead time (CALCULATED, assumed background distortion)\n")
     rows = []
     for ctl in dict.fromkeys(r["ctrl"] for r in R["thd"]):
@@ -1946,6 +2887,7 @@ def write_report(P, G, R, spec, t_run):
     a(f"Dead-time error {P['dt_gate_ns'][0]:.0f}-{P['dt_gate_ns'][1]:.0f} ns at 900 V and {P['fsw'] / 1e3:.0f} kHz = "
       f"{900 * P['fsw'] * P['dt_gate_ns'][0] * 1e-9:.1f}-{900 * P['fsw'] * P['dt_gate_ns'][1] * 1e-9:.1f} V average, a square "
       f"wave with the current sign; plus the PWM figure of pcs_spec ({100 * P['pwm_thd']:.2f} %).\n")
+    L.extend(rep_8b(P, R))
     pl, isr = R["plan"], R["isr"]
     a("## 9. Firmware requirements\n")
     a(tab(("round", "nets", "pins", "ADC A/B/C"), [(i + 1, ", ".join(r["nets"]), ", ".join(r["pins"]), "/".join(r["adc"] or ("-",)))
@@ -1963,10 +2905,25 @@ def write_report(P, G, R, spec, t_run):
       f"add about 1 %. The CLA can take the {P['fs'] / 1e3:.0f} kHz part.\n")
     a(tab(("limit / setting", "value"), firmware_limits(P, G, R)))
     a(tab(("anti-islanding", "method", "measurements", "note"), anti_islanding(P)))
+    sp = read_json(SPEC)
+    fw4, acs = sp.get("four_wire"), sp.get("ac_start")
+    if fw4 and acs:                                         # sim/pcs_design.py step i (read at run time): text only, no new model
+        nom = fw4["window"]["rows"]["nominal"]
+        a("Four-wire build and AC start (sim/pcs_design.py step i, read at run time; the N-leg loop: section 9b): the N leg runs in "
+          "mode A "
+          f"(50 % duty, reference L_N di_N/dt plus a v(N_F - M) loop on VGN - VA; {nom['mode_A']['closing (no load)']:.0f} V DC to "
+          f"connect at 230 V) or mode B (the min-max zero sequence on all four legs: the three-wire window, "
+          f"{nom['mode_B']['closing (no load)']:.0f} V), the per-phase current loops here take the phase-to-N voltages, the neutral "
+          "current is limited to the phase tiers, and a DC-component regulator holds the off-grid output below 0.5 % Un with "
+          f"half-wave loads; the grid-start path ({len(acs['sequence'])} steps in pcs_spec ac_start: grid tap boots the controller -> "
+          "relay test -> AC precharge -> K2, K1 onto the precharged link -> rectifier start -> DC port) enters this study's DC-link "
+          "loop (PI 40 Hz, DC-current feed-forward = 0 with the DC contactor open) as a rectifier. The state table above does not "
+          "yet carry the AC-start states (section 11).\n")
     a("Protection state machine: outputs (PWM, K_PRE, K_DC, K_AC1+2) per state " + ", ".join(f"{s} {v}" for s, v in SM_OUT.items())
       + ". Exhaustive check over every (state, event) pair: " + "; ".join(f"{k}: {'holds' if v else 'FAILS'}" for k, v in R["sm"].items())
       + ". (The check found that a stop during synchronisation routed through CONTROLLED STOP would have closed the AC "
       "contactors; the transition now goes to IDLE.) Verified = the table, not firmware code.\n")
+    L.extend(rep_9b(P, R))
     a("## 10. The drawn hardware against the loop\n")
     a(tab(("item", "as drawn / stated", "study result", "verdict"), R["hw"]))
     a("## 11. Open items\n")
@@ -1974,16 +2931,24 @@ def write_report(P, G, R, spec, t_run):
     a(f"- Phase-current sensor: the frozen {A('sensor')['part']} ({A('sensor')['G_mV_per_A']} mV/A) needs the PCS-CTL window "
       f"ladder re-valued (drawn for {P['G_chk']:.1f} mV/A); its 2 us step response is in the loop here; the residual-current "
       "sensor is still a quotation part.")
-    a("- The fault-transient peaks above the window's low edge need a decision: cycle-by-cycle limiting on the CMPSS below "
-      "the latch band, a faster C_f divider, or accepting a trip on close-in faults.")
+    a("- Ride-through: the stiff-grid onset of deep dips (section 4b) is latency-bound - the firmware derating at stiff "
+      "connections or a trip; a CMPSS cycle-by-cycle threshold below the window or a faster C_f divider would be hardware "
+      "decisions; the ride-through state's thresholds and the dip-time cap follow grid-code values quoted from memory.")
     a(f"- DC/DC coordination: power ramp and a shared trip signal; the DAB study's {P['c_pcs_dab'] * 1e3:.0f} mF assumption.")
-    a("- Grid forming without a grid-side current sensor: load-step voltage dip; secondary voltage/frequency restoration; "
-      "the virtual impedance (0.15 + j0.30 pu) was not re-scanned with the new voltage-loop gains.")
+    a("- Grid forming without a grid-side current sensor: full-load steps dip to "
+      f"{R['sec']['steps']['0 -> rated']['v_min']:.2f} pu and overshoot to {R['sec']['steps']['rated -> 0']['v_max']:.2f} pu "
+      "(section 7b, averaged model; the published rows are static); the virtual impedance (0.15 + j0.30 pu) was not re-scanned "
+      "with the new voltage-loop gains; paralleled modules' restoration consensus over the CAN is not modelled.")
     a("- PLL: plain SRF on v_C; a positive-sequence (DSOGI) front end for unbalanced grids is a firmware option, not studied.")
-    a("- Standards (EN 50549-1, IEC 62116, GB/T 34120) to buy and check against the assumed limits.\n")
+    a("- Standards (EN 50549-1, IEC 62116, GB/T 34120) to buy and check against the assumed limits.")
+    a("- Four-wire: the per-phase virtual reactance (quadrature generator), the 100 % unbalanced transient as one nonlinear / "
+      "switched simulation (section 9b is linear), the mode A / B hand-over; the AC-start states (grid tap, AC precharge, closing "
+      "onto the precharged link, rectifier start) in the checked state table (pcs_spec ac_start, firmware rows of the hand-over).")
+    a("- VF THDu: the min-max zero sequence near the L1-C_f resonance through the filters' tolerance mismatch is the largest term "
+      "at low DC voltage; the third-harmonic zero sequence (firmware option) is not adopted or simulated.\n")
     a("## Files\n")
     a("`sim/pcs_control.py`; `sim/out/pcs_control/`: report.md, pcs_control_spec.json, bode_scr.png, steps.png, faults.png, "
-      "pll_weak_grid.png, gfm.png.")
+      "pll_weak_grid.png, gfm.png, vf_and_ride_through.png.")
     open(os.path.join(OUT, "report.md"), "w").write("\n".join(L) + "\n")
 
 
@@ -2043,6 +3008,29 @@ def self_check(P, G, R):
             assert r["thd_pct"] < 3.0, ("THDi estimate of the design", r["scr"], r["dt"], r["thd_pct"])
     assert R["plan"]["all_simultaneous"] and R["plan"]["busy_pct"] < 50, "ADC plan"
     assert max(v["pct"] for v in R["isr"][1].values()) < 50, "ISR budget"
+    # sections 4b, 7b, 8b-c, 9b
+    rt, lo = R["rt"], P["win"]["lo"]
+    assert all(max(d["pk_dip"], d["pk_rec"]) <= lo for d in rt["rows"]), "ride-through: an in-dip / recovery peak above the window"
+    assert all(d["onset"] <= lo for d in rt["derating"]), ("derated pre-dip power does not hold the onset", rt["derating"])
+    assert rt["instant_scan"][0] >= max(rt["instant_scan"]) - 1.0, ("the study's dip instant is not the worst of the scan", rt["instant_scan"])
+    ons = [d["pk_on"] for d in rt["rows"] if d["scr"] is None]
+    assert all(a >= b for a, b in zip(ons, ons[1:])), "stiff-grid onset not monotonic in the residual voltage"
+    sec = R["sec"]
+    assert all(abs(d["v_C_pu"] - 1) < 1e-4 and abs(d["df_Hz"]) < 1e-6 and d["eq_res"] < 1e-6 for d in sec["ss"].values()), \
+        ("VF restoration: the fixed point is not at nominal voltage and frequency", sec["ss"])
+    for k in ("0 -> rated", "rated -> 0"):
+        s = sec["steps"][k]
+        assert s["t_v1_s"] < s["t_end_s"] - 0.3 and s["t_f_s"] < s["t_end_s"] - 0.3, ("VF restoration does not settle in the window", k)
+    v = R["acc"]["voltage"]
+    assert abs(v["bound_worst_pct"] - v["residual_pct"] - v["sensing_worst_pct"]) < 1e-9, "voltage accuracy bookkeeping"
+    for r in R["thdu"]["rows"]:
+        tot = math.sqrt(r["carrier_pct"] ** 2 + r["dead_time_pct"] ** 2 + r["leak_pct"] ** 2 + r["mismatch_pct"] ** 2)
+        assert abs(tot - r["thdu_pct"]) < 1e-6 * max(1.0, tot), ("THDu terms do not add up", r)
+    nl = R["nleg"]
+    assert all(r["v_ok"] for r in nl["rows"]), ("N leg: the VF cascade fails the rule at a termination", nl["rows"])
+    held = next(r for r in nl["rows"] if "held" in r["case"])
+    assert held["i_ok"] and abs(held["v_pm"] - nl["phase_ref"]["v_pm"]) < 2.0, ("N leg with a held phase is not the phase plant", held)
+    assert nl["excursion"]["end_pu"] < 0.01 and abs(nl["modeB"]["u0_mean_V"]) < 1e-6, ("N node", nl["excursion"], nl["modeB"])
 
 
 def main():
@@ -2064,6 +3052,10 @@ def main():
                              f"design without harmonic terms ({fc:.0f} Hz)": ctrl(P, fc, harm=()),
                              "1 kHz (risk register)": ctrl(P, 1000.0)})
     R["plan"], R["isr"], R["sm"], R["vdc_min"] = sampling_plan(P), isr_budget(P, K), verify_sm(), vdc_min(P)
+    R["rt"], R["sec"] = study_ride_through(P, G), study_secondary(P, G)
+    R["acc"], R["gfm_harm"] = vf_accuracy(P, R["sec"]), design_gfm_harm(P, K, G["Kv"])
+    R["thdu"] = study_thdu(P, G, R)
+    R["imb"], R["nleg"] = study_imbalance(P, R), study_neutral(P, G, R)
     R["hw"] = hardware(P, R)
     plots(P, G, R)
     spec = write_spec(P, G, R)

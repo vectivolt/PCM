@@ -22,7 +22,7 @@ BOARDS = {   # KiCad project -> generator script (a script may build variants: p
 # DAB60 (gen/dab60.py) is frozen at its rev B outputs: the generator predates gate drive rev 5 and the re-run DAB
 # spec and does not build against them; the DAB is to be redrawn cost-first (ARCHITECTURE-COSTFIRST.md section 16).
 FROZEN = {"DAB60": "rev B outputs kept; generator not maintained (superseded by the cost-first DAB, not yet drawn)"}
-VARIANTS = {"PV-PWR": ["PV-PWR-4"], "PV-PORT": ["PV-PORT-180"]}                          # extra projects a script builds
+VARIANTS = {"PV-PWR": ["PV-PWR-4"], "PV-PORT": ["PV-PORT-180"], "PCS-PWR": ["PCS-PWR-4W"]}   # extra projects a script builds
 COMMON = {"CTRL-C2000": 1, "SYS-IO-AUX": 1, "AUX-HV": 1, "BMU-GW": 1}
 MODULES = {  # module -> {board: quantity}
     # the product baseline: cost-first architecture (decision D-044): one power board + one control board
@@ -30,6 +30,8 @@ MODULES = {  # module -> {board: quantity}
     "PV-P100-110": {"PV-PWR-4": 1, "PV-CTL": 1},                     # P100 and P110 differ in rating only
     # the inverter (D-061, D-062): power board + the control board's three-wire assembly (neutral-leg comparators not fitted)
     "PCS-P125": {"PCS-PWR": 1, "PCS-CTL-3W": 1},
+    # the four-wire inverter (3W+N+PE; sim/pcs_design.py step i): the four-wire power board + the control board with every part fitted
+    "PCS-P125-4W": {"PCS-PWR-4W": 1, "PCS-CTL-4W": 1},
     # the roadmap's full-featured platform, kept as reference (REQUIREMENTS.md PV-15, DAB-02)
     "PV-P75-FULL": dict(COMMON, **{"PVCELL-25": 3, "PV-PORT": 1}),
     "PV-P100-110-FULL": dict(COMMON, **{"PVCELL-25": 4, "PV-PORT-180": 1}),
@@ -44,16 +46,18 @@ PHASES = {"PV-P75": 3, "PV-P100-110": 4}
 def extras(module):
     """Chassis items that sit on no board: [(quantity, Value, Description, Manufacturer, MPN, Package, Sourcing,
     Datasheet)]. The fan comes from the thermal design's own output, so the BOM cannot drift from it."""
-    if module == "PCS-P125":  # inverter: inductors, contactors, fuses, terminals and heatsinks are drawn on PCS-PWR
+    if module in ("PCS-P125", "PCS-P125-4W"):  # inverter: inductors, contactors, fuses, terminals, heatsinks drawn on PCS-PWR
         rows = {r["part"]: r for r in csv.DictReader(open(os.path.join(REPO, "gen", "data", "costfirst_bom.csv"),
                                                           encoding="utf-8")) if r["block"] in ("THERMAL", "MECH-ELEC")}
         fan = [k for k in rows if "FB1224" in k][0]
+        n = 4 if module.endswith("4W") else 3          # one fan per heatsink section (four-wire: the N leg's section too)
         return [
-            (3, fan, "Fan 120 x 120 x 38 mm 24 V with PWM input and tach, one per heatsink section (pcs_spec heatsink) - "
+            (n, fan, "Fan 120 x 120 x 38 mm 24 V with PWM input and tach, one per heatsink section (pcs_spec heatsink) - "
              "RATED -10..+60 C ONLY (PV risk R-05)", rows[fan]["maker"], fan, "chassis", "ORDERABLE",
              "docs/datasheets/thermal/AFB1224SHE-F00.pdf"),
-            (3, "120 mm wire guard", "Finger guard for a 120 mm fan", "", "", "chassis", "GENERIC", ""),
-            (1, "harness set", "SELV supply lead, contactor coil leads, NTC probe leads, fan leads, RCM sensor lead", "", "",
+            (n, "120 mm wire guard", "Finger guard for a 120 mm fan", "", "", "chassis", "GENERIC", ""),
+            (1, "harness set", "SELV supply lead, contactor coil leads, NTC probe leads, fan leads, RCM sensor lead" +
+             ("; fan Y-lead (fans 3 and 4 on control-board fan header 3)" if n == 4 else ""), "", "",
              "harness", "CUSTOM", ""),
             (12, "PA66 standoff", "Board standoff, insulating", "", "", "chassis", "GENERIC", ""),
         ]

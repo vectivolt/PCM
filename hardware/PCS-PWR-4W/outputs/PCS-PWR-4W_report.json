@@ -1,0 +1,44 @@
+{
+  "project": "PCS-PWR-4W",
+  "rev": "A0",
+  "date": "2026-10-06",
+  "sheets": 31,
+  "parts": 2110,
+  "nets": 930,
+  "erc_waivers": {
+    "ground_pin_not_ground": "NSI6651ASC pin 3 is named GND2 in the datasheet (p3) but is the isolated driver-side reference = the device's Kelvin source (floating COM net), deliberately not the board GND"
+  },
+  "passed": true,
+  "checks": [
+    {
+      "check": "Isolation domains (only declared isolators/crossings bridge two domains)",
+      "result": "pass",
+      "detail": "72 isolators, 78 crossings, 1997 other parts each in one domain"
+    },
+    {
+      "check": "Stress: jellybean capacitor voltage <= 80 %, resistor power <= 60 % and working voltage",
+      "result": "pass",
+      "detail": "570 parts inside the rules, 505 on nets without a DC range (left to the design check)"
+    },
+    {
+      "check": "ERC (kicad-cli, all severities)",
+      "result": "pass",
+      "detail": "0 errors, 8 warnings (8 waived) - clean"
+    },
+    {
+      "check": "Netlist identity (kicad-cli XML export == design table)",
+      "result": "pass",
+      "detail": "930 nets, 2110 components identical"
+    },
+    {
+      "check": "Schematic PDF rendered",
+      "result": "pass",
+      "detail": "hardware/PCS-PWR-4W/outputs/PCS-PWR-4W_schematic.pdf"
+    },
+    {
+      "check": "BOM: every line has manufacturer + MPN + datasheet on file, or is GENERIC/RFQ/CUSTOM",
+      "result": "pass",
+      "detail": "239 lines, 2110 parts -> bom/PCS-PWR-4W_BOM.csv"
+    }
+  ]
+}

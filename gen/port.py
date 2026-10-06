@@ -60,11 +60,21 @@ ohm, farad = gdrv.ohm, gdrv.farad
 RPRE_RATING = dict(R=220.0, tol=0.05, e_charge_J=280.0, tau_s=0.105, e_short_J=900.0, t_short_s=0.15)
 
 
-def rpre_duty(c, v):
-    """(charge energy J, tau_max s, shorted-bank energy J, its duration s) of a bank of nominal capacitance c from v"""
-    r = RPRE_RATING
+def rpre_duty(c, v, r_ohm=None):
+    """(charge energy J, tau_max s, shorted-bank energy J, its duration s) of a bank of nominal capacitance c from v;
+    r_ohm = another resistance of the same RFQ family (the four-wire inverter's 200 ohm, D-076), same energy rating"""
+    r = dict(RPRE_RATING, R=r_ohm or RPRE_RATING["R"])
     tau = r["R"] * (1 + r["tol"]) * 1.1 * c
     return 0.5 * 1.1 * c * v ** 2, tau, v ** 2 / (r["R"] * (1 - r["tol"])) * (1.1 * tau + 0.03), 1.1 * tau + 0.03
+
+def _rpre_al(r_ohm):
+    """Catalog entry of the RFQ aluminium-housed precharge resistor at a value of the family (220 ohm ports, 200 ohm four-wire PCS)."""
+    return dict(mfr="", mpn="", prefix="R", pkg="aluminium housing, M4", ds="", sourcing="RFQ", stock=("Device", "R"),
+                desc="CHASSIS-MOUNTED RFQ precharge resistor %.0f ohm 5 %%, 1000 V DC (1144 V peak), single pulse >= %.0f J in "
+                     "%.2f s (shorted bank to the abort) and >= %.0f J at tau %.0f ms (bank charge), basic insulation to the housing "
+                     "(2200 V rms)" % (r_ohm, RPRE_RATING["e_short_J"], RPRE_RATING["t_short_s"], RPRE_RATING["e_charge_J"],
+                                       RPRE_RATING["tau_s"] * 1e3))
+
 
 AMC_PINS = {  # identical pinout AMC3330 (SBASA34B Fig 4-1 / Table 4-1, p3) and AMC3302 (SBASA11B Fig 5-1 / Table 5-1, p4)
     "left": ["6 INP i", "7 INN i", None, "1 DCDC_OUT po", "3 HLDO_IN pi", "5 HLDO_OUT po", "4 NC nc", None,
@@ -329,11 +339,7 @@ LEAN_PARTS = {
                       ds=DS + "passives-capacitors/Viking-ARHV-A.pdf", desc="HV chip resistor 1.00 M 0.1 % 25 ppm/K"),
     "ARHV13_124K": dict(mfr="Viking Tech", mpn="ARHV13BTC1243A", prefix="R", pkg="1210", stock=("Device", "R"),
                         ds=DS + "passives-capacitors/Viking-ARHV-A.pdf", desc="HV chip resistor 124 k 0.1 % 25 ppm/K"),
-    "RPRE_AL": dict(mfr="", mpn="", prefix="R", pkg="aluminium housing, M4", ds="", sourcing="RFQ", stock=("Device", "R"),
-                    desc="CHASSIS-MOUNTED RFQ precharge resistor 220 ohm 5 %%, 1000 V DC (1144 V peak), single pulse >= %.0f J in "
-                         "%.2f s (shorted bank to the abort) and >= %.0f J at tau %.0f ms (bank charge), basic insulation to the housing "
-                         "(2200 V rms)" % (RPRE_RATING["e_short_J"], RPRE_RATING["t_short_s"], RPRE_RATING["e_charge_J"],
-                                           RPRE_RATING["tau_s"] * 1e3)),
+    "RPRE_AL": _rpre_al(220.0), "RPRE_AL_200": _rpre_al(200.0),
     # TI OPA2388 SBOS777D 'Pin Functions' (D SOIC-8), as gen/ctrl_c2000.py
     "OPA2388": dict(mfr=TI, mpn="OPA2388IDR", prefix="U", pkg="SOIC-8 (D)", ds=DS + "sensing/OPA4388.pdf",
                     desc="Dual zero-drift RRIO op amp, 10 MHz, 2.5-5.5 V",
@@ -1068,12 +1074,12 @@ def lean_contactor(B, t, term_pos, bank_pos, cmd, pol_ok, dv_ok, hold, v24, gnd,
     return g
 
 
-def lean_precharge(B, t, term_pos, bank_pos, cmd_pre, pol_ok, v24, gnd, vdd, agnd):     # pol_ok None: no gating
+def lean_precharge(B, t, term_pos, bank_pos, cmd_pre, pol_ok, v24, gnd, vdd, agnd, r_ohm=220.0):     # pol_ok None: no gating
     """Battery port: G7L-2A-X (poles in series, current terminal -> bank) + 220 ohm aluminium-housed resistor (RFQ,
     port_spec lean/precharge); coil = cmd_pre AND pol_ok. Returns the logic net <t>_P_G."""
     pm, pr, g, coil = t + "_PRE_M", t + "_PRE_R", t + "_P_G", t + "_P_COIL"
     B.part("G7L2AX", {"8": term_pos, "6": pm, "4": pm, "2": pr, "1": coil, "0": gnd})
-    B.part("RPRE_AL", {"1": pr, "2": bank_pos}, value="220R RFQ")
+    B.part("RPRE_AL" if r_ohm == 220.0 else "RPRE_AL_%.0f" % r_ohm, {"1": pr, "2": bank_pos}, value="%.0fR RFQ" % r_ohm)
     if pol_ok is None:                        # interlocks='hold': the 100 k of the driver pulls the command down
         g = cmd_pre
     else:
@@ -1124,7 +1130,7 @@ def lean_imd(B, pole_pos, pole_neg, pe_t, pe_d, r, cmd_p, cmd_n, v5, gnd, vdd, a
 
 def lean_port(B, t, source, sheet_no, term_pos, term_neg, bank_pos, bus_neg, cmd, cmd_pre=None, pe_t="PE_T", v24="+24V",
               v5="+5V", vdd="+3V3", gnd="GND", agnd="AGND", dom=None, xing=None, economiser=True, interlocks="full",
-              oc_trip=True, refs=None, contactor=None, fuse="HPE501", bleeder=True):
+              oc_trip=True, refs=None, contactor=None, fuse="HPE501", bleeder=True, r_pre=220.0):
     """One lean port on three sheets (power path; sensing + interlocks; coil drives), source 'pv' (contactor only) or 'battery'
     (aR fuse per pole, precharge, dV interlock). Returns the nets the controller needs. fuse: catalog key of the aR link
     (HPE501 = the coordinated 250 A part of port_spec lean; another key = the caller coordinates it); bleeder=False when the
@@ -1170,7 +1176,7 @@ def lean_port(B, t, source, sheet_no, term_pos, term_neg, bank_pos, bus_neg, cmd
                        part=contactor or S["lean"]["contactor_per_source"][source])
     if bleeder:
         lean_bleeder(B, t, bank_pos, bus_neg)
-    pg = lean_precharge(B, t, tp, bank_pos, cmd_pre, il["pol"], v24, gnd, vdd, agnd) if batt else None
+    pg = lean_precharge(B, t, tp, bank_pos, cmd_pre, il["pol"], v24, gnd, vdd, agnd, r_ohm=r_pre) if batt else None
     return dict(spd_n=spdn, vx=d["vx"], vb=d["vb"], im=sh["im"], oc=sh["oc"], hold=sh["hold"], pol_ok=il["pol"],
                 dv_ok=il["dv"], k_g=k, p_g=pg, vmid=r["VMID"], refs=r, dom=dom, xing=xing)
 

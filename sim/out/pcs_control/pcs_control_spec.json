@@ -184,6 +184,52 @@
    0.2,
    "firmware: current limit 1.2 x I_max held for <= this, then trip (pcs_spec hand-over)"
   ],
+  "sec_rule": [
+   [
+    10.0,
+    0.1
+   ],
+   "VF secondary restoration time constant (firmware parameter, 0.5-2 s class) = the smallest of sec_T_scan_s whose restoration modes are real, at least this x slower than the nearest primary mode (the 5 Hz measurement filters) and move that mode by at most this fraction, and >= this x can_cycle_s"
+  ],
+  "sec_reseed_pu": [
+   0.02,
+   "VF secondary voltage layer: re-seeded downwards when its state exceeds the virtual-impedance drop of the present output current by more than this (load rejection); never upwards (the slow integrator restores)"
+  ],
+  "sec_T_scan_s": [
+   [
+    0.5,
+    1.0,
+    2.0
+   ],
+   "secondary time constants compared on the linearised island at rated load"
+  ],
+  "iclamp_margin_A": [
+   15.0,
+   "per-sample current clamp level = window low edge - ripple/2 - this (prediction error of the sensed C_f voltage and of L1)"
+  ],
+  "lvrt_pu": [
+   [
+    0.85,
+    0.9
+   ],
+   "ride-through state: entered when the sensed C_f voltage magnitude falls below the first, its hold timer runs down only above the second (EN 50549-1 class thresholds, FROM MEMORY)"
+  ],
+  "pll_freeze_pu": [
+   0.2,
+   "ride-through: PLL integrator and angle held (free-running at the pre-dip frequency) while the sensed C_f voltage magnitude is below this; resumes above it"
+  ],
+  "lvrt_hold_s": [
+   0.04,
+   "dip-time current limit kept this long after the voltage has returned (two grid periods)"
+  ],
+  "osc_ageing_ppm": [
+   10.0,
+   "controller oscillator ageing over the module life (Epson SG-210STF data sheet: +/-3 ppm in the first year at 25 C, lifetime not guaranteed by the maker; its +/-50 ppm tolerance covers initial, temperature, supply and load)"
+  ],
+  "can_cycle_s": [
+   0.05,
+   "module-CAN cycle of the paralleled modules' restoration consensus (ASSUMED; not modelled)"
+  ],
   "isr_cyc_per_op": [
    2.5,
    "C28x + FPU32 + TMU, compiled C: cycles per floating-point operation incl. loads/stores"
@@ -6461,6 +6507,3024 @@
   "None": 671.77,
   "5.0": 789.8
  },
+ "ride_through": {
+  "limiter": {
+   "clamp_A": 380.1,
+   "clamp_basis": "window low edge - ripple/2 - iclamp_margin_A (sampled, ripple-midpoint current)",
+   "dip_limit_A_pk": 254.558,
+   "lvrt_pu": [
+    0.85,
+    0.9
+   ],
+   "hold_s": 0.04,
+   "pll_freeze_pu": 0.2,
+   "window_low_A": 426.0,
+   "profile_pu_s": [
+    [
+     0.0,
+     0.15
+    ],
+    [
+     0.2,
+     0.625
+    ],
+    [
+     0.9,
+     2.0
+    ]
+   ]
+  },
+  "rows": [
+   {
+    "scr": null,
+    "depth": 0.0,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 483.991,
+    "pk_dip": 287.428,
+    "pk_rec": 301.282,
+    "i_dip": 254.56,
+    "settle_ms": 0.71875,
+    "clamp_ms": 0.03125,
+    "usat_ms": 0.28125,
+    "pk": 483.991,
+    "trip": true
+   },
+   {
+    "scr": null,
+    "depth": 0.1,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 465.289,
+    "pk_dip": 285.527,
+    "pk_rec": 307.341,
+    "i_dip": 254.557,
+    "settle_ms": 0.71875,
+    "clamp_ms": 0.015625,
+    "usat_ms": 0.234375,
+    "pk": 465.289,
+    "trip": true
+   },
+   {
+    "scr": null,
+    "depth": 0.2,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 445.336,
+    "pk_dip": 286.61,
+    "pk_rec": 306.18,
+    "i_dip": 254.559,
+    "settle_ms": 0.71875,
+    "clamp_ms": 0.015625,
+    "usat_ms": 0.15625,
+    "pk": 445.336,
+    "trip": true
+   },
+   {
+    "scr": null,
+    "depth": 0.3,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 425.383,
+    "pk_dip": 285.528,
+    "pk_rec": 304.073,
+    "i_dip": 254.559,
+    "settle_ms": 0.5,
+    "clamp_ms": 0.0,
+    "usat_ms": 0.140625,
+    "pk": 425.383,
+    "trip": false
+   },
+   {
+    "scr": null,
+    "depth": 0.5,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 385.477,
+    "pk_dip": 287.326,
+    "pk_rec": 298.353,
+    "i_dip": 254.559,
+    "settle_ms": 0.421875,
+    "clamp_ms": 0.0,
+    "usat_ms": 0.109375,
+    "pk": 385.477,
+    "trip": false
+   },
+   {
+    "scr": 50.0,
+    "depth": 0.0,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 402.171,
+    "pk_dip": 285.553,
+    "pk_rec": 296.014,
+    "i_dip": 254.569,
+    "settle_ms": 0.96875,
+    "clamp_ms": 0.0,
+    "usat_ms": 0.390625,
+    "pk": 402.171,
+    "trip": false
+   },
+   {
+    "scr": 50.0,
+    "depth": 0.1,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 390.383,
+    "pk_dip": 286.658,
+    "pk_rec": 298.701,
+    "i_dip": 254.568,
+    "settle_ms": 0.875,
+    "clamp_ms": 0.0,
+    "usat_ms": 0.359375,
+    "pk": 390.383,
+    "trip": false
+   },
+   {
+    "scr": 50.0,
+    "depth": 0.2,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 380.309,
+    "pk_dip": 287.7,
+    "pk_rec": 297.447,
+    "i_dip": 254.559,
+    "settle_ms": 0.921875,
+    "clamp_ms": 0.0,
+    "usat_ms": 0.28125,
+    "pk": 380.309,
+    "trip": false
+   },
+   {
+    "scr": 50.0,
+    "depth": 0.3,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 368.887,
+    "pk_dip": 285.511,
+    "pk_rec": 289.186,
+    "i_dip": 254.559,
+    "settle_ms": 0.84375,
+    "clamp_ms": 0.0,
+    "usat_ms": 0.234375,
+    "pk": 368.887,
+    "trip": false
+   },
+   {
+    "scr": 50.0,
+    "depth": 0.5,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 349.503,
+    "pk_dip": 285.479,
+    "pk_rec": 298.727,
+    "i_dip": 254.559,
+    "settle_ms": 0.6875,
+    "clamp_ms": 0.0,
+    "usat_ms": 0.1875,
+    "pk": 349.503,
+    "trip": false
+   },
+   {
+    "scr": 20.0,
+    "depth": 0.0,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 370.295,
+    "pk_dip": 296.75,
+    "pk_rec": 289.847,
+    "i_dip": 254.622,
+    "settle_ms": 2.875,
+    "clamp_ms": 0.0,
+    "usat_ms": 0.5625,
+    "pk": 370.295,
+    "trip": false
+   },
+   {
+    "scr": 20.0,
+    "depth": 0.1,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 361.503,
+    "pk_dip": 292.57,
+    "pk_rec": 288.877,
+    "i_dip": 254.595,
+    "settle_ms": 2.07812,
+    "clamp_ms": 0.0,
+    "usat_ms": 0.40625,
+    "pk": 361.503,
+    "trip": false
+   },
+   {
+    "scr": 20.0,
+    "depth": 0.2,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 352.714,
+    "pk_dip": 292.427,
+    "pk_rec": 287.81,
+    "i_dip": 254.938,
+    "settle_ms": 2.76563,
+    "clamp_ms": 0.0,
+    "usat_ms": 0.296875,
+    "pk": 352.714,
+    "trip": false
+   },
+   {
+    "scr": 20.0,
+    "depth": 0.3,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 343.978,
+    "pk_dip": 287.535,
+    "pk_rec": 293.105,
+    "i_dip": 254.559,
+    "settle_ms": 1.96875,
+    "clamp_ms": 0.0,
+    "usat_ms": 0.296875,
+    "pk": 343.978,
+    "trip": false
+   },
+   {
+    "scr": 20.0,
+    "depth": 0.5,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 330.219,
+    "pk_dip": 291.514,
+    "pk_rec": 290.931,
+    "i_dip": 254.559,
+    "settle_ms": 1.875,
+    "clamp_ms": 0.0,
+    "usat_ms": 0.265625,
+    "pk": 330.219,
+    "trip": false
+   },
+   {
+    "scr": 10.0,
+    "depth": 0.0,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 343.067,
+    "pk_dip": 300.217,
+    "pk_rec": 287.522,
+    "i_dip": 254.831,
+    "settle_ms": 3.57812,
+    "clamp_ms": 0.0,
+    "usat_ms": 0.375,
+    "pk": 343.067,
+    "trip": false
+   },
+   {
+    "scr": 10.0,
+    "depth": 0.1,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 336.631,
+    "pk_dip": 300.537,
+    "pk_rec": 287.758,
+    "i_dip": 254.82,
+    "settle_ms": 3.59375,
+    "clamp_ms": 0.0,
+    "usat_ms": 0.34375,
+    "pk": 336.631,
+    "trip": false
+   },
+   {
+    "scr": 10.0,
+    "depth": 0.2,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 332.086,
+    "pk_dip": 295.647,
+    "pk_rec": 381.522,
+    "i_dip": 255.37,
+    "settle_ms": 2.79688,
+    "clamp_ms": 0.0,
+    "usat_ms": 0.359375,
+    "pk": 381.522,
+    "trip": false
+   },
+   {
+    "scr": 10.0,
+    "depth": 0.3,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 327.709,
+    "pk_dip": 293.442,
+    "pk_rec": 289.907,
+    "i_dip": 254.559,
+    "settle_ms": 2.89063,
+    "clamp_ms": 0.0,
+    "usat_ms": 0.328125,
+    "pk": 327.709,
+    "trip": false
+   },
+   {
+    "scr": 10.0,
+    "depth": 0.5,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 316.35,
+    "pk_dip": 293.286,
+    "pk_rec": 288.7,
+    "i_dip": 254.559,
+    "settle_ms": 3.25,
+    "clamp_ms": 0.0,
+    "usat_ms": 0.34375,
+    "pk": 316.35,
+    "trip": false
+   },
+   {
+    "scr": 5.0,
+    "depth": 0.0,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 319.9,
+    "pk_dip": 310.155,
+    "pk_rec": 356.918,
+    "i_dip": 268.013,
+    "settle_ms": 30.9844,
+    "clamp_ms": 0.0,
+    "usat_ms": 14.7188,
+    "pk": 356.918,
+    "trip": false
+   },
+   {
+    "scr": 5.0,
+    "depth": 0.1,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 314.741,
+    "pk_dip": 309.81,
+    "pk_rec": 365.715,
+    "i_dip": 267.827,
+    "settle_ms": 36.5312,
+    "clamp_ms": 0.0,
+    "usat_ms": 16.5781,
+    "pk": 365.715,
+    "trip": false
+   },
+   {
+    "scr": 5.0,
+    "depth": 0.2,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 309.768,
+    "pk_dip": 309.784,
+    "pk_rec": 349.598,
+    "i_dip": 256.49,
+    "settle_ms": 97.8438,
+    "clamp_ms": 0.0,
+    "usat_ms": 0.390625,
+    "pk": 349.598,
+    "trip": false
+   },
+   {
+    "scr": 5.0,
+    "depth": 0.3,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 307.727,
+    "pk_dip": 309.372,
+    "pk_rec": 297.918,
+    "i_dip": 255.761,
+    "settle_ms": 108.109,
+    "clamp_ms": 0.0,
+    "usat_ms": 0.359375,
+    "pk": 309.372,
+    "trip": false
+   },
+   {
+    "scr": 5.0,
+    "depth": 0.5,
+    "P_kW": 125.0,
+    "layers": "all",
+    "pk_on": 300.44,
+    "pk_dip": 307.178,
+    "pk_rec": 296.206,
+    "i_dip": 254.56,
+    "settle_ms": 3.92188,
+    "clamp_ms": 0.0,
+    "usat_ms": 0.328125,
+    "pk": 307.178,
+    "trip": false
+   }
+  ],
+  "clamp_only": [
+   {
+    "scr": null,
+    "depth": 0.1,
+    "P_kW": 125.0,
+    "layers": "clamp",
+    "pk_on": 465.436,
+    "pk_dip": 399.606,
+    "pk_rec": 415.955,
+    "i_dip": 366.565,
+    "settle_ms": 2.84375,
+    "clamp_ms": 0.09375,
+    "usat_ms": 0.234375,
+    "pk": 465.436,
+    "trip": true
+   },
+   {
+    "scr": null,
+    "depth": 0.3,
+    "P_kW": 125.0,
+    "layers": "clamp",
+    "pk_on": 425.521,
+    "pk_dip": 397.528,
+    "pk_rec": 412.648,
+    "i_dip": 366.565,
+    "settle_ms": 3.9375,
+    "clamp_ms": 0.03125,
+    "usat_ms": 0.140625,
+    "pk": 425.521,
+    "trip": false
+   },
+   {
+    "scr": null,
+    "depth": 0.5,
+    "P_kW": 125.0,
+    "layers": "clamp",
+    "pk_on": 385.607,
+    "pk_dip": 397.511,
+    "pk_rec": 409.139,
+    "i_dip": 366.565,
+    "settle_ms": 6.03125,
+    "clamp_ms": 0.03125,
+    "usat_ms": 0.109375,
+    "pk": 409.139,
+    "trip": false
+   },
+   {
+    "scr": 5.0,
+    "depth": 0.1,
+    "P_kW": 125.0,
+    "layers": "clamp",
+    "pk_on": 316.58,
+    "pk_dip": 413.451,
+    "pk_rec": 431.617,
+    "i_dip": 378.484,
+    "settle_ms": 31.7031,
+    "clamp_ms": 17.0625,
+    "usat_ms": 17.8594,
+    "pk": 431.617,
+    "trip": true
+   },
+   {
+    "scr": 5.0,
+    "depth": 0.3,
+    "P_kW": 125.0,
+    "layers": "clamp",
+    "pk_on": 309.24,
+    "pk_dip": 413.204,
+    "pk_rec": 412.459,
+    "i_dip": 378.585,
+    "settle_ms": 75.3594,
+    "clamp_ms": 13.9375,
+    "usat_ms": 0.375,
+    "pk": 413.204,
+    "trip": false
+   },
+   {
+    "scr": 5.0,
+    "depth": 0.5,
+    "P_kW": 125.0,
+    "layers": "clamp",
+    "pk_on": 300.44,
+    "pk_dip": 411.382,
+    "pk_rec": 411.577,
+    "i_dip": 366.565,
+    "settle_ms": 6.75,
+    "clamp_ms": 0.640625,
+    "usat_ms": 0.28125,
+    "pk": 411.577,
+    "trip": false
+   }
+  ],
+  "derating": [
+   {
+    "depth": 0.0,
+    "P_max_kW": 95.5,
+    "frac": 0.764,
+    "onset": 425.21
+   },
+   {
+    "depth": 0.1,
+    "P_max_kW": 105.5,
+    "frac": 0.844,
+    "onset": 425.655
+   },
+   {
+    "depth": 0.2,
+    "P_max_kW": 115.0,
+    "frac": 0.92,
+    "onset": 425.08
+   },
+   {
+    "depth": 0.3,
+    "P_max_kW": 125.0,
+    "frac": 1.0,
+    "onset": 425.383
+   },
+   {
+    "depth": 0.5,
+    "P_max_kW": 125.0,
+    "frac": 1.0,
+    "onset": 385.477
+   }
+  ],
+  "instant_scan": [
+   483.991,
+   475.887,
+   452.671,
+   431.212,
+   462.823,
+   480.665
+  ],
+  "scr50": {
+   "pm": 55.2961,
+   "gm": 12.6484,
+   "ok": true
+  }
+ },
+ "vf_secondary": {
+  "T_s": 0.5,
+  "scan": [
+   {
+    "T_s": 0.5,
+    "tau_s": [
+     0.490647,
+     0.567883
+    ],
+    "real": true,
+    "sep": 14.4876,
+    "shift_pct": 6.01083,
+    "zeta": 0.362556,
+    "f_osc": 70.3099,
+    "eq_res": 4.83432e-11,
+    "ok": true
+   },
+   {
+    "T_s": 1.0,
+    "tau_s": [
+     0.983954,
+     1.16923
+    ],
+    "real": true,
+    "sep": 30.0149,
+    "shift_pct": 2.90147,
+    "zeta": 0.362653,
+    "f_osc": 70.3019,
+    "eq_res": 4.83212e-11,
+    "ok": true
+   },
+   {
+    "T_s": 2.0,
+    "tau_s": [
+     1.97199,
+     2.36845
+    ],
+    "real": true,
+    "sep": 61.2003,
+    "shift_pct": 1.21333,
+    "zeta": 0.362666,
+    "f_osc": 70.3022,
+    "eq_res": 4.83985e-11,
+    "ok": true
+   }
+  ],
+  "steps": {
+   "0 -> rated": {
+    "v_min": 0.380389,
+    "v_max": 0.999999,
+    "t_v10_ms": 283.281,
+    "t_v1_s": 1.57522,
+    "f_min": -0.608177,
+    "f_max": 4.85526e-08,
+    "t_f_s": 1.41744,
+    "v_end": 0.998051,
+    "f_end": -0.0187489,
+    "pk": 285.557,
+    "t_end_s": 2.5
+   },
+   "rated -> 0": {
+    "v_min": 0.499734,
+    "v_max": 2.1697,
+    "t_v10_ms": 14.9063,
+    "t_v1_s": 0.303578,
+    "f_min": -0.000238699,
+    "f_max": 0.828938,
+    "t_f_s": 1.18392,
+    "v_end": 1.00011,
+    "f_end": 0.0073377,
+    "pk": 286.064,
+    "t_end_s": 2.5
+   },
+   "rated -> 0, no re-seed": {
+    "v_min": 0.506725,
+    "v_max": 2.16969,
+    "t_v10_ms": 321.625,
+    "t_v1_s": 1.39294,
+    "f_min": -0.000238699,
+    "f_max": 0.828971,
+    "t_f_s": 1.18386,
+    "v_end": 1.00097,
+    "f_end": 0.00733626,
+    "pk": 286.064,
+    "t_end_s": 2.5
+   },
+   "rated -> 0, primary layer only": {
+    "v_min": 0.716477,
+    "v_max": 1.89426,
+    "t_v10_ms": 6.25,
+    "t_v1_s": 0.0289688,
+    "f_min": 0.290204,
+    "f_max": 0.999932,
+    "t_f_s": 0.289984,
+    "v_end": 1.00045,
+    "f_end": 0.999932,
+    "pk": 246.003,
+    "t_end_s": 0.3
+   }
+  },
+  "ss": {
+   "no load": {
+    "v_C_pu": 1.00003,
+    "v_t_pu": 1.00003,
+    "dvs_pu": -1.98845e-05,
+    "eq_res": 7.08714e-10,
+    "df_Hz": 4.18498e-11
+   },
+   "rated resistive": {
+    "v_C_pu": 1.00003,
+    "v_t_pu": 0.999756,
+    "dvs_pu": 0.186907,
+    "eq_res": 4.83432e-11,
+    "df_Hz": -1.48497e-12
+   }
+  },
+  "reseed_pu": 0.02,
+  "can_cycle_s": 0.05
+ },
+ "vf_accuracy": {
+  "voltage": {
+   "residual_pct": 0.0244041,
+   "adc_rss_pct": 0.27,
+   "adc_worst_pct": 0.42,
+   "tcr_pct": 0.15,
+   "sensing_worst_pct": 0.57,
+   "sensing_rss_pct": 0.308869,
+   "bound_worst_pct": 0.594404,
+   "bound_rss_pct": 0.333273
+  },
+  "frequency": {
+   "oscillator_ppm": 50.0,
+   "oscillator": "SPXO SG-210STF 25.000000 MHz L",
+   "ageing_ppm": 10.0,
+   "accumulator_ppm": 0.0596046,
+   "float32_radian_ppm": 0.91065,
+   "residual_ppm": 8.36997e-07,
+   "bound_ppm": 60.0596,
+   "bound_pct": 0.00600596
+  }
+ },
+ "gfm_voltage_harmonics": {
+  "harm": [
+   5,
+   7
+  ],
+  "phi": {
+   "5": 22.8672,
+   "7": 23.7016
+  },
+  "spread": {
+   "5": 5.36233,
+   "7": 4.5705
+  },
+  "Kh": 37.8993,
+  "ok_margin": true,
+  "decay": {
+   "5": -8.06878,
+   "7": -9.20063
+  },
+  "decay_need": -31.4159,
+  "ok_decay": false,
+  "adopted": false,
+  "pm": 73.614,
+  "gm": 11.6656
+ },
+ "thdu": {
+  "rows": [
+   {
+    "wire": "3W",
+    "mode": "minmax",
+    "vdc": 643.395,
+    "load": "rated",
+    "m": 1.01678,
+    "zs": "minmax",
+    "loop": "PR h1",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 1.29991,
+    "carrier_pct": 0.10199,
+    "dead_time_pct": 0.444072,
+    "leak_pct": 0.159891,
+    "mismatch_pct": 1.20689,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.06402
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.534077
+     ],
+     [
+      "h5 dead time",
+      0.317268
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "minmax",
+    "vdc": 643.395,
+    "load": "rated",
+    "m": 1.01678,
+    "zs": "minmax",
+    "loop": "PR h1",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 1.22248,
+    "carrier_pct": 0.10199,
+    "dead_time_pct": 0.0435364,
+    "leak_pct": 0.159891,
+    "mismatch_pct": 1.20689,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.06402
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.534077
+     ],
+     [
+      "h3 zero sequence via the gain error",
+      0.158381
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "minmax",
+    "vdc": 643.395,
+    "load": "rated",
+    "m": 1.01678,
+    "zs": "minmax",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 1.23957,
+    "carrier_pct": 0.10199,
+    "dead_time_pct": 0.209712,
+    "leak_pct": 0.159891,
+    "mismatch_pct": 1.20689,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.06402
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.534077
+     ],
+     [
+      "h3 zero sequence via the gain error",
+      0.158381
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "minmax",
+    "vdc": 643.395,
+    "load": "rated",
+    "m": 1.01678,
+    "zs": "minmax",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 1.22188,
+    "carrier_pct": 0.10199,
+    "dead_time_pct": 0.02056,
+    "leak_pct": 0.159891,
+    "mismatch_pct": 1.20689,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.06402
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.534077
+     ],
+     [
+      "h3 zero sequence via the gain error",
+      0.158381
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 750.0,
+    "load": "rated",
+    "m": 0.872255,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.516588,
+    "carrier_pct": 0.123678,
+    "dead_time_pct": 0.501565,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "h5 dead time",
+      0.365997
+     ],
+     [
+      "h7 dead time",
+      0.26178
+     ],
+     [
+      "h11 dead time",
+      0.152474
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 750.0,
+    "load": "rated",
+    "m": 0.872255,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.133095,
+    "carrier_pct": 0.123678,
+    "dead_time_pct": 0.049173,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.123678
+     ],
+     [
+      "h5 dead time",
+      0.035882
+     ],
+     [
+      "h7 dead time",
+      0.0256647
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 750.0,
+    "load": "rated",
+    "m": 0.872255,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.253701,
+    "carrier_pct": 0.123678,
+    "dead_time_pct": 0.221513,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "h11 dead time",
+      0.152187
+     ],
+     [
+      "carrier groups",
+      0.123678
+     ],
+     [
+      "h13 dead time",
+      0.120062
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 750.0,
+    "load": "rated",
+    "m": 0.872255,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.125571,
+    "carrier_pct": 0.123678,
+    "dead_time_pct": 0.021717,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.123678
+     ],
+     [
+      "h11 dead time",
+      0.0149203
+     ],
+     [
+      "h13 dead time",
+      0.0117708
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 950.0,
+    "load": "rated",
+    "m": 0.688623,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.608179,
+    "carrier_pct": 0.107633,
+    "dead_time_pct": 0.598579,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "h5 dead time",
+      0.452854
+     ],
+     [
+      "h7 dead time",
+      0.316401
+     ],
+     [
+      "h11 dead time",
+      0.170677
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 950.0,
+    "load": "rated",
+    "m": 0.688623,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.122591,
+    "carrier_pct": 0.107633,
+    "dead_time_pct": 0.0586842,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.107633
+     ],
+     [
+      "h5 dead time",
+      0.0443974
+     ],
+     [
+      "h7 dead time",
+      0.0310197
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 950.0,
+    "load": "rated",
+    "m": 0.688623,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.254244,
+    "carrier_pct": 0.107633,
+    "dead_time_pct": 0.230338,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "h11 dead time",
+      0.170356
+     ],
+     [
+      "h13 dead time",
+      0.126871
+     ],
+     [
+      "carrier groups",
+      0.107633
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 950.0,
+    "load": "rated",
+    "m": 0.688623,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.109976,
+    "carrier_pct": 0.107633,
+    "dead_time_pct": 0.0225821,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.107633
+     ],
+     [
+      "h11 dead time",
+      0.0167015
+     ],
+     [
+      "h13 dead time",
+      0.0124383
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode B",
+    "vdc": 643.395,
+    "load": "rated",
+    "m": 1.01678,
+    "zs": "minmax",
+    "loop": "PR h1",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 1.97752,
+    "carrier_pct": 0.429573,
+    "dead_time_pct": 0.669855,
+    "leak_pct": 0.0,
+    "mismatch_pct": 1.81034,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.59603
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.801116
+     ],
+     [
+      "h3 dead time",
+      0.457722
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode B",
+    "vdc": 643.395,
+    "load": "rated",
+    "m": 1.01678,
+    "zs": "minmax",
+    "loop": "PR h1",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 1.86177,
+    "carrier_pct": 0.429573,
+    "dead_time_pct": 0.0656721,
+    "leak_pct": 0.0,
+    "mismatch_pct": 1.81034,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.59603
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.801116
+     ],
+     [
+      "carrier groups",
+      0.429573
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode B",
+    "vdc": 643.395,
+    "load": "rated",
+    "m": 1.01678,
+    "zs": "minmax",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 1.94017,
+    "carrier_pct": 0.429573,
+    "dead_time_pct": 0.54992,
+    "leak_pct": 0.0,
+    "mismatch_pct": 1.81034,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.59603
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.801116
+     ],
+     [
+      "h3 dead time",
+      0.465707
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode B",
+    "vdc": 643.395,
+    "load": "rated",
+    "m": 1.01678,
+    "zs": "minmax",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 1.86139,
+    "carrier_pct": 0.429573,
+    "dead_time_pct": 0.0539137,
+    "leak_pct": 0.0,
+    "mismatch_pct": 1.81034,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.59603
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.801116
+     ],
+     [
+      "carrier groups",
+      0.429573
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 750.0,
+    "load": "rated",
+    "m": 0.872255,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.895952,
+    "carrier_pct": 0.467237,
+    "dead_time_pct": 0.764473,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "h3 dead time",
+      0.531578
+     ],
+     [
+      "carrier groups",
+      0.467237
+     ],
+     [
+      "h5 dead time",
+      0.365997
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 750.0,
+    "load": "rated",
+    "m": 0.872255,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.47321,
+    "carrier_pct": 0.467237,
+    "dead_time_pct": 0.0749483,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.467237
+     ],
+     [
+      "h3 dead time",
+      0.0521155
+     ],
+     [
+      "h5 dead time",
+      0.035882
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 750.0,
+    "load": "rated",
+    "m": 0.872255,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.780765,
+    "carrier_pct": 0.467237,
+    "dead_time_pct": 0.625526,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "h3 dead time",
+      0.540852
+     ],
+     [
+      "carrier groups",
+      0.467237
+     ],
+     [
+      "h9 dead time",
+      0.195218
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 750.0,
+    "load": "rated",
+    "m": 0.872255,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.471245,
+    "carrier_pct": 0.467237,
+    "dead_time_pct": 0.0613261,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.467237
+     ],
+     [
+      "h3 dead time",
+      0.0530247
+     ],
+     [
+      "h9 dead time",
+      0.019139
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 950.0,
+    "load": "rated",
+    "m": 0.688623,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 1.08362,
+    "carrier_pct": 0.554088,
+    "dead_time_pct": 0.931245,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "h3 dead time",
+      0.667746
+     ],
+     [
+      "carrier groups",
+      0.554088
+     ],
+     [
+      "h5 dead time",
+      0.452854
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 950.0,
+    "load": "rated",
+    "m": 0.688623,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.561559,
+    "carrier_pct": 0.554088,
+    "dead_time_pct": 0.0912985,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.554088
+     ],
+     [
+      "h3 dead time",
+      0.0654653
+     ],
+     [
+      "h5 dead time",
+      0.0443974
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 950.0,
+    "load": "rated",
+    "m": 0.688623,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.94014,
+    "carrier_pct": 0.554088,
+    "dead_time_pct": 0.759506,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "h3 dead time",
+      0.679396
+     ],
+     [
+      "carrier groups",
+      0.554088
+     ],
+     [
+      "h9 dead time",
+      0.22833
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 950.0,
+    "load": "rated",
+    "m": 0.688623,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.559069,
+    "carrier_pct": 0.554088,
+    "dead_time_pct": 0.0744614,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.554088
+     ],
+     [
+      "h3 dead time",
+      0.0666074
+     ],
+     [
+      "h9 dead time",
+      0.0223853
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "minmax",
+    "vdc": 643.395,
+    "load": "50 %",
+    "m": 1.01553,
+    "zs": "minmax",
+    "loop": "PR h1",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 1.30705,
+    "carrier_pct": 0.128043,
+    "dead_time_pct": 0.462149,
+    "leak_pct": 0.159693,
+    "mismatch_pct": 1.20536,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.06267
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.533405
+     ],
+     [
+      "h5 dead time",
+      0.361633
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "minmax",
+    "vdc": 643.395,
+    "load": "50 %",
+    "m": 1.01553,
+    "zs": "minmax",
+    "loop": "PR h1",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 1.22346,
+    "carrier_pct": 0.128043,
+    "dead_time_pct": 0.0453087,
+    "leak_pct": 0.159693,
+    "mismatch_pct": 1.20536,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.06267
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.533405
+     ],
+     [
+      "h3 zero sequence via the gain error",
+      0.158185
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "minmax",
+    "vdc": 643.395,
+    "load": "50 %",
+    "m": 1.01553,
+    "zs": "minmax",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 1.23126,
+    "carrier_pct": 0.128043,
+    "dead_time_pct": 0.145615,
+    "leak_pct": 0.159693,
+    "mismatch_pct": 1.20536,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.06267
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.533405
+     ],
+     [
+      "h3 zero sequence via the gain error",
+      0.158185
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "minmax",
+    "vdc": 643.395,
+    "load": "50 %",
+    "m": 1.01553,
+    "zs": "minmax",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 1.2227,
+    "carrier_pct": 0.128043,
+    "dead_time_pct": 0.014276,
+    "leak_pct": 0.159693,
+    "mismatch_pct": 1.20536,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.06267
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.533405
+     ],
+     [
+      "h3 zero sequence via the gain error",
+      0.158185
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 750.0,
+    "load": "50 %",
+    "m": 0.871179,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.520184,
+    "carrier_pct": 0.155447,
+    "dead_time_pct": 0.496415,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "h5 dead time",
+      0.402584
+     ],
+     [
+      "h7 dead time",
+      0.262781
+     ],
+     [
+      "carrier groups",
+      0.155447
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 750.0,
+    "load": "50 %",
+    "m": 0.871179,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.162887,
+    "carrier_pct": 0.155447,
+    "dead_time_pct": 0.0486681,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.155447
+     ],
+     [
+      "h5 dead time",
+      0.039469
+     ],
+     [
+      "h7 dead time",
+      0.0257629
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 750.0,
+    "load": "50 %",
+    "m": 0.871179,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.198499,
+    "carrier_pct": 0.155447,
+    "dead_time_pct": 0.123444,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.155447
+     ],
+     [
+      "h11 dead time",
+      0.100382
+     ],
+     [
+      "h13 dead time",
+      0.0529013
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 750.0,
+    "load": "50 %",
+    "m": 0.871179,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.155917,
+    "carrier_pct": 0.155447,
+    "dead_time_pct": 0.0121023,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.155447
+     ],
+     [
+      "h11 dead time",
+      0.0098414
+     ],
+     [
+      "h13 dead time",
+      0.00518641
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 950.0,
+    "load": "50 %",
+    "m": 0.687773,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.559078,
+    "carrier_pct": 0.138111,
+    "dead_time_pct": 0.541751,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "h5 dead time",
+      0.461968
+     ],
+     [
+      "h7 dead time",
+      0.268946
+     ],
+     [
+      "carrier groups",
+      0.138111
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 950.0,
+    "load": "50 %",
+    "m": 0.687773,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.147972,
+    "carrier_pct": 0.138111,
+    "dead_time_pct": 0.0531128,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.138111
+     ],
+     [
+      "h5 dead time",
+      0.045291
+     ],
+     [
+      "h7 dead time",
+      0.0263673
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 950.0,
+    "load": "50 %",
+    "m": 0.687773,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.163796,
+    "carrier_pct": 0.138111,
+    "dead_time_pct": 0.0880606,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.138111
+     ],
+     [
+      "h11 dead time",
+      0.0550439
+     ],
+     [
+      "h19 dead time",
+      0.0417157
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 950.0,
+    "load": "50 %",
+    "m": 0.687773,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.13838,
+    "carrier_pct": 0.138111,
+    "dead_time_pct": 0.00863339,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.138111
+     ],
+     [
+      "h11 dead time",
+      0.00539646
+     ],
+     [
+      "h19 dead time",
+      0.00408978
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode B",
+    "vdc": 643.395,
+    "load": "50 %",
+    "m": 1.01553,
+    "zs": "minmax",
+    "loop": "PR h1",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 1.97817,
+    "carrier_pct": 0.376822,
+    "dead_time_pct": 0.70861,
+    "leak_pct": 0.0,
+    "mismatch_pct": 1.80805,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.59401
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.800107
+     ],
+     [
+      "h3 dead time",
+      0.506538
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode B",
+    "vdc": 643.395,
+    "load": "50 %",
+    "m": 1.01553,
+    "zs": "minmax",
+    "loop": "PR h1",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 1.8482,
+    "carrier_pct": 0.376822,
+    "dead_time_pct": 0.0694716,
+    "leak_pct": 0.0,
+    "mismatch_pct": 1.80805,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.59401
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.800107
+     ],
+     [
+      "carrier groups",
+      0.376822
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode B",
+    "vdc": 643.395,
+    "load": "50 %",
+    "m": 1.01553,
+    "zs": "minmax",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 1.93147,
+    "carrier_pct": 0.376822,
+    "dead_time_pct": 0.565276,
+    "leak_pct": 0.0,
+    "mismatch_pct": 1.80805,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.59401
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.800107
+     ],
+     [
+      "h3 dead time",
+      0.516833
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode B",
+    "vdc": 643.395,
+    "load": "50 %",
+    "m": 1.01553,
+    "zs": "minmax",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 1.84773,
+    "carrier_pct": 0.376822,
+    "dead_time_pct": 0.0554192,
+    "leak_pct": 0.0,
+    "mismatch_pct": 1.80805,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.59401
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.800107
+     ],
+     [
+      "carrier groups",
+      0.376822
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 750.0,
+    "load": "50 %",
+    "m": 0.871179,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.869064,
+    "carrier_pct": 0.376114,
+    "dead_time_pct": 0.78346,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "h3 dead time",
+      0.581087
+     ],
+     [
+      "h5 dead time",
+      0.402584
+     ],
+     [
+      "carrier groups",
+      0.376114
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 750.0,
+    "load": "50 %",
+    "m": 0.871179,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.383877,
+    "carrier_pct": 0.376114,
+    "dead_time_pct": 0.0768098,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.376114
+     ],
+     [
+      "h3 dead time",
+      0.0569693
+     ],
+     [
+      "h5 dead time",
+      0.039469
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 750.0,
+    "load": "50 %",
+    "m": 0.871179,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.732956,
+    "carrier_pct": 0.376114,
+    "dead_time_pct": 0.629097,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "h3 dead time",
+      0.592898
+     ],
+     [
+      "carrier groups",
+      0.376114
+     ],
+     [
+      "h9 dead time",
+      0.165449
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 750.0,
+    "load": "50 %",
+    "m": 0.871179,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.381137,
+    "carrier_pct": 0.376114,
+    "dead_time_pct": 0.0616762,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.376114
+     ],
+     [
+      "h3 dead time",
+      0.0581272
+     ],
+     [
+      "h9 dead time",
+      0.0162205
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 950.0,
+    "load": "50 %",
+    "m": 0.687773,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.991103,
+    "carrier_pct": 0.400393,
+    "dead_time_pct": 0.906626,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "h3 dead time",
+      0.711696
+     ],
+     [
+      "h5 dead time",
+      0.461968
+     ],
+     [
+      "carrier groups",
+      0.400393
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 950.0,
+    "load": "50 %",
+    "m": 0.687773,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.410141,
+    "carrier_pct": 0.400393,
+    "dead_time_pct": 0.0888849,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.400393
+     ],
+     [
+      "h3 dead time",
+      0.0697741
+     ],
+     [
+      "h5 dead time",
+      0.045291
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 950.0,
+    "load": "50 %",
+    "m": 0.687773,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.846667,
+    "carrier_pct": 0.400393,
+    "dead_time_pct": 0.746009,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "h3 dead time",
+      0.726161
+     ],
+     [
+      "carrier groups",
+      0.400393
+     ],
+     [
+      "h9 dead time",
+      0.138476
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 950.0,
+    "load": "50 %",
+    "m": 0.687773,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.407018,
+    "carrier_pct": 0.400393,
+    "dead_time_pct": 0.0731381,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.400393
+     ],
+     [
+      "h3 dead time",
+      0.0711923
+     ],
+     [
+      "h9 dead time",
+      0.0135761
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "minmax",
+    "vdc": 643.395,
+    "load": "no load",
+    "m": 1.01451,
+    "zs": "minmax",
+    "loop": "PR h1",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 1.23747,
+    "carrier_pct": 0.143644,
+    "dead_time_pct": 0.187781,
+    "leak_pct": 0.159534,
+    "mismatch_pct": 1.20415,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.0616
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.532869
+     ],
+     [
+      "h3 zero sequence via the gain error",
+      0.158028
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "minmax",
+    "vdc": 643.395,
+    "load": "no load",
+    "m": 1.01451,
+    "zs": "minmax",
+    "loop": "PR h1",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 1.22327,
+    "carrier_pct": 0.143644,
+    "dead_time_pct": 0.0184099,
+    "leak_pct": 0.159534,
+    "mismatch_pct": 1.20415,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.0616
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.532869
+     ],
+     [
+      "h3 zero sequence via the gain error",
+      0.158028
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "minmax",
+    "vdc": 643.395,
+    "load": "no load",
+    "m": 1.01451,
+    "zs": "minmax",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 1.22401,
+    "carrier_pct": 0.143644,
+    "dead_time_pct": 0.0461376,
+    "leak_pct": 0.159534,
+    "mismatch_pct": 1.20415,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.0616
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.532869
+     ],
+     [
+      "h3 zero sequence via the gain error",
+      0.158028
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "minmax",
+    "vdc": 643.395,
+    "load": "no load",
+    "m": 1.01451,
+    "zs": "minmax",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 1.22314,
+    "carrier_pct": 0.143644,
+    "dead_time_pct": 0.00452329,
+    "leak_pct": 0.159534,
+    "mismatch_pct": 1.20415,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.0616
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.532869
+     ],
+     [
+      "h3 zero sequence via the gain error",
+      0.158028
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 750.0,
+    "load": "no load",
+    "m": 0.870311,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.200172,
+    "carrier_pct": 0.17471,
+    "dead_time_pct": 0.0976991,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.17471
+     ],
+     [
+      "h5 dead time",
+      0.0910808
+     ],
+     [
+      "h7 dead time",
+      0.0350275
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 750.0,
+    "load": "no load",
+    "m": 0.870311,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.174973,
+    "carrier_pct": 0.17471,
+    "dead_time_pct": 0.00957834,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.17471
+     ],
+     [
+      "h5 dead time",
+      0.00892949
+     ],
+     [
+      "h7 dead time",
+      0.00343406
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 750.0,
+    "load": "no load",
+    "m": 0.870311,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.174774,
+    "carrier_pct": 0.17471,
+    "dead_time_pct": 0.00470068,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.17471
+     ],
+     [
+      "h11 dead time",
+      0.00442913
+     ],
+     [
+      "h13 dead time",
+      0.0015614
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 750.0,
+    "load": "no load",
+    "m": 0.870311,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.174711,
+    "carrier_pct": 0.17471,
+    "dead_time_pct": 0.000460851,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.17471
+     ],
+     [
+      "h11 dead time",
+      0.000434229
+     ],
+     [
+      "h13 dead time",
+      0.000153079
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 950.0,
+    "load": "no load",
+    "m": 0.687088,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.161218,
+    "carrier_pct": 0.160282,
+    "dead_time_pct": 0.0173487,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.160282
+     ],
+     [
+      "h5 dead time",
+      0.0170768
+     ],
+     [
+      "h7 dead time",
+      0.0030586
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 950.0,
+    "load": "no load",
+    "m": 0.687088,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.160291,
+    "carrier_pct": 0.160282,
+    "dead_time_pct": 0.00170086,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.160282
+     ],
+     [
+      "h5 dead time",
+      0.00167419
+     ],
+     [
+      "h7 dead time",
+      0.000299863
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 950.0,
+    "load": "no load",
+    "m": 0.687088,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.160282,
+    "carrier_pct": 0.160282,
+    "dead_time_pct": 8.50125e-05,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.160282
+     ],
+     [
+      "h11 dead time",
+      8.38885e-05
+     ],
+     [
+      "h13 dead time",
+      1.37732e-05
+     ]
+    ]
+   },
+   {
+    "wire": "3W",
+    "mode": "none",
+    "vdc": 950.0,
+    "load": "no load",
+    "m": 0.687088,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.160282,
+    "carrier_pct": 0.160282,
+    "dead_time_pct": 8.33456e-06,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.160282
+     ],
+     [
+      "h11 dead time",
+      8.22436e-06
+     ],
+     [
+      "h13 dead time",
+      1.35031e-06
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode B",
+    "vdc": 643.395,
+    "load": "no load",
+    "m": 1.01451,
+    "zs": "minmax",
+    "loop": "PR h1",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 1.90304,
+    "carrier_pct": 0.34209,
+    "dead_time_pct": 0.492007,
+    "leak_pct": 0.0,
+    "mismatch_pct": 1.80623,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.5924
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.799304
+     ],
+     [
+      "h3 dead time",
+      0.454489
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode B",
+    "vdc": 643.395,
+    "load": "no load",
+    "m": 1.01451,
+    "zs": "minmax",
+    "loop": "PR h1",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 1.83897,
+    "carrier_pct": 0.34209,
+    "dead_time_pct": 0.048236,
+    "leak_pct": 0.0,
+    "mismatch_pct": 1.80623,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.5924
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.799304
+     ],
+     [
+      "carrier groups",
+      0.34209
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode B",
+    "vdc": 643.395,
+    "load": "no load",
+    "m": 1.01451,
+    "zs": "minmax",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 1.89681,
+    "carrier_pct": 0.34209,
+    "dead_time_pct": 0.467354,
+    "leak_pct": 0.0,
+    "mismatch_pct": 1.80623,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.5924
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.799304
+     ],
+     [
+      "h3 dead time",
+      0.464803
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode B",
+    "vdc": 643.395,
+    "load": "no load",
+    "m": 1.01451,
+    "zs": "minmax",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 1.83891,
+    "carrier_pct": 0.34209,
+    "dead_time_pct": 0.045819,
+    "leak_pct": 0.0,
+    "mismatch_pct": 1.80623,
+    "dominant": [
+     [
+      "h39 zero sequence via the filter mismatch",
+      1.5924
+     ],
+     [
+      "h33 zero sequence via the filter mismatch",
+      0.799304
+     ],
+     [
+      "carrier groups",
+      0.34209
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 750.0,
+    "load": "no load",
+    "m": 0.870311,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.370543,
+    "carrier_pct": 0.304813,
+    "dead_time_pct": 0.210693,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.304813
+     ],
+     [
+      "h3 dead time",
+      0.186242
+     ],
+     [
+      "h5 dead time",
+      0.0910808
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 750.0,
+    "load": "no load",
+    "m": 0.870311,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.305512,
+    "carrier_pct": 0.304813,
+    "dead_time_pct": 0.0206562,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.304813
+     ],
+     [
+      "h3 dead time",
+      0.0182591
+     ],
+     [
+      "h5 dead time",
+      0.00892949
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 750.0,
+    "load": "no load",
+    "m": 0.870311,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.359672,
+    "carrier_pct": 0.304813,
+    "dead_time_pct": 0.190927,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.304813
+     ],
+     [
+      "h3 dead time",
+      0.190469
+     ],
+     [
+      "h9 dead time",
+      0.0123403
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 750.0,
+    "load": "no load",
+    "m": 0.870311,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.305387,
+    "carrier_pct": 0.304813,
+    "dead_time_pct": 0.0187183,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.304813
+     ],
+     [
+      "h3 dead time",
+      0.0186734
+     ],
+     [
+      "h9 dead time",
+      0.00120983
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 950.0,
+    "load": "no load",
+    "m": 0.687088,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.272081,
+    "carrier_pct": 0.26097,
+    "dead_time_pct": 0.0769589,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.26097
+     ],
+     [
+      "h3 dead time",
+      0.0749762
+     ],
+     [
+      "h5 dead time",
+      0.0170768
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 950.0,
+    "load": "no load",
+    "m": 0.687088,
+    "zs": "none",
+    "loop": "PR h1",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.261079,
+    "carrier_pct": 0.26097,
+    "dead_time_pct": 0.00754499,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.26097
+     ],
+     [
+      "h3 dead time",
+      0.00735061
+     ],
+     [
+      "h5 dead time",
+      0.00167419
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 950.0,
+    "load": "no load",
+    "m": 0.687088,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "510 ns, not compensated",
+    "thdu_pct": 0.272002,
+    "carrier_pct": 0.26097,
+    "dead_time_pct": 0.0766793,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.26097
+     ],
+     [
+      "h3 dead time",
+      0.0766776
+     ],
+     [
+      "h9 dead time",
+      0.00050185
+     ]
+    ]
+   },
+   {
+    "wire": "4W",
+    "mode": "mode A",
+    "vdc": 950.0,
+    "load": "no load",
+    "m": 0.687088,
+    "zs": "none",
+    "loop": "PR h1+h5+h7",
+    "dead_time": "compensated per leg",
+    "thdu_pct": 0.261078,
+    "carrier_pct": 0.26097,
+    "dead_time_pct": 0.00751758,
+    "leak_pct": 0.0,
+    "mismatch_pct": 0.0,
+    "dominant": [
+     [
+      "carrier groups",
+      0.26097
+     ],
+     [
+      "h3 dead time",
+      0.00751741
+     ],
+     [
+      "h9 dead time",
+      4.9201e-05
+     ]
+    ]
+   }
+  ],
+  "loops": [
+   "PR h1",
+   "PR h1+h5+h7"
+  ],
+  "dc": {
+   "dc_V": 0.5625,
+   "limit_V": 1.1547,
+   "dc_pct_Un": 0.24357
+  },
+  "harm": [
+   5,
+   7
+  ],
+  "harm_adopted": false,
+  "worst": {
+   "3W 510 ns, not compensated": 1.30705,
+   "3W compensated per leg": 1.22346,
+   "4W 510 ns, not compensated": 1.97817,
+   "4W compensated per leg": 1.86177
+  }
+ },
+ "imbalance": {
+  "per_freq": {
+   "50 Hz": {
+    "lag_nom_deg": 0.423596,
+    "dphi_deg": 0.0216407,
+    "skew_deg": 0.0,
+    "3W": {
+     "amp_pct": 0.402042,
+     "angle_deg": 0.400193,
+     "vuf_pct": 0.402647
+    },
+    "4W": {
+     "amp_pct": 0.761447,
+     "angle_deg": 0.043285,
+     "vuf_pct": 0.402647
+    }
+   },
+   "60 Hz": {
+    "lag_nom_deg": 0.508311,
+    "dphi_deg": 0.0259682,
+    "skew_deg": 0.0,
+    "3W": {
+     "amp_pct": 0.406378,
+     "angle_deg": 0.404522,
+     "vuf_pct": 0.407076
+    },
+    "4W": {
+     "amp_pct": 0.761447,
+     "angle_deg": 0.05194,
+     "vuf_pct": 0.407076
+    }
+   }
+  },
+  "bound": {
+   "3W": {
+    "amp_pct": 0.406378,
+    "angle_deg": 0.404522,
+    "vuf_pct": 0.407076
+   },
+   "4W": {
+    "amp_pct": 0.761447,
+    "angle_deg": 0.05194,
+    "vuf_pct": 0.407076
+   }
+  },
+  "gain_pct": 0.57,
+  "generator_deg": 3.57628e-06,
+  "vc_round_simultaneous": true,
+  "divider": {
+   "R_th_ohm": 4985.85,
+   "C_nF": 4.7,
+   "tol_C": 0.05,
+   "tol_R": 0.001
+  },
+  "bucket": {
+   "R_ohm": 100.0,
+   "C_nF": 1.0,
+   "tol_C": 0.05,
+   "tol_R": 0.01
+  }
+ },
+ "neutral_leg": {
+  "same": {
+   "L_N": true,
+   "C_fN": true,
+   "R_d": true,
+   "C_d": true
+  },
+  "rows": [
+   {
+    "case": "off-grid, N terminal open (balanced load: no neutral current)",
+    "i_pm": 8.97672,
+    "i_gm": 2.8068,
+    "i_rho": 1.00027,
+    "i_ok": false,
+    "v_pm": 85.52,
+    "v_gm": 12.2323,
+    "v_rho": 0.997706,
+    "v_ok": true,
+    "v_bw": 385.984
+   },
+   {
+    "case": "off-grid, balanced rated load, the loads' star on N, the phase nodes as their C_f",
+    "i_pm": 12.3908,
+    "i_gm": 2.53525,
+    "i_rho": 1.00038,
+    "i_ok": false,
+    "v_pm": 61.9373,
+    "v_gm": 25.1773,
+    "v_rho": 0.998004,
+    "v_ok": true,
+    "v_bw": 410.777
+   },
+   {
+    "case": "off-grid, 100 % unbalance, the loaded phase's node as its C_f",
+    "i_pm": 0.0336479,
+    "i_gm": 0.0144211,
+    "i_rho": 1.00033,
+    "i_ok": false,
+    "v_pm": 75.5187,
+    "v_gm": 18.3532,
+    "v_rho": 0.997801,
+    "v_ok": true,
+    "v_bw": 410.777
+   },
+   {
+    "case": "off-grid, 100 % unbalance, the loaded phase's node held by its loop",
+    "i_pm": 82.7171,
+    "i_gm": 12.8106,
+    "i_rho": 0.999619,
+    "i_ok": true,
+    "v_pm": 83.3699,
+    "v_gm": 11.6158,
+    "v_rho": 0.997936,
+    "v_ok": true,
+    "v_bw": 197.318
+   },
+   {
+    "case": "grid-connected, stiff: zero-sequence path to the phases' C_f star",
+    "i_pm": 4.35822,
+    "i_gm": 0.725111,
+    "i_rho": 1.00038,
+    "i_ok": false,
+    "v_pm": 59.7864,
+    "v_gm": 22.7869,
+    "v_rho": 0.998002,
+    "v_ok": true,
+    "v_bw": 460.442
+   },
+   {
+    "case": "grid-connected, SCR 20: zero-sequence path to the phases' C_f star",
+    "i_pm": 6.29804,
+    "i_gm": 1.05311,
+    "i_rho": 1.00038,
+    "i_ok": false,
+    "v_pm": 59.0392,
+    "v_gm": 8.7399,
+    "v_rho": 0.998002,
+    "v_ok": true,
+    "v_bw": 454.115
+   },
+   {
+    "case": "grid-connected, SCR 10: zero-sequence path to the phases' C_f star",
+    "i_pm": 8.44991,
+    "i_gm": 1.41305,
+    "i_rho": 1.00038,
+    "i_ok": false,
+    "v_pm": 58.2819,
+    "v_gm": 10.1689,
+    "v_rho": 0.998002,
+    "v_ok": true,
+    "v_bw": 447.876
+   },
+   {
+    "case": "grid-connected, SCR 5: zero-sequence path to the phases' C_f star",
+    "i_pm": 12.4807,
+    "i_gm": 2.25098,
+    "i_rho": 1.00038,
+    "i_ok": false,
+    "v_pm": 56.7463,
+    "v_gm": 11.1879,
+    "v_rho": 0.998002,
+    "v_ok": true,
+    "v_bw": 428.185
+   }
+  ],
+  "phase_ref": {
+   "i_pm": 48.7173,
+   "i_gm": 12.1439,
+   "v_pm": 83.3534,
+   "v_gm": 11.6167,
+   "bw": {
+    "nl": 385.984,
+    "rl": 197.318
+   }
+  },
+  "excursion": {
+   "pk_pu": 0.571519,
+   "t1_ms": 20.1094,
+   "end_pu": 1.39302e-05,
+   "iN_pk": 257.686
+  },
+  "modeB": {
+   "vdc": 643.395,
+   "m": 1.01678,
+   "u0_150_V": 67.6266,
+   "resid_pct": 1.81036,
+   "resid_150_pct": 0.0386304,
+   "h_max": 39,
+   "resid_hmax_pct": 1.59605,
+   "u0_mean_V": 3.55271e-15
+  },
+  "dc": {
+   "K_pv_S": 0.301593,
+   "I_dc_A": 89.1586,
+   "offset_without_V": 295.626
+  }
+ },
  "firmware": {
   "sampling": {
    "rounds": [
@@ -6590,6 +9654,16 @@
      "gfl"
     ],
     [
+     "per-sample current clamp: 3 phases, prediction, correction (section 4b)",
+     36,
+     "gfl"
+    ],
+    [
+     "ride-through state, dip-time limit, PLL freeze (section 4b)",
+     6,
+     "gfl"
+    ],
+    [
      "DC-link PI + DC-current feed-forward",
      7,
      "dc"
@@ -6598,26 +9672,42 @@
      "grid forming: P/Q, droop, virtual impedance, voltage PR 2 axes",
      34,
      "gfm"
+    ],
+    [
+     "VF secondary: magnitude filter, re-seed test (the integrators run in the 1 kHz task)",
+     8,
+     "gfm"
+    ],
+    [
+     "four-wire: third axis of the per-phase loops, N-leg cascade (P current + SOGI + voltage PR), N DC offset",
+     70,
+     "4w"
     ]
    ],
    "load": {
     "GFL": {
-     "ops": 157,
-     "cycles": 472.5,
-     "us": 3.9375,
-     "pct": 25.2
+     "ops": 199,
+     "cycles": 577.5,
+     "us": 4.8125,
+     "pct": 30.8
     },
     "GFL + DC link": {
-     "ops": 164,
-     "cycles": 490.0,
-     "us": 4.08333,
-     "pct": 26.1333
+     "ops": 206,
+     "cycles": 595.0,
+     "us": 4.95833,
+     "pct": 31.7333
     },
     "GFM + DC link": {
-     "ops": 198,
-     "cycles": 575.0,
-     "us": 4.79167,
-     "pct": 30.6667
+     "ops": 248,
+     "cycles": 700.0,
+     "us": 5.83333,
+     "pct": 37.3333
+    },
+    "GFM + DC link, four-wire": {
+     "ops": 318,
+     "cycles": 875.0,
+     "us": 7.29167,
+     "pct": 46.6667
     }
    }
   },
@@ -6661,6 +9751,42 @@
    [
     "ADC configuration",
     "AGPIOCTRLA GPIO20/21 = 0: B5/B11 read on pins 32/30, pins 48/49 stay digital (TACH3, RCM_TST)"
+   ],
+   [
+    "ride-through state (LVRT)",
+    "entered when the sensed |v_C| < 0.85 pu, kept 40 ms after it is back above 0.9 pu; reference limit 255 A pk during it (the hand-over profile's 1.0 I_r reactive-current cap) instead of the 200 ms tier; PLL integrator and angle held below 0.2 pu (free-running at the pre-dip frequency)"
+   ],
+   [
+    "per-sample current clamp",
+    "in the PWM update, per phase: the current one period after the new command, predicted from the sensed current and the committed command over the -10 % L1, limited to 380 A (sampled) = window low edge 426 A - ripple/2 30.9 A - 15 A; deadbeat correction with unit gain on that phase, anti-windup through the PR back-calculation; backstop only - the ride-through state keeps the reference below it"
+   ],
+   [
+    "stiff-grid deep-dip derating",
+    "the onset peak forms in the first ms, before the sensing chain and 1.5 T_s let any firmware act: at a stiff connection rated current reaches the window for residual voltages of 0.2 pu and below; where ride-through below that is required at a connection stiffer than SCR 50, limit the continuous current: to 0 pu 95.5 kW (76 %), to 0.1 pu 105.5 kW (84 %), to 0.2 pu 115.0 kW (92 %)"
+   ],
+   [
+    "VF secondary restoration",
+    "frequency and C_f-voltage magnitude integrators, time constant 0.5 s (sec_rule); VF only - off in grid-connected GFM, frozen and ramped out before re-synchronisation; voltage layer re-seeded downwards on a load rejection (> 0.02 pu above the present need); paralleled modules agree the restoration terms over the module CAN (consensus, 50 ms cycle ASSUMED, not modelled) so the droop's sharing is kept"
+   ],
+   [
+    "angle generator (VF)",
+    "32-bit per-unit phase accumulator, increment rounded (0.06 ppm), TMU sin/cos of the per-unit angle: the output frequency is the controller oscillator's"
+   ],
+   [
+    "voltage-loop h5 / h7 resonant terms (VF)",
+    "not adopted: margin rule met (PM 74 deg, GM 11.7 dB) but their modes decay at 8/9 1/s against 31 1/s; THDu without them <= 1.31 % (three-wire) / 1.98 % (four-wire), dead time not compensated"
+   ],
+   [
+    "zero sequence in VF (THDu option)",
+    "min-max zero sequence (m > 0.98) excites the L1-C_f resonance through the filters' tolerance mismatch: up to 1.81 % (4W, 643 V); a pure third-harmonic zero sequence (same linear range) leaves only its 150 Hz term (0.039 %) - firmware option, not adopted here"
+   ],
+   [
+    "four-wire per-phase loops",
+    "one C_f-voltage PR per phase on its phase-to-N voltage (N held on M by the N leg): the alpha-beta design per axis - margins and bandwidth identical (386 Hz no load, 197 Hz rated); per-phase amplitude restoration (the secondary voltage layer per phase); per-phase virtual reactance through a quadrature generator (not simulated); DC-component regulator per phase on the phase-to-N one-cycle mean (pcs_spec row)"
+   ],
+   [
+    "four-wire N leg",
+    "the VF cascade in every mode: P-only current loop on IL4 with the phases' K_p and SOGI feed-forward, the phases' C_f-voltage PR on VGN - VA (reference 0 in mode A; mode B: the min-max zero sequence u_0 as feed-forward to its modulator and reference); not the grid-following PR alone (max |pole| 1.00038 on the capacitive N node); N-leg DC regulator: one-cycle mean of VGN - VA -> integrator -> offset on its reference (without it a half-wave load's 89 A DC shifts N_F by 296 V through the voltage loop's 0.302 S); the phases' DC regulators act on the phase-to-N means - independent quantities"
    ]
   ],
   "anti_islanding": [
@@ -6853,9 +9979,9 @@
  "hardware_mismatches": [
   [
    "PCS-CTL phase window",
-   "+/-455 A nominal, worst band 426-486 A (basis 1.05 x the normal peak 397.5 A)",
-   "peaks above the band's low edge (averaged + ripple/2): 0.1 pu dip (stiff) 465 A (above the nominal threshold: trips); 0.1 pu dip (SCR 5) 457 A (above the nominal threshold: trips); highest peak below the band: 0.5 pu dip (SCR 5) 414 A",
-   "MISMATCH"
+   "+/-455 A nominal, worst band 426-486 A (basis 1.072 x the normal peak 397.5 A)",
+   "with the firmware limiter of section 4b (ride-through state, PLL freeze, per-sample clamp) every in-dip and recovery peak is <= 382 A; peaks above the band's low edge (averaged + ripple/2): 0 pu dip at 125 kW (stiff) onset 484 A (above the nominal threshold: trips); 0.1 pu dip at 125 kW (stiff) onset 465 A (above the nominal threshold: trips); 0.2 pu dip at 125 kW (stiff) onset 445 A (may trip); highest peak below the band: 0.3 pu dip at 125 kW (stiff) onset 425 A; without the ride-through state (section 4): 0.1 pu dip (stiff) 465 A",
+   "MISMATCH (stiff-grid onset: firmware derating, section 4b)"
   ],
   [
    "Current-loop bandwidth statement (risk register E1, guide 09, pcs_spec hand-over)",
@@ -6938,8 +10064,8 @@
   [
    "Grid-side current",
    "not sensed (i_2 estimated as i_1 - C_f dv_C/dt)",
-   "grid forming off-grid: a 0 -> rated resistive step dips v_C to 0.38 pu, within 10 % after 5 ms; a load-current feed-forward needs a measured output current (the estimate contains the inner loop's own current)",
-   "NOTE (design gap if a stiff off-grid voltage is required: three grid-side sensors)"
+   "grid forming off-grid: a 0 -> rated resistive step dips v_C to 0.38 pu, within 10 % after 5 ms; a rated -> 0 step overshoots to 2.17 pu with the restoration (1.89 pu from the primary layer's 0.84 pu; averaged model, first 0.2 ms: L1's current charges C_f before the inner loop turns it); a load-current feed-forward needs a measured output current (the estimate contains the inner loop's own current)",
+   "NOTE (design gap if a stiff dynamic off-grid voltage is required: three grid-side sensors; the published rows are static)"
   ]
  ],
  "agreement_A": 1.42106e-10,

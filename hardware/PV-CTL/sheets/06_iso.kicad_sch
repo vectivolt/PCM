@@ -6,8 +6,8 @@
 	(paper "A3")
 	(title_block
 		(title "PV-CTL control board - Barrier B1: isolators, CAN, RS-485")
-		(date "2026-10-05")
-		(rev "A1")
+		(date "2026-10-06")
+		(rev "A2")
 		(comment 1 "LIVE zone = BUS- (hazardous live); SELV zone behind reinforced barrier B1")
 		(comment 2 "Schematics authored by Chinmoy Bhuyan")
 		(comment 3 "Sheet 7")
@@ -1339,6 +1339,373 @@
 						)
 					)
 					(number "8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "dcdc:CA_IS3842"
+			(pin_names
+				(offset 0.762)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "U"
+				(at -10.16 13.97 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left bottom)
+				)
+			)
+			(property "Value" "CA-IS3842HW"
+				(at -10.16 -13.97 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 -16.51 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" "docs/datasheets/isolation-interface/CA-IS384x.pdf"
+				(at 0 -19.05 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Reinforced 4-ch digital isolator 2 fwd + 2 rev, default HIGH, 5.7 kVrms, VIOSM 8 kV"
+				(at 0 -21.59 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "CA_IS3842_1_1"
+				(rectangle
+					(start -10.16 12.7)
+					(end 10.16 -12.7)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(pin power_in line
+					(at -15.24 7.62 0)
+					(length 5.08)
+					(name "VDDA"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at -15.24 -7.62 0)
+					(length 5.08)
+					(name "GNDA"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -15.24 5.08 0)
+					(length 5.08)
+					(name "VI1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -15.24 2.54 0)
+					(length 5.08)
+					(name "VI2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at -15.24 0 0)
+					(length 5.08)
+					(name "VO3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at -15.24 -2.54 0)
+					(length 5.08)
+					(name "VO4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -15.24 -5.08 0)
+					(length 5.08)
+					(name "ENA"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at -15.24 -10.16 0)
+					(length 5.08)
+					(name "GNDA"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 15.24 -7.62 180)
+					(length 5.08)
+					(name "GNDB"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "9"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at 15.24 -5.08 180)
+					(length 5.08)
+					(name "ENB"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "10"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at 15.24 -2.54 180)
+					(length 5.08)
+					(name "VI4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "11"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at 15.24 0 180)
+					(length 5.08)
+					(name "VI3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "12"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 15.24 2.54 180)
+					(length 5.08)
+					(name "VO2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "13"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 15.24 5.08 180)
+					(length 5.08)
+					(name "VO1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "14"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 15.24 -10.16 180)
+					(length 5.08)
+					(name "GNDB"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "15"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 15.24 7.62 180)
+					(length 5.08)
+					(name "VDDB"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "16"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -2833,6 +3200,19 @@
 		)
 		(uuid "c1214f5f-c6ba-5bba-91f0-d6f0f5f9dad4")
 	)
+	(rectangle
+		(start 12 197.2)
+		(end 157.06 252.6)
+		(stroke
+			(width 0.254)
+			(type dash)
+			(color 72 72 160 1)
+		)
+		(fill
+			(type none)
+		)
+		(uuid "caa8bf9a-dbed-5192-9712-8f5a3dbcfcae")
+	)
 	(text "3821 #1: STATUS_L -> S_STATUS_G (out), S_EN -> STOP_OK (in: SELV side unpowered or open = STOP).\n3821 #2: FAN_PWM_L -> S_FAN_PWM (out; unpowered = fans off), S_TACH1_I -> TACH1. 3820 (A side SELV):\nS_TACH2_I, S_TACH3_I -> TACH2, TACH3. 100 nF per side."
 		(exclude_from_sim no)
 		(at 14 189.7 0)
@@ -2878,6 +3258,18 @@
 			(justify left bottom)
 		)
 		(uuid "626383e6-4e18-5b9e-810d-42c7d78a91fd")
+	)
+	(text "ETHERNET UART AND DI1 ACROSS B1: CA-IS3842HW (REV A2, FITTED ON EVERY VARIANT)"
+		(exclude_from_sim no)
+		(at 14 202.2 0)
+		(effects
+			(font
+				(size 1.8 1.8)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+		(uuid "7bd77fec-6b68-561b-ad1d-a81fe6de5529")
 	)
 	(text "Logic side +3V3 (ICC1 <= 3.6 mA), bus side S_5V (ICC2 <= 73 mA dominant): no live +5V needed. Split\ntermination 2 x 60.4 R + 4.7 nF by JP; ESD2CAN24 to SELV 0 V. Terminal: CANH, CANL, 0 V, CANH, CANL\n(in / out), shield to PE."
 		(exclude_from_sim no)
@@ -2925,6 +3317,17 @@
 		)
 		(uuid "e68d6073-687e-5f6b-8bfa-8c826e629c08")
 	)
+	(text "A side LIVE (+3V3): VI1 <- ETH_TXD (SCIB TX), VO4 -> ETH_RXD (SCIB RX), VO3 -> DI1 (GPIO52), VI2 spare (GND).\nB side SELV (S_5V): VO1 -> 1.0k / 2.0k -> CH9121T RXD1 (3.3 V I/O), VI4 <- CH9121T TXD1, VI3 <- S_DI1 (sheet 07).\nDefault HIGH: the UART lines idle high with either side unpowered or the bridge not fitted (PV-CTL)."
+		(exclude_from_sim no)
+		(at 14 250.1 0)
+		(effects
+			(font
+				(size 1.1 1.1)
+			)
+			(justify left bottom)
+		)
+		(uuid "edff15f9-8540-589e-981f-e332cc431425")
+	)
 	(junction
 		(at 134.62 45.72)
 		(diameter 0)
@@ -2942,6 +3345,10 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "ed1d08d8-db15-599c-a389-4ad2d0029233")
+	)
+	(no_connect
+		(at 58.42 218.44)
+		(uuid "304980a6-646f-5344-a9c4-613ef005c012")
 	)
 	(no_connect
 		(at 309.88 43.18)
@@ -3113,6 +3520,16 @@
 	)
 	(wire
 		(pts
+			(xy 58.42 215.9) (xy 60.96 215.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1dc6334d-cf46-5b72-9157-ec0a20e9473c")
+	)
+	(wire
+		(pts
 			(xy 227.33 60.96) (xy 229.87 60.96)
 		)
 		(stroke
@@ -3253,6 +3670,26 @@
 	)
 	(wire
 		(pts
+			(xy 58.42 226.06) (xy 60.96 226.06)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "44a6e6ab-0573-579e-b609-3840090bc431")
+	)
+	(wire
+		(pts
+			(xy 27.94 223.52) (xy 25.4 223.52)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4769fda8-47ab-57a6-b463-f357d6d3b91d")
+	)
+	(wire
+		(pts
 			(xy 27.94 142.24) (xy 25.4 142.24)
 		)
 		(stroke
@@ -3303,6 +3740,16 @@
 	)
 	(wire
 		(pts
+			(xy 58.42 213.36) (xy 60.96 213.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "56b161f5-6c14-5170-bd88-a03c851b2896")
+	)
+	(wire
+		(pts
 			(xy 137.16 48.26) (xy 134.62 48.26)
 		)
 		(stroke
@@ -3310,6 +3757,16 @@
 			(type default)
 		)
 		(uuid "56de690c-04ec-544d-bfb8-ae0af5f95ce2")
+	)
+	(wire
+		(pts
+			(xy 78.74 214.63) (xy 78.74 212.09)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "581588db-994a-5ff7-807b-1d23c2b771fa")
 	)
 	(wire
 		(pts
@@ -3353,6 +3810,16 @@
 	)
 	(wire
 		(pts
+			(xy 27.94 213.36) (xy 25.4 213.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "62ac5eb0-c276-5dd0-80b8-d8948c41803d")
+	)
+	(wire
+		(pts
 			(xy 119.38 137.16) (xy 121.92 137.16)
 		)
 		(stroke
@@ -3380,6 +3847,16 @@
 			(type default)
 		)
 		(uuid "700ba3e0-be1a-5b3a-8871-c909bf81fe30")
+	)
+	(wire
+		(pts
+			(xy 58.42 231.14) (xy 60.96 231.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "70c20e81-23dd-5699-af1b-b585cbc6e8a1")
 	)
 	(wire
 		(pts
@@ -3433,6 +3910,16 @@
 	)
 	(wire
 		(pts
+			(xy 96.52 214.63) (xy 96.52 212.09)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7959ca1e-50b5-5594-bb85-a257def15f6a")
+	)
+	(wire
+		(pts
 			(xy 279.4 43.18) (xy 276.86 43.18)
 		)
 		(stroke
@@ -3460,6 +3947,16 @@
 			(type default)
 		)
 		(uuid "7c4e3562-beb2-58ac-a3d1-a6b5779c6652")
+	)
+	(wire
+		(pts
+			(xy 25.4 228.6) (xy 25.4 231.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7c5cd6b6-8ca1-55ef-b41c-98ddd6399e60")
 	)
 	(wire
 		(pts
@@ -3583,6 +4080,16 @@
 	)
 	(wire
 		(pts
+			(xy 27.94 220.98) (xy 25.4 220.98)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "973492ff-d99c-589b-8af9-84b072529925")
+	)
+	(wire
+		(pts
 			(xy 279.4 30.48) (xy 276.86 30.48)
 		)
 		(stroke
@@ -3623,6 +4130,16 @@
 	)
 	(wire
 		(pts
+			(xy 27.94 226.06) (xy 25.4 226.06)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9c94ce78-370b-5151-9f54-95f4a07f67b6")
+	)
+	(wire
+		(pts
 			(xy 58.42 139.7) (xy 60.96 139.7)
 		)
 		(stroke
@@ -3650,6 +4167,26 @@
 			(type default)
 		)
 		(uuid "ab8ba10f-0a70-5363-ad15-f8c3c8a27036")
+	)
+	(wire
+		(pts
+			(xy 58.42 223.52) (xy 60.96 223.52)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "abd3e649-2dc7-501a-94c1-4d43fc52b93d")
+	)
+	(wire
+		(pts
+			(xy 27.94 231.14) (xy 25.4 231.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "acd492f5-a5e4-5e9f-b160-ae43fd6da233")
 	)
 	(wire
 		(pts
@@ -3733,6 +4270,16 @@
 	)
 	(wire
 		(pts
+			(xy 58.42 228.6) (xy 60.96 228.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b7f32bb6-e52c-5edc-be60-6c34b871e3b7")
+	)
+	(wire
+		(pts
 			(xy 185.42 31.75) (xy 185.42 29.21)
 		)
 		(stroke
@@ -3783,6 +4330,16 @@
 	)
 	(wire
 		(pts
+			(xy 27.94 228.6) (xy 25.4 228.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c6adab68-dca1-56fa-ae39-b113aeba5d74")
+	)
+	(wire
+		(pts
 			(xy 167.64 33.02) (xy 170.18 33.02)
 		)
 		(stroke
@@ -3800,6 +4357,16 @@
 			(type default)
 		)
 		(uuid "cdcedbb5-74de-52ea-9f79-5fa6a431a55d")
+	)
+	(wire
+		(pts
+			(xy 78.74 222.25) (xy 78.74 224.79)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cf550f03-7852-58cd-a927-695df4238c52")
 	)
 	(wire
 		(pts
@@ -3893,6 +4460,26 @@
 	)
 	(wire
 		(pts
+			(xy 96.52 222.25) (xy 96.52 224.79)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d767f243-d637-595c-a5a9-e09a4ac63c0f")
+	)
+	(wire
+		(pts
+			(xy 60.96 228.6) (xy 60.96 231.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "db9093d7-099d-54cb-9b7e-6e580e875d2d")
+	)
+	(wire
+		(pts
 			(xy 119.38 139.7) (xy 121.92 139.7)
 		)
 		(stroke
@@ -3910,6 +4497,16 @@
 			(type default)
 		)
 		(uuid "dfb6a87f-6ca6-5222-af3e-00cc31a2d75a")
+	)
+	(wire
+		(pts
+			(xy 27.94 215.9) (xy 25.4 215.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e14c5e16-5946-58af-a0e6-b1eca0e47e36")
 	)
 	(wire
 		(pts
@@ -3973,6 +4570,16 @@
 	)
 	(wire
 		(pts
+			(xy 58.42 220.98) (xy 60.96 220.98)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f5fcdf13-b28b-57ba-ba43-6a57cc95e10e")
+	)
+	(wire
+		(pts
 			(xy 58.42 134.62) (xy 60.96 134.62)
 		)
 		(stroke
@@ -3980,6 +4587,16 @@
 			(type default)
 		)
 		(uuid "f85e941a-a2ae-55b0-8e00-2d52ec167b1a")
+	)
+	(wire
+		(pts
+			(xy 27.94 218.44) (xy 25.4 218.44)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f8c6c5c2-570b-5a92-b84a-b5fae36c33aa")
 	)
 	(wire
 		(pts
@@ -4407,6 +5024,52 @@
 			)
 		)
 	)
+	(global_label "ETH_RXD"
+		(shape bidirectional)
+		(at 25.4 223.52 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "2d0b9a3d-f36d-5fce-9673-6a2d359f0ac5")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 25.4 223.52 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "ETH_TXD"
+		(shape bidirectional)
+		(at 25.4 215.9 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "42b18d4d-7b34-5c9e-89a7-7789455bb275")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 25.4 215.9 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
 	(global_label "TACH3"
 		(shape bidirectional)
 		(at 182.88 139.7 0)
@@ -4568,6 +5231,75 @@
 			)
 		)
 	)
+	(global_label "DI1"
+		(shape bidirectional)
+		(at 25.4 220.98 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify right)
+		)
+		(uuid "9a7111d3-5da6-5f8c-8c9e-b5ecd7a85495")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 25.4 220.98 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "S_ETH_RXD5"
+		(shape bidirectional)
+		(at 60.96 215.9 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "9ab5699d-c9c8-5ef4-9b13-b46ef5d3e917")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 60.96 215.9 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "S_DI1"
+		(shape bidirectional)
+		(at 60.96 220.98 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "a36d5d08-4a06-54c2-8328-48919eb71865")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 60.96 220.98 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
 	(global_label "S_TACH3_I"
 		(shape bidirectional)
 		(at 147.32 139.7 180)
@@ -4581,6 +5313,29 @@
 		(uuid "ad241347-7acf-535f-b6e3-26ccc4b124b7")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 147.32 139.7 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+	)
+	(global_label "S_ETH_TXD"
+		(shape bidirectional)
+		(at 60.96 223.52 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1 1)
+			)
+			(justify left)
+		)
+		(uuid "af133e4e-c890-5fea-bdce-55bcbaad6805")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 60.96 223.52 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5132,6 +5887,81 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_GND")
+		(at 78.74 224.79 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "03cb3ec5-e602-5dfa-9da9-48f394fd3e65")
+		(property "Reference" "#PWR06063"
+			(at 78.74 224.79 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 78.74 229.19 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 78.74 224.79 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 78.74 224.79 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 78.74 224.79 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "0f07c423-b5ec-56b5-8e50-2ca7fa2fe32b")
+		)
+		(instances
+			(project "PV-CTL"
+				(path "/27bf8643-f27c-55ee-a16b-008dacca3369/3c3de7a6-539c-56f4-9aef-af9961d5055f"
+					(reference "#PWR06063")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:PWR_GND")
 		(at 198.12 143.51 0)
 		(unit 1)
 		(body_style 1)
@@ -5659,6 +6489,141 @@
 		)
 	)
 	(symbol
+		(lib_id "dcdc:C")
+		(at 96.52 218.44 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "1d315d00-7cf8-5ac4-acb4-1ecabcdaccf2")
+		(property "Reference" "C616"
+			(at 103.748 217.54 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "100n 50V"
+			(at 103.748 219.34 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 96.52 218.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 96.52 218.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Capacitor 100n 50V X7R 0603"
+			(at 96.52 218.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 96.52 218.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 96.52 218.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "0603"
+			(at 96.52 218.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "GENERIC"
+			(at 96.52 218.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "SELV"
+			(at 96.52 218.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "2747512b-5aba-56cd-b26b-996333143d19")
+		)
+		(pin "2"
+			(uuid "69cc8042-4201-51a2-b186-527b9fb3fa3f")
+		)
+		(instances
+			(project "PV-CTL"
+				(path "/27bf8643-f27c-55ee-a16b-008dacca3369/3c3de7a6-539c-56f4-9aef-af9961d5055f"
+					(reference "C616")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "dcdc:PWR_S_GND")
 		(at 236.22 44.45 0)
 		(unit 1)
@@ -5803,6 +6768,81 @@
 			(project "PV-CTL"
 				(path "/27bf8643-f27c-55ee-a16b-008dacca3369/3c3de7a6-539c-56f4-9aef-af9961d5055f"
 					(reference "#PWR06040")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:PWR_GND")
+		(at 25.4 228.6 270)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "2d0c8025-6eef-5918-ab14-73a6c6d4c192")
+		(property "Reference" "#PWR06058"
+			(at 25.4 228.6 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 20.24 228.6 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 25.4 228.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 25.4 228.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 25.4 228.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "bb081e24-b39e-5f25-a1ef-2ba77f24348f")
+		)
+		(instances
+			(project "PV-CTL"
+				(path "/27bf8643-f27c-55ee-a16b-008dacca3369/3c3de7a6-539c-56f4-9aef-af9961d5055f"
+					(reference "#PWR06058")
 					(unit 1)
 				)
 			)
@@ -6095,6 +7135,156 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_GND")
+		(at 25.4 218.44 270)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "3916b306-6b4a-5cc9-b6b5-11acac2ebb05")
+		(property "Reference" "#PWR06057"
+			(at 25.4 218.44 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 20.24 218.44 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 25.4 218.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 25.4 218.44 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 25.4 218.44 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "2a7391fd-4d15-54ec-8d63-43f35f0887f9")
+		)
+		(instances
+			(project "PV-CTL"
+				(path "/27bf8643-f27c-55ee-a16b-008dacca3369/3c3de7a6-539c-56f4-9aef-af9961d5055f"
+					(reference "#PWR06057")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:PWR_+3V3")
+		(at 25.4 226.06 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "3a37690b-e339-5eca-9dd3-7e1dacda6d86")
+		(property "Reference" "#PWR06056"
+			(at 25.4 226.06 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Value" "+3V3"
+			(at 19.82 226.06 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 25.4 226.06 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 25.4 226.06 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 25.4 226.06 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "1dc11f33-1b89-55a9-8667-40ac623e840d")
+		)
+		(instances
+			(project "PV-CTL"
+				(path "/27bf8643-f27c-55ee-a16b-008dacca3369/3c3de7a6-539c-56f4-9aef-af9961d5055f"
+					(reference "#PWR06056")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:PWR_GND")
 		(at 327.66 41.91 0)
 		(unit 1)
 		(body_style 1)
@@ -6298,6 +7488,156 @@
 			(project "PV-CTL"
 				(path "/27bf8643-f27c-55ee-a16b-008dacca3369/3c3de7a6-539c-56f4-9aef-af9961d5055f"
 					(reference "C605")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:PWR_S_5V")
+		(at 96.52 212.09 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "441f1591-ca85-50cb-a5c9-e165122a0695")
+		(property "Reference" "#PWR06064"
+			(at 96.52 212.09 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Value" "S_5V"
+			(at 96.52 207.89 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 96.52 212.09 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 96.52 212.09 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 96.52 212.09 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "a77c87d4-f964-5131-95e9-660c3b49e1b7")
+		)
+		(instances
+			(project "PV-CTL"
+				(path "/27bf8643-f27c-55ee-a16b-008dacca3369/3c3de7a6-539c-56f4-9aef-af9961d5055f"
+					(reference "#PWR06064")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:PWR_S_5V")
+		(at 60.96 226.06 270)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "4857ca1c-ebf7-54e9-b1cd-59c28c16d262")
+		(property "Reference" "#PWR06060"
+			(at 60.96 226.06 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Value" "S_5V"
+			(at 66.54 226.06 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 60.96 226.06 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 60.96 226.06 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 60.96 226.06 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "134edf56-da01-5489-bfc0-5edf305919c9")
+		)
+		(instances
+			(project "PV-CTL"
+				(path "/27bf8643-f27c-55ee-a16b-008dacca3369/3c3de7a6-539c-56f4-9aef-af9961d5055f"
+					(reference "#PWR06060")
 					(unit 1)
 				)
 			)
@@ -6949,6 +8289,141 @@
 		)
 	)
 	(symbol
+		(lib_id "dcdc:C")
+		(at 78.74 218.44 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "60c1d64b-6566-5d78-acb0-f5329e6b4edb")
+		(property "Reference" "C615"
+			(at 85.968 217.54 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "100n 50V"
+			(at 85.968 219.34 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 78.74 218.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 78.74 218.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Capacitor 100n 50V X7R 0603"
+			(at 78.74 218.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 78.74 218.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" ""
+			(at 78.74 218.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "0603"
+			(at 78.74 218.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "GENERIC"
+			(at 78.74 218.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "LIVE"
+			(at 78.74 218.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "44d1269d-aaf1-5239-b93c-4cf864f87707")
+		)
+		(pin "2"
+			(uuid "378f145a-2ee8-5d67-ab6e-e1c8923519da")
+		)
+		(instances
+			(project "PV-CTL"
+				(path "/27bf8643-f27c-55ee-a16b-008dacca3369/3c3de7a6-539c-56f4-9aef-af9961d5055f"
+					(reference "C615")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "dcdc:PWR_GND")
 		(at 269.24 143.51 0)
 		(unit 1)
@@ -7152,7 +8627,7 @@
 				)
 			)
 		)
-		(property "Description" "Pluggable header 6-pos 3.81 mm (plug KF2EDGK-3.81-6P): bus in/out + 0 V + shield (SELV)"
+		(property "Description" "Pluggable header 6-pos 3.81 mm (plug KF2EDGK-3.81-6P): bus or stop loop in/out + 0 V + screen (SELV)"
 			(at 172.72 83.82 0)
 			(hide yes)
 			(show_name no)
@@ -7375,6 +8850,81 @@
 			(project "PV-CTL"
 				(path "/27bf8643-f27c-55ee-a16b-008dacca3369/3c3de7a6-539c-56f4-9aef-af9961d5055f"
 					(reference "C602")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:PWR_S_GND")
+		(at 96.52 224.79 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "729fb5f6-1eda-5452-960b-eeb45588c5d1")
+		(property "Reference" "#PWR06065"
+			(at 96.52 224.79 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Value" "S_GND"
+			(at 96.52 229.19 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 96.52 224.79 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 96.52 224.79 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 96.52 224.79 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "cefa5f13-4bb1-5e62-b758-46afe398eb6d")
+		)
+		(instances
+			(project "PV-CTL"
+				(path "/27bf8643-f27c-55ee-a16b-008dacca3369/3c3de7a6-539c-56f4-9aef-af9961d5055f"
+					(reference "#PWR06065")
 					(unit 1)
 				)
 			)
@@ -7861,6 +9411,81 @@
 		)
 	)
 	(symbol
+		(lib_id "dcdc:PWR_S_GND")
+		(at 60.96 228.6 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "78e98c52-8857-5d73-8100-db0600b53834")
+		(property "Reference" "#PWR06061"
+			(at 60.96 228.6 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Value" "S_GND"
+			(at 66.96 228.6 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 60.96 228.6 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 60.96 228.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 60.96 228.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "ef732f13-3c89-55b1-ac36-eb404d803910")
+		)
+		(instances
+			(project "PV-CTL"
+				(path "/27bf8643-f27c-55ee-a16b-008dacca3369/3c3de7a6-539c-56f4-9aef-af9961d5055f"
+					(reference "#PWR06061")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "dcdc:R")
 		(at 223.52 60.96 90)
 		(unit 1)
@@ -8200,6 +9825,81 @@
 			(project "PV-CTL"
 				(path "/27bf8643-f27c-55ee-a16b-008dacca3369/3c3de7a6-539c-56f4-9aef-af9961d5055f"
 					(reference "#PWR06022")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:PWR_+3V3")
+		(at 78.74 212.09 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "7e4fa523-b8f6-5b86-ab75-8e996e34ef78")
+		(property "Reference" "#PWR06062"
+			(at 78.74 212.09 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Value" "+3V3"
+			(at 78.74 207.89 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 78.74 212.09 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 78.74 212.09 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 78.74 212.09 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "28cce258-8bbc-5585-9043-6a84377b47a9")
+		)
+		(instances
+			(project "PV-CTL"
+				(path "/27bf8643-f27c-55ee-a16b-008dacca3369/3c3de7a6-539c-56f4-9aef-af9961d5055f"
+					(reference "#PWR06062")
 					(unit 1)
 				)
 			)
@@ -9767,6 +11467,81 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_+3V3")
+		(at 25.4 213.36 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "b3d61ed1-7dfe-59de-b0dc-3bf427097c74")
+		(property "Reference" "#PWR06055"
+			(at 25.4 213.36 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Value" "+3V3"
+			(at 19.82 213.36 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 25.4 213.36 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 25.4 213.36 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 25.4 213.36 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "5c82d04d-bddb-574f-bb91-304bd88a265b")
+		)
+		(instances
+			(project "PV-CTL"
+				(path "/27bf8643-f27c-55ee-a16b-008dacca3369/3c3de7a6-539c-56f4-9aef-af9961d5055f"
+					(reference "#PWR06055")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:PWR_+3V3")
 		(at 182.88 134.62 270)
 		(unit 1)
 		(body_style 1)
@@ -10944,7 +12719,7 @@
 				)
 			)
 		)
-		(property "Description" "Pluggable header 6-pos 3.81 mm (plug KF2EDGK-3.81-6P): bus in/out + 0 V + shield (SELV)"
+		(property "Description" "Pluggable header 6-pos 3.81 mm (plug KF2EDGK-3.81-6P): bus or stop loop in/out + 0 V + screen (SELV)"
 			(at 393.7 66.04 0)
 			(hide yes)
 			(show_name no)
@@ -11866,6 +13641,81 @@
 		)
 	)
 	(symbol
+		(lib_id "dcdc:PWR_S_5V")
+		(at 60.96 213.36 270)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "e73d53ed-4acb-5ce7-8fb0-6334031af4f5")
+		(property "Reference" "#PWR06059"
+			(at 60.96 213.36 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Value" "S_5V"
+			(at 66.54 213.36 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1 1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 60.96 213.36 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 60.96 213.36 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 60.96 213.36 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "223b20f6-c0db-59c4-bea9-70cdbe2ee6d2")
+		)
+		(instances
+			(project "PV-CTL"
+				(path "/27bf8643-f27c-55ee-a16b-008dacca3369/3c3de7a6-539c-56f4-9aef-af9961d5055f"
+					(reference "#PWR06059")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "dcdc:PWR_GND")
 		(at 185.42 41.91 0)
 		(unit 1)
@@ -12160,6 +14010,183 @@
 			(project "PV-CTL"
 				(path "/27bf8643-f27c-55ee-a16b-008dacca3369/3c3de7a6-539c-56f4-9aef-af9961d5055f"
 					(reference "#PWR06018")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dcdc:CA_IS3842")
+		(at 43.18 220.98 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "ee732c11-9496-5b10-8a90-26eb22aa70cd")
+		(property "Reference" "U606"
+			(at 43.18 206.68 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "CA-IS3842HW"
+			(at 43.18 235.28 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 43.18 220.98 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "docs/datasheets/isolation-interface/CA-IS384x.pdf"
+			(at 43.18 220.98 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Reinforced 4-ch digital isolator 2 fwd + 2 rev, default HIGH, 5.7 kVrms, VIOSM 8 kV"
+			(at 43.18 220.98 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Chipanalog"
+			(at 43.18 220.98 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CA-IS3842HW"
+			(at 43.18 220.98 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Package" "SOIC-16 WB (W) 10.3x7.5 mm, 8 mm CLR/CPG"
+			(at 43.18 220.98 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Sourcing" "ORDERABLE"
+			(at 43.18 220.98 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Domain" "ISOLATOR"
+			(at 43.18 220.98 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "374536fc-e4ef-558d-a7cf-e2174333ddf2")
+		)
+		(pin "3"
+			(uuid "42418013-1c52-53c7-942d-024787380eef")
+		)
+		(pin "4"
+			(uuid "520c5441-172c-5d1d-8de2-4c429b845816")
+		)
+		(pin "5"
+			(uuid "d54f978e-5e17-5252-a605-029ff6b00131")
+		)
+		(pin "6"
+			(uuid "27a25f9e-0e0e-5b94-a899-9468ee3af8d0")
+		)
+		(pin "7"
+			(uuid "854a8a35-ae2e-5920-89f7-a7e55cb956b2")
+		)
+		(pin "2"
+			(uuid "78af6038-ed0b-57d0-a07e-631f39851473")
+		)
+		(pin "8"
+			(uuid "a3f13ec4-dc6b-5a79-933f-fe543d191d87")
+		)
+		(pin "16"
+			(uuid "9ad4ae68-0375-5dd4-9706-8b5e0198fd95")
+		)
+		(pin "14"
+			(uuid "4c77780e-0fae-536d-b99a-886fc04dc6ae")
+		)
+		(pin "13"
+			(uuid "acc9389c-fcd3-5a3a-9f61-14b927d20dc2")
+		)
+		(pin "12"
+			(uuid "a7f39cb2-acd1-5a76-bb41-c7cfa484c171")
+		)
+		(pin "11"
+			(uuid "02ad9ad2-c0dc-5166-ad81-769fb970b2d6")
+		)
+		(pin "10"
+			(uuid "06b071c4-0760-5362-8578-7e0dfcd2a75c")
+		)
+		(pin "9"
+			(uuid "3bde61c1-068c-5001-b728-0d4611167254")
+		)
+		(pin "15"
+			(uuid "87a67ed4-6b09-5a32-a06b-4503bd57a9ae")
+		)
+		(instances
+			(project "PV-CTL"
+				(path "/27bf8643-f27c-55ee-a16b-008dacca3369/3c3de7a6-539c-56f4-9aef-af9961d5055f"
+					(reference "U606")
 					(unit 1)
 				)
 			)

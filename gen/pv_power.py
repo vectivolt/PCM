@@ -611,7 +611,9 @@ CTL_ILR_LOAD = 39.8e3                             # PV-CTL rev A1: load of each 
 CTRL_LOAD = {"+3V3": 0.20, "+5V": 0.0, "+24V": 0.0}   # A allocated to the control board (PV-CTL rev A0 draws <= 0.157 A on
 #                                                    +3V3 and nothing from +5V / +24V)
 ECON = port.S["lean"]["coil_economiser"]           # gen/port.py lean_contactor economiser (default on): hold / pull-in
-SELV_W = {3: 39.6 + 0.6, 4: 56.1 + 0.6}            # ARCHITECTURE section 3: fans at full speed (+10 % buck) + SELV logic
+SELV_LOGIC_W = 2.2                                 # control board SELV zone, allocation (D-075): PV-CTL 1.44 W stacked maximum with the
+#                                                    Ethernet bridge not fitted, 2.13 W fitted (PCS-CTL); the aux block allocates the same 2.2 W
+SELV_W = {3: 39.6 + SELV_LOGIC_W, 4: 56.1 + SELV_LOGIC_W}   # ARCHITECTURE section 3: fans at full speed (+10 % buck) + SELV logic
 LABEL_MIN = {3: 10.0, 4: 15.0}                     # ARCHITECTURE 2.2 (4): enclosure label 'wait 10 / 15 min'
 
 
@@ -1154,16 +1156,16 @@ def design_check(B, n_ph, st):
         "nominal) -> %.2f W per phase (maxima %.2f W, allocation %.2f W). Same budget with the typical gate bias, ICC1 and the coils at "
         "their typical hold power (%.2f W each; every other load still at its maximum) = %.1f W = %.0f %% of the %.1f W rating, "
         "reserve %.1f W against %.1f W for the stack. Pull-in peaks stay stacked maxima (cold coil): %.1f W of the %.1f W live peak. "
-        "Per-winding capability is the aux block's own rating (aux75_spec: live %.1f W continuous, %.1f W peak; SELV %.1f W), not the "
-        "converter's %.1f W total: this board needs no change of the winding allocation, the live winding is the tight one "
-        "(sim/aux_hv_design.py untouched; its live peak must hold %.0f ms)", p_live, 100 * n_ph * e["p_in"] / ETA_5V / p_live, n_ch,
+        "Per-winding capability is the aux block's own rating (aux75_spec rev %s, one design for every module: live %.1f W continuous, "
+        "%.1f W for 1 s; SELV %.1f W for this build), not the converter's %.1f W total: this board needs no change of the winding "
+        "allocation (the live peak must hold %.0f ms of the 1 s rating)", p_live, 100 * n_ph * e["p_in"] / ETA_5V / p_live, n_ch,
         e["i_ld"] * 1e3, e["p_in"], ECON["hold_W_max"], ", ".join("%s %.1f" % (k, v * 1e3) for k, v in ch_max.items()), i_max * 1e3,
         e["i_ld"] * 1e3, e["i_ld"] / i_max, q_g * 1e9, vt_[0], vt_[1],
         "%.0f pF each (%.0f pF fitted)" % (c_gs_gate * 1e12, c_gs_ext * 1e12) if c_gs_ext else "none fitted on this board (gdrv c_gs=None; "
         "the PCS preset fits 1 nF per gate)", i_typ * 1e3, NSI_TYP["icc2"] * 1e3, NSI_TYP["icc1"] * 1e3, p_bias_typ, p_bias_max,
         e["p_in"], ECON["hold_W_at_24V"], p_live_typ, 100 * p_live_typ / rt["live_W"], rt["live_W"], rt["live_W"] - p_live_typ,
-        rt["live_W"] - p_live, max(p_peak, p_peak_b), rt["live_peak_W"], rt["live_W"], rt["live_peak_W"], rt["selv_W"], rt["total_W"],
-        ECON["pull_in_window_s"][1] * 1e3)
+        rt["live_W"] - p_live, max(p_peak, p_peak_b), rt["live_peak_W"], S75["rev"], rt["live_W"], rt["live_peak_W"], rt["selv_W"],
+        rt["total_W"], ECON["pull_in_window_s"][1] * 1e3)
     assert p_live <= rt["live_W"] and SELV_W[n_ph] <= rt["selv_W"] and p_aux <= rt["total_W"], \
         "live / SELV / total load above the aux block's ratings (aux75_spec)"
     assert max(p_peak, p_peak_b) <= rt["live_peak_W"], "contactor pull-in peak above the aux live peak rating"

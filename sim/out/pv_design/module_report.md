@@ -19,15 +19,15 @@ Inductor read at run time: rev M2, solid round enamelled Cu 3.15 mm grade 2, 1 l
 
 | module | peak | at | 550->950 | 950->550 | 550->550 | 950->950 | 611->611 (45 C) | EU-weighted 750->750 (grid min-max) | standby open / held at 1000 V |
 |---|---|---|---|---|---|---|---|---|---|
-| PV-P75 | **99.47 %** | 900->1000 V, 49.5 kW | 98.94 | 98.89 | 98.86 | 99.15 | 98.83 | 98.80 (98.52-99.30) | 11.4 / 21.0 W |
-| PV-P100/110 | **99.46 %** | 900->1000 V, 66.0 kW | 98.93 | 98.94 | 98.96 | 99.13 | 98.92 | 98.78 (98.51-99.27) | 12.0 / 21.6 W |
+| PV-P75 | **99.47 %** | 900->1000 V, 49.5 kW | 98.94 | 98.89 | 98.86 | 99.15 | 98.83 | 98.80 (98.52-99.30) | 12.7 / 22.4 W |
+| PV-P100/110 | **99.46 %** | 900->1000 V, 66.0 kW | 98.93 | 98.94 | 98.96 | 99.13 | 98.92 | 98.78 (98.51-99.27) | 13.2 / 22.8 W |
 
 Losses by group at 611->611 V full power, 45 C inlet [W]:
 
 | module | phases | port | aux + passive HV | fans (at the input) | total | exhaust |
 |---|---|---|---|---|---|---|
-| PV-P75 | 837 | 65 | 24.2 | 46.8 | 973 | 52.8 C |
-| PV-P100/110 | 801 | 75 | 28.4 | 66.3 | 971 | 51.9 C |
+| PV-P75 | 837 | 65 | 24.4 | 47.0 | 973 | 52.8 C |
+| PV-P100/110 | 801 | 75 | 28.6 | 66.8 | 971 | 51.9 C |
 
 ![maps](module_efficiency_maps.png)
 
@@ -37,7 +37,7 @@ Losses by group at 611->611 V full power, 45 C inlet [W]:
 - PV-P75: 3 x AFB1224SHE-F00 at 100 %: 402 m3/h (134 per fan) at 52.9 Pa; R_sa there 0.0597 K/W (spec 0.06); system 56.8 Pa at 420 m3/h (rule <= 60); fans 36.0 W.
 - PV-P100/110: 3 x FFB1224SHE-F00 at 96 %: 455 m3/h (152 per fan) at 70.1 Pa; R_sa there 0.0473 K/W (spec 0.049); system 60.3 Pa at 420 m3/h (rule <= 60); fans 51.0 W.
 - Noise at 1 m, all fans (+3.0 dB installation, ESTIMATE): PV-P75 60.8 dB(A) at the cap, PV-P100/110 63.4 dB(A) at the cap.
-- **Cold limit:** RESTRICTION: both Delta fans are rated -10..60 C operating (p.3 4-1; storage -40..+75 C); PV-20 asks for -30 C. FIRMWARE RULE: while the inlet NTC reads below -10 C the fans stay OFF and the module delivers at most the passive power of the table row of the inlet reading at start-up (sustained, steady state): PV-P75: 19.2 / 17.5 / 15.5 kW at -30 / -20 / -10 C inlet (lowest of the corner points 950/611, 611/950, 1000/500 V; 0.0 / 0.0 / 0.0 kW at 611/611 V); PV-P100/110: 19.9 / 14.9 / 5.0 kW at -30 / -20 / -10 C inlet (lowest of the corner points 950/611, 611/950, 1000/500 V; 0.0 / 0.0 / 0.0 kW at 611/611 V) (ESTIMATE, +-50 %: natural convection between the fins and on the inductors, an enclosure that loses heat through its walls only, no credit for a chimney draft; limits: heatsink 75 C, inductor hot spot 130 C, junction 125 C). At V_A = V_B = 611 V (both legs hard-switching) even 5 % load exceeds the passive limits in steady state: there the start relies on the warm-up, not on a power limit. The fans are enabled once the inlet NTC reads above -10 C - the air near the intake warms from -30 to -10 C in about 48 min at PV-P75's module loss of 192 W (the 30 kg structure it follows; the air alone in 2 s) - and the fans start at ANY heatsink NTC above 80 C or inductor NTC above 135 C whatever the inlet reads (5 K above the passive-mode limits, below the 85 / 145 C derating levels of the second layer: a fan outside its rating beats an over-temperature trip; at 611/611 V and -30 C that happens after about 350 min). Open until a bench test: the passive capability itself. Fan alternatives (the fan selection is NOT changed): Sanyo Denki 9GT1224P1S001 (120 x 120 x 38 mm, -40..+85 C, 26.4 W at 100 %, i.e. over the 36 W SELV allocation of 3 fans) is the only fan ON FILE that reaches -30 C, at 88-113 USD each against 12.85 USD @504 for the Delta (gen/data/prices.csv): +225..+300 USD per module (3 fans). ebm-papst 4414/2HHP (119 x 119 x 38 mm, 24 V, 12 W, 285 m3/h, -20..+70 C, datasheet p.1 on file) reaches -20 C only, its supply range is 18..28 V (p.1; the 7-24 V supply-voltage speed law of the fan buck does not apply to it) and the speed signal is an option; price not on file, web-search snippets of 2026-10-05 (NOT verified on the pages, not in prices.csv): 33.94-78.89 USD (Octopart range), 55.92 USD (eBay, single), 64.59 USD (Newark), i.e. +63..+198 USD per module.
+- **Cold limit:** RESTRICTION: both Delta fans are rated -10..60 C operating (p.3 4-1; storage -40..+75 C); PV-20 asks for -30 C. FIRMWARE RULE: while the inlet NTC reads below -10 C the fans stay OFF and the module delivers at most the passive power of the table row of the inlet reading at start-up (sustained, steady state): PV-P75: 19.2 / 17.5 / 15.5 kW at -30 / -20 / -10 C inlet (lowest of the corner points 950/611, 611/950, 1000/500 V; 0.0 / 0.0 / 0.0 kW at 611/611 V); PV-P100/110: 19.9 / 14.9 / 4.9 kW at -30 / -20 / -10 C inlet (lowest of the corner points 950/611, 611/950, 1000/500 V; 0.0 / 0.0 / 0.0 kW at 611/611 V) (ESTIMATE, +-50 %: natural convection between the fins and on the inductors, an enclosure that loses heat through its walls only, no credit for a chimney draft; limits: heatsink 75 C, inductor hot spot 130 C, junction 125 C). At V_A = V_B = 611 V (both legs hard-switching) even 5 % load exceeds the passive limits in steady state: there the start relies on the warm-up, not on a power limit. The fans are enabled once the inlet NTC reads above -10 C - the air near the intake warms from -30 to -10 C in about 48 min at PV-P75's module loss of 192 W (the 30 kg structure it follows; the air alone in 2 s) - and the fans start at ANY heatsink NTC above 80 C or inductor NTC above 135 C whatever the inlet reads (5 K above the passive-mode limits, below the 85 / 145 C derating levels of the second layer: a fan outside its rating beats an over-temperature trip; at 611/611 V and -30 C that happens after about 349 min). Open until a bench test: the passive capability itself. Fan alternatives (the fan selection is NOT changed): Sanyo Denki 9GT1224P1S001 (120 x 120 x 38 mm, -40..+85 C, 26.4 W at 100 %, i.e. over the 36 W SELV allocation of 3 fans) is the only fan ON FILE that reaches -30 C, at 88-113 USD each against 12.85 USD @504 for the Delta (gen/data/prices.csv): +225..+300 USD per module (3 fans). ebm-papst 4414/2HHP (119 x 119 x 38 mm, 24 V, 12 W, 285 m3/h, -20..+70 C, datasheet p.1 on file) reaches -20 C only, its supply range is 18..28 V (p.1; the 7-24 V supply-voltage speed law of the fan buck does not apply to it) and the speed signal is an option; price not on file, web-search snippets of 2026-10-05 (NOT verified on the pages, not in prices.csv): 33.94-78.89 USD (Octopart range), 55.92 USD (eBay, single), 64.59 USD (Newark), i.e. +63..+198 USD per module.
 
 | fan (3-phase module, at its cap) | full power at 45 C | noise at full power 45 C | flow per phase [m3/h] | 1 fan failed 45 C: shutter / none | fits 36 W |
 |---|---|---|---|---|---|
@@ -54,16 +54,16 @@ Losses by group at 611->611 V full power, 45 C inlet [W]:
 
 | module | inlet [C] | passive power at 611/611 | 950/611 | 611/950 | 1000/500 [kW] (heatsink / inductor [C] there) | lowest of the three, pessimistic - optimistic estimates [kW] | module loss at the lowest of the three [W] |
 |---|---|---|---|---|---|---|---|
-| PV-P75 | -30 | 0.0 (91 / 49) | 23.3 (74 / 108) | 23.4 (74 / 108) | 19.2 (75 / 124) | 6.8 - 24.2 | 191.6 |
-| PV-P75 | -20 | 0.0 (108 / 62) | 21.4 (74 / 109) | 21.6 (74 / 109) | 17.5 (75 / 126) | 0.0 - 22.4 | 175.7 |
-| PV-P75 | -10 | 0.0 (125 / 74) | 19.6 (75 / 111) | 19.7 (75 / 111) | 15.5 (75 / 126) | 0.0 - 20.5 | 159.7 |
-| PV-P100/110 | -30 | 0.0 (148 / 86) | 25.6 (75 / 108) | 25.9 (75 / 109) | 19.9 (75 / 125) | 0.0 - 26.9 | 204.3 |
-| PV-P100/110 | -20 | 0.0 (172 / 102) | 23.4 (75 / 110) | 23.5 (74 / 110) | 14.9 (75 / 124) | 0.0 - 24.7 | 186.8 |
-| PV-P100/110 | -10 | 0.0 (196 / 118) | 20.6 (75 / 112) | 20.8 (75 / 112) | 5.0 (75 / 123) | 0.0 - 22.3 | 169.1 |
+| PV-P75 | -30 | 0.0 (91 / 49) | 23.3 (74 / 108) | 23.4 (74 / 108) | 19.2 (75 / 124) | 6.6 - 24.2 | 191.8 |
+| PV-P75 | -20 | 0.0 (108 / 62) | 21.4 (74 / 109) | 21.6 (74 / 109) | 17.5 (75 / 126) | 0.0 - 22.4 | 175.8 |
+| PV-P75 | -10 | 0.0 (125 / 74) | 19.6 (75 / 111) | 19.7 (75 / 111) | 15.5 (75 / 126) | 0.0 - 20.5 | 159.8 |
+| PV-P100/110 | -30 | 0.0 (149 / 86) | 25.6 (75 / 109) | 25.7 (74 / 108) | 19.9 (75 / 125) | 0.0 - 26.9 | 204.5 |
+| PV-P100/110 | -20 | 0.0 (172 / 102) | 23.2 (74 / 110) | 23.5 (74 / 110) | 14.9 (75 / 124) | 0.0 - 24.7 | 187.0 |
+| PV-P100/110 | -10 | 0.0 (196 / 118) | 20.4 (74 / 111) | 20.6 (74 / 111) | 4.9 (75 / 123) | 0.0 - 22.3 | 169.2 |
 
-PV-P75: natural-convection R_sa 0.453 K/W against 0.0599 K/W forced; the air near the fan inlet warms from -30 to -10 C in about 48 min at 192 W (structure and air, 24 kJ/K) - the air alone in 2 s; where no passive power exists the override starts the fans after -30 C: 350 min, -20 C: 199 min, -10 C: 125 min (611/611 V).
+PV-P75: natural-convection R_sa 0.453 K/W against 0.0599 K/W forced; the air near the fan inlet warms from -30 to -10 C in about 48 min at 192 W (structure and air, 24 kJ/K) - the air alone in 2 s; where no passive power exists the override starts the fans after -30 C: 349 min, -20 C: 199 min, -10 C: 125 min (611/611 V).
 
-PV-P100/110: natural-convection R_sa 0.515 K/W against 0.0475 K/W forced; the air near the fan inlet warms from -30 to -10 C in about 45 min at 204 W (structure and air, 24 kJ/K) - the air alone in 2 s; where no passive power exists the override starts the fans after -30 C: 113 min, -20 C: 75 min, -10 C: 50 min (611/611 V).
+PV-P100/110: natural-convection R_sa 0.515 K/W against 0.0475 K/W forced; the air near the fan inlet warms from -30 to -10 C in about 45 min at 204 W (structure and air, 24 kJ/K) - the air alone in 2 s; where no passive power exists the override starts the fans after -30 C: 112 min, -20 C: 75 min, -10 C: 50 min (611/611 V).
 
 Firmware rule: inlet NTC < fan rating (-10 C) at start-up: fans OFF, module power <= the table row of the inlet reading (table kW, nominal), no other change to the control; fans enabled (speed from the fan law) once the inlet NTC reads above the fan rating; fans start at once at any heatsink NTC above the start level or inductor NTC above its start level, whatever the inlet reads (backstop for the passive estimate). Limits of the passive mode: heatsink 75 C, inductor hot spot 130 C, junction 125 C; fans start regardless of the inlet at heatsink NTC >= 80 C or inductor NTC >= 135 C. Estimates: PCM-17 / D-045 / risk A4: fans OFF below the inlet temperature of their rating; passive power from natural convection on the heatsink and the inductors, heat leaving through the enclosure walls only (ESTIMATES, +-50 %: PASSIVE_K pessimistic / optimistic); sim/pv_module.py passive_by_point().
 
@@ -126,11 +126,11 @@ PV-P100/110: saving 37.9 USD per module; port B could fall to 2 parts if the OV 
 
 | fsw [kHz] | L(45 A) [uH] | inductor USD/phase | module loss at the peak point [W] | peak eff | Tj max 45 C | heatsink +USD | D_max | module cost delta | ok |
 |---|---|---|---|---|---|---|---|---|---|
-| 24 | 301.2 | 47.3 | 226.0 | 99.54 % | 98.2 | 0.0 | 0.9575 | 20.4 | True |
-| 32 | 225.9 | 40.5 | 263.7 | 99.47 % | 109.5 | 0.0 | 0.9433 | 0.0 | True |
-| 40 | 180.7 | 36.1 | 302.4 | 99.39 % | 122.1 | 2.1 | 0.9292 | -11.1 | True |
-| 48 | 150.6 | 33.1 | 342.4 | 99.31 % | 136.2 | 7.2 | 0.915 | -15.0 | True |
-| 64 | 112.9 | 29.0 | 896.4 | 98.22 % | 171.1 | 39.1 | 0.8867 | 4.6 | False |
+| 24 | 301.2 | 47.3 | 226.1 | 99.54 % | 98.2 | 0.0 | 0.9575 | 20.4 | True |
+| 32 | 225.9 | 40.5 | 263.8 | 99.47 % | 109.5 | 0.0 | 0.9433 | 0.0 | True |
+| 40 | 180.7 | 36.1 | 302.6 | 99.39 % | 122.1 | 2.1 | 0.9292 | -11.1 | True |
+| 48 | 150.6 | 33.1 | 342.5 | 99.31 % | 136.2 | 7.2 | 0.915 | -15.0 | True |
+| 64 | 112.9 | 29.0 | 896.8 | 98.22 % | 171.1 | 39.1 | 0.8867 | 4.6 | False |
 
 ## 7. Open items
 

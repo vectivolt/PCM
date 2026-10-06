@@ -130,6 +130,7 @@ flowchart LR
 | CA-IS3050W | CAN | 12,800 | 5,000 | 1,414 | 8 / 8 mm |
 | CA-IS3082WNX | RS-485 | 8,000 | 5,000 | 1,414 | 8 / 8 mm |
 | 2 × CA-IS3821LG + CA-IS3820LG | ENABLE in, STATUS out, fan speed out, 3 tachs in | 8,000 | 5,700 | 2,121 | 8 / 8 mm |
+| CA-IS3842HW (rev A2, [D-075](../requirements/DECISIONS.md)) | Ethernet-bridge UART, battery-fault input DI1 | 8,000 | 5,700 | 2,121 | 8 / 8 mm |
 | AUX-T1 SELV winding (TIW-litz, potted) | SELV 24 V power | — | — | — | potted; solid-barrier field 7.4 kV/mm at the PD test ([magnetics report §8](../../sim/out/magnetics/report.md)) |
 | **Requirement** (reinforced, DC pole) | | **8,000** (6,000 with the varistor credit) | **4,400** for 60 s | **1,100** at the OV trip | creepage 10.0 mm PD2, clearance 8.0 / 9.2 / 10.4 mm at 2000 / 3000 / 4000 m |
 
@@ -137,7 +138,12 @@ flowchart LR
 (calculated against the datasheet values cited there).</sub>
 
 - **Conformal coating to PD1 over the whole B1 zone is mandatory:** the 8 mm packages are short of the 10.0 mm PD2
-  creepage. At 3000–4000 m the 15 mm wide-body variants are needed.
+  creepage. **The 8.0 mm clearance sets the declared altitude, 2,000 m** ([D-075](../requirements/DECISIONS.md)): 9.2 /
+  10.4 / 11.9 mm are needed at 3,000 / 4,000 / 5,000 m. The 15 mm (WW) packages reach 5,000 m and are specified as an
+  option (+1.53 USD consolidated, +3.02 USD part for part, per board — above the ~1 USD rule of that decision, so not
+  fitted); RS-485 then needs a plain transceiver and isolator channels, because no maker offers an integrated isolated
+  RS-485 part at ≥ 9.2 mm. A port surge credit would carry the 8 mm parts to 4,000 m only with an effective protection
+  level ≤ 4.0 kV, which the drawn arrester does not give (PV-CTL design check; risk B1).
 - The architecture named a CA-IS3062W for CAN; the board uses a **CA-IS3050W**, because the CA-IS3062W would draw up to
   125 mA from the live +5 V where 50 mA is allocated (PV-CTL design check, "Rejected B1 candidates").
 - The ENABLE input uses a **default-low** isolator channel: an open contact, a cut wire or a lost SELV supply means STOP,
@@ -149,7 +155,7 @@ flowchart LR
 |---|---|---:|---:|---:|---|
 | PV-PWR (PV-P75) | A2 | 22 | 1,874 | 939 | PC connector and command buffers; 3 phases × (power stage, 2 gate-drive sheets); port A and port B (power path, sensing and interlocks, coil drives); terminals, EMI ring, insulation monitor; live 5 V / 3.3 V; 4 sheets of auxiliary flyback |
 | PV-PWR-4 (PV-P100/110) | A2 | 25 | 2,322 | 1,150 | as PV-PWR with a fourth phase |
-| PV-CTL | A1 | 7 | 285 | 192 | supply and reset; F280039C, clock, debug, EEPROM; reference and analog front ends; trip comparators; latch, watchdog, gating; barrier B1 with CAN and RS-485; SELV supply, fans, ENABLE / STATUS |
+| PV-CTL | A2 | 8 | 316 | 222 | supply and reset; F280039C, clock, cJTAG debug, recorder flash GD25Q32E (in place of the EEPROM, [D-075](../requirements/DECISIONS.md)); reference and analog front ends; trip comparators; latch, watchdog, gating; barrier B1 with CAN, RS-485 and the Ethernet UART / battery-fault channel; SELV supply, fans, chainable stop, ready permissive, DI1, status relay; the Ethernet bridge sheet (CH9121T, RJ45: not fitted on PV-CTL, fitted on the inverter's PCS-CTL) |
 
 <sub>Source: [PV-PWR](../../hardware/PV-PWR/outputs/PV-PWR_report.json),
 [PV-PWR-4](../../hardware/PV-PWR-4/outputs/PV-PWR-4_report.json),
@@ -223,26 +229,32 @@ flowchart TD
 
 | Quantity | PV-P75 | PV-P100/110 | Source |
 |---|---:|---:|---|
-| Live 24 V load, maxima (W) / rating (W) | 19.8 / 20.0 | 23.7 / 24.0 | power-board design checks |
-| SELV load: fans + logic (W) / rating (W) | 40.2 / 40.6 | 56.7 / 62.6 | same |
-| Total (W) / rating (W) | 60.0 / 60.6 | 80.4 / 86.6 | same |
-| Contactor pull-in peak on the live 24 V (W) / peak rating (W) | 26.6 / 32.0 | — | PV-PWR design check |
-| One flyback design for both: continuous / 1 s peak (W) | 86.6 / 94.6 | | [aux75_spec.json](../../sim/out/aux_hv_design/aux75_spec.json) `ratings` |
-| Flyback efficiency at full power, 250 / 600 / 1000 V input (%) | 82.2 / 85.6 / 83.8 | | aux75_spec.json `efficiency` |
+| Live 24 V load, maxima (W) / rating (W) | 19.8 / 30.0 | 23.7 / 30.0 | power-board design checks |
+| SELV load: fans + logic (W) / rating (W) | 41.8 / 42.2 | 58.3 / 64.2 | same |
+| Total (W) / rating (W) | 61.6 / 72.2 | 82.0 / 94.2 | same |
+| Contactor pull-in peak on the live 24 V (W) / peak rating (W) | 26.6 / 48.0 | 30.5 / 48.0 | same |
+| One flyback design for every module, AUX-75 rev A3: continuous / 1 s peak (W) | 94.2 / 112.2 | | [aux75_spec.json](../../sim/out/aux_hv_design/aux75_spec.json) `ratings`, [D-076](../requirements/DECISIONS.md) |
+| Flyback efficiency at full power, 250 / 600 / 1000 V input (%) | 81.3 / 85.0 / 83.4 | 78.8 / 84.8 / 84.1 | aux75_spec.json `efficiency` |
 | Brown-in / brown-out / over-voltage lock-out (V) | 206–215 / 179–192 / 1,107–1,162 | | aux75_spec.json `startup`, `protection` |
-| Standby, gates and fans off, contactors open / both held, at 1000 V (W) | 11.3 / 20.9 | 11.9 / 21.5 | power-board design checks (estimate) |
+| Standby, gates and fans off, contactors open / both held, at 1000 V (W) | 13.0 / 22.0 | 13.4 / 22.5 | power-board design checks (estimate) |
 
 All values are calculated maxima; none is measured.
 
-- **The budget is nearly exhausted on PV-P75** (19.8 of 20.0 W live, 40.2 of 40.6 W SELV). Any added live load needs
-  the flyback re-rated, which is easy only because one 86.6 W design already serves both variants.
+- **One design serves every module** ([D-076](../requirements/DECISIONS.md)): re-rated for the four-wire inverter
+  (turns 48:8:9 → 50:9:10 on the same core, current sense 3 × 0.866 Ω) to 30 W live (48 W for 1 s) and 42.2 / 64.2 W
+  SELV at no BOM cost delta; the SELV logic allocation is 2.2 W for every variant since the control board's Ethernet,
+  recorder and relay additions ([D-075](../requirements/DECISIONS.md)). PV-P75's SELV side is still the tight one
+  (41.8 of 42.2 W).
 - **Full fan speed is guaranteed only while the converter is switching:** the SELV winding is cross-regulated and reaches
   ≥ 24.5 V at full fan load only once the live winding carries ≥ 5.7 W (PV-PWR design check).
-- **Standby:** Megarevo publishes < 20 W. The estimate meets it with the contactors open (11.3 W at 1000 V), not with both
-  held (20.9 W). The architecture estimated ≈ 15 W and [aux75_spec.json](../../sim/out/aux_hv_design/aux75_spec.json)
-  15.7–18.3 W for its own load assumptions — three estimates, no measurement.
-- **Drain stress is the flyback's tight margin:** 1,316 V at 1000 V input and 1,420 V at 1100 V on a 1700 V SiC switch;
-  the spec file states that a 10 % margin at 1000 V is not reachable with this winding ratio (risk R-13).
+- **Standby:** Megarevo publishes < 20 W. The board estimate meets it with the contactors open (13.0 W at 1000 V), not
+  with both held (22.0 W); the module figure the comparison uses is 12.7 / 22.4 W
+  ([module_spec.json](../../sim/out/pv_design/module_spec.json)). The architecture estimated ≈ 15 W and
+  [aux75_spec.json](../../sim/out/aux_hv_design/aux75_spec.json) 16.8–19.7 W for its own load assumptions — estimates
+  all, no measurement.
+- **Drain stress is the flyback's tight margin:** 1,318 V at 1000 V input and 1,422 V at 1100 V on a 1700 V SiC switch
+  (3.1 % margin at 1000 V); the spec file states that a 10 % margin at 1000 V is not reachable with this winding ratio
+  (risk R-13).
 
 ## 🛡️ Insulation concept
 
@@ -276,7 +288,7 @@ architecture's own words ([§12](../requirements/ARCHITECTURE-COSTFIRST.md)):
 | 3 | Dual-channel safety chain with 75-row FMEA | one latch | the external stop is a single-channel functional stop with no SIL / PL claim |
 | 4 | Self-sufficient battery-port fault coverage | aR fuse pair + one contactor | currents of 0.97–1.25 kA are left to the upstream battery protection (installation requirement) |
 | 5 | Cabinet 24 V and redundant feeds | self-powered flyback | the module is dark when both ports are below ~200 V |
-| 6 | Ethernet, CAN FD, second CAN and RS-485, 8 + 8 digital I/O, 12 temperatures, 4 fans | 1 CAN, 1 RS-485, 1 stop input, 1 status output, 7 (9) temperatures, 3 fans | fewer interfaces |
+| 6 | Ethernet, CAN FD, second CAN and RS-485, 8 + 8 digital I/O, 12 temperatures, 4 fans | 1 CAN, 1 RS-485, 1 stop input, 1 status output, 7 (9) temperatures, 3 fans | fewer interfaces; since [D-075](../requirements/DECISIONS.md) Ethernet is back as an option (fitted on the inverter's control board), with a chainable stop, a ready permissive, a battery-fault input and a status relay |
 | 7 | Contactor auxiliary contact | weld check by a voltage test | — |
 | 8 | Active discharge | passive bleeders | label "wait 10 min" (15 min for PV-P100/110 and for the inverter PCS-P125, whose worst case is 14.7 min to 60 V — [D-067](../requirements/DECISIONS.md)) |
 | 9 | Margins | shared heatsink, open-loop TMR sensors, per-phase bias | junction 78 → 107 °C at 45 °C inlet (power-board check); bias ±2 %; sensor 1.5 % before calibration; fan rated to −10 °C, not −30 °C |

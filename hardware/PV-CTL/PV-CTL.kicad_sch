@@ -6,8 +6,8 @@
 	(paper "A3")
 	(title_block
 		(title "PV-CTL control board - Cover / Hierarchy")
-		(date "2026-10-05")
-		(rev "A1")
+		(date "2026-10-06")
+		(rev "A2")
 		(comment 1 "LIVE zone = BUS- (hazardous live); SELV zone behind reinforced barrier B1")
 		(comment 2 "Schematics authored by Chinmoy Bhuyan")
 		(comment 3 "Sheet 1")
@@ -25,7 +25,7 @@
 		)
 		(uuid "0461b3cf-64d0-5f28-835d-2fa0c3eb2380")
 	)
-	(text "Pin plan: gen/data/pv_ctrl_pin_plan.csv (from SPRSP61C, checked every build)."
+	(text "Assembly option: the Ethernet bridge (sheet 08_eth) is NOT FITTED on PV-CTL / PV-CTL-P75 (DNP); fitted on PCS-CTL. Debug header in cJTAG mode only."
 		(exclude_from_sim no)
 		(at 20 240 0)
 		(effects
@@ -47,7 +47,7 @@
 		)
 		(uuid "21c851c4-f569-5579-9e91-66718d506c6f")
 	)
-	(text "Rev A1  |  2026-10-05  |  Schematics authored by Chinmoy Bhuyan  |  Cost-first PV-P75/100/110 controller: F280039C on BUS-, one trip latch, one SELV barrier"
+	(text "Rev A2  |  2026-10-06  |  Schematics authored by Chinmoy Bhuyan  |  Cost-first PV-P75/100/110 controller: F280039C on BUS-, one trip latch, one SELV barrier"
 		(exclude_from_sim no)
 		(at 20 36 0)
 		(effects
@@ -57,6 +57,28 @@
 			(justify left bottom)
 		)
 		(uuid "21f0db96-6f7f-5c87-9232-de8c3b7bdb42")
+	)
+	(text "WCH CH9121T UART-to-Ethernet bridge on the SELV side, HR913550AE RJ45 with magnetics,\nSRV05-4, TPS7A2033 3.3 V. NOT FITTED on PV-CTL / PV-CTL-P75: footprints only (DNP)."
+		(exclude_from_sim no)
+		(at 310.5 98 0)
+		(effects
+			(font
+				(size 1.3 1.3)
+			)
+			(justify left top)
+		)
+		(uuid "5ac1cb3a-c5a9-5cb5-804f-a0084e5541f1")
+	)
+	(text "Pin plan: gen/data/pv_ctrl_pin_plan.csv (from SPRSP61C, checked every build)."
+		(exclude_from_sim no)
+		(at 20 244 0)
+		(effects
+			(font
+				(size 1.5 1.5)
+			)
+			(justify left bottom)
+		)
+		(uuid "5b21e6de-4b07-5605-a7fe-853cf3e02314")
 	)
 	(text "Assembly option: the two TLV9024 marked 'PV-P100/110 only' are not fitted on PV-P75 (bom/PV-CTL-P75_BOM.csv)."
 		(exclude_from_sim no)
@@ -69,7 +91,7 @@
 		)
 		(uuid "7d9eb531-e6d8-531e-8dff-4259518ac0f3")
 	)
-	(text "Reinforced barrier B1: CA-IS3050W CAN, CA-IS3082WNX RS-485, 2 x CA-IS3821LG,\nCA-IS3820LG; bus TVS, jumper terminations, pluggable field terminals (SELV)"
+	(text "Reinforced barrier B1: CA-IS3050W CAN, CA-IS3082WNX RS-485, 2 x CA-IS3821LG,\nCA-IS3820LG, CA-IS3842HW (Ethernet UART, DI1); bus TVS, jumper terminations (SELV)"
 		(exclude_from_sim no)
 		(at 118.5 98 0)
 		(effects
@@ -114,7 +136,7 @@
 		)
 		(uuid "daed2060-5570-50e9-9c73-b1a5b2834337")
 	)
-	(text "SELV 24 V input (AUX-T1 reinforced winding, 12-36 V), TPS54360B 5 V and fan supply,\n3 fan headers + tach, ENABLE / STATUS terminal, SELV 0 V to PE"
+	(text "SELV 24 V input (AUX-T1 reinforced winding, 12-36 V), TPS54360B 5 V and fan supply,\n3 fan headers + tach, stop (chainable) / ready / DI1 terminals, relay, SELV 0 V to PE"
 		(exclude_from_sim no)
 		(at 214.5 98 0)
 		(effects
@@ -136,7 +158,7 @@
 		)
 		(uuid "eca81423-89e8-56ec-85b8-53b9408561c5")
 	)
-	(text "TMS320F280039C (100-pin PZ), decoupling, 25 MHz SPXO, cTI-20 JTAG (LIVE),\nEEPROM, boot straps, command pull-downs, run LED"
+	(text "TMS320F280039C (100-pin PZ), decoupling, 25 MHz SPXO, cTI-20 header in cJTAG mode\n(LIVE), 4 MB recorder flash, boot straps, command pull-downs"
 		(exclude_from_sim no)
 		(at 118.5 54 0)
 		(effects
@@ -163,7 +185,7 @@
 			(color 255 255 225 1)
 		)
 		(uuid "06417d48-a7ea-5e53-a416-6a39e101ceab")
-		(property "Sheetname" "07 SELV supply, fans, enable / status"
+		(property "Sheetname" "07 SELV supply, fans, stop, DI1, relay"
 			(at 212 93.3 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -242,6 +264,53 @@
 		)
 	)
 	(sheet
+		(at 308 94)
+		(size 86 26)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.254)
+			(type solid)
+		)
+		(fill
+			(color 255 255 225 1)
+		)
+		(uuid "8ac3e09a-2a92-587d-97bd-aaa758dd2c64")
+		(property "Sheetname" "08 Ethernet bridge (EMS, Modbus TCP)"
+			(at 308 93.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.6 1.6)
+					(bold yes)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "sheets/08_eth.kicad_sch"
+			(at 308 120.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.1 1.1)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PV-CTL"
+				(path "/27bf8643-f27c-55ee-a16b-008dacca3369"
+					(page "9")
+				)
+			)
+		)
+	)
+	(sheet
 		(at 20 50)
 		(size 86 26)
 		(exclude_from_sim no)
@@ -304,7 +373,7 @@
 			(color 255 255 225 1)
 		)
 		(uuid "969ce551-8da8-5133-b4bb-c4a73e83bab8")
-		(property "Sheetname" "02 F280039C, clock, debug, EEPROM"
+		(property "Sheetname" "02 F280039C, clock, debug, recorder flash"
 			(at 116 49.3 0)
 			(show_name no)
 			(do_not_autoplace no)

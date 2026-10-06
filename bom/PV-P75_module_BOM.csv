@@ -10,12 +10,12 @@ Item,Qty,Used on,Value,Description,Manufacturer,MPN,Package,Sourcing,Datasheet
 9,4,chassis: 4,busbar (CUSTOM),"Copper busbar, terminal to board, sized for 135 A",,,chassis,CUSTOM,
 10,1,chassis: 1,harness set,"SELV supply lead, coil leads, NTC probe leads, fan leads",,,harness,CUSTOM,
 11,1,PV-PWR: 1,heatsink 24 x TO-247 (CUSTOM),"CHASSIS CUSTOM heatsink: one Al extrusion for all devices (two rows: leg A, leg B), EARTHED (two PE bonds >= 6 mm2), R_sa <= 0.06 K/W at 400 m3/h (PV-P75) / 0.049 K/W (PV-P100/110), with the TO-247 spring clips (one per device, on the plastic body) and G-779-class grease (two bond lines per AlN pad)",,,"Al extrusion, 2 device rows",CUSTOM,
-12,1,PV-PWR: 1,AUX-T1 75 W (CUSTOM),"CUSTOM AUX-T1 75 W rev M1: DMEGC EC39A DMR95 (ETD39 class), centre-leg gap 1.05 mm, 48:8 live:9 SELV in the order P1 | SH | SELV (TIW-litz) | LIVE | P2, copper set back 2.0 mm from the gapped leg, vacuum-potted case; electrical requirement in sim/out/aux_hv_design/aux75_spec.json",CUSTOM,AUX-T1 75 W (CUSTOM),"ETD 39 class, potted, 14-pin former",CUSTOM,
+12,1,PV-PWR: 1,AUX-T1 75 W (CUSTOM),"CUSTOM AUX-T1 75 W rev M1: DMEGC EC39A DMR95 (ETD39 class), centre-leg gap 1.17 mm, 50:9 live:10 SELV in the order P1 | SH | SELV (TIW-litz) | LIVE | P2, copper set back 2.0 mm from the gapped leg, vacuum-potted case; electrical requirement in sim/out/aux_hv_design/aux75_spec.json",CUSTOM,AUX-T1 75 W (CUSTOM),"ETD 39 class, potted, 14-pin former",CUSTOM,
 13,24,PV-PWR: 24,0.5R,"Resistor 0.5R 1% 1206 Kelvin decoupling, pulse-rated thick film",,,1206,GENERIC,
-14,3,PV-PWR: 3,0.91R,Resistor 0.91R 1% 1206,,,1206,GENERIC,
+14,3,PV-PWR: 3,0.866R,Resistor 0.866R 1% 1206,,,1206,GENERIC,
 15,12,PV-PWR: 12,0R,Resistor 0R 1% 0603 fit for NSI6651ASC (pin 1 = VEE2),,,0603,GENERIC,
 16,10,PV-PWR: 10,1.00k,Resistor 1.00k 0.1% 0603,,,0603,GENERIC,
-17,2,PV-CTL-P75: 2,1.0k,Resistor 1.0k 1% 0603,,,0603,GENERIC,
+17,3,PV-CTL-P75: 3,1.0k,Resistor 1.0k 1% 0603,,,0603,GENERIC,
 18,1,PV-CTL-P75: 1,1.15k,Resistor 1.15k 0.1% 0603 25 ppm/K,,,0603,GENERIC,
 19,1,PV-PWR: 1,1.2R,"Resistor 1.2R 1% 2512 +3V3 discharge, pulse 0.5 mJ",,,2512,GENERIC,
 20,12,PV-PWR: 12,1.5k,Resistor 1.5k 1% 0603,,,0603,GENERIC,
@@ -38,7 +38,7 @@ Item,Qty,Used on,Value,Description,Manufacturer,MPN,Package,Sourcing,Datasheet
 37,1,PV-CTL-P75: 1,100k,Resistor 100k 1% 0603 HEALTHY = 0 while the latch is unpowered,,,0603,GENERIC,
 38,2,PV-PWR: 2,100n 100V,Capacitor 100n 100V X7R 0603,,,0603,GENERIC,
 39,1,PV-PWR: 1,100n 16V,Capacitor 100n 16V X7R 0603,,,0603,GENERIC,
-40,180,PV-CTL-P75: 53; PV-PWR: 127,100n 50V,Capacitor 100n 50V X7R 0603,,,0603,GENERIC,
+40,183,PV-CTL-P75: 56; PV-PWR: 127,100n 50V,Capacitor 100n 50V X7R 0603,,,0603,GENERIC,
 41,2,PV-CTL-P75: 2,100n 50V,Capacitor 100n 10% 50V X7R 0603,,,0603,GENERIC,
 42,1,PV-CTL-P75: 1,100n 50V,Capacitor 100n 5% 50V C0G 1206,,,1206,GENERIC,
 43,3,PV-PWR: 3,100p 1kV,Capacitor 100p 5% 1kV C0G 1206,,,1206,GENERIC,
@@ -53,10 +53,10 @@ Item,Qty,Used on,Value,Description,Manufacturer,MPN,Package,Sourcing,Datasheet
 52,1,PV-PWR: 1,10k,Resistor 10k 1% 0603 PV-P75: no phase-4 sensor reference,,,0603,GENERIC,
 53,1,PV-PWR: 1,10k,Resistor 10k 1% 0603 high = both varistor monitor loops intact,,,0603,GENERIC,
 54,3,PV-PWR: 3,10k,Resistor 10k 1% 0603 BIAS_EN open = bias off,,,0603,GENERIC,
-55,112,PV-CTL-P75: 12; PV-PWR: 100,10k,Resistor 10k 1% 0603,,,0603,GENERIC,
+55,116,PV-CTL-P75: 16; PV-PWR: 100,10k,Resistor 10k 1% 0603,,,0603,GENERIC,
 56,12,PV-PWR: 12,10k,Resistor 10k 1% 0603 pull-down: open input = gate off,,,0603,GENERIC,
 57,12,PV-PWR: 12,10k,Resistor 10k 1% 0603 clamp-FET gate supply,,,0603,GENERIC,
-58,3,PV-PWR: 3,10k,Resistor 10k 1% 0805,,,0805,GENERIC,
+58,4,PV-CTL-P75: 1; PV-PWR: 3,10k,Resistor 10k 1% 0805,,,0805,GENERIC,
 59,3,PV-PWR: 3,10k,Resistor 10k 1% 0805 gate-source: off by default,,,0805,GENERIC,
 60,3,PV-CTL-P75: 1; PV-PWR: 2,10k,Resistor 10k 1% 1206,,,1206,GENERIC,
 61,12,PV-PWR: 12,10n 50V,Capacitor 10n 5% 50V C0G 0603,,,0603,GENERIC,
@@ -140,7 +140,7 @@ Item,Qty,Used on,Value,Description,Manufacturer,MPN,Package,Sourcing,Datasheet
 139,12,PV-PWR: 12,4.02k,Resistor 4.02k 1% 0603,,,0603,GENERIC,
 140,24,PV-PWR: 24,4.7R,Resistor 4.7R 1% 0603,,,0603,GENERIC,
 141,12,PV-PWR: 12,4.7k,Resistor 4.7k 1% 0805 COM bias: sources the ATL431 shunt,,,0805,GENERIC,
-142,10,PV-CTL-P75: 7; PV-PWR: 3,4.7k,Resistor 4.7k 1% 0603,,,0603,GENERIC,
+142,8,PV-CTL-P75: 5; PV-PWR: 3,4.7k,Resistor 4.7k 1% 0603,,,0603,GENERIC,
 143,1,PV-CTL-P75: 1,4.7n 100V,Capacitor 4.7n 10% 100V X7R 0603,,,0603,GENERIC,
 144,1,PV-CTL-P75: 1,4.7n 1kV,Capacitor 4.7n 10% 1kV X7R 1206,,,1206,GENERIC,
 145,12,PV-PWR: 12,4.7n 2000V,Capacitor 4.7n 5% 2000V C0G 2220,,,2220,GENERIC,
@@ -165,13 +165,13 @@ Item,Qty,Used on,Value,Description,Manufacturer,MPN,Package,Sourcing,Datasheet
 164,2,PV-CTL-P75: 2,60.4R,Resistor 60.4R 1% 0805,,,0805,GENERIC,
 165,2,PV-PWR: 2,64.9k,Resistor 64.9k 1% 0603,,,0603,GENERIC,
 166,1,PV-PWR: 1,649k,Resistor 649k 0.1% 0603,,,0603,GENERIC,
-167,1,PV-PWR: 1,68.1k,Resistor 68.1k 1% 0603,,,0603,GENERIC,
-168,1,PV-CTL-P75: 1,680R,Resistor 680R 1% 0603,,,0603,GENERIC,
-169,1,PV-PWR: 1,680n 25V,Capacitor 680n 10% 25V X7R 1206,,,1206,GENERIC,
-170,1,PV-PWR: 1,68n 50V,Capacitor 68n 5% 50V C0G 1206,,,1206,GENERIC,
-171,2,PV-PWR: 2,68p 500V,Capacitor 68p 500V C0G 1206,,,1206,GENERIC,
-172,4,PV-CTL-P75: 4,715R,Resistor 715R 0.1% 0603 25 ppm/K,,,0603,GENERIC,
-173,16,PV-PWR: 16,73.2k,"Resistor 73.2k 1% 1210 HV thick film, >= 200 V working",,,1210,GENERIC,
+167,1,PV-CTL-P75: 1,680R,Resistor 680R 1% 0603,,,0603,GENERIC,
+168,1,PV-PWR: 1,680n 25V,Capacitor 680n 10% 25V X7R 1206,,,1206,GENERIC,
+169,1,PV-PWR: 1,68n 50V,Capacitor 68n 5% 50V C0G 1206,,,1206,GENERIC,
+170,2,PV-PWR: 2,68p 500V,Capacitor 68p 500V C0G 1206,,,1206,GENERIC,
+171,4,PV-CTL-P75: 4,715R,Resistor 715R 0.1% 0603 25 ppm/K,,,0603,GENERIC,
+172,16,PV-PWR: 16,73.2k,"Resistor 73.2k 1% 1210 HV thick film, >= 200 V working",,,1210,GENERIC,
+173,1,PV-PWR: 1,73.2k,Resistor 73.2k 1% 0603,,,0603,GENERIC,
 174,12,PV-PWR: 12,77.7k,Resistor 77.7k 0.1% 0603,,,0603,GENERIC,
 175,2,PV-PWR: 2,8.06k,Resistor 8.06k 0.1% 0603,,,0603,GENERIC,
 176,1,PV-PWR: 1,8.45k,Resistor 8.45k 0.1% 0603,,,0603,GENERIC,
@@ -183,8 +183,8 @@ Item,Qty,Used on,Value,Description,Manufacturer,MPN,Package,Sourcing,Datasheet
 182,1,PV-PWR: 1,PE bond M4 (IMD divider reference),PE bond: plated M4 mounting hole + serrated washer to chassis PE,,,plated M4 hole,NOPART,
 183,1,PV-PWR: 1,PE bond M4 (board PE),PE bond: plated M4 mounting hole + serrated washer to chassis PE,,,plated M4 hole,NOPART,
 184,1,PV-PWR: 1,"PE_T link to chassis PE: removable strap, OPEN for the hipot test (IC-23)","PE_T link to chassis PE: removable strap, OPEN for the hipot test (IC-23)",,,2 plated M4 holes + removable strap,NOPART,
-185,2,PV-CTL-P75: 2,"Solder jumper, open by default","Solder jumper, open by default",,,solder jumper,NOPART,
-186,6,PV-CTL-P75: 4; PV-PWR: 2,TP,Test point,,,TP,NOPART,
+185,3,PV-CTL-P75: 3,"Solder jumper, open by default","Solder jumper, open by default",,,solder jumper,NOPART,
+186,7,PV-CTL-P75: 5; PV-PWR: 2,TP,Test point,,,TP,NOPART,
 187,4,PV-PWR: 4,0.2m,Current sense resistor 0.2 mOhm 1 % 12 W (two in parallel),Bourns,CSS2H-3920R-L200F,3920 metal strip,ORDERABLE,docs/datasheets/sensing/CSS2H-3920.pdf
 188,6,PV-PWR: 6,SMCJ33A,"TVS unidirectional 1500 W, VRWM 33 V, VBR 36.7-40.6 V (AUX75 clamp, 6 in series)",Bourns,SMCJ33A,DO-214AB (SMC),ORDERABLE,docs/datasheets/protection/SMCJ_Bourns.pdf
 189,1,PV-CTL-P75: 1,CA-IS3050W,"Isolated CAN transceiver 1 Mbps, 5 kVrms, VIMP 9.8 kV / VIOSM 12.8 kV, 3.3 V logic, 5 V bus side",Chipanalog,CA-IS3050W,SOIC-16 WB (W),ORDERABLE,docs/datasheets/isolation-interface/CA-IS305x.pdf
@@ -192,119 +192,121 @@ Item,Qty,Used on,Value,Description,Manufacturer,MPN,Package,Sourcing,Datasheet
 191,2,PV-PWR: 2,CA-IS3417WT,"Isolated 1700 V back-to-back SiC SSR, 50 ohm, opto-compatible input: IMD string switch",Chipanalog,CA-IS3417WT,SOIC12-WB (WT),ORDERABLE,docs/datasheets/isolation-interface/CA-IS3417WT.pdf
 192,1,PV-CTL-P75: 1,CA-IS3820LG,"Reinforced 2-ch digital isolator 2 fwd, default LOW, 5.7 kVrms, VIOSM 8 kV",Chipanalog,CA-IS3820LG,"SOIC-8 WB (G) 5.85x7.5 mm, 8 mm CLR/CPG",ORDERABLE,docs/datasheets/isolation-interface/CA-IS382x.pdf
 193,2,PV-CTL-P75: 2,CA-IS3821LG,"Reinforced 2-ch digital isolator 1 fwd + 1 rev, default LOW, 5.7 kVrms, VIOSM 8 kV",Chipanalog,CA-IS3821LG,"SOIC-8 WB (G) 5.85x7.5 mm, 8 mm CLR/CPG",ORDERABLE,docs/datasheets/isolation-interface/CA-IS382x.pdf
-194,6,PV-PWR: 6,KF2EDGR-3.5-2P,"NTC leads (heatsink probe / inductor winding NTC), 2-pin pluggable",Cixi Kefa,KF2EDGR-3.5-2P,2p 3.5 mm pluggable header,ORDERABLE,docs/datasheets/connectors/KEFA-KF2EDGR-3.5.pdf
-195,1,PV-PWR: 1,KF2EDGR-3.5-2P,"SELV 24 V (AUX-T1 reinforced winding) to the control board's SELV zone: >= 10 mm from live copper, double-insulated wires (ARCHITECTURE 10, J2)",Cixi Kefa,KF2EDGR-3.5-2P,2p 3.5 mm pluggable header,ORDERABLE,docs/datasheets/connectors/KEFA-KF2EDGR-3.5.pdf
-196,1,PV-CTL-P75: 1,KF2EDGR-3.81-2P,Pluggable header 2-pos 3.81 mm 300 V 8 A (plug KF2EDGK-3.81-2P): SELV 24 V input,Cixi Kefa Electronic,KF2EDGR-3.81-2P,pluggable 2-pos 3.81 mm R/A,ORDERABLE,docs/datasheets/connectors/KEFA-KF2EDGR-3.81.pdf
-197,1,PV-CTL-P75: 1,KF2EDGR-3.81-4P,Pluggable header 4-pos 3.81 mm (plug KF2EDGK-3.81-4P): ENABLE / STATUS (SELV),Cixi Kefa Electronic,KF2EDGR-3.81-4P,pluggable 4-pos 3.81 mm R/A,ORDERABLE,docs/datasheets/connectors/KEFA-KF2EDGR-3.81.pdf
-198,2,PV-CTL-P75: 2,KF2EDGR-3.81-6P,Pluggable header 6-pos 3.81 mm (plug KF2EDGK-3.81-6P): bus in/out + 0 V + shield (SELV),Cixi Kefa Electronic,KF2EDGR-3.81-6P,pluggable 6-pos 3.81 mm R/A,ORDERABLE,docs/datasheets/connectors/KEFA-KF2EDGR-3.81.pdf
-199,3,chassis: 3,AFB1224SHE-F00,"Fan 120 x 120 x 38 mm 24 V with PWM input and tach, one per phase section - RATED -10..+60 C ONLY: below PV-20's -30 C (open risk, ARCHITECTURE-COSTFIRST.md section 13)",Delta Electronics (TW),AFB1224SHE-F00,chassis,ORDERABLE,docs/datasheets/thermal/AFB1224SHE-F00.pdf
-200,3,PV-PWR: 3,S2M-13-F,Rectifier 1000 V 1.5 A,Diodes Inc,S2M-13-F,SMB,ORDERABLE,docs/datasheets/power-semiconductors/S2M.pdf
-201,1,PV-PWR: 1,US1G-13-F,Ultrafast rectifier 400 V 1 A,Diodes Incorporated,US1G-13-F,SMA,ORDERABLE,docs/datasheets/power-semiconductors/US1M.pdf
-202,4,PV-PWR: 4,36A gPV 14x51,"Varistor branch fuse CH14x51 gPV 36 A 1000 V DC, 30 kA (L/R 2 ms), pre-arc 450 A2s",ETI,002637115,14x51 cartridge in 2 x CH14-PCB clips,ORDERABLE,docs/datasheets/protection/ETI-Green-Protect.pdf
-203,8,PV-PWR: 8,006710340,Fuse clip CH14-PCB (two per varistor branch fuse),ETI,006710340,PCB clip for 14 mm cartridge,ORDERABLE,docs/datasheets/protection/ETI-Green-Protect.pdf
-204,1,PV-CTL-P75: 1,CBW160808U301T,Ferrite bead 300 R at 100 MHz (VDDA pi filter),Guangdong Fenghua Advanced Technology,CBW160808U301T,0603,ORDERABLE,docs/datasheets/magnetics/Fenghua-CBW.pdf
-205,2,PV-PWR: 2,HFE82V-300C/1000-24-H-C5-1,"CHASSIS-MOUNTED main contactor 300 A 1000 VDC, no polarity, 24 V 6 W coil, no aux contact",Hongfa,HFE82V-300C/1000-24-H-C5-1,"chassis, M6 female + coil connector",ORDERABLE,docs/datasheets/protection/Hongfa-HFE82V-300C.pdf
-206,2,PV-PWR: 2,HPE501/000B100-250,"CHASSIS-MOUNTED aR fuse 250 A 1000 VDC, breaks 1.25-50 kA only (partial range), battery port",Hongfa,HPE501/000B100-250,"size 000 square body, M6 bolted",ORDERABLE,docs/datasheets/protection/Hongfa-HPE501-1000Vdc.pdf
-207,3,PV-PWR: 3,BSS126H6327XTSA2,"N-MOSFET 600 V depletion mode, IDSS >= 7 mA (HV start-up cascode)",Infineon,BSS126H6327XTSA2,SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/BSS126.pdf
-208,1,PV-PWR: 1,IV2Q171R0D7Z,"SiC MOSFET 1700 V 1 Ohm, Kelvin source, AEC-Q101; alternate Sichain SG2M1K0170J2J (same pin-out)",InventChip,IV2Q171R0D7Z,TO-263-7,ORDERABLE,docs/datasheets/power-semiconductors/IV2Q171R0D7Z.pdf
-209,18,PV-PWR: 18,FCSA3DS225K050IC90BE3,"PP film 2.2 uF 10 %, 1300 VDC (70 C) / 1100 VDC (85 C), Imax 3.9 A (85 C) / 5.2 A (70 C), peak 176 A, ESR 22.5 mOhm, Ls 25 nH, 80 V/us (leg decoupling)",Jianghai,FCSA3DS225K050IC90BE3,"2-pin 32 x 14 x 28 mm, pitch 27.5 mm",ORDERABLE,docs/datasheets/passives-capacitors/Jianghai-JE26-Film.pdf
-210,2,PV-PWR: 2,3.3u 1300V,"Film capacitor 3.3 uF 1300 VDC, PP DC link, IEC 61071 (input surge absorber); was KEMET C4AQUBU4330A11J",Jianghai,FCSA3DS335K050ID90BE3,"radial 27.5 mm, 2 pins 5.0 mm, 32 x 28 x 18 mm",ORDERABLE,docs/datasheets/passives-capacitors/Jianghai-JE26-Film.pdf
-211,13,PV-PWR: 13,FCSA3DS456K050H8F9DE3,"DC-link PP film 45 uF 10 %, 1300 VDC (70 C) / 1100 VDC (85 C), Imax 22.1 A (85 C) / 29.0 A (70 C) at 10 kHz, peak 900 A, ESR 4.0 mOhm, Ls 35 nH, IEC 61071 (port bank)",Jianghai,FCSA3DS456K050H8F9DE3,"4-pin 57.5 x 35 x 70 mm, P1 52.5 / P2 20.3",ORDERABLE,docs/datasheets/passives-capacitors/Jianghai-JE26-Film.pdf
-212,4,PV-PWR: 4,PCV1HVF101MB12FV-WE3,"Aluminium polymer capacitor 100 uF 50 V, ESR 25 mOhm, 3.8 A, 3000 h @ 105 C (JE26 p17); was Wurth 875115655003",Jianghai,PCV1HVF101MB12FV-WE3,SMD V-chip 8.0 x 12.2 mm,ORDERABLE,docs/datasheets/passives-capacitors/Jianghai-JE26-Polymer.pdf
-213,1,PV-CTL-P75: 1,SM712,RS-485 asymmetric TVS array -7/+12 V,MDD (Microdiode Semiconductor),SM712,SOT-23,ORDERABLE,docs/datasheets/protection/MDD-SM712.pdf
-214,3,PV-PWR: 3,SMBJ33A,"TVS 33 V unidirectional, relay coil clamp zener",MDD (Microdiode Semiconductor),SMBJ33A,SMB,ORDERABLE,docs/datasheets/protection/MDD-SMBJ-series.pdf
-215,1,PV-CTL-P75: 1,SMBJ36A,"TVS 600 W unidirectional, VRWM 36 V (SELV 24 V input)",MDD (Microdiode Semiconductor),SMBJ36A,SMB,ORDERABLE,docs/datasheets/protection/MDD-SMBJ-series.pdf
-216,1,PV-CTL-P75: 1,SMBJ58CA,"TVS 600 W bidirectional, VRWM 58 V (SELV 0 V to PE)",MDD (Microdiode Semiconductor),SMBJ58CA,SMB,ORDERABLE,docs/datasheets/protection/MDD-SMBJ-series.pdf
-217,2,PV-CTL-P75: 2,SS56,Schottky rectifier 60 V 5 A (buck catch diode),MDD (Microdiode Semiconductor),SS56,SMA (DO-214AC),ORDERABLE,docs/datasheets/power-semiconductors/MDD-SS5x.pdf
-218,1,PV-CTL-P75: 1,NCP15XH103F03RC,"NTC 10 k 1 % B25/50 3380 K (inlet air, on board)",Murata,NCP15XH103F03RC,0402,ORDERABLE,docs/datasheets/sensing/Murata-NCP-NTC.pdf
-219,12,PV-PWR: 12,NSI6651ASC-Q1SWR,"Isolated smart SiC gate driver 10 A, DESAT + soft turn-off, Miller clamp, FLT/RDY; reinforced VDE 0884-17 (40052820) VIORM 2121 Vpk, UL 1577 5.7 kVrms; AEC-Q100 grade 1. Alternate: NSI6651ASC-DSWR",NOVOSENSE,NSI6651ASC-Q1SWR,SOW-16 (10.3 x 7.5 mm),ORDERABLE,docs/datasheets/gate-drivers/NSI66x1A-Q1.pdf
-220,1,PV-PWR: 1,2N7002BK,N-MOSFET 60 V 350 mA logic level,Nexperia,2N7002BK,SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/2N7002BK.pdf
-221,4,PV-PWR: 4,"2N7002BK,215",N-MOSFET 60 V 350 mA (logic switch),Nexperia,"2N7002BK,215",SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/2N7002BK.pdf
-222,1,PV-CTL-P75: 1,"2N7002BK,215","N-MOSFET 60 V 350 mA, fan PWM open-drain driver",Nexperia,"2N7002BK,215",SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/2N7002BK.pdf
-223,2,PV-PWR: 2,BAS16,"Switching diode 100 V 215 mA, low leakage",Nexperia,BAS16,SOT-23,ORDERABLE,docs/datasheets/protection/BAS16.pdf
-224,1,PV-PWR: 1,"BAS16,215","Switching diode 100 V 215 mA, low leakage (timer latch)",Nexperia,"BAS16,215",SOT-23,ORDERABLE,docs/datasheets/protection/BAS16.pdf
-225,36,PV-PWR: 36,BAT54,"Schottky diode 30 V 200 mA, trr <= 5 ns",Nexperia,BAT54,SOT-23,ORDERABLE,docs/datasheets/protection/BAT54.pdf
-226,4,PV-PWR: 4,"BAT54,215",Schottky diode 30 V 200 mA,Nexperia,"BAT54,215",SOT-23,ORDERABLE,docs/datasheets/protection/BAT54.pdf
-227,12,PV-PWR: 12,BAT54S,Dual series Schottky 30 V 200 mA (sense-node clamp to COM and VDD),Nexperia,BAT54S,SOT-23,ORDERABLE,docs/datasheets/protection/BAT54S.pdf
-228,1,PV-PWR: 1,"BAT54S,215",Dual series Schottky 30 V (soft start: clamp + discharge),Nexperia,"BAT54S,215",SOT-23,ORDERABLE,docs/datasheets/protection/BAT54S.pdf
-229,1,PV-PWR: 1,"BC817-25,215",NPN 45 V 500 mA (VDD emitter follower),Nexperia,"BC817-25,215",SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/BC817.pdf
-230,9,PV-PWR: 9,BSS138BK,N-MOSFET 60 V 360 mA,Nexperia,BSS138BK,SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/BSS138BK.pdf
-231,1,PV-PWR: 1,"BZX84-A18,215",Zener 18 V 1 % (VDD follower reference = SiC gate drive),Nexperia,"BZX84-A18,215",SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
-232,25,PV-PWR: 25,BZX84-B10,Zener 10 V 2 % 250 mW (SC trigger level / booster gate clamp),Nexperia,BZX84-B10,SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
-233,24,PV-PWR: 24,"BZX84-B20,215","Zener 20 V 2 % 250 mW (gate clamp, positive, +18 V rail)",Nexperia,"BZX84-B20,215",SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
-234,1,PV-PWR: 1,"BZX84-B20,215",Zener 20 V 2 % (VDD / gate over-voltage clamp),Nexperia,"BZX84-B20,215",SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
-235,24,PV-PWR: 24,BZX84-B3V3,Zener 3.3 V 2 % 250 mW (clamp-FET gate supply / trigger shift),Nexperia,BZX84-B3V3,SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
-236,1,PV-PWR: 1,"BZX84-B3V3,215",Zener 3.3 V 2 % (PG buffer rail),Nexperia,"BZX84-B3V3,215",SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
-237,24,PV-PWR: 24,BZX84-B4V7,"Zener 4.7 V 2 % 250 mW (gate clamp, negative, -3/-3.5 V rail)",Nexperia,BZX84-B4V7,SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
-238,12,PV-PWR: 12,BZX84-B5V6,"Zener 5.6 V 2 % 250 mW (gate clamp, negative)",Nexperia,BZX84-B5V6,SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
-239,1,PV-PWR: 1,"BZX84-B6V8,215",Zener 6.8 V 2 % (foldback threshold),Nexperia,"BZX84-B6V8,215",SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
-240,2,PV-PWR: 2,BZX84-C15,Zener 15 V 250 mW,Nexperia,BZX84-C15,SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
-241,1,PV-CTL-P75: 1,"BZX84-C5V1,215",Zener 5.1 V 5 % 250 mW (ENABLE input clamp),Nexperia,"BZX84-C5V1,215",SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
-242,36,PV-PWR: 36,"MMBT3904,215",NPN 40 V 200 mA (clamp release / SC trigger),Nexperia,"MMBT3904,215",SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/Nexperia-MMBT3904.pdf
-243,24,PV-PWR: 24,"MMBT3906,215",PNP 40 V 200 mA (clamp inverter / SC booster),Nexperia,"MMBT3906,215",SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/Nexperia-MMBT3906.pdf
-244,12,PV-PWR: 12,"PBSS5540X,135","PNP 40 V 4 A low VCEsat, AEC-Q101: pass transistor of the per-channel bias regulator",Nexperia,"PBSS5540X,135",SOT-89,ORDERABLE,docs/datasheets/power-semiconductors/Nexperia-PBSS5540X.pdf
-245,72,PV-PWR: 72,PMEG4010CEJ,Schottky rectifier 40 V 1 A low Vf,Nexperia,PMEG4010CEJ,SOD-323F,ORDERABLE,https://www.nexperia.com/product/PMEG4010CEJ
-246,37,PV-PWR: 37,PMV30ENEAR,"N-MOSFET 40 V 4.8 A (19 A pulse), <= 40 mOhm at VGS 4.5 V, AEC-Q101: Miller clamp / SC booster",Nexperia,PMV30ENEAR,SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/Nexperia-PMV30ENEA.pdf
-247,2,PV-PWR: 2,PMV30ENEAR,N-MOSFET 40 V 4.8 A: coil economiser bypass (pull-in),Nexperia,PMV30ENEAR,SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/Nexperia-PMV30ENEA.pdf
-248,1,PV-PWR: 1,G7L-2A-X DC24,"Precharge relay DPST-NO, poles in series: 25 A @ 1000 VDC normal polarity only, 24 V coil 250 ohm",Omron,G7L-2A-X DC24,PCB relay 52.5x35.5 mm,ORDERABLE,docs/datasheets/protection/G7L-X.pdf
-249,2,PV-PWR: 2,N-C-644025,"CHASSIS nanocrystalline ring core 64/40/25 mm (cased), mu_i 70000 / 24000 +/-30 %: one turn of BOTH conductors of the port = CM choke for 150 kHz-30 MHz (ARCHITECTURE 8.1); pins = conductors",Qingdao Yunlu,N-C-644025,"ring 67/37/29 mm cased, on both port conductors",ORDERABLE,docs/datasheets/magnetics/Yunlu-Nanocrystalline-Cores.pdf
-250,2,PV-PWR: 2,35ZLH1500MEFC12.5X30,"Aluminium electrolytic 1500 uF 35 V, low Z, 10000 h @ 105 C (AUX75 live hold-up)",Rubycon,35ZLH1500MEFC12.5X30,"radial 12.5 x 30 mm, 5.0 mm pitch",ORDERABLE,docs/datasheets/passives-capacitors/Rubycon-ZLH.pdf
-251,1,PV-CTL-P75: 1,FXL0530-220-M,"Power inductor 22 uH 20 %, Isat 2.0 A, Irms 1.5 A, 248 mOhm (SELV 5 V)",SZ Cjiang Technology,FXL0530-220-M,5.4x5.2x3.0 mm molded,ORDERABLE,docs/datasheets/magnetics/Cjiang-FXL.pdf
-252,1,PV-CTL-P75: 1,FXL0840-330-M,"Power inductor 33 uH 20 %, Isat 3.3 A, Irms 3.0 A, 156 mOhm (fan supply)",SZ Cjiang Technology,FXL0840-330-M,8.0x8.0x4.0 mm molded,ORDERABLE,docs/datasheets/magnetics/Cjiang-FXL.pdf
-253,2,PV-PWR: 2,0090.1001,"Fuse 1 A 1000 VDC gPV, 20 kA breaking, PCB pins (one per DC port, behind 2 x 22 R)",Schurter,0090.1001,"10.3 x 38 mm, PCB pins",ORDERABLE,docs/datasheets/protection/ASO-0090.1001.pdf
-254,1,PV-CTL-P75: 1,X1G0041710033,"SPXO SG-210STF 25.000000 MHz L, CMOS 1.6-3.63 V, +/-50 ppm, -40..85 C",Seiko Epson,X1G0041710033,SMD 2.5x2.0 mm 4-pad,ORDERABLE,docs/datasheets/timing/Epson-SG-210STF.pdf
-255,1,PV-CTL-P75: 1,BL24C256A-PARC,"EEPROM 256 kbit I2C 1 MHz, hardware write protect",Shanghai Belling,BL24C256A-PARC,SOP-8,ORDERABLE,docs/datasheets/controllers/Belling-BL24C256A.pdf
-256,24,PV-PWR: 24,SG2M040170HJ,"SiC MOSFET 1700 V 40 mOhm, TO-247-4L with driver source, VGS -8/+22 V abs, -4/+18 V op; no qualification stated (Sichain p14: consult for high reliability). Mount on PAD_ALN",Sichain,SG2M040170HJ,TO-247-4L (tab = drain),ORDERABLE,docs/datasheets/power-semiconductors/SG2M040170HJ.pdf
-257,3,PV-PWR: 3,STK-HO/A 75,"Open-loop current sensor, integrated primary, IPN 75 A rms, IPM +/-187.5 A, 10.667 mV/A around Vref 2.5 V at Vcc 5 V, 1 MHz, 0.2 us; 4 kV rms / 8 kV impulse, 13.8 mm creepage",Sinomags Technology,STK-HO/A 75,"PCB mount 35.4 x 25 x 21.7 mm, U-bar primary",ORDERABLE,docs/datasheets/sensing/Sinomags-STK-HO-A.pdf
-258,36,PV-PWR: 36,US1MH,"Ultrafast rectifier 1000 V 1 A trr 75 ns, AEC-Q101 (DESAT string)",Taiwan Semiconductor,US1MH,SMA (DO-214AC),ORDERABLE,docs/datasheets/power-semiconductors/TSC-US1xH.pdf
-259,24,PV-PWR: 24,ATL431BIDBZR,"Shunt reference 2.5 V +/-1 %, 36 V: bias regulator and COM split",Texas Instruments,ATL431BIDBZR,SOT-23-3 (DBZ),ORDERABLE,docs/datasheets/power-supply/ATL431.pdf
-260,1,PV-PWR: 1,ATL431BIDBZR,"Shunt reference 2.5 V 0.5 %, Ika(min) 35 uA, 36 V",Texas Instruments,ATL431BIDBZR,SOT-23-3 (DBZ),ORDERABLE,docs/datasheets/power-supply/ATL431.pdf
-261,1,PV-CTL-P75: 1,ESD2CAN24DBZRQ1,2-channel 24 V CAN bus ESD/TVS diode,Texas Instruments,ESD2CAN24DBZRQ1,SOT-23 (DBZ),ORDERABLE,docs/datasheets/protection/ESD2CAN24-Q1.pdf
-262,1,PV-CTL-P75: 1,F280039CSPZR,"TMS320F280039C C28x + CLA 120 MHz, 384 kB flash, 16 ePWM, 3 x 12-bit ADC, 4 CMPSS, DCAN + MCAN, 100-pin PZ, -40..125 C",Texas Instruments,F280039CSPZR,LQFP-100 (PZ) 14x14 mm,ORDERABLE,docs/datasheets/controllers/TMS320F28003x.pdf
-263,2,PV-PWR: 2,LMR38020FDDAR,"Sync buck 4.2-80 V in, 2 A, FPWM, 1.0 V ref, PG",Texas Instruments,LMR38020FDDAR,SO-8 PowerPAD (DDA),ORDERABLE,docs/datasheets/power-supply/LMR38020.pdf
-264,7,PV-PWR: 7,OPA2388IDR,"Dual zero-drift RRIO op amp, 10 MHz, 2.5-5.5 V",Texas Instruments,OPA2388IDR,SOIC-8 (D),ORDERABLE,docs/datasheets/sensing/OPA4388.pdf
-265,3,PV-CTL-P75: 1; PV-PWR: 2,REF3030EAIDBZR,Voltage reference 3.0 V 0.1 % 15 ppm/K (hold threshold),Texas Instruments,REF3030EAIDBZR,SOT-23-3 (DBZ),ORDERABLE,docs/datasheets/sensing/REF3030.pdf
-266,3,PV-PWR: 3,SN6505BDBVR,"Push-pull transformer driver, 1 A, 420 kHz, soft start",Texas Instruments,SN6505BDBVR,SOT-23-6 (DBV),ORDERABLE,docs/datasheets/power-supply/SN6505B.pdf
-267,15,PV-PWR: 15,SN74AHCT1G08DBVR,"Single 2-input AND gate, 5 V, TTL inputs: EN_DRV -> EN_GD at the NSI6651 RST/EN level",Texas Instruments,SN74AHCT1G08DBVR,SOT-23-5 (DBV),ORDERABLE,docs/datasheets/isolation-interface/SN74AHCT1G08.pdf
-268,1,PV-CTL-P75: 1,SN74LVC07APWR,"Hex buffer, open-drain outputs, 5 V tolerant inputs, Ioff (trip wired-AND)",Texas Instruments,SN74LVC07APWR,TSSOP-14 (PW),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC07A.pdf
-269,6,PV-CTL-P75: 6,SN74LVC08APWR,Quad 2-input AND,Texas Instruments,SN74LVC08APWR,TSSOP-14 (PW),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC08A.pdf
-270,6,PV-PWR: 6,SN74LVC1G11DBVR,Single 3-input AND,Texas Instruments,SN74LVC1G11DBVR,SOT-23-6 (DBV),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC1G11.pdf
-271,1,PV-CTL-P75: 1,SN74LVC1G123DCUR,"Retriggerable monostable, Schmitt inputs (heartbeat watchdog)",Texas Instruments,SN74LVC1G123DCUR,VSSOP-8 (DCU),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC1G123.pdf
-272,12,PV-PWR: 12,SN74LVC1G17DBVR,"Single Schmitt-trigger buffer, 3.3 V",Texas Instruments,SN74LVC1G17DBVR,SOT-23-5 (DBV),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC1G17.pdf
-273,8,PV-CTL-P75: 1; PV-PWR: 7,SN74LVC1G32DBVR,Single 2-input OR,Texas Instruments,SN74LVC1G32DBVR,SOT-23-5 (DBV),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC1G32.pdf
-274,1,PV-CTL-P75: 1,SN74LVC1G74DCUR,D flip-flop with async preset / clear,Texas Instruments,SN74LVC1G74DCUR,VSSOP-8 (DCU),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC1G74.pdf
-275,1,PV-PWR: 1,TLV3202AIDGKR,"Dual comparator 40 ns, 40 uA/ch, push-pull, rail-to-rail inputs",Texas Instruments,TLV3202AIDGKR,VSSOP-8 (DGK),ORDERABLE,docs/datasheets/sensing/TLV3202.pdf
-276,7,PV-PWR: 7,TLV3502AIDCNR,Dual comparator rail-to-rail push-pull: over-current detect for the contactor hold,Texas Instruments,TLV3502AIDCNR,SOT-23-8 (DCN),ORDERABLE,docs/datasheets/sensing/TLV3502.pdf
-277,5,PV-CTL-P75: 5,TLV9024PWR,"Quad comparator, open drain, rail-to-rail input, VOS +/-2 mV (-40..125 C), 30 uA/ch, 1.65-5.5 V",Texas Instruments,TLV9024PWR,TSSOP-14 (PW),ORDERABLE,docs/datasheets/sensing/TLV9024.pdf
-278,1,PV-CTL-P75: 1,TLV9064IPWR,"Quad RRIO CMOS op amp 10 MHz, 1.8-5.5 V",Texas Instruments,TLV9064IPWR,TSSOP-14 (PW),ORDERABLE,docs/datasheets/sensing/TLV9064.pdf
-279,1,PV-PWR: 1,TPS3700DDCR,"Window voltage detector, 400 mV, two open-drain outputs",Texas Instruments,TPS3700DDCR,SOT-6 (DDC),ORDERABLE,docs/datasheets/power-supply/TPS3700.pdf
-280,2,PV-PWR: 2,TPS3710DDCR,"Voltage detector 400 mV 1 %, open-drain output, 1.8-18 V",Texas Instruments,TPS3710DDCR,SOT-23-6 (DDC),ORDERABLE,docs/datasheets/power-supply/TPS3710.pdf
-281,1,PV-PWR: 1,TPS3710DDCR,"Voltage detector 400 mV, open drain",Texas Instruments,TPS3710DDCR,SOT-6 (DDC),ORDERABLE,docs/datasheets/power-supply/TPS3710.pdf
-282,1,PV-CTL-P75: 1,TPS3828-33DBVR,"Supervisor 2.93 V + watchdog 1.6 s, open-drain reset 200 ms",Texas Instruments,TPS3828-33DBVR,SOT-23-5 (DBV),ORDERABLE,docs/datasheets/power-supply/TPS3823.pdf
-283,2,PV-CTL-P75: 2,TPS54360BDDAR,"Buck 4.5-60 V in, 3.5 A, current mode, EN 1.2 V threshold, 0.8 V 1 % reference",Texas Instruments,TPS54360BDDAR,HSOIC-8 PowerPAD (DDA),ORDERABLE,docs/datasheets/power-supply/TPS54360B.pdf
-284,1,PV-PWR: 1,TPS62130RGTR,"Sync buck 3-17 V in, 3 A, adjustable (VFB 0.8 V)",Texas Instruments,TPS62130RGTR,VQFN-16 3x3 (RGT),ORDERABLE,docs/datasheets/power-supply/TPS62130.pdf
-285,1,PV-PWR: 1,UCC28C59QDRQ1,"Current-mode PWM controller for SiC, UVLO 16/12.5 V, max duty 48 %, AEC-Q100",Texas Instruments,UCC28C59QDRQ1,SOIC-8 (D),ORDERABLE,docs/datasheets/power-supply/UCC28C58-Q1.pdf
-286,6,PV-PWR: 6,TVT25751KFKG,"Thermally protected varistor 615 VDC, Vc 1240 V @ 150 A, Imax 25 kA, thermal link + monitor lead",Thinking Electronic,TVT25751KFKG,"25 mm disc, 3 leads, potted",ORDERABLE,docs/datasheets/protection/Thinking-TVT-Series.pdf
-287,6,PV-CTL-P75: 6,4 x 10k,"Resistor array 4 x 10k 5 % 1/16 W 50 V, isolated (pull-downs on MCU command lines)",Uniroyal Electronics (UniOhm),4D03WGJ0103T5E,0603x4 concave,ORDERABLE,docs/datasheets/passives-capacitors/UniOhm-resistor-array.pdf
-288,30,PV-PWR: 30,1M,HV chip resistor 1.00 M 0.1 % 25 ppm/K,Viking Tech,ARHV06BTC1004A,1206,ORDERABLE,docs/datasheets/passives-capacitors/Viking-ARHV-A.pdf
-289,16,PV-PWR: 16,124k,HV chip resistor 124 k 0.1 % 25 ppm/K,Viking Tech,ARHV13BTC1243A,1210,ORDERABLE,docs/datasheets/passives-capacitors/Viking-ARHV-A.pdf
-290,3,PV-PWR: 3,BYG10Y-E3/TR,"Avalanche rectifier 1600 V 1.5 A, standard recovery",Vishay,BYG10Y-E3/TR,SMA (DO-214AC),ORDERABLE,docs/datasheets/power-semiconductors/BYG10Y.pdf
-291,2,PV-PWR: 2,CNY65B,"Optocoupler phototransistor, reinforced, VIOTM 12 kV, creepage >= 14 mm: varistor-network monitor",Vishay,CNY65B,DIP-4 HV 600 mil (15.24 mm),ORDERABLE,docs/datasheets/isolation-interface/CNY65.pdf
-292,36,PV-PWR: 36,15R,"Pulse-proof thick film 2512 15.0 ohm 1 %, 1.5 W at 70 C, 500 V (leg damper)",Vishay,CRCW251215R0FKEGHP,2512,ORDERABLE,docs/datasheets/passives-capacitors/CRCW-HP.pdf
-293,4,PV-PWR: 4,10M,"Resistor 10 M 1 % 2512 high-voltage thick film, 3000 V",Vishay,CRHV2512AF10M0FKFB,2512,ORDERABLE,docs/datasheets/passives-capacitors/CRHV.pdf
-294,3,PV-PWR: 3,IRFR9214TRPbF,P-MOSFET -250 V 3.0 ohm: hold-closed high-side switch,Vishay,IRFR9214TRPbF,DPAK (TO-252),ORDERABLE,docs/datasheets/power-semiconductors/IRFR9214.pdf
-295,5,PV-PWR: 5,4.99k,Thin-film resistor 4.99 k 0.1 % 25 ppm/K,Vishay,TNPW12064K99BEEA,1206,ORDERABLE,docs/datasheets/passives-capacitors/TNPW-e3.pdf
-296,2,PV-PWR: 2,VS-8ETU04S-M3,Ultrafast rectifier 400 V 8 A FRED Pt (output),Vishay,VS-8ETU04S-M3,D2PAK (TO-263AB),ORDERABLE,docs/datasheets/power-semiconductors/VS-8ETU04S-M3.pdf
-297,4,PV-PWR: 4,VY1472M63Y5UQ63V0,Y1 capacitor 4.7 nF 500 VAC / 1500 VDC,Vishay,VY1472M63Y5UQ63V0,"disc 16 mm, 10 mm leads",ORDERABLE,docs/datasheets/passives-capacitors/VY1.pdf
-298,4,PV-PWR: 4,20R,"Resistor 20 R 5 % 10 W cemented wirewound, pulse-rated (AUX75 tap, ahead of the fuse)",Vishay Draloric,AC10000002009JAB00,"axial cemented wirewound 10 W, 44 x 8 mm",ORDERABLE,docs/datasheets/passives-capacitors/AC-AC-AT-AC-NI.pdf
-299,1,PV-CTL-P75: 1,150060RS75000,"LED 0603 red 625 nm, VF 2.0 V",Wurth Elektronik,150060RS75000,0603,ORDERABLE,docs/datasheets/passives-capacitors/WE-150060RS75000.pdf
-300,1,PV-CTL-P75: 1,150060VS75000,"LED 0603 bright green 570 nm, VF 2.0 V",Wurth Elektronik,150060VS75000,0603,ORDERABLE,docs/datasheets/passives-capacitors/WE-150060VS75000.pdf
-301,2,PV-PWR: 2,74437368150,"Power inductor 15 uH, ISAT(10%) 5.55 A, 45 mR max",Wurth Elektronik,74437368150,WE-LHMI,ORDERABLE,docs/datasheets/magnetics/WE-74437368150.pdf
-302,1,PV-PWR: 1,74438356022,"Power inductor 2.2 uH, ISAT(10%) 4.05 A, 35 mR max",Wurth Elektronik,74438356022,WE-MAPI 4020,ORDERABLE,docs/datasheets/magnetics/WE-74438356022.pdf
-303,18,PV-PWR: 18,7461057,"PCB HV connection point (ring lug / busbar), M3, 100 A",Wurth Elektronik,7461057,REDCUBE press-fit M3,ORDERABLE,docs/datasheets/connectors/WE-7461057.pdf
-304,1,PV-CTL-P75: 1,X1270WVS-2x10B-9TV01,cTI-20 JTAG header 1.27 mm - HAZARDOUS LIVE: isolated debug probe only (>= 1000 V DC),XKB Connection,X1270WVS-2x10B-9TV01,2x10 1.27 mm SMT,ORDERABLE,docs/datasheets/connectors/XKB-X1270WVS.pdf
-305,3,PV-CTL-P75: 3,X6511WV-03H-C60D30,"Fan header 1x3 2.54 mm, 3 A: 1 +V, 2 0 V, 3 tach (SELV)",XKB Connection,X6511WV-03H-C60D30,1x3 2.54 mm THT,ORDERABLE,docs/datasheets/connectors/XKB-X6511W.pdf
-306,1,PV-CTL-P75: 1,X6521FV-2x32-C85D32,"Board-to-board socket 2x32 2.54 mm, PC contract (gen/interfaces.py), LIVE",XKB Connection,X6521FV-2x32-C85D32,2x32 2.54 mm female THT,ORDERABLE,docs/datasheets/connectors/XKB-X6521F.pdf
-307,1,PV-PWR: 1,X9555WV-2x32-6TV01,"Shrouded box header 2x32 2.54 mm: PC contract to the control board, live (250 V, 3 A, -40..125 C)",XKB Connection,X9555WV-2x32-6TV01,2x32 2.54 mm box header THT,ORDERABLE,docs/datasheets/connectors/XKB-X9555WV.pdf
-308,1,PV-PWR: 1,220R RFQ,"CHASSIS-MOUNTED RFQ precharge resistor 220 ohm 5 %, 1000 V DC (1144 V peak), single pulse >= 900 J in 0.15 s (shorted bank to the abort) and >= 280 J at tau 105 ms (bank charge), basic insulation to the housing (2200 V rms)",,,"aluminium housing, M4",RFQ,
-309,2,PV-PWR: 2,X 2.2u 1300V RFQ,"RFQ X capacitor film 2.2 uF, 1300 VDC at 70 C (1100 V at 85 C), ESR <= 16 mOhm, impulse >= 4.5 kV peak (>= 1.1 x the 3.8 kV pole-pole level of the varistor Y, IC-10; leads at the varistor network), no lifetime surge-count limit below 1000 events",,,"radial film, 27.5 mm pitch",RFQ,
+194,1,PV-CTL-P75: 1,CA-IS3842HW,"Reinforced 4-ch digital isolator 2 fwd + 2 rev, default HIGH, 5.7 kVrms, VIOSM 8 kV",Chipanalog,CA-IS3842HW,"SOIC-16 WB (W) 10.3x7.5 mm, 8 mm CLR/CPG",ORDERABLE,docs/datasheets/isolation-interface/CA-IS384x.pdf
+195,6,PV-PWR: 6,KF2EDGR-3.5-2P,"NTC leads (heatsink probe / inductor winding NTC), 2-pin pluggable",Cixi Kefa,KF2EDGR-3.5-2P,2p 3.5 mm pluggable header,ORDERABLE,docs/datasheets/connectors/KEFA-KF2EDGR-3.5.pdf
+196,1,PV-PWR: 1,KF2EDGR-3.5-2P,"SELV 24 V (AUX-T1 reinforced winding) to the control board's SELV zone: >= 10 mm from live copper, double-insulated wires (ARCHITECTURE 10, J2)",Cixi Kefa,KF2EDGR-3.5-2P,2p 3.5 mm pluggable header,ORDERABLE,docs/datasheets/connectors/KEFA-KF2EDGR-3.5.pdf
+197,1,PV-CTL-P75: 1,KF2EDGR-3.81-2P,Pluggable header 2-pos 3.81 mm 300 V 8 A (plug KF2EDGK-3.81-2P): SELV 24 V input,Cixi Kefa Electronic,KF2EDGR-3.81-2P,pluggable 2-pos 3.81 mm R/A,ORDERABLE,docs/datasheets/connectors/KEFA-KF2EDGR-3.81.pdf
+198,3,PV-CTL-P75: 3,KF2EDGR-3.81-6P,Pluggable header 6-pos 3.81 mm (plug KF2EDGK-3.81-6P): bus or stop loop in/out + 0 V + screen (SELV),Cixi Kefa Electronic,KF2EDGR-3.81-6P,pluggable 6-pos 3.81 mm R/A,ORDERABLE,docs/datasheets/connectors/KEFA-KF2EDGR-3.81.pdf
+199,1,PV-CTL-P75: 1,KF2EDGR-3.81-8P,"Pluggable header 8-pos 3.81 mm (plug KF2EDGK-3.81-8P): relay NO / COM / NC, DI1, ready permissive, 0 V (SELV)",Cixi Kefa Electronic,KF2EDGR-3.81-8P,pluggable 8-pos 3.81 mm R/A,ORDERABLE,docs/datasheets/connectors/KEFA-KF2EDGR-3.81.pdf
+200,3,chassis: 3,AFB1224SHE-F00,"Fan 120 x 120 x 38 mm 24 V with PWM input and tach, one per phase section - RATED -10..+60 C ONLY: below PV-20's -30 C (open risk, ARCHITECTURE-COSTFIRST.md section 13)",Delta Electronics (TW),AFB1224SHE-F00,chassis,ORDERABLE,docs/datasheets/thermal/AFB1224SHE-F00.pdf
+201,3,PV-PWR: 3,S2M-13-F,Rectifier 1000 V 1.5 A,Diodes Inc,S2M-13-F,SMB,ORDERABLE,docs/datasheets/power-semiconductors/S2M.pdf
+202,1,PV-PWR: 1,US1G-13-F,Ultrafast rectifier 400 V 1 A,Diodes Incorporated,US1G-13-F,SMA,ORDERABLE,docs/datasheets/power-semiconductors/US1M.pdf
+203,4,PV-PWR: 4,36A gPV 14x51,"Varistor branch fuse CH14x51 gPV 36 A 1000 V DC, 30 kA (L/R 2 ms), pre-arc 450 A2s",ETI,002637115,14x51 cartridge in 2 x CH14-PCB clips,ORDERABLE,docs/datasheets/protection/ETI-Green-Protect.pdf
+204,8,PV-PWR: 8,006710340,Fuse clip CH14-PCB (two per varistor branch fuse),ETI,006710340,PCB clip for 14 mm cartridge,ORDERABLE,docs/datasheets/protection/ETI-Green-Protect.pdf
+205,1,PV-CTL-P75: 1,GD25Q32ESIGR,"SPI NOR flash 32 Mbit (4 MB), 133 MHz, 100k cycles, 20 y retention, -40..85 C (fault recorder, images)",GigaDevice,GD25Q32ESIGR,SOP-8 208 mil,ORDERABLE,docs/datasheets/controllers/GD25Q32E.pdf
+206,1,PV-CTL-P75: 1,CBW160808U301T,Ferrite bead 300 R at 100 MHz (VDDA pi filter),Guangdong Fenghua Advanced Technology,CBW160808U301T,0603,ORDERABLE,docs/datasheets/magnetics/Fenghua-CBW.pdf
+207,1,PV-CTL-P75: 1,HFD27/005-S,"Signal relay 2 Form C, 5 V 200 mW coil (125 ohm), 2 A 30 V DC / 1 A 125 V AC, 1500 V AC coil-contact, -40..85 C",Hongfa,HFD27/005-S,DIP-16 relay 20.2x10.2 mm,ORDERABLE,docs/datasheets/protection/Hongfa-HFD27.pdf
+208,2,PV-PWR: 2,HFE82V-300C/1000-24-H-C5-1,"CHASSIS-MOUNTED main contactor 300 A 1000 VDC, no polarity, 24 V 6 W coil, no aux contact",Hongfa,HFE82V-300C/1000-24-H-C5-1,"chassis, M6 female + coil connector",ORDERABLE,docs/datasheets/protection/Hongfa-HFE82V-300C.pdf
+209,2,PV-PWR: 2,HPE501/000B100-250,"CHASSIS-MOUNTED aR fuse 250 A 1000 VDC, breaks 1.25-50 kA only (partial range), battery port",Hongfa,HPE501/000B100-250,"size 000 square body, M6 bolted",ORDERABLE,docs/datasheets/protection/Hongfa-HPE501-1000Vdc.pdf
+210,3,PV-PWR: 3,BSS126H6327XTSA2,"N-MOSFET 600 V depletion mode, IDSS >= 7 mA (HV start-up cascode)",Infineon,BSS126H6327XTSA2,SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/BSS126.pdf
+211,1,PV-PWR: 1,IV2Q171R0D7Z,"SiC MOSFET 1700 V 1 Ohm, Kelvin source, AEC-Q101; alternate Sichain SG2M1K0170J2J (same pin-out)",InventChip,IV2Q171R0D7Z,TO-263-7,ORDERABLE,docs/datasheets/power-semiconductors/IV2Q171R0D7Z.pdf
+212,18,PV-PWR: 18,FCSA3DS225K050IC90BE3,"PP film 2.2 uF 10 %, 1300 VDC (70 C) / 1100 VDC (85 C), Imax 3.9 A (85 C) / 5.2 A (70 C), peak 176 A, ESR 22.5 mOhm, Ls 25 nH, 80 V/us (leg decoupling)",Jianghai,FCSA3DS225K050IC90BE3,"2-pin 32 x 14 x 28 mm, pitch 27.5 mm",ORDERABLE,docs/datasheets/passives-capacitors/Jianghai-JE26-Film.pdf
+213,2,PV-PWR: 2,3.3u 1300V,"Film capacitor 3.3 uF 1300 VDC, PP DC link, IEC 61071 (input surge absorber); was KEMET C4AQUBU4330A11J",Jianghai,FCSA3DS335K050ID90BE3,"radial 27.5 mm, 2 pins 5.0 mm, 32 x 28 x 18 mm",ORDERABLE,docs/datasheets/passives-capacitors/Jianghai-JE26-Film.pdf
+214,13,PV-PWR: 13,FCSA3DS456K050H8F9DE3,"DC-link PP film 45 uF 10 %, 1300 VDC (70 C) / 1100 VDC (85 C), Imax 22.1 A (85 C) / 29.0 A (70 C) at 10 kHz, peak 900 A, ESR 4.0 mOhm, Ls 35 nH, IEC 61071 (port bank)",Jianghai,FCSA3DS456K050H8F9DE3,"4-pin 57.5 x 35 x 70 mm, P1 52.5 / P2 20.3",ORDERABLE,docs/datasheets/passives-capacitors/Jianghai-JE26-Film.pdf
+215,4,PV-PWR: 4,PCV1HVF101MB12FV-WE3,"Aluminium polymer capacitor 100 uF 50 V, ESR 25 mOhm, 3.8 A, 3000 h @ 105 C (JE26 p17); was Wurth 875115655003",Jianghai,PCV1HVF101MB12FV-WE3,SMD V-chip 8.0 x 12.2 mm,ORDERABLE,docs/datasheets/passives-capacitors/Jianghai-JE26-Polymer.pdf
+216,1,PV-CTL-P75: 1,SM712,RS-485 asymmetric TVS array -7/+12 V,MDD (Microdiode Semiconductor),SM712,SOT-23,ORDERABLE,docs/datasheets/protection/MDD-SM712.pdf
+217,3,PV-PWR: 3,SMBJ33A,"TVS 33 V unidirectional, relay coil clamp zener",MDD (Microdiode Semiconductor),SMBJ33A,SMB,ORDERABLE,docs/datasheets/protection/MDD-SMBJ-series.pdf
+218,1,PV-CTL-P75: 1,SMBJ36A,"TVS 600 W unidirectional, VRWM 36 V (SELV 24 V input)",MDD (Microdiode Semiconductor),SMBJ36A,SMB,ORDERABLE,docs/datasheets/protection/MDD-SMBJ-series.pdf
+219,1,PV-CTL-P75: 1,SMBJ58CA,"TVS 600 W bidirectional, VRWM 58 V (SELV 0 V to PE)",MDD (Microdiode Semiconductor),SMBJ58CA,SMB,ORDERABLE,docs/datasheets/protection/MDD-SMBJ-series.pdf
+220,2,PV-CTL-P75: 2,SS56,Schottky rectifier 60 V 5 A (buck catch diode),MDD (Microdiode Semiconductor),SS56,SMA (DO-214AC),ORDERABLE,docs/datasheets/power-semiconductors/MDD-SS5x.pdf
+221,1,PV-CTL-P75: 1,NCP15XH103F03RC,"NTC 10 k 1 % B25/50 3380 K (inlet air, on board)",Murata,NCP15XH103F03RC,0402,ORDERABLE,docs/datasheets/sensing/Murata-NCP-NTC.pdf
+222,12,PV-PWR: 12,NSI6651ASC-Q1SWR,"Isolated smart SiC gate driver 10 A, DESAT + soft turn-off, Miller clamp, FLT/RDY; reinforced VDE 0884-17 (40052820) VIORM 2121 Vpk, UL 1577 5.7 kVrms; AEC-Q100 grade 1. Alternate: NSI6651ASC-DSWR",NOVOSENSE,NSI6651ASC-Q1SWR,SOW-16 (10.3 x 7.5 mm),ORDERABLE,docs/datasheets/gate-drivers/NSI66x1A-Q1.pdf
+223,1,PV-PWR: 1,2N7002BK,N-MOSFET 60 V 350 mA logic level,Nexperia,2N7002BK,SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/2N7002BK.pdf
+224,4,PV-PWR: 4,"2N7002BK,215",N-MOSFET 60 V 350 mA (logic switch),Nexperia,"2N7002BK,215",SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/2N7002BK.pdf
+225,1,PV-CTL-P75: 1,"2N7002BK,215","N-MOSFET 60 V 350 mA, fan PWM open-drain driver",Nexperia,"2N7002BK,215",SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/2N7002BK.pdf
+226,3,PV-CTL-P75: 1; PV-PWR: 2,BAS16,"Switching diode 100 V 215 mA, low leakage",Nexperia,BAS16,SOT-23,ORDERABLE,docs/datasheets/protection/BAS16.pdf
+227,1,PV-PWR: 1,"BAS16,215","Switching diode 100 V 215 mA, low leakage (timer latch)",Nexperia,"BAS16,215",SOT-23,ORDERABLE,docs/datasheets/protection/BAS16.pdf
+228,36,PV-PWR: 36,BAT54,"Schottky diode 30 V 200 mA, trr <= 5 ns",Nexperia,BAT54,SOT-23,ORDERABLE,docs/datasheets/protection/BAT54.pdf
+229,4,PV-PWR: 4,"BAT54,215",Schottky diode 30 V 200 mA,Nexperia,"BAT54,215",SOT-23,ORDERABLE,docs/datasheets/protection/BAT54.pdf
+230,12,PV-PWR: 12,BAT54S,Dual series Schottky 30 V 200 mA (sense-node clamp to COM and VDD),Nexperia,BAT54S,SOT-23,ORDERABLE,docs/datasheets/protection/BAT54S.pdf
+231,1,PV-PWR: 1,"BAT54S,215",Dual series Schottky 30 V (soft start: clamp + discharge),Nexperia,"BAT54S,215",SOT-23,ORDERABLE,docs/datasheets/protection/BAT54S.pdf
+232,1,PV-PWR: 1,"BC817-25,215",NPN 45 V 500 mA (VDD emitter follower),Nexperia,"BC817-25,215",SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/BC817.pdf
+233,9,PV-PWR: 9,BSS138BK,N-MOSFET 60 V 360 mA,Nexperia,BSS138BK,SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/BSS138BK.pdf
+234,1,PV-PWR: 1,"BZX84-A18,215",Zener 18 V 1 % (VDD follower reference = SiC gate drive),Nexperia,"BZX84-A18,215",SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+235,25,PV-PWR: 25,BZX84-B10,Zener 10 V 2 % 250 mW (SC trigger level / booster gate clamp),Nexperia,BZX84-B10,SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+236,24,PV-PWR: 24,"BZX84-B20,215","Zener 20 V 2 % 250 mW (gate clamp, positive, +18 V rail)",Nexperia,"BZX84-B20,215",SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+237,1,PV-PWR: 1,"BZX84-B20,215",Zener 20 V 2 % (VDD / gate over-voltage clamp),Nexperia,"BZX84-B20,215",SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+238,24,PV-PWR: 24,BZX84-B3V3,Zener 3.3 V 2 % 250 mW (clamp-FET gate supply / trigger shift),Nexperia,BZX84-B3V3,SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+239,1,PV-PWR: 1,"BZX84-B3V3,215",Zener 3.3 V 2 % (PG buffer rail),Nexperia,"BZX84-B3V3,215",SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+240,24,PV-PWR: 24,BZX84-B4V7,"Zener 4.7 V 2 % 250 mW (gate clamp, negative, -3/-3.5 V rail)",Nexperia,BZX84-B4V7,SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+241,12,PV-PWR: 12,BZX84-B5V6,"Zener 5.6 V 2 % 250 mW (gate clamp, negative)",Nexperia,BZX84-B5V6,SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+242,1,PV-PWR: 1,"BZX84-B6V8,215",Zener 6.8 V 2 % (foldback threshold),Nexperia,"BZX84-B6V8,215",SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+243,2,PV-PWR: 2,BZX84-C15,Zener 15 V 250 mW,Nexperia,BZX84-C15,SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+244,2,PV-CTL-P75: 2,"BZX84-C5V1,215",Zener 5.1 V 5 % 250 mW (ENABLE input clamp),Nexperia,"BZX84-C5V1,215",SOT-23,ORDERABLE,docs/datasheets/protection/BZX84.pdf
+245,36,PV-PWR: 36,"MMBT3904,215",NPN 40 V 200 mA (clamp release / SC trigger),Nexperia,"MMBT3904,215",SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/Nexperia-MMBT3904.pdf
+246,24,PV-PWR: 24,"MMBT3906,215",PNP 40 V 200 mA (clamp inverter / SC booster),Nexperia,"MMBT3906,215",SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/Nexperia-MMBT3906.pdf
+247,12,PV-PWR: 12,"PBSS5540X,135","PNP 40 V 4 A low VCEsat, AEC-Q101: pass transistor of the per-channel bias regulator",Nexperia,"PBSS5540X,135",SOT-89,ORDERABLE,docs/datasheets/power-semiconductors/Nexperia-PBSS5540X.pdf
+248,72,PV-PWR: 72,PMEG4010CEJ,Schottky rectifier 40 V 1 A low Vf,Nexperia,PMEG4010CEJ,SOD-323F,ORDERABLE,https://www.nexperia.com/product/PMEG4010CEJ
+249,37,PV-PWR: 37,PMV30ENEAR,"N-MOSFET 40 V 4.8 A (19 A pulse), <= 40 mOhm at VGS 4.5 V, AEC-Q101: Miller clamp / SC booster",Nexperia,PMV30ENEAR,SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/Nexperia-PMV30ENEA.pdf
+250,2,PV-PWR: 2,PMV30ENEAR,N-MOSFET 40 V 4.8 A: coil economiser bypass (pull-in),Nexperia,PMV30ENEAR,SOT-23,ORDERABLE,docs/datasheets/power-semiconductors/Nexperia-PMV30ENEA.pdf
+251,1,PV-PWR: 1,G7L-2A-X DC24,"Precharge relay DPST-NO, poles in series: 25 A @ 1000 VDC normal polarity only, 24 V coil 250 ohm",Omron,G7L-2A-X DC24,PCB relay 52.5x35.5 mm,ORDERABLE,docs/datasheets/protection/G7L-X.pdf
+252,2,PV-PWR: 2,N-C-644025,"CHASSIS nanocrystalline ring core 64/40/25 mm (cased), mu_i 70000 / 24000 +/-30 %: one turn of BOTH conductors of the port = CM choke for 150 kHz-30 MHz (ARCHITECTURE 8.1); pins = conductors",Qingdao Yunlu,N-C-644025,"ring 67/37/29 mm cased, on both port conductors",ORDERABLE,docs/datasheets/magnetics/Yunlu-Nanocrystalline-Cores.pdf
+253,2,PV-PWR: 2,35ZLH1500MEFC12.5X30,"Aluminium electrolytic 1500 uF 35 V, low Z, 10000 h @ 105 C (AUX75 live hold-up)",Rubycon,35ZLH1500MEFC12.5X30,"radial 12.5 x 30 mm, 5.0 mm pitch",ORDERABLE,docs/datasheets/passives-capacitors/Rubycon-ZLH.pdf
+254,1,PV-CTL-P75: 1,FXL0530-220-M,"Power inductor 22 uH 20 %, Isat 2.0 A, Irms 1.5 A, 248 mOhm (SELV 5 V)",SZ Cjiang Technology,FXL0530-220-M,5.4x5.2x3.0 mm molded,ORDERABLE,docs/datasheets/magnetics/Cjiang-FXL.pdf
+255,1,PV-CTL-P75: 1,FXL0840-330-M,"Power inductor 33 uH 20 %, Isat 3.3 A, Irms 3.0 A, 156 mOhm (fan supply)",SZ Cjiang Technology,FXL0840-330-M,8.0x8.0x4.0 mm molded,ORDERABLE,docs/datasheets/magnetics/Cjiang-FXL.pdf
+256,2,PV-PWR: 2,0090.1001,"Fuse 1 A 1000 VDC gPV, 20 kA breaking, PCB pins (one per DC port, behind 2 x 22 R)",Schurter,0090.1001,"10.3 x 38 mm, PCB pins",ORDERABLE,docs/datasheets/protection/ASO-0090.1001.pdf
+257,1,PV-CTL-P75: 1,X1G0041710033,"SPXO SG-210STF 25.000000 MHz L, CMOS 1.6-3.63 V, +/-50 ppm, -40..85 C",Seiko Epson,X1G0041710033,SMD 2.5x2.0 mm 4-pad,ORDERABLE,docs/datasheets/timing/Epson-SG-210STF.pdf
+258,24,PV-PWR: 24,SG2M040170HJ,"SiC MOSFET 1700 V 40 mOhm, TO-247-4L with driver source, VGS -8/+22 V abs, -4/+18 V op; no qualification stated (Sichain p14: consult for high reliability). Mount on PAD_ALN",Sichain,SG2M040170HJ,TO-247-4L (tab = drain),ORDERABLE,docs/datasheets/power-semiconductors/SG2M040170HJ.pdf
+259,3,PV-PWR: 3,STK-HO/A 75,"Open-loop current sensor, integrated primary, IPN 75 A rms, IPM +/-187.5 A, 10.667 mV/A around Vref 2.5 V at Vcc 5 V, 1 MHz, 0.2 us; 4 kV rms / 8 kV impulse, 13.8 mm creepage",Sinomags Technology,STK-HO/A 75,"PCB mount 35.4 x 25 x 21.7 mm, U-bar primary",ORDERABLE,docs/datasheets/sensing/Sinomags-STK-HO-A.pdf
+260,36,PV-PWR: 36,US1MH,"Ultrafast rectifier 1000 V 1 A trr 75 ns, AEC-Q101 (DESAT string)",Taiwan Semiconductor,US1MH,SMA (DO-214AC),ORDERABLE,docs/datasheets/power-semiconductors/TSC-US1xH.pdf
+261,24,PV-PWR: 24,ATL431BIDBZR,"Shunt reference 2.5 V +/-1 %, 36 V: bias regulator and COM split",Texas Instruments,ATL431BIDBZR,SOT-23-3 (DBZ),ORDERABLE,docs/datasheets/power-supply/ATL431.pdf
+262,1,PV-PWR: 1,ATL431BIDBZR,"Shunt reference 2.5 V 0.5 %, Ika(min) 35 uA, 36 V",Texas Instruments,ATL431BIDBZR,SOT-23-3 (DBZ),ORDERABLE,docs/datasheets/power-supply/ATL431.pdf
+263,1,PV-CTL-P75: 1,ESD2CAN24DBZRQ1,2-channel 24 V CAN bus ESD/TVS diode,Texas Instruments,ESD2CAN24DBZRQ1,SOT-23 (DBZ),ORDERABLE,docs/datasheets/protection/ESD2CAN24-Q1.pdf
+264,1,PV-CTL-P75: 1,F280039CSPZR,"TMS320F280039C C28x + CLA 120 MHz, 384 kB flash, 16 ePWM, 3 x 12-bit ADC, 4 CMPSS, DCAN + MCAN, 100-pin PZ, -40..125 C",Texas Instruments,F280039CSPZR,LQFP-100 (PZ) 14x14 mm,ORDERABLE,docs/datasheets/controllers/TMS320F28003x.pdf
+265,2,PV-PWR: 2,LMR38020FDDAR,"Sync buck 4.2-80 V in, 2 A, FPWM, 1.0 V ref, PG",Texas Instruments,LMR38020FDDAR,SO-8 PowerPAD (DDA),ORDERABLE,docs/datasheets/power-supply/LMR38020.pdf
+266,7,PV-PWR: 7,OPA2388IDR,"Dual zero-drift RRIO op amp, 10 MHz, 2.5-5.5 V",Texas Instruments,OPA2388IDR,SOIC-8 (D),ORDERABLE,docs/datasheets/sensing/OPA4388.pdf
+267,3,PV-CTL-P75: 1; PV-PWR: 2,REF3030EAIDBZR,Voltage reference 3.0 V 0.1 % 15 ppm/K (hold threshold),Texas Instruments,REF3030EAIDBZR,SOT-23-3 (DBZ),ORDERABLE,docs/datasheets/sensing/REF3030.pdf
+268,3,PV-PWR: 3,SN6505BDBVR,"Push-pull transformer driver, 1 A, 420 kHz, soft start",Texas Instruments,SN6505BDBVR,SOT-23-6 (DBV),ORDERABLE,docs/datasheets/power-supply/SN6505B.pdf
+269,15,PV-PWR: 15,SN74AHCT1G08DBVR,"Single 2-input AND gate, 5 V, TTL inputs: EN_DRV -> EN_GD at the NSI6651 RST/EN level",Texas Instruments,SN74AHCT1G08DBVR,SOT-23-5 (DBV),ORDERABLE,docs/datasheets/isolation-interface/SN74AHCT1G08.pdf
+270,1,PV-CTL-P75: 1,SN74LVC07APWR,"Hex buffer, open-drain outputs, 5 V tolerant inputs, Ioff (trip wired-AND)",Texas Instruments,SN74LVC07APWR,TSSOP-14 (PW),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC07A.pdf
+271,6,PV-CTL-P75: 6,SN74LVC08APWR,Quad 2-input AND,Texas Instruments,SN74LVC08APWR,TSSOP-14 (PW),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC08A.pdf
+272,6,PV-PWR: 6,SN74LVC1G11DBVR,Single 3-input AND,Texas Instruments,SN74LVC1G11DBVR,SOT-23-6 (DBV),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC1G11.pdf
+273,1,PV-CTL-P75: 1,SN74LVC1G123DCUR,"Retriggerable monostable, Schmitt inputs (heartbeat watchdog)",Texas Instruments,SN74LVC1G123DCUR,VSSOP-8 (DCU),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC1G123.pdf
+274,12,PV-PWR: 12,SN74LVC1G17DBVR,"Single Schmitt-trigger buffer, 3.3 V",Texas Instruments,SN74LVC1G17DBVR,SOT-23-5 (DBV),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC1G17.pdf
+275,8,PV-CTL-P75: 1; PV-PWR: 7,SN74LVC1G32DBVR,Single 2-input OR,Texas Instruments,SN74LVC1G32DBVR,SOT-23-5 (DBV),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC1G32.pdf
+276,1,PV-CTL-P75: 1,SN74LVC1G74DCUR,D flip-flop with async preset / clear,Texas Instruments,SN74LVC1G74DCUR,VSSOP-8 (DCU),ORDERABLE,docs/datasheets/isolation-interface/SN74LVC1G74.pdf
+277,1,PV-PWR: 1,TLV3202AIDGKR,"Dual comparator 40 ns, 40 uA/ch, push-pull, rail-to-rail inputs",Texas Instruments,TLV3202AIDGKR,VSSOP-8 (DGK),ORDERABLE,docs/datasheets/sensing/TLV3202.pdf
+278,7,PV-PWR: 7,TLV3502AIDCNR,Dual comparator rail-to-rail push-pull: over-current detect for the contactor hold,Texas Instruments,TLV3502AIDCNR,SOT-23-8 (DCN),ORDERABLE,docs/datasheets/sensing/TLV3502.pdf
+279,5,PV-CTL-P75: 5,TLV9024PWR,"Quad comparator, open drain, rail-to-rail input, VOS +/-2 mV (-40..125 C), 30 uA/ch, 1.65-5.5 V",Texas Instruments,TLV9024PWR,TSSOP-14 (PW),ORDERABLE,docs/datasheets/sensing/TLV9024.pdf
+280,1,PV-CTL-P75: 1,TLV9064IPWR,"Quad RRIO CMOS op amp 10 MHz, 1.8-5.5 V",Texas Instruments,TLV9064IPWR,TSSOP-14 (PW),ORDERABLE,docs/datasheets/sensing/TLV9064.pdf
+281,1,PV-PWR: 1,TPS3700DDCR,"Window voltage detector, 400 mV, two open-drain outputs",Texas Instruments,TPS3700DDCR,SOT-6 (DDC),ORDERABLE,docs/datasheets/power-supply/TPS3700.pdf
+282,2,PV-PWR: 2,TPS3710DDCR,"Voltage detector 400 mV 1 %, open-drain output, 1.8-18 V",Texas Instruments,TPS3710DDCR,SOT-23-6 (DDC),ORDERABLE,docs/datasheets/power-supply/TPS3710.pdf
+283,1,PV-PWR: 1,TPS3710DDCR,"Voltage detector 400 mV, open drain",Texas Instruments,TPS3710DDCR,SOT-6 (DDC),ORDERABLE,docs/datasheets/power-supply/TPS3710.pdf
+284,1,PV-CTL-P75: 1,TPS3828-33DBVR,"Supervisor 2.93 V + watchdog 1.6 s, open-drain reset 200 ms",Texas Instruments,TPS3828-33DBVR,SOT-23-5 (DBV),ORDERABLE,docs/datasheets/power-supply/TPS3823.pdf
+285,2,PV-CTL-P75: 2,TPS54360BDDAR,"Buck 4.5-60 V in, 3.5 A, current mode, EN 1.2 V threshold, 0.8 V 1 % reference",Texas Instruments,TPS54360BDDAR,HSOIC-8 PowerPAD (DDA),ORDERABLE,docs/datasheets/power-supply/TPS54360B.pdf
+286,1,PV-PWR: 1,TPS62130RGTR,"Sync buck 3-17 V in, 3 A, adjustable (VFB 0.8 V)",Texas Instruments,TPS62130RGTR,VQFN-16 3x3 (RGT),ORDERABLE,docs/datasheets/power-supply/TPS62130.pdf
+287,1,PV-PWR: 1,UCC28C59QDRQ1,"Current-mode PWM controller for SiC, UVLO 16/12.5 V, max duty 48 %, AEC-Q100",Texas Instruments,UCC28C59QDRQ1,SOIC-8 (D),ORDERABLE,docs/datasheets/power-supply/UCC28C58-Q1.pdf
+288,6,PV-PWR: 6,TVT25751KFKG,"Thermally protected varistor 615 VDC, Vc 1240 V @ 150 A, Imax 25 kA, thermal link + monitor lead",Thinking Electronic,TVT25751KFKG,"25 mm disc, 3 leads, potted",ORDERABLE,docs/datasheets/protection/Thinking-TVT-Series.pdf
+289,6,PV-CTL-P75: 6,4 x 10k,"Resistor array 4 x 10k 5 % 1/16 W 50 V, isolated (pull-downs on MCU command lines)",Uniroyal Electronics (UniOhm),4D03WGJ0103T5E,0603x4 concave,ORDERABLE,docs/datasheets/passives-capacitors/UniOhm-resistor-array.pdf
+290,30,PV-PWR: 30,1M,HV chip resistor 1.00 M 0.1 % 25 ppm/K,Viking Tech,ARHV06BTC1004A,1206,ORDERABLE,docs/datasheets/passives-capacitors/Viking-ARHV-A.pdf
+291,16,PV-PWR: 16,124k,HV chip resistor 124 k 0.1 % 25 ppm/K,Viking Tech,ARHV13BTC1243A,1210,ORDERABLE,docs/datasheets/passives-capacitors/Viking-ARHV-A.pdf
+292,3,PV-PWR: 3,BYG10Y-E3/TR,"Avalanche rectifier 1600 V 1.5 A, standard recovery",Vishay,BYG10Y-E3/TR,SMA (DO-214AC),ORDERABLE,docs/datasheets/power-semiconductors/BYG10Y.pdf
+293,2,PV-PWR: 2,CNY65B,"Optocoupler phototransistor, reinforced, VIOTM 12 kV, creepage >= 14 mm: varistor-network monitor",Vishay,CNY65B,DIP-4 HV 600 mil (15.24 mm),ORDERABLE,docs/datasheets/isolation-interface/CNY65.pdf
+294,36,PV-PWR: 36,15R,"Pulse-proof thick film 2512 15.0 ohm 1 %, 1.5 W at 70 C, 500 V (leg damper)",Vishay,CRCW251215R0FKEGHP,2512,ORDERABLE,docs/datasheets/passives-capacitors/CRCW-HP.pdf
+295,4,PV-PWR: 4,10M,"Resistor 10 M 1 % 2512 high-voltage thick film, 3000 V",Vishay,CRHV2512AF10M0FKFB,2512,ORDERABLE,docs/datasheets/passives-capacitors/CRHV.pdf
+296,3,PV-PWR: 3,IRFR9214TRPbF,P-MOSFET -250 V 3.0 ohm: hold-closed high-side switch,Vishay,IRFR9214TRPbF,DPAK (TO-252),ORDERABLE,docs/datasheets/power-semiconductors/IRFR9214.pdf
+297,5,PV-PWR: 5,4.99k,Thin-film resistor 4.99 k 0.1 % 25 ppm/K,Vishay,TNPW12064K99BEEA,1206,ORDERABLE,docs/datasheets/passives-capacitors/TNPW-e3.pdf
+298,2,PV-PWR: 2,VS-8ETU04S-M3,Ultrafast rectifier 400 V 8 A FRED Pt (output),Vishay,VS-8ETU04S-M3,D2PAK (TO-263AB),ORDERABLE,docs/datasheets/power-semiconductors/VS-8ETU04S-M3.pdf
+299,4,PV-PWR: 4,VY1472M63Y5UQ63V0,Y1 capacitor 4.7 nF 500 VAC / 1500 VDC,Vishay,VY1472M63Y5UQ63V0,"disc 16 mm, 10 mm leads",ORDERABLE,docs/datasheets/passives-capacitors/VY1.pdf
+300,4,PV-PWR: 4,20R,"Resistor 20 R 5 % 10 W cemented wirewound, pulse-rated (AUX75 tap, ahead of the fuse)",Vishay Draloric,AC10000002009JAB00,"axial cemented wirewound 10 W, 44 x 8 mm",ORDERABLE,docs/datasheets/passives-capacitors/AC-AC-AT-AC-NI.pdf
+301,1,PV-CTL-P75: 1,150060RS75000,"LED 0603 red 625 nm, VF 2.0 V",Wurth Elektronik,150060RS75000,0603,ORDERABLE,docs/datasheets/passives-capacitors/WE-150060RS75000.pdf
+302,1,PV-CTL-P75: 1,150060VS75000,"LED 0603 bright green 570 nm, VF 2.0 V",Wurth Elektronik,150060VS75000,0603,ORDERABLE,docs/datasheets/passives-capacitors/WE-150060VS75000.pdf
+303,2,PV-PWR: 2,74437368150,"Power inductor 15 uH, ISAT(10%) 5.55 A, 45 mR max",Wurth Elektronik,74437368150,WE-LHMI,ORDERABLE,docs/datasheets/magnetics/WE-74437368150.pdf
+304,1,PV-PWR: 1,74438356022,"Power inductor 2.2 uH, ISAT(10%) 4.05 A, 35 mR max",Wurth Elektronik,74438356022,WE-MAPI 4020,ORDERABLE,docs/datasheets/magnetics/WE-74438356022.pdf
+305,18,PV-PWR: 18,7461057,"PCB HV connection point (ring lug / busbar), M3, 100 A",Wurth Elektronik,7461057,REDCUBE press-fit M3,ORDERABLE,docs/datasheets/connectors/WE-7461057.pdf
+306,1,PV-CTL-P75: 1,X1270WVS-2x10B-9TV01,cTI-20 JTAG header 1.27 mm - HAZARDOUS LIVE: isolated debug probe only (>= 1000 V DC),XKB Connection,X1270WVS-2x10B-9TV01,2x10 1.27 mm SMT,ORDERABLE,docs/datasheets/connectors/XKB-X1270WVS.pdf
+307,3,PV-CTL-P75: 3,X6511WV-03H-C60D30,"Fan header 1x3 2.54 mm, 3 A: 1 +V, 2 0 V, 3 tach (SELV)",XKB Connection,X6511WV-03H-C60D30,1x3 2.54 mm THT,ORDERABLE,docs/datasheets/connectors/XKB-X6511W.pdf
+308,1,PV-CTL-P75: 1,X6521FV-2x32-C85D32,"Board-to-board socket 2x32 2.54 mm, PC contract (gen/interfaces.py), LIVE",XKB Connection,X6521FV-2x32-C85D32,2x32 2.54 mm female THT,ORDERABLE,docs/datasheets/connectors/XKB-X6521F.pdf
+309,1,PV-PWR: 1,X9555WV-2x32-6TV01,"Shrouded box header 2x32 2.54 mm: PC contract to the control board, live (250 V, 3 A, -40..125 C)",XKB Connection,X9555WV-2x32-6TV01,2x32 2.54 mm box header THT,ORDERABLE,docs/datasheets/connectors/XKB-X9555WV.pdf
+310,1,PV-PWR: 1,220R RFQ,"CHASSIS-MOUNTED RFQ precharge resistor 220 ohm 5 %, 1000 V DC (1144 V peak), single pulse >= 900 J in 0.15 s (shorted bank to the abort) and >= 280 J at tau 105 ms (bank charge), basic insulation to the housing (2200 V rms)",,,"aluminium housing, M4",RFQ,
+311,2,PV-PWR: 2,X 2.2u 1300V RFQ,"RFQ X capacitor film 2.2 uF, 1300 VDC at 70 C (1100 V at 85 C), ESR <= 16 mOhm, impulse >= 4.5 kV peak (>= 1.1 x the 3.8 kV pole-pole level of the varistor Y, IC-10; leads at the varistor network), no lifetime surge-count limit below 1000 events",,,"radial film, 27.5 mm pitch",RFQ,

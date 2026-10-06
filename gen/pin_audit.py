@@ -131,6 +131,10 @@ def main():
                 missing, extra = [], []
             if "aperture" in p["meta"]["pkg"]:      # through-hole transducer: the primary is a hole, drawn as pin P
                 extra = [e for e in extra if e != "P"]
+            # a connector shield: the datasheet shows unnumbered shield legs (ledger row "SHIELD (shield pad)"), the symbol
+            # draws them as one lettered pin named SHIELD (KiCad convention "SH")
+            if any("SHIELD" in k.upper() for k in led):
+                extra = [e for e in extra if not (not e.isdigit() and "SHIELD" in norm(p["pins"][e]).upper())]
             if missing:
                 issues.append("datasheet pins not drawn: %s" % " ".join(missing))
             if extra:

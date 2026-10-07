@@ -41,7 +41,8 @@ STAGES DONE / TODO (each DONE stage builds and passes every check of gen/dcdclib
           RCM around L1-L3 + N, N terminal, TVT25751 + Y1 on N, VGN divider; bleeders 4 x 88.7 k per half (pcs_spec four_wire bleeder)
 REVIEW (PCM-03/04/06/07/14/15/20/25, rev A0 kept): bus capacitance = bank + leg films (pcs_spec dc_link C_total), bleeder 4 x
       93.1 k per half from the whole discharge network incl. C_f + C_d and the aux bulk; upper DC-link half by firmware (pcs_spec
-      upper_half); DESAT string 2 x US1M (gdrv DESAT_PCS); device acceptance rule on the SG2M040170HJ line (pcs_spec
+      upper_half); DESAT string 2 diodes (gdrv DESAT_PCS; 2 x BYG23T-M3 1300 V since review R4 / E01: each diode alone blocks the
+      static envelope pcs_spec desat string_envelope); device acceptance rule on the SG2M040170HJ line (pcs_spec
       device_acceptance) and its Al2O3 pad named there; live 24 V pull-in sequence and hold-up; DC-port fault coordination
       computed (port_spec pcs_port); phase-current sensor frozen to the STK-250HO/4 (datasheet values in STK4).
 REVIEW R2 (2026-10-07, rows R2-02 / 03 / 06 / 07 / 13): R_G,off 7.5 -> 8.75 ohm per device (gdrv SC40X6; the turn-off at the drawn
@@ -929,7 +930,9 @@ def design_check(B, st):
     # margins: at the junction the model predicts (rated 45 C inlet: the string is at >= 45 C), at the 175 C rating (a hotter junction
     # needs at least that inlet), and from the coldest inlet (string at -30 C = the lowest trip, junction 75 K cooler)
     m_tj, m_175, m_cold = (tr_45 / on["V_DS_typ_at_tj_V"], tr_45 / on["V_DS_typ_175C_V"], tr_lo / on["V_DS_typ_cold_V"])
-    v_dyn = CG["chosen"]["v_limit_V"] * 1.2 / (0.8 + 1.2)              # turn-off peak split by the two junction capacitances (+/-20 %)
+    s_env = CG["desat"]["string_envelope"]                             # review R4 / E01: pcs_spec's states, inside gdrv's STRING_ENV
+    s_str = gdrv.string_numbers(ds)                                    # each diode alone vs the static envelope, capacitive share of the peak
+    s_part = gdrv.CATALOG[ds["part"]]["mpn"]
     t_bst = float(g_out["boost" + gk].split("detection to off ")[1].split(" us")[0]) * 1e-6
     v_os = float(g_out["boost" + gk].split(" V vs 0.85 x")[0].rsplit("= ", 1)[1])       # gdrv booster turn-off peak
     r25 = on["R_25C_vs_I_mohm"]                                        # Fig. 5 25 C (+ its slope beyond the last point)
@@ -957,8 +960,9 @@ def design_check(B, st):
     assert "RELEASE BLOCK" in sc_rb and "not shown to be covered" in sc_rb, "gdrv no longer states the SC release block"
     assert i_det <= min(pvcell.DEV["idm"], GD["i_sc"]) and v_os <= CG["chosen"]["v_limit_V"], \
         "short circuit: fault-under-load current, booster turn-off peak"
-    assert ds["n_dhv"] * gdrv.US1M_VRRM >= 1.3 * CG["chosen"]["v_limit_V"] and v_dyn <= gdrv.US1M_VRRM \
-        and gdrv.US1M_VRRM / V_DC_MAX >= 0.9, "DESAT string blocking vs the device peak limit and its static / dynamic sharing"
+    assert s_env["static_max_V"] <= gdrv.STRING_ENV["static"] and s_env["peak_max_deck_V"] <= s_env["peak_limit_V"] <= gdrv.STRING_ENV["peak"] \
+        and s_str["total"] >= 1.3 * CG["chosen"]["v_limit_V"] and s_str["m_static"] >= 1.1 and s_str["m_dyn"] >= 1.2, \
+        "DESAT string: pcs_spec's reverse-voltage envelope outside gdrv STRING_ENV, or a diode alone below it (static) / its share (dynamic)"
     say("Gate drive (gdrv preset '%s', bias 'ext'): %d channels on %d x bias_phase (T_BIAS4 1:%g, 2 of 4 secondaries); "
         "per channel %.2f W regulated (gate charge %.0f nC x %.1f V x %.0f kHz = %.2f W, pcs_spec %.2f W; 6 x 10k, driver) "
         "-> VGS on %.2f-%.2f V in %.1f-%.1f V, off -%.2f..-%.2f V; bias input %.2f W per phase from +5V. %s; %s",
@@ -973,9 +977,11 @@ def design_check(B, st):
         "below %.0f ns is extended by the hardware (hand-over: 300 ns) - OPEN (2)", gdrv.ohm(GD["deadtime"][0]),
         gdrv.farad(GD["deadtime"][1]), pv_power.V5[0], pv_power.V5[1], skew * 1e9, dt[0] * 1e9, dt[1] * 1e9,
         GD["t_off"] * 1e9, t_eng * 1e9, (t_hi + pvcell.LVC17_5V["tpd"][1]) * 1e9)
-    say("DESAT (%d x US1MH, Rs 100R; gdrv preset DESAT_PCS, PCM-07 - rev A0 had 3: 5.43-8.27 V, below the overload on-state): "
-        "trips at V_DS %.2f-%.2f V (V_F %.2f-%.2f V per diode at 0.35-0.65 mA over %.0f..%.0f C: the US1M / drawn US1MH typical curves "
-        "extrapolated, +/-10 %%, -2 mV/K ASSUMED, gdrv DESAT_PCS), %.2f V lowest with the string at >= %.0f C (the rated inlet); blanking "
+    say("DESAT (%d x %s, Rs 100R; gdrv preset DESAT_PCS = the PV cell's 1700 V-class string, PCM-07 / review R4 / E01 - rev A0 had "
+        "3 x US1MH: 5.43-8.27 V, below the overload on-state; 2 x US1MH until E01): "
+        "trips at V_DS %.2f-%.2f V (V_F %.2f-%.2f V per diode at 0.35-0.65 mA over %.0f..%.0f C: the US1M / US1MH / drawn BYG23T typical "
+        "curves extrapolated below their first point, +/-10 %%, -2 mV/K ASSUMED, gdrv DESAT_PCS), %.2f V lowest with the string at >= %.0f C "
+        "(the rated inlet); blanking "
         "%.0f-%.0f ns. 200 ms overload peak (pcs_spec, %.1f A per device, all six at the hottest junction the thermal model predicts at "
         "%.0f C inlet, %.0f C; typical R_DS(on) x the Fig. 5 current factor): %.2f V -> margin %.2f (>= %.2f stated); at the 175 C "
         "rating %.2f V -> %.2f (string >= %.0f C; >= %.2f); from a %.0f C inlet (junction about %.0f C) %.2f V against the lowest trip "
@@ -992,10 +998,16 @@ def design_check(B, st):
         "preset's %.0f A short-circuit current, so the booster's two-level turn-off (gdrv: %.0f V vs %.0f V) still bounds the overshoot "
         "(I_DM is a thermal on-state pulse rating, t_P 100 us - not a short-circuit or turn-off rating: SC SURVIVAL REQUIRES HARDWARE "
         "TEST, release gate, pcs_spec rds_acceptance sc_survival). "
-        "String blocking %d x %.0f V vs the %.0f V device limit (x%.2f): no balancing resistor needed - statically one diode may carry "
-        "%.0f %% of the %.0f V trip bus, dynamically the turn-off peak splits by the junction capacitances (+/-20 %%) to <= %.0f V. "
+        "STRING RATING (review R4 / E01; pcs_spec desat string_envelope): reverse voltage across an OFF switch - %s; floating node after "
+        "the current has decayed: up to the whole link on one switch -> static envelope %.0f V; turn-off peak on the drain %s V (decks) "
+        "against the %.0f V limit (gdrv STRING_ENV %.0f / %.0f V covers both). %d x %s, %.0f V each (%.0f V >= 1.3 x %.0f V): the split by "
+        "leakage is NOT relied on (the datasheet gives maximum leakage only, %.0f / %.0f uA at 25 / 125 C) - each diode alone blocks the "
+        "static envelope (x%.2f over the studied %.0f V, x%.2f over gdrv's %.0f V), no balancing network; dynamic share by the junction "
+        "capacitances (+/-%.0f %%, ASSUMED) <= %.0f V per diode "
+        "(x%.2f); avalanche-rated E_R %.0f mJ (non-repetitive) as the backstop for what neither rule covers (stored-charge mismatch after "
+        "reverse conduction: bench item). "
         "CMTI 150 V/ns vs %.0f V/ns (pcs_spec worst turn-off)",
-        ds["n_dhv"], tr_lo, tr_hi, ds["vf"][0], ds["vf"][1], ds["vf_t"][0], ds["vf_t"][1], tr_45, T_IN_AIR, bl_lo * 1e9,
+        ds["n_dhv"], s_part, tr_lo, tr_hi, ds["vf"][0], ds["vf"][1], ds["vf_t"][0], ds["vf_t"][1], tr_45, T_IN_AIR, bl_lo * 1e9,
         bl_hi * 1e9, on["I_pk_per_device_A"], on["inlet_C"], on["tj_200ms_hottest_C"], on["V_DS_typ_at_tj_V"], m_tj, M_DESAT[0],
         on["V_DS_typ_175C_V"], m_175, T_IN_AIR, M_DESAT[1], on["inlet_cold_C"], on["tj_cold_C"], on["V_DS_typ_cold_V"], tr_lo,
         m_cold, M_DESAT[2],
@@ -1006,9 +1018,13 @@ def design_check(B, st):
         " / ".join("%.2f" % v for _, v in gin), M_DESAT[0], gt["summary"], gt["binding"], c2["window_s"], c2["rule"], c2["window"], v_trip,
         tr_lo, bl_hi * 1e9, t_bst * 1e6,
         (bl_hi + t_bst) * 1e6,
-        sc_rb, i_det, pvcell.DEV["idm"], GD["i_sc"], v_os, CG["chosen"]["v_limit_V"], ds["n_dhv"], gdrv.US1M_VRRM,
-        CG["chosen"]["v_limit_V"],
-        ds["n_dhv"] * gdrv.US1M_VRRM / CG["chosen"]["v_limit_V"], 100 * gdrv.US1M_VRRM / V_DC_MAX, V_DC_MAX, v_dyn, dvdt)
+        sc_rb, i_det, pvcell.DEV["idm"], GD["i_sc"], v_os, CG["chosen"]["v_limit_V"],
+        "; ".join("%s %s V" % (k.split(" (")[0], "-".join("%.0f" % x for x in v)) for k, v in s_env["static_V"].items()),
+        s_env["static_max_V"], "-".join("%.0f" % f(s_env["peak_deck_V"].values()) for f in (min, max)), s_env["peak_limit_V"],
+        gdrv.STRING_ENV["static"], gdrv.STRING_ENV["peak"], ds["n_dhv"], s_part, s_str["vrrm"], s_str["total"], CG["chosen"]["v_limit_V"],
+        s_str["ir"][0] * 1e6, s_str["ir"][1] * 1e6, s_str["vrrm"] / s_env["static_max_V"], s_env["static_max_V"], s_str["m_static"],
+        gdrv.STRING_ENV["static"], gdrv.STRING_ENV["c_tol"] * 100, s_str["dyn"], s_str["m_dyn"],
+        s_str["e_r"] * 1e3, dvdt)
     # ---- LCL filter and phase-current sensing (stage 3)
     l1, l2 = MAGF["l1"]["electrical"], MAGF["l2"]["electrical"]
     assert abs(l1["L_H"] - LCL["L1"]) < 1e-9 and abs(l2["L_H"] - LCL["L2"]) < 1e-9, "inductor design files vs pcs_spec"
@@ -1270,6 +1286,18 @@ def design_check(B, st):
             "; ".join("%s: N leg %.0f W, Tj %.0f C (phase leg %.0f C)" % (k, x["leg_W"], x["tj_max_C"],
                                                                          FW4["unbalance"]["phase_leg_same_current_tj_C"][k])
                       for k, x in nl.items()), HSK["insulator"])
+    cs = SPEC["thermal_and_losses"]["cold_start"]                       # review R4 / E11 (the PV modules' rule, D-072)
+    rows = cs["tables"]["four-wire" if four else "three-wire"]
+    t_c = sorted({r["inlet_C"] for r in rows})
+    vd = sorted({r["vdc_V"] for r in rows})
+    kv = lambda t, v: next(r for r in rows if r["inlet_C"] == t and r["vdc_V"] == v)      # noqa: E731
+    assert rows and cs["firmware_rule"] and cs["decision"], "pcs_spec cold_start incomplete: re-run sim/pcs_design.py"
+    say("COLD START, fans off (review R4 / E11; pcs_spec thermal_and_losses cold_start; ESTIMATES +/-50 %%): kVA at 400 V AC this build "
+        "holds without its fans, by inlet %s C: %s; +/-50 %% at %.0f V DC: %s; 0 = standby only (gates off). Firmware rule: %s. "
+        "Decision: %s", " / ".join("%.0f" % t for t in t_c),
+        ", ".join("%.0f V DC %s" % (v, " / ".join("%.0f" % kv(t, v)["kVA"] for t in t_c)) for v in vd), vd[0],
+        ", ".join("%.0f C %.0f-%.0f kVA" % (t, kv(t, vd[0])["kVA_pessimistic"], kv(t, vd[0])["kVA_optimistic"]) for t in t_c),
+        "; ".join(cs["firmware_rule"]), cs["decision"])
     out.extend(study_lines(st))
     say("Pending PCS_PC / PCS_X nets (test points until their stage): %s", ", ".join(st["todo"]) or "none")
     say("Inputs read at this build (gen/pcs_ctrl.py refuses a stale copy): pcs_spec.json sha256 %s; port_spec.json sha256 %s",

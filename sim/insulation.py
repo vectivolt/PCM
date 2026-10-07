@@ -598,6 +598,8 @@ ELEMENTS = {
                           "p9, p10 (To >= 2.0 mm)"),
     "US1M-13-F": P(umax=1000, upulse=1000, gap=1.5, ev=DS + "power-semiconductors/US1M.pdf p2 (VRRM 1000 V), p4 "
                    "(SMA land pattern gap G = 1.5 mm; no avalanche rating -> pulse = VRRM)"),
+    "BYG23T-M3/TR": P(umax=1300, upulse=1300, gap=1.5, ev=DS + "power-semiconductors/BYG23T.pdf p1 (VRRM 1300 V), p4 (SMA land "
+                      "pattern) - DESAT string diode since D-081, 2 x 1300 V per channel on the PV and PCS presets"),
     "CRHV2512AF10M0FKFB": P(umax=3000, upulse=3000, gap=3.5, ev=DS + "passives-capacitors/CRHV.pdf p1 (3000 V working; "
                             "no pulse rating -> = Umax; 2512 gap ~3.5 mm assumed)"),
     "47k": P(umax=500, upulse=1000, gap=3.5, ev="GENERIC 47 k 2512 1 W thick film, '>= 500 V working' (gen/port.py); "

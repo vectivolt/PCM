@@ -163,7 +163,7 @@ listed as UNPRICED and never counted as zero. The script exits with code 1 if it
 | `.venv/bin/python gen/pin_audit.py` | every drawn pin table equals a ledger transcribed from the datasheet by someone who had not seen the drawing (`list` writes the parts list) |
 | `.venv/bin/python gen/temp_audit.py` | every orderable part against the −30…+60 °C ambient requirement (hot limit 85 °C inside the enclosure) |
 | `.venv/bin/python gen/check_interfaces.py` | the cables of the earlier platform's modules: pin map, driver direction, power. The cost-first board-to-board contract (`PC`) is checked inside the PV-PWR and PV-CTL design checks, and the inverter's `PCS_PC` and `PCS_X` inside the PCS-PWR and PCS-CTL design checks |
-| `.venv/bin/python sim/insulation.py` | every barrier part of the earlier platform's boards against the insulation requirements — it has no domain map for PV-CTL, PCS-PWR, PCS-PWR-4W, PCS-CTL, PORT-LEAN and PORT-LEAN-HOLD and currently stops with 102 problems ([08 · Verification](08-verification.md#-audits)); those boards check their own barrier parts in their design checks |
+| `.venv/bin/python sim/insulation.py` | every barrier part of the earlier platform's boards against the insulation requirements — it has no domain map for PV-CTL, PCS-PWR, PCS-PWR-4W, PCS-CTL, PORT-LEAN and PORT-LEAN-HOLD and currently stops with 98 problems ([08 · Verification](08-verification.md#-audits)); those boards check their own barrier parts in their design checks |
 | `.venv/bin/python sim/magnetics.py` | every magnetic part three ways; exits 1 if a check fails |
 
 Review findings of the independent design reviews are kept in `gen/data/review_*.csv` and
@@ -172,9 +172,12 @@ Review findings of the independent design reviews are kept in `gen/data/review_*
 closure columns; its dispositions are decisions D-065 to D-069 and D-072.
 [review_r2.csv](../../gen/data/review_r2.csv) (14 findings of the re-check of commit `a427981`, severities high /
 medium) has the same columns; its dispositions are [D-078](../requirements/DECISIONS.md) and
-[D-079](../requirements/DECISIONS.md). The latest, [review_r3.csv](../../gen/data/review_r3.csv) (5 findings of the
-re-check of commit `615e4b5`, severities high / low), has them too; its disposition is
-[D-080](../requirements/DECISIONS.md).
+[D-079](../requirements/DECISIONS.md). [review_r3.csv](../../gen/data/review_r3.csv) (5 findings of the re-check of
+commit `615e4b5`, severities high / low) has them too; its disposition is [D-080](../requirements/DECISIONS.md). The
+latest, [review_r4.csv](../../gen/data/review_r4.csv) (the economical re-check of commit `845131d`: 12 decision areas
+E01–E12, severities high / medium / low), keeps the same status, classification and closure columns; each area's
+preferred option, alternative and no-change boundary are in its finding text, its cost basis in the evidence column and
+the boundary that may not be waived in the recommendation column; its disposition is [D-081](../requirements/DECISIONS.md).
 
 ### Records added on 2026-10-06
 
@@ -188,7 +191,18 @@ re-check of commit `615e4b5`, severities high / low), has them too; its disposit
 | [docs/reference-designs/megarevo/pma/spec-pma0125.md](../reference-designs/megarevo/pma/spec-pma0125.md), [MANUAL-NOTES.md](../reference-designs/megarevo/pma/MANUAL-NOTES.md) | the PMA0125 datasheet table transcribed verbatim; the PMA user manual's module-level statements with page numbers | by hand from the fetched PDFs |
 | `docs/reference-designs/megarevo/catalogue-2026/` | Megarevo's 2026 catalogue V1.2 (module pages used) — the PDF is a manifest row in [docs/SOURCES.csv](../SOURCES.csv), fetched, not kept in git | `docs/fetch.py` |
 
-Added on 2026-10-07: [requirements/INSTALLATION.md](../requirements/INSTALLATION.md) collects the installation conditions the modules depend on, one row per requirement with the generated line it comes from; it is written by hand from the design checks, so its quoted lines are re-verified after a rebuild (done after the rebuild of D-078 / D-079 and again after that of D-080: 75 rows). [gen/data/review_r2.csv](../../gen/data/review_r2.csv) holds the re-check R2; new keys of the hand-offs: `protection_chain` in `pcs_spec.json` (the trip chain at its gates-off current, the L1 trajectory, the backup-band requirement), `tolerance_regression`, `vf_bounded`, `dc_rejection_bounded`, `ride_through_rule`, `four_wire_coupled`, `ac_start_state_machine` and `review_r2` in `pcs_control_spec.json`. Added the same day by the re-check R3 ([D-080](../requirements/DECISIONS.md)): [gen/data/review_r3.csv](../../gen/data/review_r3.csv); `commutation_and_gate_drive.desat.rds_acceptance.grade_tier_tables`, `declarations.tiers_by_grade` and `grid_tie_start` in `pcs_spec.json`; `sync_close_state_machine`, `four_wire_short_protection`, `dc_bus_coupled_pv`, `vf_envelope_basis` and `review_r3` in `pcs_control_spec.json`.
+Added on 2026-10-07: [requirements/INSTALLATION.md](../requirements/INSTALLATION.md) collects the installation conditions the modules depend on, one row per requirement with the generated line it comes from; it is written by hand from the design checks, so its quoted lines are re-verified after a rebuild (done after the rebuild of D-078 / D-079, again after that of D-080 and again after that of D-081: 77 rows). [gen/data/review_r2.csv](../../gen/data/review_r2.csv) holds the re-check R2; new keys of the hand-offs: `protection_chain` in `pcs_spec.json` (the trip chain at its gates-off current, the L1 trajectory, the backup-band requirement), `tolerance_regression`, `vf_bounded`, `dc_rejection_bounded`, `ride_through_rule`, `four_wire_coupled`, `ac_start_state_machine` and `review_r2` in `pcs_control_spec.json`. Added the same day by the re-check R3 ([D-080](../requirements/DECISIONS.md)): [gen/data/review_r3.csv](../../gen/data/review_r3.csv); `commutation_and_gate_drive.desat.rds_acceptance.grade_tier_tables`, `declarations.tiers_by_grade` and `grid_tie_start` in `pcs_spec.json`; `sync_close_state_machine`, `four_wire_short_protection`, `dc_bus_coupled_pv`, `vf_envelope_basis` and `review_r3` in `pcs_control_spec.json`.
+
+### Records added on 2026-10-07 by the re-check R4
+
+| File or key | What it is | Written by |
+|---|---|---|
+| [gen/data/review_r4.csv](../../gen/data/review_r4.csv) | the register of the economical re-check R4: twelve decision areas with status, classification and closure | by hand per review round ([D-081](../requirements/DECISIONS.md)) |
+| [docs/requirements/RFQ-MAGNETICS.md](../requirements/RFQ-MAGNETICS.md) | the request-for-quotation index for the ten custom magnetic parts: quantities per module and build, the rows a quotation must hold, type and production tests, the estimate held, 18 open rows, the 48 kHz variant as an appendix | by hand from the winding sheets and the costed BOMs; re-read after a magnetics or BOM rebuild |
+| `docs/datasheets/power-semiconductors/BYG23T.pdf` | Vishay BYG23T-M3 datasheet (doc 89429), the new DESAT diode — a manifest row in [docs/SOURCES.csv](../SOURCES.csv) and [docs/datasheets/SOURCES.csv](../datasheets/SOURCES.csv), fetched, not kept in git; its price rows (LCSC C145454) in `gen/data/prices.csv`, its pin-ledger rows in `gen/data/pin_ledger_E.csv` | `docs/fetch.py` |
+| `BYG23T`, `DESAT_1700` and `STRING_ENV` in [gen/gdrv.py](../../gen/gdrv.py) | the diode's catalog entry; the 1,700 V-class string preset (two diodes, the V<sub>F</sub> band); the reverse-voltage envelope every 1,700 V board check is asserted against (1,150 V static, 1,445 V peak) | the generator |
+| `CM_RING` in [gen/pv_power.py](../../gen/pv_power.py) | the port CM ring's BOM line, now the flat-permeability grade as an RFQ item keyed by the size code N-C-644025 | the generator |
+| `commutation_and_gate_drive.desat.string_envelope`, `thermal_and_losses.cold_start` in `pcs_spec.json`; `dc_bus_cable`, `dc_bus_operating_window`, `vf_envelope_basis.statement` / `release_sequence` / `not_claimed` and `review_r4` in `pcs_control_spec.json` | the DESAT reverse-voltage states, the inverter's passive cold-start table, the cable model, the enforced DC-bus window with the harness contract, the envelope's capability statement and release sequence, the study's R4 dispositions | `sim/pcs_design.py`, `sim/pcs_control.py` |
 
 ## 📐 Conventions
 

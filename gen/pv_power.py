@@ -102,11 +102,16 @@ PARTS = {
                           "TO-247 spring clips (one per device, on the plastic body) and G-779-class grease (two bond "
                           "lines per AlN pad)", pins={"left": ["1 PE p"]}),
     # Qingdao Yunlu nanocrystalline core manual (Yunlu-Nanocrystalline-Cores.pdf, ring table): N-C-644025 64/40/25 mm,
-    # cased 67/37/29 mm, Ae 225 mm2, le 160.4 mm, mu_i 70000 / 24000 +/-30 %
-    "CM_RING": dict(mfr="Qingdao Yunlu", mpn="N-C-644025", prefix="L", pkg="ring 67/37/29 mm cased, on both port conductors",
-                    ds=DS + "magnetics/Yunlu-Nanocrystalline-Cores.pdf",
-                    desc="CHASSIS nanocrystalline ring core 64/40/25 mm (cased), mu_i 70000 / 24000 +/-30 %: one turn of "
-                         "BOTH conductors of the port = CM choke for 150 kHz-30 MHz (ARCHITECTURE 8.1); pins = conductors",
+    # cased 67/37/29 mm, Ae 225 mm2, le 160.4 mm. The standard high-mu grade (mu_i 70000 / 24000) is REJECTED by the magnetics
+    # design (sim/out/magnetics/spec_port_cm_choke.md rev M2, D-048): it saturates with the 150 Hz common-mode current; the part
+    # is the flat-permeability grade (mu about 30000 at 150 Hz, Shincore SC-1K107-LP class or the Yunlu / AT&M flat grade, catalogue
+    # p.6) - an RFQ item keyed by the size code (review R4 / E12 found the BOM text naming the high-mu grade)
+    "CM_RING": dict(mfr="Qingdao Yunlu (flat-mu grade) / Shincore / AT&M", mpn="N-C-644025", prefix="L", sourcing="RFQ",
+                    pkg="ring 67/37/29 mm cased, on both port conductors", ds=DS + "magnetics/Yunlu-Nanocrystalline-Cores.pdf",
+                    desc="CHASSIS nanocrystalline ring core 64/40/25 mm (cased), FLAT-PERMEABILITY grade mu about 30000 at 150 Hz "
+                         "(Shincore SC-1K107-LP class or Yunlu / AT&M flat grade; the standard high-mu 70000 grade is rejected - it "
+                         "saturates with the 150 Hz CM current, spec_port_cm_choke.md rev M2): one turn of BOTH conductors of the port "
+                         "= CM choke for 150 kHz-30 MHz (ARCHITECTURE 8.1); pins = conductors",
                     pins={"left": ["1 A1 p", "3 B1 p"], "right": ["2 A2 p", "4 B2 p"]}),
 }
 PARTS["J_NTC2"] = dict(port.CATALOG["J_NTC"], desc="NTC leads (heatsink probe / inductor winding NTC), 2-pin pluggable")
@@ -951,14 +956,22 @@ def design_check(B, n_ph, st):
     (tr_lo, tr_hi), _, (bl_lo, bl_hi) = gdrv.desat_numbers(gdrv.DESAT_CLASS[VCLASS])
     v_on = spec("gate_drive", "requirements", "per_device", "primary", "vds_on_at_trip_175C_V")
     assert tr_lo >= 1.5 * v_on and NSI["cmti"] >= 1.2 * spec("device_primary", "turn_on_dvdt_V_per_ns")
+    s_str = gdrv.string_numbers(gdrv.DESAT_CLASS[VCLASS])              # review R4 / E01: this board's envelope inside gdrv's rating basis
+    assert spec("ov_trip_costfirst", "band_V")[1] <= gdrv.STRING_ENV["static"] and \
+        spec("leg_commutation", "device_peak_limit_V") <= gdrv.STRING_ENV["peak"] and s_str["m_static"] >= 1.1 and s_str["m_dyn"] >= 1.2, \
+        "DESAT string: the PV OV band top / device peak limit outside gdrv STRING_ENV, or a diode below it"
     N["von"] = e["von"]
     say("gate", "Gate drive (gdrv.channel lean, dead-time stretch on, negative-rail detector %s): %d channels + %d x bias_phase (T_BIAS4 1:%g, high-side "
         "islands on the outer windings): VGS on %.2f-%.2f V in %.1f-%.1f V (margins %.2f / %.2f V), off -%.2f..-%.2f V in "
         "%.1f..%.1f V; DESAT trips at V_DS %.2f-%.2f V vs %.2f V on-state at the trip current, 175 C (x%.1f), blanking "
-        "%.0f-%.0f ns; CMTI 150 V/ns vs %.0f V/ns (x%.2f, THIN); gdrv: %s", "fitted" if NEG_DET else "not fitted",
+        "%.0f-%.0f ns (string %d x %s, %.0f V each: alone x%.2f the %.0f V static envelope - this board's OV band top %.0f V and the "
+        "latched link of a shared PCS bus, gdrv STRING_ENV - capacitive share of the %.0f V peak <= %.0f V, review R4 / E01); CMTI 150 V/ns vs %.0f V/ns "
+        "(x%.2f, THIN); gdrv: %s", "fitted" if NEG_DET else "not fitted",
         4 * n_ph, n_ph, gdrv.XF_N, e["von"][0],
         e["von"][1], on_w[0], on_w[1], e["von"][0] - on_w[0], on_w[1] - e["von"][1], e["v3"][0], e["v3"][1], off_w[0],
-        off_w[1], tr_lo, tr_hi, v_on, tr_lo / v_on, bl_lo * 1e9, bl_hi * 1e9, spec("device_primary", "turn_on_dvdt_V_per_ns"),
+        off_w[1], tr_lo, tr_hi, v_on, tr_lo / v_on, bl_lo * 1e9, bl_hi * 1e9, s_str["n"],
+        gdrv.CATALOG[gdrv.DESAT_CLASS[VCLASS]["part"]]["mpn"], s_str["vrrm"], s_str["m_static"], s_str["static"],
+        spec("ov_trip_costfirst", "band_V")[1], s_str["peak"], s_str["dyn"], spec("device_primary", "turn_on_dvdt_V_per_ns"),
         NSI["cmti"] / spec("device_primary", "turn_on_dvdt_V_per_ns"), g_out["ext%g/%g" % GATE_V].split("): ", 1)[-1][:330])
 
     # ---- dead time at this board's +5V (pvcell.stretch5 evaluated at V5; AHCT1G08 per line)

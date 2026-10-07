@@ -27,6 +27,8 @@ sys.path.insert(0, HERE)
 import pcs_devices as dv  # noqa: E402
 import pv_devices as pv  # noqa: E402
 import pv_tradeoff as tr  # noqa: E402  (ngspice runner, heatsink model)
+sys.path.append(os.path.join(ROOT, "gen"))
+import gdrv  # noqa: E402  (gate-drive presets, read only: the DESAT string of the PCS channel, review R4 / E01)
 
 OUT = os.path.join(HERE, "out", "pcs_design")
 SPEC, REP = {}, []          # pcs_spec.json content, report.md lines (filled step by step)
@@ -1520,12 +1522,13 @@ def rds_acceptance(D, rb, d, n, k175):
     t_hot, t_45 = f"{MAP_INLET[-1]:.0f}C", f"{T_IN:.0f}C"
     seq = lambda tab, key, s=None: " / ".join("%.1f" % (v[s][key] if s else v[key]) for v in tab.values())     # noqa: E731
     summary = ("grade B (any device above %.1f mOhm, up to 52 mOhm; calculated as six devices at 52 mOhm): continuous %s A at %s C "
-               "inlet (110 %% = %.0f A not held at %s C: %.1f-%.1f A there by V_dc), 2 min %s A from steady / %s A from cold, 200 ms = "
+               "inlet (110 %% = %.0f A not held at %s C: %.1f-%.1f A there by V_dc; %s), 2 min %s A from steady / %s A from cold, 200 ms = "
                "the 2-min tier (from the start state alone %s A from steady); grade A (every device <= %.1f mOhm): %.0f / %.0f / %.1f A "
                "at <= %.0f C, at %s C %.1f / %.1f / %.1f A (continuous / 2 min / 200 ms from steady) - each the lowest over %s V and PF "
                "1 / 0" % (r_lim * 1e3, seq(tab_b, "I_cont_A"), " / ".join(f"{t:.0f}" for t in MAP_INLET), I_CONT, t_hot[:-1],
                           min(r["I_cont_A"] for r in map_b if r["inlet_C"] == MAP_INLET[-1]),
-                          max(r["I_cont_A"] for r in map_b if r["inlet_C"] == MAP_INLET[-1]), seq(tab_b, "I_2min_A", "steady"),
+                          max(r["I_cont_A"] for r in map_b if r["inlet_C"] == MAP_INLET[-1]), ac_power_txt(tab_b[t_hot]["I_cont_A"], t_hot[:-1]),
+                          seq(tab_b, "I_2min_A", "steady"),
                           seq(tab_b, "I_2min_A", "cold"), seq(tab_b, "I_200ms_alone_A", "steady"), r_lim * 1e3, I_CONT, I_2MIN, I_200MS,
                           T_IN, t_hot[:-1], tab_a[t_hot]["I_cont_A"], tab_a[t_hot]["steady"]["I_2min_A"], tab_a[t_hot]["steady"]["I_200ms_A"],
                           " / ".join(f"{v:.0f}" for v in MAP_VDC)))
@@ -1625,6 +1628,178 @@ def rds_acceptance(D, rb, d, n, k175):
                       "%.0f C inlet), every device at the k 1.10 model's hottest junction (as desat_onstate), R_DS(on) along the "
                       "Table 4 / Fig. 4 typical temperature curve x the Fig. 5 current factor; DESAT minimum and margin from the PCS-PWR "
                       "check (gen/gdrv.py DESAT_PCS)" % (ov["vdc"], ov["ang"], T_IN))}
+
+
+def ac_power_txt(i_cont, t_in):
+    """review R4 / E05: a continuous tier stated as AC power at PF 1 and the nominal grid, beside the rating it is read against, so a tier
+    just below the rated current is not hidden by rounding (P = sqrt3 x V_LL x I)"""
+    return ("the %s C continuous limit %.1f A = %.2f kW at PF 1 and %.0f V AC - the rated %.0f kW at %.0f V needs %.2f A (the rated %.0f A "
+            "is %.2f kW)" % (t_in, i_cont, math.sqrt(3) * V_LL * i_cont / 1e3, V_LL, P_RATED / 1e3, V_LL, P_RATED / (math.sqrt(3) * V_LL),
+                             I_RATED, math.sqrt(3) * V_LL * I_RATED / 1e3))
+
+
+# ---- cold start with the fans off (review R4 / E11; D-074 open item 'fans rated to -10 C against the -30 C range'): the PV modules' rule
+# (D-072, sim/pv_module.py passive cooling) applied to the inverter. Below the fans' rated -10 C inlet (FAN t_op) the fans stay OFF and the
+# module runs on what it can lose without forced air. ESTIMATES throughout (+/-50 %, no bench data): natural convection in the fin
+# channels of each section (channels vertical - a rack module with horizontal channels sits at or below the pessimistic column), all the
+# heat leaving through the enclosure walls (no credit for a draft through the stopped fans and the grilles).
+T_COLD = (-30.0, -20.0, -10.0)          # C inlet (outside air) of the table; -10 C is the fans' own limit
+COLD_VDC = (600.0, 650.0, 700.0, 750.0, 850.0, 950.0)
+ENC_WDH = (0.650, 0.700, 0.220)         # m: the PMA0125 body (roadmap, the AC-02 benchmark) taken as our enclosure - ASSUMED; rear face on the rack
+H_ENC_IN, H_ENC_OUT = 6.0, 8.0          # W/m2K inside (natural convection + radiation to the walls) / outside: sim/pv_module.py values, ESTIMATE
+EPS_FIN, F_RAD_FIN = 0.10, 0.25         # bare aluminium fins; the share of their radiation that reaches the walls (sim/pv_module.py)
+H_L1_NC = 8.0                           # W/m2K on L1's exposed surface without forced air (the forced-air design takes 25): ESTIMATE
+T_SINK_PASSIVE, T_SINK_START = 75.0, 80.0   # C: heatsink NTC limit of the passive mode / the firmware's fan override (the PV rule, D-072)
+T_AIR_PASSIVE = 60.0                    # C: air inside at most the 60 C inlet the parts are rated for with the fans on (proxy, ASSUMED)
+PASSIVE_K = {"nominal": (1.0, 1.0), "pessimistic": (1.5, 0.7), "optimistic": (0.7, 1.4)}   # (R_sa,nc x, G_enc x), the PV model's spread
+FAN_COLD = {"part": "Sanyo Denki 9GT1224P1S001 (-40..+85 C, 26.4 W)", "usd": (88.0, 112.92),
+            "src": "the one 120 mm fan on file reaching -30 C (sim/pv_module.py FAN_ALT_USD, gen/data/prices.csv: 88 USD stock dealer, "
+                   "112.92 USD DigiKey 21+)"}
+
+
+def g_enc(k=1.0):
+    """enclosure to outside air (W/K): inside and outside films in series over the walls but the rear face (ESTIMATE)"""
+    w, d, h = ENC_WDH
+    return k * (2 * (w * d + w * h + d * h) - w * h) / (1 / H_ENC_IN + 1 / H_ENC_OUT)
+
+
+def nat_rsa_section(dts, t_air):
+    """one heatsink section in natural convection (K/W): Bar-Cohen and Rohsenow's composite correlation for isothermal parallel plates
+    (chimney = the section length), straight-fin efficiency and the hindered radiation of bare aluminium - the method of sim/pv_module.py
+    nat_rsa on this section (HS, 150 mm wide); dts = sink excess over the air, K. ESTIMATE"""
+    nf, h, t, L, W = HS["n_fin"], HS["h_fin"], HS["t_fin"], HS["length"], 0.150
+    s, T = W / nf - t, t_air + 0.5 * dts + 273.15
+    rho = 101325.0 / (287.05 * T)
+    k = 0.0241 * (T / 273.15) ** 0.81
+    nu, al = 1.458e-6 * T ** 1.5 / (T + 110.4) / rho, k / (rho * 1005.0)
+    el = 9.81 / T * max(dts, 1.0) * s ** 4 / (nu * al * L)                    # Elenbaas number
+    ht = (576.0 / el ** 2 + 2.873 / el ** 0.5) ** -0.5 * k / s + F_RAD_FIN * 4 * EPS_FIN * 5.670e-8 * T ** 3
+    m = math.sqrt(2 * ht / (200.0 * t))
+    return 1.0 / (ht * math.tanh(m * h) / (m * h) * (nf * 2 * h * L + W * L))
+
+
+def passive_state(D, legs, vdc, i, ang, t_amb, k=PASSIVE_K["nominal"]):
+    """steady state with the fans OFF: the phase legs at current i (the four-wire N leg, balanced load, at its no-load ripple loss on its own
+    section, L_N at L1's no-load loss), the enclosure air t_air carrying all the heat through the walls; iterated from the cold side, so
+    it ends on the lowest solution (the state a cold start reaches); ok False = no solution within 150 K of the outside air (runaway)"""
+    a_l1, t_l1_max = L1_THERM["exposed_area_m2"], L1_THERM["T_hot_max_C"]
+    t_air, dts, ok = t_amb, 1.0, False
+    for _ in range(200):
+        Dp = dict(D, hs_r={"r_sa": nat_rsa_section(dts, t_air) * k[0]})
+        ev = evaluate(Dp, vdc, V_LL, i, ang, t_air)
+        oth = other_losses(i, vdc, ev["p"], 0, i / I_RATED)
+        p_n = 0.0 if legs == 3 else (evaluate(Dp, vdc, V_LL, 1e-3, ang, t_air)["leg_w"] + other_losses(1e-3, vdc, 0.0, 0, 0.0)["L1"] / 3)
+        ptot = 3 * ev["leg_w"] + p_n + sum(oth.values())
+        t_new, d_new = t_amb + ptot / g_enc(k[1]), ev["t_hs"] - t_air
+        if abs(t_new - t_air) < 0.05 and abs(d_new - dts) < 0.05:
+            ok = True
+            break
+        if t_new - t_amb > 150.0:
+            break
+        t_air, dts = t_new, 0.5 * (dts + max(d_new, 1.0))
+    t_l1 = t_air + oth["L1"] / 3 / (H_L1_NC * a_l1)
+    lim = {"tj": (ev["tj_max"], TJ_LIM["sic"][0]), "heatsink": (ev["t_hs"], T_SINK_PASSIVE), "air inside": (t_air, T_AIR_PASSIVE),
+           "L1 hot spot": (t_l1, t_l1_max)}
+    return {"ok": ok and ev["feasible"] and all(v <= m for v, m in lim.values()), "converged": ok, "t_air_C": t_air, "t_sink_C": ev["t_hs"],
+            "tj_C": ev["tj_max"], "t_L1_C": t_l1, "loss_W": ptot,
+            "binding": max(lim, key=lambda x: lim[x][0] - lim[x][1]) if ok else "no steady state"}
+
+
+def passive_current(D, legs, vdc, angs, t_amb, k=PASSIVE_K["nominal"]):
+    """largest current (A rms, bisection to ~0.4 A) that every angle of the PF pair holds with the fans off; 0 = not even switching at no
+    load (standby, gates off: aux and coils only)"""
+    fits = lambda i: all(passive_state(D, legs, vdc, i, a, t_amb, k)["ok"] for a in angs)       # noqa: E731
+    if not fits(1e-3):
+        return 0.0
+    if fits(I_RATED):
+        return I_RATED
+    lo, hi = 1e-3, I_RATED
+    for _ in range(9):
+        mid = 0.5 * (lo + hi)
+        lo, hi = (mid, hi) if fits(mid) else (lo, mid)
+    return lo
+
+
+def cold_start(D):
+    """review R4 / E11: the passive table (kVA at 400 V AC that the fans-off module holds, per inlet, V_dc and build: the lower of PF 1 /
+    PF 0, nominal and the +/-50 % columns at the table's two ends), its binding limits, the firmware rule and the decision by cost. ESTIMATES"""
+    kva = lambda i: math.sqrt(3) * V_LL * i / 1e3                       # noqa: E731
+    out = {}
+    for build, legs in (("three-wire", 3), ("four-wire", 4)):
+        rows = []
+        for t in T_COLD:
+            for vdc in COLD_VDC:
+                i_nom = min(passive_current(D, legs, vdc, angs, t) for angs in MAP_PF.values())
+                st = passive_state(D, legs, vdc, max(i_nom, 1e-3), 0.0, t)
+                row = {"inlet_C": t, "vdc_V": vdc, "I_A": i_nom, "kVA": kva(i_nom), "loss_W": st["loss_W"], "air_inside_C": st["t_air_C"],
+                       "heatsink_C": st["t_sink_C"], "L1_C": st["t_L1_C"], "binding": st["binding"]}
+                if vdc in (COLD_VDC[0], COLD_VDC[2]):
+                    row.update({f"kVA_{tag}": kva(min(passive_current(D, legs, vdc, angs, t, PASSIVE_K[tag]) for angs in MAP_PF.values()))
+                                for tag in ("pessimistic", "optimistic")})
+                rows.append(row)
+        out[build] = rows
+    top = lambda b, t: max((r["vdc_V"] for r in out[b] if r["inlet_C"] == t and r["I_A"] > 0), default=None)     # noqa: E731
+    p3 = 3 * (FAN_COLD["usd"][0] - FAN["price"]["cat"]), 3 * (FAN_COLD["usd"][1] - FAN["price"]["cat"])
+    useful = all(r["I_A"] > 0 for rows in out.values() for r in rows if VDC["3W"][2] <= r["vdc_V"] <= VDC["3W"][3])  # some power over 600-900 V
+    return {"tables": out, "useful": useful,
+            "highest_vdc_with_any_power_V": {b: {f"{t:.0f}C": top(b, t) for t in T_COLD} for b in out},
+            "firmware_rule": ["fans OFF while the inlet NTC reads below %.0f C (the %s rating, %.0f..%.0f C)" % (FAN["t_op"][0], FAN["part"],
+                                                                                                             *FAN["t_op"]),
+                              "below it the current reference is limited to this table at the measured inlet and V_dc (the warmer inlet "
+                              "row and the higher V_dc point between table points); where the table is 0 the module stays in standby, "
+                              "gates off (aux and contactor coils only) - it may not even switch at no load (the L1 ripple loss and the "
+                              "devices' no-load loss exceed what the closed enclosure sheds)",
+                              "fans ON at an inlet of %.0f C or above, or whatever the inlet reads once any heatsink NTC exceeds %.0f C "
+                              "(override: a fan run below its rating rather than an overheated module; the passive limit is %.0f C)" % (
+                                  FAN["t_op"][0], T_SINK_START, T_SINK_PASSIVE)],
+            "alternatives": {
+                "milder ambient rating": ("declare full operation from %.0f C inlet (the fans' rating) and below it only the passive table: "
+                                          "zero cost; the competitor declares -30..+60 C (AC-02 benchmark), so the -30 C claim becomes "
+                                          "'standby to -30 C, power from -10 C' - an AC-02 change for the owner" % FAN["t_op"][0]),
+                "cold-rated fan": ("RFQ: a 120 mm 24 V fan rated to -30 C or below inside the drawn 12 W per fan (a low-temperature variant "
+                                   "of the drawn Delta, or a Chinese maker) - cost class unknown until quoted; the one fan on file that "
+                                   "reaches -30 C is %s at %.0f-%.0f USD against %.2f USD: +%.0f..+%.0f USD per three-wire module "
+                                   "(+%.0f..+%.0f four-wire) and 2.2 x the fan power on the SELV budget (%s)" % (
+                                       FAN_COLD["part"], FAN_COLD["usd"][0], FAN_COLD["usd"][1], FAN["price"]["cat"], p3[0], p3[1],
+                                       4 / 3 * p3[0], 4 / 3 * p3[1], FAN_COLD["src"]))},
+            "decision": (("by cost: the drawn fans stay and the firmware rule above applies (zero cost) - the passive table is too small to "
+                          "be useful over the DC window (no power above %.0f V DC at any table inlet), so the declaration reads full operation "
+                          "from %.0f C inlet and below it standby or the passive table only (the milder rating); the cold-rated catalogue "
+                          "fan (+%.0f..+%.0f USD per three-wire module) is not taken; the cold-rated fan RFQ stays open as the path back to "
+                          "-30 C at power, worth adopting if its quote keeps the module within a few USD" % (
+                              max(v for b in out for v in [top(b, t) for t in T_COLD] if v), FAN["t_op"][0], p3[0], p3[1]))
+                         if not useful else
+                         ("by cost: the drawn fans stay and the firmware rule above applies (zero cost): the passive table gives power over "
+                          "the whole full-load DC window down to -30 C (the PV modules' outcome)")),
+            "basis": ("ESTIMATES (+/-50 %%: the pessimistic / optimistic columns take R_sa,nc x1.5 / x0.7 and G_enc x0.7 / x1.4 as the PV "
+                      "model): fans off, each section %.0f fins x %.0f mm, %.0f mm long in natural convection (Bar-Cohen and Rohsenow, "
+                      "fins vertical; ~0.7 K/W per section against %.3f K/W with the fans), the step-b loss model with the drawn E_on / "
+                      "E_off factors, L1 / L2 / aux / coils from other_losses (no fans), L1 hot spot with h %.0f W/m2K on %.3f m2, the "
+                      "enclosure %.0f x %.0f x %.0f mm (the PMA0125 body, ASSUMED) losing G_enc %.1f W/K through its walls (h %.0f / %.0f "
+                      "W/m2K in / out, rear face on the rack); limits Tj %.0f C, heatsink NTC %.0f C, air inside %.0f C, L1 %.0f C; AC %.0f V, "
+                      "the lower of PF 1 / PF 0 (pairs %s); no bench data" % (
+                          HS["n_fin"], HS["h_fin"] * 1e3, HS["length"] * 1e3, D["hs_r"]["r_sa"], H_L1_NC, L1_THERM["exposed_area_m2"],
+                          *(x * 1e3 for x in ENC_WDH), g_enc(), H_ENC_IN, H_ENC_OUT, TJ_LIM["sic"][0], T_SINK_PASSIVE, T_AIR_PASSIVE,
+                          L1_THERM["T_hot_max_C"], V_LL, ", ".join(f"{k_} {v}" for k_, v in MAP_PF.items())))}
+
+
+def report_cold(cs):
+    wr("\n### Cold start with the fans off (review R4 / E11, ESTIMATES +/-50 %)\n")
+    wr(f"The fans ({FAN['part']}) are rated {FAN['t_op'][0]:.0f}..{FAN['t_op'][1]:.0f} C against AC-02's -30 C; below {FAN['t_op'][0]:.0f} C "
+       f"inlet they stay off and the module runs on natural convection (the PV modules' rule, D-072).  Largest kVA at {V_LL:.0f} V AC that the "
+       f"fans-off module holds (the lower of PF 1 / PF 0; 0 = standby only, not even switching at no load), binding limit in brackets:\n")
+    for build, rows in cs["tables"].items():
+        wr(f"\n{build}:\n")
+        wr("| inlet | " + " | ".join(f"{v:.0f} V" for v in COLD_VDC) + " | 600 V pess. / opt. | 700 V pess. / opt. |")
+        wr("|---|" + "---|" * (len(COLD_VDC) + 2))
+        for t in T_COLD:
+            rr = [r for r in rows if r["inlet_C"] == t]
+            pe = lambda v: next(r for r in rr if r["vdc_V"] == v)      # noqa: E731
+            wr(f"| {t:.0f} C | " + " | ".join(f"{r['kVA']:.0f} ({r['binding']})" for r in rr) +
+               f" | {pe(600.0)['kVA_pessimistic']:.0f} / {pe(600.0)['kVA_optimistic']:.0f} | {pe(700.0)['kVA_pessimistic']:.0f} / "
+               f"{pe(700.0)['kVA_optimistic']:.0f} |")
+    wr(f"\nFirmware rule: " + "; ".join(cs["firmware_rule"]) + ".  Alternatives: " + "; ".join(f"**{k}** - {v}" for k, v in
+       cs["alternatives"].items()) + f".  **Decision:** {cs['decision']}.  ({cs['basis']}.)")
 
 
 def report_b(D, r):
@@ -2425,6 +2600,7 @@ def pcs_dpt(d, npar, vdc, i_load, lloop, tag, rg, a, ton=1.0e-6, leg=None):
 # six-gate turn-off), the fault slope along the L1 trajectory of the magnetics design file, the turn-off peak from the leg deck above.
 CTL_CHECK = os.path.join(ROOT, "hardware", "PCS-CTL", "outputs", "PCS-CTL_design_check.txt")   # gen/pcs_ctrl.py (read only)
 L1_FILE = os.path.join(HERE, "out", "magnetics", "design_pcs_l1.json")                         # sim/magnetics.py (read only)
+L1_THERM = json.load(open(L1_FILE))["thermal"]                  # exposed area, T_hot_max: the fans-off L1 check of cold_start (E11)
 T_LOGIC_CTL = 3 * 6e-9         # s, LVC07 / LVC1G74 / LVC08 on the control board, max at 3.3 V (gen/pv_ctrl.py T_LOGIC)
 T_DRV_IN = 8e-9 + 110e-9       # s, AHCT1G08 tpd max + NSI6651 tprop max (gen/gdrv.py NSI) on the power board
 T_OFF_IN_CTL = 156e-9          # s, the device turn-off the PCS-CTL check's responses contain: gen/pcs_ctrl.py now carries the PCS
@@ -2642,6 +2818,7 @@ def step_e(D, rc):
         r["rg_ext_off"] = r_off
         sweep.append(r)
     pc = protection_chain(D, d, n, a, rg_cal, v_lim)            # review R2-02: R_G,off is chosen at the gates-off current, not 450 A
+    env = desat_string_envelope(pc, v_lim)                      # review R4 / E01: what the DESAT string of an OFF switch must block
     pick = next(r for r in sweep if r["rg_ext_off"] == pc["chosen_R_G_off_ext_ohm"])
     rg = pick["rg"]
     nom = pcs_dpt(d, n, 950.0, i_200, None, "nominal", rg, a, leg=leg_model(n, 1.0))
@@ -2676,8 +2853,11 @@ def step_e(D, rc):
            "loss_b_W": loss_b, "loss_corr_W": loss_c, "eta_peak_corr": max(etas), "eta_full_corr": eta_full_corr, "tj_200ms_corr_C": tj_corr,
            "dead_time_ns": 300.0, "gate": {"Qg_per_channel_nC": qg * 1e9, "P_gate_W_per_channel": p_gate,
                                             "I_peak_A_needed": i_pk_needed, "NSI6651_peak_A": nsi_ipk},
-           "desat": {"threshold_V_DS": ("set by the gate-drive preset (gen/gdrv.py '6 x SG2M040170HJ': NSI6651 8.5-9.8 V less 100 ohm x "
-                                        "I_CHG and the US1M string); PCS-PWR's design check coordinates it with the on-state voltage below"),
+           "desat": {"threshold_V_DS": ("set by the gate-drive preset (gen/gdrv.py '6 x SG2M040170HJ': NSI6651 %.1f-%.1f V less 100 ohm x "
+                                        "I_CHG and the %d x %s string, DESAT_PCS); PCS-PWR's design check coordinates it with the on-state "
+                                        "voltage below" % (gdrv.NSI["vdesat"][0], gdrv.NSI["vdesat"][2], gdrv.DESAT_PCS["n_dhv"],
+                                                           gdrv.CATALOG[gdrv.DESAT_PCS["part"]]["mpn"])),
+                     "string_envelope": env,
                      "V_DS_at_OC_trip_V": float(OC_TRIP / n * K_SHARE['sic'] * pv.rds(d, 150.0)),
                      "blanking_ns": (150, 500), "response_to_off_us": 1.0, "t_sc_assumed_us": 2.0,
                      "sc_acceptance": ("DAB rule DR-05, release block (risk C2): maker-confirmed t_SC >= 2 t_eq and E_SC >= 2 E at "
@@ -2686,6 +2866,38 @@ def step_e(D, rc):
                      "note": "Sichain gives no short-circuit withstand: 2 us ASSUMED as for the PV module (pv_design T_SC_ASSUMED)"}}
     SPEC["commutation_and_gate_drive"] = res
     return res
+
+
+def desat_string_envelope(pc, v_lim):
+    """review R4 / E01: the reverse voltage across the DESAT string of an OFF switch, by state (its anode end sits at COM -0.3..+18 V, so the
+    string sees V_DS): static = a link that stays for ms .. minutes (leakage then sets the split between the diodes - no datasheet bounds it),
+    peak = the turn-off peak on the drain (ns: the junction capacitances set the split).  Simulated / calculated figures read fail closed;
+    gen/gdrv.py STRING_ENV must cover them (the PCS-PWR check asserts it)."""
+    dr, cp = ctl_block("dc_rejection_bounded", ("rows",)), ctl_block("dc_bus_coupled_pv", ("uncoordinated", "backstop", "pv"))
+    i = pc["inputs"]
+    try:
+        trip = [x["vdc_end"] for x in dr["rows"] if x["trip"]]
+        unc = [u["vdc_end"] for u in cp["uncoordinated"].values()]
+        bks = [x["vdc_end"] for x in cp["backstop"]]
+        pv_top = cp["pv"]["ov_hw"][1]
+    except (KeyError, TypeError, IndexError) as e:
+        raise SystemExit(f"pcs_control_spec dc_rejection_bounded / dc_bus_coupled_pv: {e!r} - re-read sim/pcs_control.py") from None
+    static = {"operating, the opposite switch on: the link": [VDC["3W"][0], max(VDC["3W"][1], VDC["4W"][1])],
+              "DC over-voltage trip band (PCS-CTL as built)": list(i["ov_band_V"]),
+              "the link when that trip turns the gates off (OV gates-off corner)": [i["ov_at_gates_off_V"]],
+              "latched after a weak-grid DC-load rejection trip (pcs_control_spec dc_rejection_bounded)": [min(trip), max(trip)],
+              "latched, link shared with PV modules, no coordination row (dc_bus_coupled_pv uncoordinated)": [min(unc), max(unc)],
+              "latched, the PV modules' firmware dead - their hardware band trips (dc_bus_coupled_pv backstop)": [min(bks), max(bks)],
+              "PV modules' hardware OV band top on a shared link (dc_bus_coupled_pv pv)": [pv_top]}
+    peaks = {k: v["v_pk_V"] for k, v in pc["commutation_overshoot_V"].items() if v.get("v_pk_V") is not None}
+    return {"static_V": static, "static_max_V": max(max(v) for v in static.values()),
+            "floating_node": ("gates off, contactors open, the current decayed: the switch node is held only by leakage and the HV "
+                              "dividers (6 M to VMID on every C_f node), so the split between the two switches of a leg is not bounded - "
+                              "up to the whole link across one switch, i.e. the static figures above"),
+            "peak_deck_V": peaks, "peak_max_deck_V": max(peaks.values()), "peak_limit_V": v_lim,
+            "basis": ("static: the link across an OFF switch for longer than the leakage needs to move the split (ms .. the 15 min "
+                      "discharge); peak: the leg decks of protection_chain at the gates-off currents, held to the 0.85 x V_DSS limit; "
+                      "simulated (control study, averaged) and calculated, not measured")}
 
 
 def report_chain(pc, c):
@@ -2767,7 +2979,8 @@ def report_e(r):
     wr(f"\n**Gate drive (the project's channel, gen/gdrv.py, NSI6651ASC):** one channel per switch position - **6 channels for three-wire, "
        f"8 for four-wire** (the architecture had 12/16).  Rails **+{r['rails_V'][0]:.0f} / {r['rails_V'][1]:.1f} V** (the PV setting for this "
        f"device, gdrv GATE_V (18, 3.5)); per-device gate resistor and 0.5 ohm Kelvin resistor (R_KS), per-gate Miller clamp FET as the PV rev-5 "
-       f"channel; DESAT 100 ohm + a US1MH string (2 diodes in the PCS preset since PCM-07: the 200 ms overload peak, above) and the "
+       f"channel; DESAT 100 ohm + a {gdrv.DESAT_PCS['n_dhv']} x {gdrv.CATALOG[gdrv.DESAT_PCS['part']]['mpn']} string (2 diodes since PCM-07: "
+       f"the 200 ms overload peak, above; 1300 V each since review R4 / E01: the string rating below) and the "
        f"short-circuit booster (booster=True).  Six gates per channel: "
        f"Q_g {g['Qg_per_channel_nC']:.0f} nC, {g['P_gate_W_per_channel']:.2f} W at {FSW_CHOICE/1e3:.0f} kHz (bias secondary budget 0.5 W - one SN6505B "
        f"transformer per phase with two secondaries); peak gate current {g['I_peak_A_needed']:.0f} A wanted against the NSI6651's "
@@ -2778,6 +2991,12 @@ def report_e(r):
        f"gates behind a buffer at R_G,off {r['chosen']['R_G_off_ext_ohm_per_device']:g} ohm turn off more slowly, so a '6 x SG2M040170HJ' "
        f"preset must be added to gen/gdrv.py and its design_check re-run before the channel is drawn.")
     ds = r["desat"]
+    se = ds["string_envelope"]
+    wr(f"\n**DESAT string rating (review R4 / E01, calculated):** reverse voltage across an OFF switch by state - " + "; ".join(
+       f"{k} {'-'.join('%.0f' % x for x in v)} V" for k, v in se["static_V"].items()) + f"; {se['floating_node']}.  Static envelope "
+       f"**{se['static_max_V']:.0f} V**; turn-off peak on the drain " + ", ".join(f"{k} {v:.0f} V" for k, v in se["peak_deck_V"].items())
+       + f" against the {se['peak_limit_V']:.0f} V limit.  The string (gen/gdrv.py DESAT_PCS, the PV cell's preset too) is rated so that each "
+       f"diode alone blocks the static envelope and its capacitive share of the peak (gdrv STRING_ENV, string_numbers; PCS-PWR check).")
     o = ds["onstate_200ms_overload"]
     wr(f"\n**DESAT coordination input (PCM-07, calculated):** at the 200 ms overload peak a device carries {o['I_pk_per_device_A']:.1f} A; "
        f"with all six at the hottest junction the model predicts there ({o['tj_200ms_hottest_C']:.0f} C, step b) the switch shows "
@@ -4142,18 +4361,24 @@ def ctl_vf_rows():
     read, fail closed) as firmware rows; the D-077 0.38 / 2.17 pu were the unbounded averaged model - superseded"""
     vb = ctl_block("vf_bounded", ("steps", "envelope", "vclamp_pu"))
     ff = ctl_block("vf_feedforward", ("chosen", "scan"))
-    eb = ctl_block("vf_envelope_basis", ("declared", "margins_worst_corner", "classes_iec62040_3", "adoption"))   # review R3-05
+    eb = ctl_block("vf_envelope_basis", ("declared", "statement", "release_sequence", "not_claimed", "margins_worst_corner",
+                                         "classes_iec62040_3"))                                            # reviews R3-05, R4 E06
     req = os.path.join(ROOT, "docs", "requirements", "REQUIREMENTS.md")
     try:
         md = next(v for k, v in eb["margins_worst_corner"].items() if k.startswith("declared"))
         iec = {k: v["min_margin_pu"] for k, v in eb["margins_worst_corner"].items() if k.startswith("IEC 62040-3")}
         tight = min((x for side in ("over", "under") for x in md[side] if x["margin_pu"] is not None), key=lambda x: x["margin_pu"])
         ac04 = next(ln for ln in open(req).read().splitlines() if ln.startswith("| AC-04 |"))
-        ac04_status = re.search(r"envelope \(([^)]*)\)", ac04).group(1)              # e.g. 'declared, adopted by delegation under ...'
+        ac04_status = re.search(r"\b(adopted by delegation[^);]*)", ac04).group(1)     # review R4 E06: the adoption clause, not a bracket
         assert md["met"] and md["min_margin_pu"] > 0 and all(
             [[x["t_to_ms"], x["limit_pu"]] for x in md[side]] == [list(p_) for p_ in vb["envelope"][side]] for side in ("over", "under")), \
             "the declared (ITIC-style) points are not the envelope the steps were checked against, or not met"
-        assert "ITIC" in ac04 and "IEC 62040-3" in ac04, "REQUIREMENTS AC-04 no longer states the ITIC-style envelope"
+        assert all(s_ in ac04 for s_ in ("ITIC", "IEC 62040-3", "DECLARED OUTPUT CAPABILITY", "not a load-compatibility claim",
+                                         "release sequence")), \
+            "REQUIREMENTS AC-04 no longer states the ITIC-style envelope as the declared output capability with its release sequence"
+        assert len(eb["release_sequence"]) == 3 and "IEC 62040-3 not claimed" in eb["release_sequence"][-1] and \
+            any("IEC 62040-3" in x for x in eb["not_claimed"]) and "not" in eb["statement"], \
+            "vf_envelope_basis: the statement, the three-stage release sequence or 'IEC 62040-3 not claimed' missing"
     except (OSError, KeyError, StopIteration, TypeError, ValueError, AttributeError, AssertionError) as e:
         raise SystemExit(f"pcs_control_spec vf_envelope_basis / REQUIREMENTS AC-04: {e!r} - re-read sim/pcs_control.py section 7c "
                          "and the AC-04 row") from None
@@ -4171,17 +4396,20 @@ def ctl_vf_rows():
          "peripheral": ("the VF cascade with the load-current feed-forward and the over-voltage deadbeat (the next two rows), the per-sample "
                         "clamp and the virtual impedance at 0 for a single module; paralleled modules keep the droop's for sharing - the "
                         "envelope is not declared for them (their first milliseconds are the same, the plateau is the secondary layer's)"),
-         "threshold": ("|v_C| over: <= %s; under: >= %s - %s; worst-corner margin %+.3f pu at the tightest point (%s, %g-%s ms: limit "
-                       "%g pu, worst %.3f pu); IEC 62040-3 classes 1-3 not claimed (margins %s, FROM MEMORY); adopted declaration: "
-                       "REQUIREMENTS AC-04 (%s; %s); "
+         "threshold": ("the module's declared output capability on a 100 %% linear load step, NOT a load-compatibility claim: |v_C| over: "
+                       "<= %s; under: >= %s - %s; %s; worst-corner margin %+.3f pu at the tightest point (%s, %g-%s ms: limit %g pu, worst "
+                       "%.3f pu); not claimed: %s (IEC 62040-3 margins: %s, FROM MEMORY); release sequence: %s; REQUIREMENTS AC-04 "
+                       "(%s) carries the same wording; "
                        "simulated (averaged, every corner): 0 -> rated dip to >= %.3f pu, rated -> 0 "
                        "overshoot <= %.3f pu, within 10 %% after <= %.1f ms and 1 %% after <= %.1f ms; the D-077 figures %.2f / %.2f pu "
                        "were the unbounded averaged model without these measures - superseded" % (
-                           env("over"), env("under"), eb["declared"], md["min_margin_pu"],
+                           env("over"), env("under"), eb["declared"], eb["statement"], md["min_margin_pu"],
                            "over-voltage" if tight in md["over"] else "under-voltage", tight["t_from_ms"],
                            "%g" % tight["t_to_ms"] if tight["t_to_ms"] is not None else "steady", tight["limit_pu"], tight["worst_pu"],
+                           "; ".join(eb["not_claimed"]),
                            ", ".join("%s %+.2f pu" % (k.replace(" (FROM MEMORY)", "").replace("IEC 62040-3 ", ""), v)
-                                     for k, v in iec.items()), ac04_status, eb["adoption"].split("; ", 1)[-1],
+                                     for k, v in iec.items()),
+                           " -> ".join("(%d) %s" % (i + 1, x) for i, x in enumerate(eb["release_sequence"])), ac04_status,
                            v_up, v_dn, max(x["t_v10_ms"] for x in up + dn),
                            max(x["t_v1_ms"] for x in up + dn), o_up["v_min"], o_dn["v_max"])),
          "filter": "-", "latency": "-", "self_test": ("bench: the first-millisecond excursion at every corner of the drawn parts, and the "
@@ -4208,7 +4436,12 @@ def ctl_dc_rows(acc):
     (an installation / system rule).  acc = the grid-stiffness estimate's ASSUMED accuracy (ride_through_rule)"""
     dr = ctl_block("dc_rejection_bounded", ("rows", "derating", "soft", "band", "resp_us", "ppb"))
     vb = ctl_block("vf_bounded", ("t_c_max_ms", "e_ret_J", "p_pre_W", "cap_follow", "cap_tc", "cap_tc_over"))
-    cp = ctl_block("dc_bus_coupled_pv", ("main", "uncoordinated", "requirements", "v_set_max", "limits"))    # review R3-03
+    cp = ctl_block("dc_bus_coupled_pv", ("main", "uncoordinated", "requirements", "limits"))    # review R3-03
+    ow = ctl_block("dc_bus_operating_window", ("default_set_point_V", "set_point_by_build_V", "firmware_limit_V", "firmware_limit_basis",
+                                               "pcs_vf_permissive_V", "pcs_vf_permissive_basis", "set_point_floor_V",
+                                               "lumped_model_validity_V", "cable_model_validity_min_V",
+                                               "margin_firmware_limit_to_cable_validity_V", "harness_contract", "status"))   # review R4 E04
+    cb = ctl_block("dc_bus_cable", ("rows",))
     c = ctl_block("inputs", ("C_dc_F",))["C_dc_F"]
     try:
         alone = next(x for x in dr["rows"] if x["soft"] is None)
@@ -4220,9 +4453,30 @@ def ctl_dc_rows(acc):
         assert trip and not alone["trip"] and all(x["half_ok"] and x["dev_ok"] for x in trip + unc + cp["main"]), "DC rejection: device / film"
         assert rides and darks and not {x["v_set"] for x in rides} & {x["v_set"] for x in darks} and cp["requirements"], \
             "coupled PV: no clean ride-through / trip split by set point, or no requirements"
-    except (KeyError, StopIteration, AssertionError) as e:
-        raise SystemExit(f"pcs_control_spec dc_rejection_bounded / dc_bus_coupled_pv: {e!r} - re-read sim/pcs_control.py sections 6b / 7c") \
-            from None
+        pk = {}                                                  # review R4 E04: the cable model's PCS-node peaks per set point and source
+        for r in cb["rows"]:
+            assert r["cable"] and all(x["rides"] for x in r["cable"]), "cable model: a corner does not ride through"
+            pk.setdefault(r["v_set"], {}).setdefault(r["source"], []).extend(x["vdc_pk"] for x in r["cable"])
+        lim_fw, perm, val_c = ow["firmware_limit_V"], ow["pcs_vf_permissive_V"], ow["cable_model_validity_min_V"]
+        assert lim_fw in pk and ow["default_set_point_V"] in pk and lim_fw < perm < val_c and len(ow["harness_contract"]) >= 5 \
+            and all(ow["set_point_floor_V"][b] <= v <= lim_fw for b, v in ow["set_point_by_build_V"].items()) \
+            and abs(val_c - lim_fw - ow["margin_firmware_limit_to_cable_validity_V"]) < 0.5, \
+            "operating window: set points outside floor..clamp, clamp / permissive / cable validity out of order, or the harness contract short"
+    except (KeyError, StopIteration, AssertionError, TypeError) as e:
+        raise SystemExit(f"pcs_control_spec dc_rejection_bounded / dc_bus_coupled_pv / dc_bus_operating_window / dc_bus_cable: {e!r} - "
+                         "re-read sim/pcs_control.py sections 6b / 7c / 7d / 7e") from None
+    win = ("enforced operating window (product rule in both modules' parameter sets, pcs_control_spec dc_bus_operating_window, review "
+           "R4 E04): CV set point default %.0f V (%s); clamped to <= %.0f V in the PV module's parameter set (%s); the PCS refuses to start "
+           "an island (VF) on a bus declared battery-less above %.0f V (%s); the one-node model's %s and the cable model's %.0f V are model "
+           "validities, NOT ratings (%.0f V between the clamp and the cable validity); cable model (2 / 10 / 20 m runs, 0.6 / 1 uH/m): "
+           "every corner rides through, PCS-node peaks %s; harness contract (installation): %s" % (
+               ow["default_set_point_V"], ", ".join("%s %.0f V" % kv for kv in ow["set_point_by_build_V"].items()), lim_fw,
+               ow["firmware_limit_basis"], perm, ow["pcs_vf_permissive_basis"],
+               " / ".join("%.0f V (%s)" % (v, k) for k, v in ow["lumped_model_validity_V"].items()), val_c,
+               ow["margin_firmware_limit_to_cable_validity_V"],
+               ", ".join("%.0f-%.0f V at %.0f V" % (min(max(v) for v in s_.values()), max(max(v) for v in s_.values()), vs)
+                         for vs, s_ in sorted(pk.items())),
+               " | ".join(ow["harness_contract"])))
     v_bus = math.sqrt(vb["cap_follow"]["vdc_max"] ** 2 - 2 * vb["e_ret_J"] / c)      # the study's bus: where the returned energy starts
     aux_ov = min(json.load(open(AUX75))["startup"]["ov_lockout_V"])                  # the 75 W aux's input lock-out (aux75_spec)
     rng = lambda xs, f="%.0f": (f + "-" + f) % (min(xs), max(xs))                    # noqa: E731
@@ -4234,14 +4488,14 @@ def ctl_dc_rows(acc):
                             "chopper drawn)"),
              "threshold": ("coupled PCS / PV trajectory (pcs_control_spec dc_bus_coupled_pv, review R3-03): with the coordination row the "
                            "island rides through at %s V set points (bus <= %.0f V against the %.0f V soft limit, the PV current cut %s ms "
-                           "after the rejection) and the PCS trips at %s V (bus %s V, dark); set-point limit by PV module count: %s; "
+                           "after the rejection) and the PCS trips at %s V (bus %s V, dark); %s; "
                            "the cut is needed within %.2f ms of an AC load rejection at the study's %.0f V bus and %.0f kW (%.1f J of LCL "
                            "energy returned: %.0f V even with an ideal source); uncoordinated the comparator trips %s ms after the step "
                            "(band edges %s V) and the bus is left at %s V, latched - %s; requirements: %s" % (
                                " / ".join("%.0f" % v for v in sorted({x["v_set"] for x in rides})), max(x["vdc_pk"] for x in rides),
                                cp["limits"]["soft_V"], rng([x["t_cut_ms"] for x in rides if x["t_cut_ms"] is not None], "%.2f"),
                                " / ".join("%.0f" % v for v in sorted({x["v_set"] for x in darks})), rng([x["vdc_pk"] for x in darks]),
-                               ", ".join("%s %d V" % kv for kv in cp["v_set_max"].items()), vb["t_c_max_ms"], v_bus,
+                               win, vb["t_c_max_ms"], v_bus,
                                vb["p_pre_W"] / 1e3, vb["e_ret_J"], vb["cap_follow"]["vdc_max"],
                                " / ".join("%.2f" % u["t_off_ms"] for u in unc), " / ".join("%.0f" % float(k) for k, _ in unc_e),
                                rng([u["vdc_end"] for u in unc]),
@@ -4451,7 +4705,9 @@ def step_i(D, rb, rc, rd, rf, rg_):
     gt = SPEC["commutation_and_gate_drive"]["desat"]["rds_acceptance"]["grade_tier_tables"]       # R3-04: read fail closed
     hot_tiers = {g: gt[g]["tiers"][f"{T_IN_HOT:.0f}C"] for g in ("A", "B")}
     hot_txt = "; ".join("grade %s %.1f / %.1f / %.1f A" % (g, v["I_cont_A"], v["steady"]["I_2min_A"], v["steady"]["I_200ms_A"])
-                        for g, v in hot_tiers.items())
+                        for g, v in hot_tiers.items()) + " (grade B: %s)" % ac_power_txt(hot_tiers["B"]["I_cont_A"], "%.0f" % T_IN_HOT)
+    cs_ = SPEC["thermal_and_losses"]["cold_start"]                                              # review R4 / E11 (fail closed)
+    cold3 = cs_["tables"]["three-wire"]
     decl = {"ac_short_circuit": sc, "stabilized_precision": pr,
             "kva_tiers_400V": {"rated 180 A": tier_kva["rated"], "110 % continuous 198 A": tier_kva["continuous"],
                                "120 % 2 min 216 A": tier_kva["2_min"], "200 ms 259.2 A": tier_kva["200_ms"]},
@@ -4465,10 +4721,18 @@ def step_i(D, rb, rc, rd, rf, rg_):
             "frequency": {"ours": ("the operating map holds at 50 and 60 Hz (both computed); PLL integrator clamp +/-5 Hz (control study), "
                                    "trip windows = the grid code's parameters (EN 50549-1 47.5-51.5 Hz class, FROM MEMORY)"),
                           "competitor": "datasheet 50 +/- 5 / 60 +/- 5 Hz; user manual 50 +/- 2 / 60 +/- 2 Hz (pp. 38, 41-42)"},
-            "environment": ("operating -30..+60 C (> 45 C derating by module grade - tiers_by_grade, at 60 C %s; the fans rated -10 C: "
-                            "open risk), storage -40..+70 C (ASSUMED: parts' storage ratings to confirm), altitude: see the control board's "
-                            "barrier rating, OVC DC II / AC III, pollution degree external 3 / internal 2; IP rating and enclosure out of "
-                            "scope (schematic and BOM only)" % hot_txt),
+            "environment": ("operating %.0f..+60 C at power (> 45 C derating by module grade - tiers_by_grade, at 60 C %s); %.0f..%.0f C "
+                            "inlet: fans off (rated %.0f C), %s (pcs_spec thermal_and_losses cold_start, review R4 / E11, ESTIMATES: "
+                            "three-wire at %.0f V DC %s kVA at %s C inlet, no power above %.0f V DC); storage -40..+70 C (ASSUMED: parts' "
+                            "storage ratings to confirm), altitude: see the control board's barrier rating, OVC DC II / AC III, pollution "
+                            "degree external 3 / internal 2; IP rating and enclosure out of scope (schematic and BOM only)" % (
+                                T_AMB_MIN if cs_["useful"] else FAN["t_op"][0], hot_txt, T_AMB_MIN, FAN["t_op"][0], FAN["t_op"][0],
+                                "the passive table only" if cs_["useful"] else ("standby or the passive table only - the milder rating, "
+                                                                                "decided by cost; a cold-rated fan RFQ is the path back to "
+                                                                                "-30 C at power"),
+                                COLD_VDC[0], " / ".join("%.0f" % r["kVA"] for r in cold3 if r["vdc_V"] == COLD_VDC[0]),
+                                " / ".join("%.0f" % t for t in T_COLD),
+                                max(v or 0.0 for v in cs_["highest_vdc_with_any_power_V"]["three-wire"].values()))),
             "communication": ("the control board's declared port roles: module bus = CAN (paralleling, carrier synchronisation by CAN "
                               "time-stamping, software addressing); BMS = RS-485 (Modbus RTU) or CAN when not paralleled; EMS = Ethernet "
                               "(Modbus TCP, port 502, over the isolated Ethernet bridge) or RS-485; service RS-485 at 9600-8-N-1"),
@@ -4876,7 +5140,8 @@ def handover(D, rb, rc, rd, re_, rf, rg_):
                        "one earthed section per leg; per device pair 3 x 2.2 uF / 1300 V film at the pins + RC damper (2 x 4.7 nF 2 kV C0G, "
                        "6 x 15 ohm 2512); DC link 5 + 5 x C3D1U147 in two series halves, midpoint to the C_f star",
         "gate_drive": f"6 channels (8 four-wire): NSI6651ASC + NPN/PNP buffer per channel driving 6 gates, R_G,on {re_['chosen']['R_G_on_ext_ohm_per_device']:.2f} / "
-                      f"R_G,off {re_['chosen']['R_G_off_ext_ohm_per_device']:g} ohm per device, R_KS 0.5 ohm, per-gate clamp FET, DESAT 100 ohm + 2 x US1MH (PCM-07), "
+                      f"R_G,off {re_['chosen']['R_G_off_ext_ohm_per_device']:g} ohm per device, R_KS 0.5 ohm, per-gate clamp FET, DESAT 100 ohm + "
+                      f"{gdrv.DESAT_PCS['n_dhv']} x {gdrv.CATALOG[gdrv.DESAT_PCS['part']]['mpn']} (PCM-07; 1300 V each, review R4 / E01), "
                       "booster, RC dead-time stretch and negative-rail detector (stretch=True, neg_det=True - new '6 x SG2M040170HJ' "
                       "preset needed), rails +18 / -3.5 V; bias: one SN6505B transformer per phase (2 secondaries); default-off pull-downs; "
                       "EN from the external stop (wired-AND); FLT/RDY to the latch and the trip zone (D-050)",
@@ -5007,6 +5272,15 @@ def handover(D, rb, rc, rd, re_, rf, rg_):
              "threshold": "%s; %s; %s" % tuple(gt["after_2min_overload"][k] for k in ("rule", "recovery", "window")),
              "filter": "one grid period (rms)", "latency": "per grid period", "self_test": "-"}]
     assert a60 == sh["derated_60C_A"], "the sharing analysis' 60 C tiers are not the grade-A table's (R3-04 decision 1)"
+    cs = SPEC["thermal_and_losses"]["cold_start"]            # review R4 / E11: the fans' cold-start rule as a firmware-table row
+    rows.append({"item": "fans, cold start (review R4 / E11; the PV modules' rule, D-072)",
+                 "peripheral": "FAN_PWM from the inlet NTC and the heatsink NTCs: " + "; ".join(cs["firmware_rule"]),
+                 "threshold": "the passive table (pcs_spec thermal_and_losses cold_start, ESTIMATES +/-50 %%), kVA at 400 V AC by inlet %s C: %s" % (
+                     " / ".join("%.0f" % t for t in T_COLD), "; ".join(
+                         "%s %s" % (b, ", ".join("%.0f V DC %s" % (v, " / ".join("%.0f" % r["kVA"] for r in rr if r["vdc_V"] == v))
+                                                 for v in COLD_VDC)) for b, rr in cs["tables"].items())),
+                 "filter": "inlet NTC over 10 s (ASSUMED)", "latency": "-",
+                 "self_test": "inlet NTC open / short -> fans ON (protects the module; the fan may then run below its rating)"})
     rows += list(FW_I)                                       # step i: four-wire, AC start, modes, transfers, recorder, upgrade, map
     fw += [f"{r['item']}: {r['threshold']} - {r['peripheral']}" for r in rows]
     fw.append("grid start (AC side, DC dead; pcs_spec ac_start): " + " -> ".join(SPEC["ac_start"]["sequence"]))
@@ -5135,6 +5409,11 @@ def self_check(choice, rb, rc, rd, re_, rf, rg_):
     co = pc["commutation_overshoot_V"]
     assert pc["local_window"]["closes"] and co["local window (as drawn)"]["v_pk_V"] <= v_lim, "local window: turn-off at the gates-off current"
     assert co["over-voltage corner (bus at the OV gates-off, current at the window top)"]["v_pk_V"] <= v_lim, "OV corner turn-off"
+    se = re_["desat"]["string_envelope"]                                 # review R4 / E01: the string's envelope inside gdrv's rating basis
+    assert se["static_max_V"] <= gdrv.STRING_ENV["static"] and se["peak_max_deck_V"] <= se["peak_limit_V"] <= gdrv.STRING_ENV["peak"], \
+        "DESAT string envelope (pcs_spec) outside gen/gdrv.py STRING_ENV - re-rate the string"
+    cs = SPEC["thermal_and_losses"]["cold_start"]                        # review R4 / E11
+    assert len(cs["tables"]["three-wire"]) == len(T_COLD) * len(COLD_VDC) and cs["firmware_rule"] and cs["decision"], "cold-start table"
     assert pc["inputs"]["window_A"][1] <= pc["window_top_max_A"] and pc["chosen_R_G_off_ext_ohm"] == re_["chosen"]["R_G_off_ext_ohm_per_device"]
     br = pc["backup_requirement"]
     assert br["feasible_with_the_drawn_width"] and co["CMPSS backup at its required band top"]["v_pk_V"] <= v_lim, \
@@ -5266,6 +5545,8 @@ def run():
     sec = REP[n0:]
     del REP[n0:]
     REP[i_sh:i_sh] = sec
+    cs = SPEC["thermal_and_losses"]["cold_start"] = cold_start(D)       # review R4 / E11
+    report_cold(cs)
     report_e(re_)
     save()
     rf = step_f(D, rc, rd)

@@ -4285,6 +4285,15 @@ def dab_cost_first(D, xd):
 EC39A = dict(maker="DMEGC", pn="EC39A", mat="DMR95", src=MAG + "DMEGC-EC39A.pdf p.1", Ae=133e-6, Amin=128.7e-6, le=103e-3,
              Ve=13699e-9, mass=0.070, d_leg=13.0e-3, win_h=29.2e-3, win_w=8.8e-3, mu_i=3300.0,
              note="window and post from the ETD 39/20/13 class (MAS); the EC39A drawing is image-only - confirm the bobbin")
+
+def _aux75_rating_w():
+    """The 75 W aux block's continuous rating from its own spec (one design for every module, D-076); 82.5 W was the
+    rating before the SELV re-allocation and the re-rate - never a constant here again."""
+    try:
+        return float(load("sim/out/aux_hv_design/aux75_spec.json")["ratings"]["design (one design for both)"]["continuous_W"])
+    except Exception as exc:
+        raise SystemExit("aux75_spec ratings missing for the transformer type test: %s" % exc)
+
 AUX75_CHOICE = dict(setback=0.5e-3, p_wire=("litz", 30, 0.10e-3), s_wire=("litz", 200, 0.10e-3), a_wire=("litz", 100, 0.10e-3),
                     t_p1sh=6, t_shs=4, t_sa=4, t_ap2=1, t_out=2)   # litz P and live: solid 0.6 / 1.0 mm lose 1.8-3.0 W in the gap fringing
 
@@ -4366,7 +4375,9 @@ def write_design_aux75(spec, r, om, ins):
                              levels=[dict(label="Reinforced: primary + live + shield - SELV", u_rp=ii["u_rp_V"], pd_test=2505.0,
                                           ac=ii["ac_type_test_Vrms"], imp=ii["impulse_V"], cr_pd1=ii["creepage_mm"]["pd1"],
                                           cr_pd2=ii["creepage_mm"]["pd2"], clearance=ii["clearance_mm"])],
-                             routine_tests=ii["routine_pd"], type_tests=f"AC {ii['ac_type_test_Vrms']} V rms 60 s; impulse {ii['impulse_V']} V; thermal at 82.5 W"),
+                             routine_tests=ii["routine_pd"], type_tests=f"AC {ii['ac_type_test_Vrms']} V rms 60 s; impulse {ii['impulse_V']} V (the in-situ requirement at 2,000 m; the "
+                                        f"sea-level test equivalent scales by the altitude factor of the insulation report); thermal run at "
+                                        f"{_aux75_rating_w():.1f} W (the aux block's continuous rating, aux75_spec)"),
              loss_model=dict(core={"k": k_, "alpha": a_, "beta": b_, "Ve_m3": c["Ve"], "N": A["np"], "Ae_m2": c["Ae"],
                                    "formula": "unipolar DCM flux (iGSE), DMR95 at 100 C"},
                              winding={"R_ac_per_harmonic": None, "referred_to": "n/a - use loss_table", "temperature_C": 100.0,

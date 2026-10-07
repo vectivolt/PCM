@@ -4,7 +4,7 @@
 
 > Where the parts come from, how firm each price is, what the products cost at catalogue prices and at a 5,000-unit build, and how that compares with the owner's price benchmark.
 
-![as of](https://img.shields.io/badge/as%20of-2026--10--06-5B6B7A?style=flat-square)
+![as of](https://img.shields.io/badge/as%20of-2026--10--07-5B6B7A?style=flat-square)
 ![quotes](https://img.shields.io/badge/supplier%20quotes-none%20yet-E4572E?style=flat-square)
 ![budget](https://img.shields.io/badge/PV--P75%20budget%20800%20USD-not%20met-F2A007?style=flat-square)
 ![source](https://img.shields.io/badge/generated%20by-gen%2Fcost.py-0B1F33?style=flat-square)
@@ -23,10 +23,10 @@
 
 | Product | What the figure is | kW | Catalogue USD | USD/kW | 5,000 units USD | USD/kW | Evidence | 5k ÷ benchmark-equivalent BOM |
 |---|---|---:|---:|---:|---:|---:|---|---:|
-| **PV-P75** | BOM of drawn boards (PV-PWR + PV-CTL) | 75 | **978** | 13.0 | **819** | 10.9 | 66 % of catalogue on estimates · 15 % of 5k on published breaks · 1 unpriced line (lower bound) | 2.0× (≈ 410 USD) |
-| **PV-P100/110** | BOM of drawn boards (PV-PWR-4 + PV-CTL) | 100 / 110 | 1,169 | 11.7 / 10.6 | 979 | 9.8 / 8.9 | 64 % of catalogue on estimates · 15 % of 5k on published breaks · 2 unpriced lines (lower bound) | 1.8× / 1.8× |
-| **PCS-P125** | BOM of drawn boards, three-wire (PCS-PWR + PCS-CTL-3W) | 125 | 1,588 | 12.7 | 1,348 | 10.8 | 77 % of catalogue on estimates · 9 % of 5k on published breaks · 1 unpriced line (lower bound) | 1.8× (≈ 744 USD) |
-| **PCS-P125-4W** | BOM of drawn boards, four-wire (PCS-PWR-4W + PCS-CTL-4W) | 125 | 1,924 | 15.4 | 1,635 | 13.1 | 76 % of catalogue on estimates · 9 % of 5k on published breaks · 2 unpriced lines (lower bound) | 2.2× (≈ 744 USD) |
+| **PV-P75** | BOM of drawn boards (PV-PWR + PV-CTL) | 75 | **980** | 13.1 | **820** | 10.9 | 66 % of catalogue on estimates · 16 % of 5k on published breaks · 1 unpriced line (lower bound) | 2.0× (≈ 410 USD) |
+| **PV-P100/110** | BOM of drawn boards (PV-PWR-4 + PV-CTL) | 100 / 110 | 1,171 | 11.7 / 10.6 | 981 | 9.8 / 8.9 | 64 % of catalogue on estimates · 16 % of 5k on published breaks · 2 unpriced lines (lower bound) | 1.8× / 1.8× |
+| **PCS-P125** | BOM of drawn boards, three-wire (PCS-PWR + PCS-CTL-3W) | 125 | 1,589 | 12.7 | 1,349 | 10.8 | 77 % of catalogue on estimates · 9 % of 5k on published breaks · 1 unpriced line (lower bound) | 1.8× (≈ 744 USD) |
+| **PCS-P125-4W** | BOM of drawn boards, four-wire (PCS-PWR-4W + PCS-CTL-4W) | 125 | 1,926 | 15.4 | 1,636 | 13.1 | 75 % of catalogue on estimates · 9 % of 5k on published breaks · 2 unpriced lines (lower bound) | 2.2× (≈ 744 USD) |
 | PCS-P125 | design study, 3-wire (two-level, pcs_spec.json); the drawn boards above cost more (D-063) | 125 | 1,431 | 11.4 | 1,149 | 9.2 | 5 % of 5k on published prices | — |
 | PCS-P125 | design study, 4-wire (two-level, pcs_spec.json); the drawn boards above cost more (D-063) | 125 | 1,731 | 13.8 | 1,392 | 11.1 | not stated for 4-wire | — |
 | PV-P75 earlier platform | BOM of drawn boards (8 boards) | 75 | 2,836 | 37.8 | 2,275 | 30.3 | 51 % of catalogue on estimates · 17 % of 5k on published breaks · 7 unpriced lines (lower bound) | 5.5× |
@@ -44,8 +44,8 @@ catalogue price times a factor per part class from [`gen/data/volume_factors.csv
 by line, is [`bom/COST.md`](../../bom/COST.md).
 
 **Note on the PCS ratio.** Both inverter builds are now drawn and priced by `gen/cost.py`
-([D-074](../requirements/DECISIONS.md)): PCS-P125 (three-wire) 1,588 USD at catalogue prices and 1,348 USD at 5,000 units
-(10.8 USD/kW), PCS-P125-4W (four-wire) 1,924 / 1,635 USD (13.1 USD/kW; a lower bound, two lines unpriced). The
+([D-074](../requirements/DECISIONS.md)): PCS-P125 (three-wire) 1,589 USD at catalogue prices and 1,349 USD at 5,000 units
+(10.8 USD/kW), PCS-P125-4W (four-wire) 1,926 / 1,636 USD (13.1 USD/kW; a lower bound, two lines unpriced). The
 design-study rows below them are `pcs_spec.json`'s, for reference. Two benchmark adjustments exist for the inverter:
 `gen/cost.py` scales the benchmark BOM by the rated **DC port** current (250 A) and arrives at 744 USD, the figure in the
 table's last column (1.8× / 2.2×); [ARCHITECTURE-PCS.md §12](../requirements/ARCHITECTURE-PCS.md#12-cost--both-products-catalogue-and-5000-units-against-the-benchmark)
@@ -62,6 +62,24 @@ arithmetic on the two records). Neither is a quotation.
 | PCS-P125 module | 1,557 / 1,322 USD | **1,588 / 1,348 USD** | the AC start-up path (24.80 / 20.57 USD, [D-074](../requirements/DECISIONS.md)) and the control board with the Ethernet bridge fitted (PCS-CTL 21.32 USD three-wire at 1 ku, [design check](../../hardware/PCS-CTL/outputs/PCS-CTL_design_check.txt)) |
 | PCS-P125-4W module | — | **1,924 / 1,635 USD** | new: fourth leg, neutral inductor, 4-pole contactors, fourth fan and heatsink section; 1,924 / 1,635 USD before [D-076](../requirements/DECISIONS.md)'s 200 Ω precharge resistor, whose RFQ line has no estimate row and is now unpriced (so the total fell by that line's 4.00 / 3.20 USD) |
 | Auxiliary block AUX-75 | 36.42 USD | 36.42 USD | re-rated to 30 / 48 W live and 42.2 / 64.2 W SELV with the same parts list and no cost delta ([D-076](../requirements/DECISIONS.md)) |
+
+**Cost movement of 2026-10-07 — the DESAT string** ([D-081](../requirements/DECISIONS.md), review R4 E01): two Vishay
+BYG23T-M3/TR (1,300 V) per gate-drive channel replace the US1MH (1,000 V) on both 1,700 V presets — the inverter keeps two
+diodes per channel, the PV phases go from three to two. The diode lines (catalogue / 5,000 units):
+
+| Module | Diodes, before → after | Diode lines | Module BOM, before → after |
+|---|---|---:|---:|
+| PV-P75 | 36 US1MH → 24 BYG23T | +1.84 / +1.59 USD | 977.71 / 818.82 → **979.55 / 820.41 USD** |
+| PV-P100/110 | 48 US1MH → 32 BYG23T | +2.46 / +2.12 USD | 1,168.82 / 978.62 → **1,171.28 / 980.74 USD** |
+| PCS-P125 | 12 US1MH → 12 BYG23T | +1.12 / +0.96 USD | 1,587.79 / 1,348.18 → **1,588.90 / 1,349.14 USD** |
+| PCS-P125-4W | 16 US1MH → 16 BYG23T | +1.49 / +1.28 USD | 1,924.28 / 1,634.70 → **1,925.77 / 1,635.98 USD** |
+
+<sub>BYG23T-M3/TR: LCSC C145454, 0.1257 USD at 500+ (the catalogue basis) and 0.1079 USD at 5,400+ (a published break,
+REAL), read 2026-10-07 ([prices.csv](../../gen/data/prices.csv)); the US1MH it replaces was an estimate of 0.0326 /
+0.0277 USD. Source: [bom/COST.md](../../bom/COST.md) and the four `*_costed_BOM.csv`. The module difference can differ by
+0.01 USD from the diode lines (rounding). The review priced this option only as a per-diode premium times 12 / 16
+diodes ([review_r4.csv](../../gen/data/review_r4.csv) E01, "no quote"); the premium read here is about 0.08 USD per diode
+at 5,000 units.</sub>
 
 The earlier steps — the live LCSC price of the SG2M040170HJ (5.07 USD at 90+ instead of the 4.07 USD estimate,
 [D-069](../requirements/DECISIONS.md)), the inverter's frozen phase-current sensor and its six removed DESAT diodes
@@ -124,6 +142,13 @@ on 2026-10-04, nothing quoted:
 | Type-B residual-current sensor | RFQ (fluxgate class) | PCS-PWR (3 conductors), PCS-PWR-4W (3 + N) | **no data sheet on file** | RFQ estimate 10 USD (three-wire) / 12 USD (four-wire) | a part that detects DC and carries 4 × 250 A busbars, to the interface contract of [D-078](../requirements/DECISIONS.md): ±2.0 A, 2.50 V + 1.00 V/A, a fault band outside 0.5–4.5 V, a 50 mA test winding, 5 V ≤ 50 mA, apertures 27 × 19 / 30.5 × 18 mm (ASSUMED until a part is chosen) |
 | Four-wire DC precharge resistor 200 Ω | RFQ, same family as the 220 Ω | PCS-PWR-4W | no pulse curve on file | **unpriced** (no estimate row) | the four-wire total is a lower bound by this line |
 
+**Part added on 2026-10-07** — the DESAT string of the 1,700 V presets ([D-081](../requirements/DECISIONS.md), review R4
+E01):
+
+| Function | Maker · part | Where | Qualification evidence | Price evidence (catalogue / 5,000 units) | Open point |
+|---|---|---|---|---|---|
+| DESAT blocking diode, 1,300 V, 2 per gate-drive channel | Vishay · BYG23T-M3/TR (SMA) | PV-PWR 24, PV-PWR-4 32, PCS-PWR 12, PCS-PWR-4W 16 (and PVCELL-25 of the earlier platform) | datasheet on file (doc 89429): V<sub>RRM</sub> 1,300 V, t<sub>rr</sub> ≤ 75 ns, avalanche E<sub>R</sub> 5 mJ non-repetitive, I<sub>R</sub> ≤ 5 / 50 µA at 25 / 125 °C, C<sub>J</sub> 9 pF at 4 V; commercial grade, **no AEC-Q101 variant**; pin audit pass | LCSC C145454: 0.1257 USD at 500+, 0.1079 USD at 5,400+ (REAL), read 2026-10-07 | LCSC showed 10,840 in stock against 60–160 k parts a year: a second source by RFQ (ST STTH112A was rejected: dearer, or failing SRC-2) |
+
 Line-by-line prices and their sources: [`bom/PV-P75_costed_BOM.csv`](../../bom/PV-P75_costed_BOM.csv),
 [`bom/PCS-P125_costed_BOM.csv`](../../bom/PCS-P125_costed_BOM.csv),
 [`bom/PCS-P125-4W_costed_BOM.csv`](../../bom/PCS-P125-4W_costed_BOM.csv). The survey
@@ -163,7 +188,8 @@ How the PV-P75 figure got here (each step is a record):
 | Asian devices and drivers on the full-featured platform | 2,789 USD (37 USD/kW) | [COST-REVIEW.md §1](../requirements/COST-REVIEW.md) |
 | Cost-first architecture, architect's costed list | 966 USD (12.9 USD/kW) | [D-045](../requirements/DECISIONS.md), [ARCHITECTURE-COSTFIRST.md §14](../requirements/ARCHITECTURE-COSTFIRST.md#14-cost-summary-from-gendatacostfirst_bomcsv) |
 | Cost-first, drawn boards PV-PWR + PV-CTL, with the live LCSC switch price | 976 USD (13.0 USD/kW); 817 USD at 5,000 units | [bom/COST.md](../../bom/COST.md) of 2026-10-05 |
-| Control board rev A2: recorder flash, discrete I/O, relay, Ethernet footprints ([D-075](../requirements/DECISIONS.md)) | 978 USD (13.0 USD/kW); 819 USD at 5,000 units | [bom/COST.md](../../bom/COST.md), as of 2026-10-06 |
+| Control board rev A2: recorder flash, discrete I/O, relay, Ethernet footprints ([D-075](../requirements/DECISIONS.md)) | 978 USD (13.0 USD/kW); 819 USD at 5,000 units | [bom/COST.md](../../bom/COST.md) of 2026-10-06 |
+| DESAT string re-rated: 2 × BYG23T-M3/TR per channel instead of 3 × US1MH ([D-081](../requirements/DECISIONS.md)) | 980 USD (13.1 USD/kW); 820 USD at 5,000 units | [bom/COST.md](../../bom/COST.md), as of 2026-10-07 |
 
 The earlier platform is re-priced on every run with today's prices, so its figure in the table above differs slightly
 from the 2,789 USD of the cost review.
@@ -231,7 +257,7 @@ in [lcsc_semis.csv](../../sim/data/lcsc_semis.csv) and 73 datasheets filed). Sto
 | The main switch is on LCSC | Sichain SG2M040170HJ, C42456100: 6.73 USD at 1, **5.07 USD at 90+**, 418 in stock — enough for 17 PV-P75, 13 PV-P100-110 or 11 PCS-P125 modules; LCSC-only, so it is not in the JLCPCB assembly library | the earlier "not on LCSC, 4.07 USD estimate" was wrong (the mirror searched holds only the JLCPCB library); the cost model now uses the live price: +24 / +32 / +36 USD per PV-P75 / PV-P100-110 / PCS-P125 module |
 | Positions orderable as specified | 25 of 42 incumbents are in stock; 17 are not orderable as specified, and some in stock are shallow (the DAB clamp VS-60EPS16-M3: 36 pieces, one DAB module) | a recommended part per position, with its re-check |
 | Adopted | the Bourns SMBJ33A / SMBJ36A / SMBJ58CA TVS (not on LCSC) become **MDD SMBJ33A / SMBJ36A / SMBJ58CA** (C173526 / C114001 / C114007, in stock) — same JEDEC numbers, ratings, package and polarity marking; Bourns stays the alternate | the only change on the boards |
-| Recorded as options, not adopted | Vishay US1MHE3 for the out-of-stock US1MH (leakage 10 against 5 µA in the DESAT string); Yangjie 60EPS16 for the DAB clamp (0.90 against 2.67 USD at 1,000, −36 USD per DAB module; surge with V<sub>RRM</sub> reapplied not stated); ST STTH8L06G for VS-8ETU04S; Yangjie BZX84B20 / B6V8 (no temperature coefficient stated); Nexperia BZX84-B18-QR for the unobtainable BZX84-A18 (±2 % instead of ±1 %); Vishay SQ2318AES for PMV30ENEAR (clamp timing re-check); UTC 2P50G for IRFR9214 (8.5 against 3.0 Ω, hold-current re-check); Nexperia PBSS4041PX for PBSS5540X; JSCJ FMMT619 for ZXTN25040 | each needs its stated re-check first; a main-switch alternate stays "functional" by rule, because the Miller and short-circuit analyses are device-specific ([D-041](../requirements/DECISIONS.md)) |
+| Recorded as options, not adopted | Vishay US1MHE3 for the out-of-stock US1MH (leakage 10 against 5 µA in the DESAT string; since [D-081](../requirements/DECISIONS.md) the US1MH is left only in the 1,200 V-class DAB / GDRV-HB string); Yangjie 60EPS16 for the DAB clamp (0.90 against 2.67 USD at 1,000, −36 USD per DAB module; surge with V<sub>RRM</sub> reapplied not stated); ST STTH8L06G for VS-8ETU04S; Yangjie BZX84B20 / B6V8 (no temperature coefficient stated); Nexperia BZX84-B18-QR for the unobtainable BZX84-A18 (±2 % instead of ±1 %); Vishay SQ2318AES for PMV30ENEAR (clamp timing re-check); UTC 2P50G for IRFR9214 (8.5 against 3.0 Ω, hold-current re-check); Nexperia PBSS4041PX for PBSS5540X; JSCJ FMMT619 for ZXTN25040 | each needs its stated re-check first; a main-switch alternate stays "functional" by rule, because the Miller and short-circuit analyses are device-specific ([D-041](../requirements/DECISIONS.md)) |
 | No orderable part | the 1700 V flyback switch IV2Q171R0D7Z (listed, 0 in stock; WeEn WNSC2M1K0170B7 through TME / element14, not verified on their pages) and the ZXTP25040 PNP followers of the inverter's gate buffer (6.6 A peak; no LCSC part carries it) | a distributor or a quotation |
 | Price book corrected | four rows of `gen/data/prices.csv` had been keyed to look-alike listings of other makers (Hottech BAS16, UMW BAT54, MDD BAT54S, ElecSuper BSS138BK) and now carry the genuine Nexperia C-numbers | the small-signal prices match the drawn maker |
 | What the datasheets do not give | no Chinese SiC datasheet states a short-circuit rating; AEC-Q101 is stated only by InventChip and the Western automotive variants; no maker publishes a reliability report or a cosmic-ray curve | risk A2 unchanged |
@@ -240,11 +266,31 @@ in [lcsc_semis.csv](../../sim/data/lcsc_semis.csv) and 73 datasheets filed). Sto
 module): PV-P75 235.93 / 178.73 / 167.58, PV-P100-110 308.23 / 233.79 / 219.54, PCS-P125 306.14 / 232.05 / 222.64 —
 catalogue prices at small quantities, not a 5,000-unit price ([lcsc_semis.md §3.3](../../sim/data/lcsc_semis.md)).</sub>
 
+<a id="cost-priorities-r4"></a>
+
+## 💰 The reviewer's cost priorities (re-check R4)
+
+The economical re-check R4 ([review_r4.csv](../../gen/data/review_r4.csv), [D-081](../requirements/DECISIONS.md))
+priced each decision area only as a sensitivity — nothing in it is a quotation — and kept the order of spending:
+protection ratings and the evidence for the chosen parts first, quotations for the custom parts next, topology and
+switching frequency only after the gates close. What it means for the cost model (estimates, catalogue / 5,000 units):
+
+| Priority | What the review asks | What the records carry now |
+|---|---|---|
+| Keep the three- and four-wire inverters separate (E12) | the no-change boundary: applications without a neutral do not pay for the fourth leg | two assemblies and two module BOMs, 1,349 against 1,636 USD at 5,000 units — about 287 USD apart, with the four-wire total a lower bound (two lines unpriced) |
+| Magnetics quotations before reopening topology (E12) | quote the present magnetics with inductance at current, losses, insulation and thermal acceptance fixed; powder cores, custom constructions or a higher frequency only after the gates close; no damping, protection or screening removed to meet a spreadsheet target | [RFQ-MAGNETICS.md](../requirements/RFQ-MAGNETICS.md): ten RFQs whose rows a quotation must answer row by row (a price with a nominal inductance only is incomplete); the three-wire filter magnetics are about 442 USD at 5,000 units, so 10 % is about 44 USD per module |
+| The 48 kHz weight-sensitive candidate (E12) | worth re-evaluating for weight-sensitive products; not a qualified swap | in the D-060 study it saves 15.7 kg of filter for +25.7 USD per module at 5,000 units — cheaper delivered only if freight exceeds about 1.56–1.64 USD/kg; it has no winding sheet, needs seven devices per switch and is not drawn ([RFQ-MAGNETICS.md, Appendix A](../requirements/RFQ-MAGNETICS.md#appendix-a--the-48-khz-weight-sensitive-variant-information-not-a-substitution)) |
+| Two module grades against a supplier bin (E05) | preferred: measure and pool the devices into grade-A and grade-B banks, the grade bound to the serial; alternative: a supplier-guaranteed low-resistance bin or a qualified substitute; boundary: grade B only inside its published map, short-circuit survival still mandatory | the two grades of D-080, with grade B's rating stated (124.57 kW at 60 °C inlet, PF 1, 400 V); the bin is an RFQ item to Sichain, priced only as a sensitivity: 0.50 USD per device = 18 / 24 USD per three- / four-wire module |
+| The DESAT string (E01) | the higher-rated diode pair first, a sharing network only if procurement makes it attractive | 2 × BYG23T-M3/TR: +0.96 / +1.28 USD per inverter and +1.59 / +2.12 USD per PV module at 5,000 units (above) |
+| Firmware and contracts before hardware (E02, E04, E06, E11) | the harness contract and firmware before DC capacitance, a brake chopper or an inter-module trip line; no blanket capacitor or chopper upgrade for the off-grid envelope; no expensive fan on every product | no BOM change; the cold-rated fan stays an RFQ (the −30 °C fan on file adds 225–399 USD per inverter); "zero additional BOM" still leaves the firmware and test effort (E02) |
+
 ## 🗺️ Next cost levers
 
 | Lever | Expected effect | Cost in function | Record |
 |---|---|---|---|
-| Supplier quotations for SiC devices, inductors, contactors, film capacitors, the inverter's current sensors | turns the largest estimates into numbers | none | [D-052](../requirements/DECISIONS.md) |
+| Supplier quotations for SiC devices, inductors, contactors, film capacitors, the inverter's current sensors | turns the largest estimates into numbers; for the ten custom magnetic parts the rows each quotation must hold are indexed in [RFQ-MAGNETICS.md](../requirements/RFQ-MAGNETICS.md) (18 rows there still have no number) | none | [D-052](../requirements/DECISIONS.md), [D-081](../requirements/DECISIONS.md) |
+| A supplier-guaranteed R<sub>DS(on)</sub> bin for the inverter's SiC devices | every module grade A instead of the grade mix of D-080 | a premium per device: 0.50 USD would be 18 / 24 USD per three- / four-wire module (sensitivity) | [D-080](../requirements/DECISIONS.md), [D-081](../requirements/DECISIONS.md) |
+| The 48 kHz filter candidate for weight-sensitive products | −15.7 kg of filter, +25.7 USD per module at 5,000 units (study) | a new L1 winding sheet, seven devices per switch, the protection and thermal checks repeated — not a qualified substitution | [D-060](../requirements/DECISIONS.md), [RFQ-MAGNETICS.md](../requirements/RFQ-MAGNETICS.md) |
 | Powder-core inductors for the inverter's filter | the filter is 443 USD of the 1,131 USD (39 %); powder cores saturate softly and could be sized for the overload peak instead of the trip point | a magnetics search that does not exist yet; L1 already runs at its 140 °C hot-spot limit | [D-060](../requirements/DECISIONS.md) |
 | Fewer press-fit studs on the inverter's power board | 48 studs cost +39 USD against the study, which allowed 13 USD for studs, harness and standoffs together | a fastening concept with fewer studs | [D-063](../requirements/DECISIONS.md) |
 | The PV-P100/110 inductor | the four-phase build is derated (full power to 35 °C inlet): its inductor hot spot is 5.3 K over the 155 °C limit at 114 m³/h per phase and 45 °C inlet (calculated) | a litz-wound inductor (about +17 USD per phase) or more airflow | [D-056](../requirements/DECISIONS.md), MG-17 |

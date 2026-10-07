@@ -52,10 +52,10 @@ Result: 2 better, 24 meets, 3 below, 5 not assessed, 0 pending, out of 34 publis
 
 | Board | Rev | Parts | Nets | Build checks |
 |---|---|---|---|---|
-| PV-PWR | A2 | 1874 | 939 | all passed |
+| PV-PWR | A2 | 1862 | 927 | all passed |
 | PV-CTL | A2 | 316 | 222 | all passed |
 
-Module BOM: 311 lines, 2180 parts (`bom/PV-P75_module_BOM.csv`); cost in `bom/COST.md`.
+Module BOM: 311 lines, 2168 parts (`bom/PV-P75_module_BOM.csv`); cost in `bom/COST.md`.
 
 ## Reading this table
 

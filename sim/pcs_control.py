@@ -14,7 +14,9 @@ Out:  sim/out/pcs_control/{report.md, pcs_control_spec.json, bode_scr.png, steps
 Sections added for D-074's open items: 4b ride-through limiter, 7b VF secondary restoration and accuracy, 8b THDu, 8c output
 imbalance, 9b four-wire neutral leg and per-phase loops.  Review R3 (615e4b5): 9e the DC-start synchronised close (one coil at a time,
 executed with faults), 9c-2 the four-wire short against both hardware layers (the onset clamp), 7d the coupled PCS / PV DC bus (the
-ASSUMED 50 us stop replaced), 7c the standard-style VF envelope, 4c the onset noise term.
+ASSUMED 50 us stop replaced), 7c the standard-style VF envelope, 4c the onset noise term.  Review R4 (845131d, economical re-check):
+7e the inter-module DC cable in the coupled PCS / PV bus with the PV source's extremes and the enforced set-point window (E04), 7c the
+envelope as the module's declared output capability with the release sequence (E06), the R4 section (E03 restated).
 
 CALCULATED / SIMULATED, not measured.  One plant, two views:
   * per phase (alpha-beta; three-wire, so the C_f star on the DC midpoint carries common mode only): L1 + R_dc, C_f with the
@@ -149,11 +151,12 @@ ASSUME = {
                      {"over": ((1.0, 2.0), (3.0, 1.4), (500.0, 1.2), (float("inf"), 1.1)),
                       "under": ((20.0, 0.0), (500.0, 0.7), (10000.0, 0.8), (float("inf"), 0.9))}),
                     "VF transient envelope for a 100 % linear (resistive) load step, |v_C| in pu against the time after the step, "
-                    "piecewise constant (each limit valid up to its time in ms): first = the envelope DECLARED (review R3-05: standard-style "
-                    "points, not set to the simulation) = second = the ITIC (CBEMA) curve as remembered (2.0 / 1.4 / 1.2 / 1.1 pu over to "
-                    "1 ms / 3 ms / 0.5 s / steady, 0 / 0.7 / 0.8 / 0.9 pu under to 20 ms / 0.5 s / 10 s / steady) - FROM MEMORY, not "
-                    "verified: the standard texts (ITIC, IEC 62040-3) are not on file and are the gate; adopting it as a requirement is the "
-                    "adopted as REQUIREMENTS AC-04 under the delegation of D-051 (D-080)"),
+                    "piecewise constant (each limit valid up to its time in ms): first = the module's DECLARED OUTPUT CAPABILITY (review "
+                    "R3-05: standard-style points, not set to the simulation; review R4 E06: what the module does on a load step, not a "
+                    "load-compatibility claim) = second = the ITIC (CBEMA) curve as remembered (2.0 / 1.4 / 1.2 / 1.1 pu over to 1 ms / 3 ms / "
+                    "0.5 s / steady, 0 / 0.7 / 0.8 / 0.9 pu under to 20 ms / 0.5 s / 10 s / steady) - FROM MEMORY, not verified: the "
+                    "standard texts (ITIC, IEC 62040-3) are not on file and are the gate; declared as REQUIREMENTS AC-04 under the "
+                    "delegation of D-051 (D-080)"),
     "vf_classes_iec62040_3": ({"class 1": {"over": ((5.0, 1.3), (100.0, 1.2), (float("inf"), 1.1)),
                                            "under": ((5.0, 0.7), (100.0, 0.8), (float("inf"), 0.9))},
                                "class 2": {"over": ((5.0, 1.3), (100.0, 1.2), (float("inf"), 1.1)),
@@ -163,6 +166,20 @@ ASSUME = {
                               "IEC 62040-3 output dynamic performance classifications 1 / 2 / 3 as remembered (FROM MEMORY, uncertain in "
                               "the intermediate step): +/-30 % to 5 ms, +/-20 % to 100 ms, +/-10 % after; class 2 tolerates 1 ms and class 3 "
                               "10 ms at zero voltage; not verified - the standard text is the gate, no class is claimed"),
+    "dc_cable": ({"run_m": (2.0, 10.0, 20.0), "L_uH_per_m": (0.6, 1.0), "mm2": (70.0, 95.0), "T_C": (20.0, 90.0),
+                  "rho_20C_ohm_m": 1.724e-8, "alpha_per_K": 0.00393, "sub": 8},
+                 "inter-module DC cable (review R4 E04): one run per PV module from its port-B terminals to the PCS link, DC+ and DC- laid "
+                 "together in the cabinet (the reference harness: 2 x 10 m of 70-95 mm2 copper); run lengths studied, loop inductance per "
+                 "metre of run (ASSUMED 0.6-1.0 uH/m for a pair laid together), cross-sections and conductor temperatures; R = 2 x run x "
+                 "rho (1 + alpha (T - 20 C)) / A (annealed copper); the dynamic cases take the LOWEST resistance (95 mm2 at 20 C: the least "
+                 "damping - capacitor ESR, busbars and the skin effect not credited), the static drop the highest (70 mm2 at 90 C); the n "
+                 "modules' runs identical (n in parallel: R / n, L / n, the banks n C_B on one node); the runs as lumped R-L, integrated "
+                 "exactly (zero-order hold) in 'sub' steps per control period"),
+    "dc_bus_window": ({"default_V": 750.0, "round_V": 5.0},
+                      "VF on a battery-less DC bus (review R4 E04, the product rule): the PV modules' default CV set point - the reviewer's "
+                      "economical prototype recommendation, adopted where the PCS operating map allows it; a build whose full-load floor "
+                      "at the PCS terminals (+ the harness drop, over the PV's V_B accuracy) is above it gets the next multiple of round_V; "
+                      "the firmware limit is the PV coordination row's own validity (read at run time)"),
     "dc_reg_T_s": (0.02, "four-wire DC-component regulators (one-cycle mean -> integrator -> offset on the reference): time constant, "
                          "a firmware parameter (review R2-13 compares 0.2 s: the half-wave DC transient then lasts 0.8 s)"),
     "sync_close": ({"tau_sync_s": 0.3, "dtheta0_deg": 30.0, "dv0": 0.04, "df0_Hz": 0.3, "df_max_Hz": 0.1, "t_sync_max_s": 60.0,
@@ -342,6 +359,11 @@ def load():
                    L=cell["inductor"]["L_at_45A_uH"] * 1e-6, L_tol=cell["inductor"]["L_tolerance_pct"] / 100,
                    I_pk=cell["inductor"]["I_peak_normal_max_A"], n_cells=n_c, P_rated=p_r * 1e3, P_max=p_m * 1e3,
                    t_ext=grab(open(PV_CHK).read(), r"external stop ENABLE.*?response ([\d.]+) ms", "PV-CTL external stop")[0] * 1e-3)
+    cl_ = pcs_["current_loop"]                                       # review R4 E04: the PV source's extremes, read from the same spec
+    P["pv"].update(fc_min=min([cl_["crossover_range_Hz_N3"][0]] + [min(v["fc"]) for v in cl_["L_robustness_N3"].values()]),
+                   t_comp=1e-3 / pcs_["sampling"]["current_loop_kHz"], k_margin=grab(th_, r"x(\d+) ASSUMED", "PV coordination margin rule")[0],
+                   acc=grab(open(PV_CHK).read(), r"ADC accuracy.*?= ([\d.]+) % < 1 %", "PV-CTL ADC accuracy")[0] / 100,
+                   I_B_max=grab(open(REQ).read(), r"\| PV-08 \| Port B maximum current \| ([\d.]+) A", "REQUIREMENTS PV-08")[0])
     P["coil"] = dict(pull=cc["pull_W"], t_pull=cc["t_pull_s"], hold=cc["hold_W"], live_peak=ab["rating"]["live_peak_W"],
                      base_pwm={b: step_w(b, "running, every coil") - 3 * cc["hold_W"] for b in bl},           # DC + AC1 + AC2 held
                      base_idle={b: step_w(b, "relay test, AC contactor 1 alone") - cc["hold_W"] - cc["pull_W"] for b in bl},
@@ -434,8 +456,12 @@ def load():
         LN_pk_A=sp["declarations"]["offgrid_load_acceptance"]["half_wave_four_wire"]["L1_part_continuous_peak_A"])
     ow = sp["declarations"]["operating_windows"]["3W+PE"]
     P["vf_vdc"] = (ow["full_load_from"], 750.0, ow["operating_to"])     # VF DC voltages for THDu (window ends + nominal)
+    P["op_win"] = {k: v["full_load_from"] for k, v in sp["declarations"]["operating_windows"].items()}   # review R4 E04: set-point floors
     P["pc"] = protection_chain(sp, P, ctl)
     assert "protection_chain" in sp, "pcs_spec has no protection_chain: the two-layer replay (review R3-02) needs its delay chain"
+    _ds = sp["commutation_and_gate_drive"].get("desat", {})           # review R4 E03: the DESAT figures, restated for the record only
+    P["desat"] = dict(V_DS_trip_V=_ds.get("V_DS_at_OC_trip_V"),
+                      backstop_A=sp["protection_chain"].get("backup_as_drawn", {}).get("desat_backstop_A_per_device"))
     dcu, ps = sp["protection_chain"]["delay_chain_us"]["local window"], sp["phase_current_sensor"]
     pick = lambda pre: float(next(v for k, v in dcu.items() if k.startswith(pre)))       # noqa: E731
     ilrc = grab(open(PVCTL).read(), r'IL_RC = \("(\d+)R", "(\d+)n"\)', "gen/pv_ctrl.py IL_RC")
@@ -1901,7 +1927,7 @@ def prot_run(P, G, S, X, t_end, ev0, hw, soft=None):
 
     def ev(t, S_, X_):
         ev0(t, S_, X_)
-        v = X_["vdc"]
+        v = max(X_["vdc"], getattr(S_.get("src"), "v_hi", 0.0))         # review R4 E04: a cable source's inter-sample peak
         if soft and "soft" not in st and v >= P["ov_soft"][0]:
             st["soft"] = t + P["ov_soft"][1] * 1e-6
         if soft == "stop" and "soft" in st and t >= st["soft"]:
@@ -1970,6 +1996,17 @@ VFD = lambda: dict(ioff=1.0, vclamp=A("vf_vclamp_pu"))      # the VF firmware me
 VF_ENV_D079 = {"over": ((0.5, 1.9), (3.0, 1.3), (5.0, 1.2), (20.0, 1.1), (50.0, 1.05), (float("inf"), 1.03)),   # D-079's declared
                "under": ((0.5, 0.35), (3.0, 0.75), (20.0, 0.88), (50.0, 0.95), (float("inf"), 0.97))}        # envelope: set to contain the
 #                                                             simulated worst corner - SUPERSEDED by the standard-style points (review R3-05)
+VF_STATEMENT = ("the ITI (CBEMA) curve describes the input tolerance of information-technology equipment at 120 V / 60 Hz; it is not a product "
+                "or distribution design specification, so meeting ITIC-style points does not by itself establish compatibility with 400 / 230 V "
+                "loads - that is the load's own specification, agreed per application (review R4 E06); the points state what the module does on "
+                "a load step (its declared output capability), nothing about what a load tolerates")
+VF_RELEASE = ("grid-following operation qualified and released first",
+              "grid forming (VF) released for managed island loads with an agreed voltage-time and interruption specification, against which "
+              "the declared capability is checked",
+              "general-purpose off-grid or UPS-like supply only after the required output class and its test method are established "
+              "(IEC 62040-3 not claimed)")
+VF_NOT_CLAIMED = ("compatibility with an arbitrary 400 / 230 V load", "an IEC 62040-3 output dynamic performance class (1-3)",
+                  "UPS-like or general-purpose off-grid supply")
 
 
 def env_margins(recs, env):
@@ -2070,14 +2107,18 @@ def study_vf_bounded(P, G, R):
     marg["D-079 envelope (set to contain the simulation; SUPERSEDED)"] = env_margins(wc, VF_ENV_D079)
     return dict(steps=out, battery_rec=recs, cap_follow=db, e_ret_J=e_ret, t_c_max_ms=1e3 * t_c, cap_tc=dc_, cap_tc_over=dc2, p_pre_W=p_pre,
                 uncoordinated={}, envelope=A("vf_envelope")[0], itic=A("vf_envelope")[1], f_io=G["f_io"], vclamp_pu=A("vf_vclamp_pu"),
-                envelope_basis=dict(declared="the ITIC (CBEMA) curve style points FROM MEMORY - a standard-style curve, not set to the "
-                                             "simulation (review R3-05); the standard texts (ITIC, IEC 62040-3) are not on file and are the gate",
+                envelope_basis=dict(declared="the module's DECLARED OUTPUT CAPABILITY on a 100 % linear load step (what the module does), drawn "
+                                             "as ITIC (CBEMA)-style points FROM MEMORY, not set to the simulation (review R3-05) - not a "
+                                             "load-compatibility claim (review R4 E06); the standard texts (ITIC, IEC 62040-3) are not on file "
+                                             "and are the gate",
+                                    statement=VF_STATEMENT, release_sequence=VF_RELEASE, not_claimed=VF_NOT_CLAIMED,
                                     margins_worst_corner=marg, horizon_s=dict(nom=2.0, corners=0.3),
                                     classes_iec62040_3=A("vf_classes_iec62040_3"), superseded_d079=VF_ENV_D079,
                                     superseded_d077_pu=dict(sag=REVIEW_R2["R2-04"]["sag_pu"], overshoot=REVIEW_R2["R2-04"]["overshoot_pu"],
                                                             basis="the unbounded averaged model without the VF measures (D-077) - SUPERSEDED"),
-                                    adoption="adopting a dynamic output-voltage envelope as a requirement is adopted as REQUIREMENTS AC-04 (D-080) (a "
-                                             "REQUIREMENTS.md entry); bench validation of the first milliseconds at every corner is the gate"))
+                                    adoption="declared as REQUIREMENTS AC-04 (D-080, reworded on review R4 E06 as the module's declared output "
+                                             "capability, not a load-compatibility claim); release sequence - " + ", then ".join(VF_RELEASE) +
+                                             "; bench validation of the first milliseconds at every corner is the gate"))
 
 
 class PVBus:
@@ -2091,14 +2132,16 @@ class PVBus:
     (n_cells x 1/2 L I^2 per module, I at the corner 'res': 'max' = the cell's normal peak on the +tol part, 'nom' = the operating
     current) with the decay; at gates off what is left dumps through the diodes (tau = L I / V_bus).  The PV evaluation instants sit
     'phase' after a PCS sampling instant.  Called as the PCS study's DC-side source (src(k, X, p_bridge)); tail(t) adapts it to the
-    gates-off tail (advance / busy)"""
+    gates-off tail (advance / busy).  Review R4 E04: tau_i / t_add - the source's extremes (a slower current loop; the decay starting
+    t_add after the cut)"""
 
-    def __init__(self, P, n, v_set, k0, layers, res="max", hw_v=None, phase=0.0, t_line=None):
+    def __init__(self, P, n, v_set, k0, layers, res="max", hw_v=None, phase=0.0, t_line=None, tau_i=None, t_add=0.0):
         pv = P["pv"]
         self.t_line = None if t_line is None else k0 * P["T"] + t_line   # 'line': a hardwired trip, PV gates off t_line after the step
         self.pv, self.n, self.v_set, self.k0, self.T, self.layers, self.res = pv, n, v_set, k0, P["T"], set(layers), res
         self.hw_v = pv["ov_hw"][1] if hw_v is None else hw_v
-        self.tau_d, self.tau_i = 1 / (2 * math.pi * pv["f_div"]), 1 / (2 * math.pi * pv["fc_i"])
+        self.tau_d, self.tau_i = 1 / (2 * math.pi * pv["f_div"]), tau_i or 1 / (2 * math.pi * pv["fc_i"])
+        self.t_add = t_add
         self.I0, self.E_L, self.vm, self.acc, self.v_last = 0.0, 0.0, v_set, 0.0, v_set
         self.t_last = self.t_acc = k0 * P["T"]
         self.t_next = k0 * P["T"] + phase + pv["T_out"]
@@ -2117,6 +2160,7 @@ class PVBus:
         return min(c) if c else None
 
     def cut(self, t, why):
+        t += self.t_add
         if self.t_cut is None and (self.off() is None or t < self.off()):
             self.t_cut, self.why = t, why
 
@@ -2144,7 +2188,7 @@ class PVBus:
             e_left, i_l = self.E_L * fr(off) ** 2, self.pv["I_pk"] * fr(off)
             td = max(self.pv["L"] * i_l / v, 1e-7)
             return e_left / td * math.exp(-(t - off) / td) / v
-        if self.t_cut is None:
+        if self.t_cut is None or t < self.t_cut:
             return self.I0
         return self.I0 * fr(t) + 2 * self.E_L / self.tau_i * fr(t) ** 2 / v
 
@@ -2176,44 +2220,127 @@ class PVBus:
         return Tail()
 
 
+class CableBus:
+    """review R4 E04: the inter-module DC cable - the n PV modules' port-B banks (n C_B) on their own node behind their runs (identical:
+    R / n and L / n in parallel), the PVBus current into that node and its detection on THAT node's voltage; the PCS link (its own C_dc)
+    fed by the cable current.  The network [v_PCS, i_cable, v_PV] is integrated exactly (zero-order hold) in `sub` steps per control
+    period with the bridge current held (as the PCS model's own DC-link update) and the PV current at each step's midpoint; the call
+    returns the period's mean cable current, so step() lands on the same v_PCS (dc_coupled asserts it).  Keeps the inter-sample peaks:
+    v_hi (the last period's, for the PCS comparator), v1_max / v2_max (the PCS / PV node over the run).  tail(t_off) continues the run and
+    the PV node against the diode tail's bus voltage (staggered at the tail's 1 us step: the cable mode must be resolved - asserted)"""
+
+    def __init__(self, pv, C1, C2, L, R_, sub):
+        self.pv, self.C1, self.C2, self.L, self.R, self.T = pv, C1, C2, L, R_, pv.T
+        self.w = 1 / math.sqrt(L * C1 * C2 / (C1 + C2))                    # the cable mode, rad/s
+        assert self.w * 1e-6 < 0.2, ("cable mode too fast for the diode tail's 1 us step", L, self.w)
+        A_ = np.array([[0.0, 1 / C1, 0.0], [-1 / L, -R_ / L, 1 / L], [0.0, -1 / C2, 0.0]])
+        self.h, self.sub = self.T / sub, sub
+        self.Ad, self.b_ib = zoh(A_, np.array([-1 / C1, 0.0, 0.0]), self.h)
+        self.b_pv = zoh(A_, np.array([0.0, 0.0, 1 / C2]), self.h)[1]
+        self.A2 = A_[1:, 1:]                                               # [i_cable, v_PV] with v_PCS as an input (the diode tail)
+        self.x, self.v_hi, self.v1_max, self.v2_max, self._z = None, 0.0, 0.0, 0.0, {}
+
+    def __call__(self, k, X, pc):
+        pv = self.pv
+        if k < pv.k0:                                                      # before the step the modules supply the bridge's draw
+            pv.I0 = pc / X["vdc"]
+            return pv.I0
+        if self.x is None:                                                 # at the step: the runs carry the pre-step current
+            self.x = np.array([X["vdc"], pv.I0, X["vdc"] + self.R * pv.I0])
+            pv.E_L = pv.E_L or pv.energy()
+        ib, t, x = pc / X["vdc"], k * self.T, self.x
+        x[0] = v0 = self.v_hi = X["vdc"]
+        for j in range(self.sub):
+            x = self.Ad @ x + self.b_ib * ib + self.b_pv * (0.0 if "ideal" in pv.layers else pv.i(t + (j + 0.5) * self.h))
+            pv.update(t + (j + 1) * self.h, x[2])
+            self.v_hi, self.v2_max = max(self.v_hi, x[0]), max(self.v2_max, x[2])
+        self.x, self.v1_max = x, max(self.v1_max, self.v_hi)
+        return ib + self.C1 * (x[0] - v0) / self.T
+
+    def tail(self, t_off):
+        cb, pv = self, self.pv
+
+        class Tail:
+            tau = 0.0
+
+            def __call__(self, tau):
+                return cb.x[1]
+
+            def advance(self, tau, v):
+                dt, self.tau = tau - self.tau, tau
+                key = round(dt * 1e12)
+                if key not in cb._z:
+                    cb._z[key] = (zoh(cb.A2, np.array([-1 / cb.L, 0.0]), dt), zoh(cb.A2, np.array([0.0, 1 / cb.C2]), dt)[1])
+                (Ad, bv), bp = cb._z[key]
+                y = Ad @ cb.x[1:] + bv * v + bp * (0.0 if "ideal" in pv.layers else pv.i(t_off + tau - dt / 2))
+                cb.x = np.array([v, y[0], y[1]])
+                pv.update(t_off + tau, y[1])
+                cb.v1_max, cb.v2_max = max(cb.v1_max, v), max(cb.v2_max, y[1])
+
+            @property
+            def busy(self):
+                return "ideal" not in pv.layers and pv.i(pv.t_last) > 0.05
+        return Tail()
+
+
 def dc_coupled(P, G, R, n, P_each, v_set, kC=1.0, layers=("coord", "fw", "hw", "ext"), res="max", hw=None, hw_pv=None, phase=0.0,
-               tend=0.012, t_line=None):
+               tend=0.012, t_line=None, cable=None, src=None, tail=True):
     """review R3-03: one coupled PCS / PV trajectory - the PCS forming the island (VF, single module: Z_v 0, the section 7c firmware)
     on a battery-less link fed by n PV modules (PVBus) at the CV set point v_set, an AC full-load rejection (n x P_each -> 0) at t0;
     the link = the PCS's C_dc + the modules' port-B banks, both x kC; the PCS's DC over-voltage comparator at hw (default its band's low
     edge: the earliest PCS trip) with the PPB, the soft limit as an outcome (a controlled stop: the island goes dark, no latch); after a
     PCS trip the diode tail with the modules still feeding.  Returns the outcome, the times, the bus peak / end, the device and film
-    checks and the aux lock-out"""
+    checks and the aux lock-out.  Review R4 E04: cable = (L, R) of one module's run - the PV banks on their own node behind the n runs
+    (CableBus), the PCS link its own C_dc, the PCS node started the run's drop below v_set (the PV node at v_set); the peak the
+    inter-sample one, the end the value both nodes settle to (charge-weighted); src = the PV source's extreme (PVBus tau_i / t_add);
+    tail=False: no diode tail after a PCS trip (a search needs the outcome only)"""
     pv_, t0, T = P["pv"], 0.01, P["T"]
-    Px = dict(P, Cdc=kC * (P["Cdc"] + n * pv_["C_B"]), C_half=kC * P["C_half"], C_loc=kC * (P["C_loc"] + n * pv_["C_B"]))
+    nb = 0 if cable else n                                                 # the PV banks on the PCS node (one node) or behind the runs
+    Px = dict(P, Cdc=kC * (P["Cdc"] + nb * pv_["C_B"]), C_half=kC * P["C_half"], C_loc=kC * (P["C_loc"] + nb * pv_["C_B"]))
     hw = P["ov_dc"][1] if hw is None else hw
     k0 = int(round(t0 / T))
-    pv = PVBus(Px, n, v_set, k0, layers, res, hw_pv, phase, t_line)
+    pv = PVBus(Px, n, v_set, k0, layers, res, hw_pv, phase, t_line, **(src or {}))
+    cb = CableBus(pv, Px["Cdc"], kC * n * pv_["C_B"], cable[0] / n, cable[1] / n, A("dc_cable")["sub"]) if cable else None
     Gx = dict(G, Zv=0j)
-    S, X = setup(Px, Gx, "gfm", kind="rl", RL=1.5 * P["V0"] ** 2 / (n * P_each), vdc=v_set, sec="reseed", sec_T=R["sec"]["T_s"],
-                 iclamp=P["iclamp"])
+    S, X = setup(Px, Gx, "gfm", kind="rl", RL=1.5 * P["V0"] ** 2 / (n * P_each), vdc=v_set - (cable[1] * P_each / v_set if cable else 0.0),
+                 sec="reseed", sec_T=R["sec"]["T_s"], iclamp=P["iclamp"])
     S.update(VFD())
-    S.update(cdc=True, src=pv)
+    S.update(cdc=True, src=cb or pv)
     X, _ = equil(Px, Gx, S, X)
     r, Xe, tr = prot_run(Px, Gx, S, X, tend, lambda t, S_, X_: S_.update(pl=plant(Px, "nom", "nl")) if t >= t0 and S_["pl"]["kind"] != "nl"
                          else None, hw)
-    d = dict(n=n, P_each_kW=P_each / 1e3, P_dc_kW=pv.I0 * v_set / 1e3, v_set=v_set, kC=kC, C_bus_uF=1e6 * Px["Cdc"], layers=sorted(layers),
-             res=res, hw_pcs=hw, hw_pv=pv.hw_v, phase_us=1e6 * phase, E_L_J=pv.E_L, trip=tr is not None, vmax_loop=float(r["vdc"].max()))
+    if cb and cb.x is not None:
+        assert abs(Xe["vdc"] - cb.x[0]) < 1e-6 * v_set, ("cable bus: the PCS link update and the cable integration disagree", Xe["vdc"], cb.x[0])
+    settle = (lambda v1: (Px["Cdc"] * v1 + cb.C2 * cb.x[2]) / (Px["Cdc"] + cb.C2)) if cb else (lambda v1: v1)     # noqa: E731
+    d = dict(n=n, P_each_kW=P_each / 1e3, P_dc_kW=pv.I0 * v_set / 1e3, v_set=v_set, kC=kC, C_bus_uF=1e6 * (Px["Cdc"] + (cb.C2 if cb else 0.0)),
+             layers=sorted(layers), res=res, hw_pcs=hw, hw_pv=pv.hw_v, phase_us=1e6 * phase, E_L_J=pv.E_L, trip=tr is not None,
+             vmax_loop=max(float(r["vdc"].max()), cb.v1_max if cb else 0.0))
+    if cb:
+        d["cable"] = dict(L_uH=1e6 * cable[0], R_mOhm=1e3 * cable[1], f_kHz=cb.w / (2e3 * math.pi))
+    if tr and not tail:
+        d.update(t_pcs_ms=1e3 * (tr["t_off"] - t0), by=tr["by"], vdc_pk=d["vmax_loop"], rides=False,
+                 outcome="latched PCS trip (%s): the island goes dark (diode tail not run)" % tr["by"])
+        return d
     if tr:
         pv.t_pcs = tr["t_off"]
-        tail = gates_off_tail(Px, Xe, len(r["t"]), S["pl"], 0j, isrc=pv.tail(tr["t_off"]))
-        d.update(t_pcs_ms=1e3 * (tr["t_off"] - t0), t_off_ms=1e3 * (tr["t_off"] - t0), by=tr["by"], v_off=tr["v_off"], vdc_pk=max(d["vmax_loop"], tail["vdc_pk"]),
-                 vdc_end=tail["vdc_end"], half_pk=tail["half_pk"], **trip_check(Px, tail))
+        tl = gates_off_tail(Px, Xe, len(r["t"]), S["pl"], 0j, isrc=(cb or pv).tail(tr["t_off"]))
+        tl = dict(tl, vdc_end=settle(tl["vdc_end"]))
+        d.update(t_pcs_ms=1e3 * (tr["t_off"] - t0), t_off_ms=1e3 * (tr["t_off"] - t0), by=tr["by"], v_off=tr["v_off"],
+                 vdc_pk=max(d["vmax_loop"], tl["vdc_pk"], cb.v1_max if cb else 0.0), vdc_end=tl["vdc_end"], half_pk=tl["half_pk"],
+                 **trip_check(Px, tl))
     else:
-        d.update(t_pcs_ms=None, vdc_pk=d["vmax_loop"], vdc_end=float(r["vdc"][-1]), half_pk=d["vmax_loop"] / 2, V_dev=d["vmax_loop"],
+        v_end = settle(float(Xe["vdc"])) if cb else float(r["vdc"][-1])
+        d.update(t_pcs_ms=None, vdc_pk=d["vmax_loop"], vdc_end=v_end, half_pk=d["vmax_loop"] / 2, V_dev=d["vmax_loop"],
                  dev_ok=d["vmax_loop"] <= P["pc"]["V_limit"], half_ok=d["vmax_loop"] / 2 <= 1.5 * P["U_N_half"],
-                 half_rated=d["vmax_loop"] / 2 <= P["U_N_half"], aux_lockout=float(r["vdc"][-1]) >= P["aux"]["ov"])
+                 half_rated=d["vmax_loop"] / 2 <= P["U_N_half"], aux_lockout=v_end >= P["aux"]["ov"])
     off = pv.off()
     d.update(t_cut_ms=1e3 * (pv.t_cut - t0) if pv.t_cut is not None else None, cut_by=pv.why,
              t_pv_off_ms=1e3 * (off - t0) if off is not None else None,
              outcome="latched PCS trip (%s): the island goes dark" % d.get("by") if tr else
              ("controlled stop at the PCS soft limit (%.0f V): the island goes dark, no latch" % P["ov_soft"][0]
               if d["vdc_pk"] >= P["ov_soft"][0] else "the island rides through"))
+    if cb:
+        d["v_pv_pk"] = cb.v2_max
     d["rides"] = d["outcome"].startswith("the island rides")
     return d
 
@@ -2271,14 +2398,15 @@ def study_dc_coupled(P, G, R):
     req = ["the PV modules' coordination row (V_B > V_B* + %.0f V -> every cell's current reference to zero) is required for VF on a "
            "battery-less bus: without it every full-load rejection trips the PCS (bus %.0f-%.0f V)" % (pv["dv"], min(d["vdc_end"] for d in back
            if d["scenario"].startswith("coordination")), max(d["vdc_end"] for d in back if d["scenario"].startswith("coordination"))),
-           "the CV set point in VF on a battery-less bus <= %.0f V (the coupled worst corner; the PV row keeps its %.0f V as the firmware "
-           "limit with its own margin rule)" % (v_ok, pv["valid"]),
+           "the CV set point in VF on a battery-less bus: default %.0f V, firmware limit <= %.0f V (the PV coordination row's own validity) "
+           "- the enforced product rule (review R4 E04: pcs_control_spec dc_bus_operating_window); %.0f V is this one-node model's validity "
+           "only (no cable, the PV banks on the PCS node) - not a rating" % (A("dc_bus_window")["default_V"], pv["valid"], v_ok),
            "the PV power on one link <= the PCS's DC power tier (one module at %.1f kW and two at the 2-min tier studied)" % (pv["P_max"] / 1e3),
            "the external stop wiring (%.2f ms) is not needed for this event - it acts after the PV module's own limit and comparator; it "
            "stays a general interlock" % (1e3 * pv["t_ext"]),
-           "a hardwired trip line (cost class low: an isolated digital line, a connector and a latch input, a few USD per module) is needed "
-           "only for set points above %.0f V; it must stop the modules within %s of the rejection at 950 V; not added" % (
-               v_ok, ", ".join("%s %.0f us" % (k, v) for k, v in line.items() if v)),
+           "a hardwired trip line (cost class low: an isolated digital line, a connector and a latch input, a few USD per module) is not "
+           "needed inside the enforced window; in this one-node model it would be needed above %.0f V and must stop the modules within %s "
+           "of the rejection at 950 V; not added" % (v_ok, ", ".join("%s %.0f us" % (k, v) for k, v in line.items() if v)),
            "with the PV firmware dead the bus ends at %.0f-%.0f V, above the aux's %.0f V input lock-out: dark until it bleeds down" % (
                min(d["vdc_end"] for d in back if d["scenario"].startswith("PV firmware")),
                max(d["vdc_end"] for d in back if d["scenario"].startswith("PV firmware")), P["aux"]["ov"])]
@@ -2288,6 +2416,109 @@ def study_dc_coupled(P, G, R):
                 pv=dict(pv, source="sim/out/pv_control/control_spec.json (firmware_second_layer system row, sampling, current_loop, "
                                    "hardware_trips), sim/out/pv_design/cell_spec.json (inductor, ov_trip_costfirst), hardware/PV-CTL "
                                    "design check (external stop), REQUIREMENTS PV-01"))
+
+
+def study_dc_cable(P, G, R):
+    """review R4 E04: section 7d's coupled PCS / PV bus with the inter-module DC cable (CableBus: the PV banks' credit arrives through the
+    runs' R-L).  Corners: the runs of A('dc_cable') (lengths x inductance per metre, the lowest resistance), one and two PV modules at
+    section 7d's powers, the link -10 / +10 %, both PV evaluation phases (0 and half a period: the cable model resolves them), the set
+    points (the default and the PV row's validity) and section 7d's validity search (link -10 %, 750-950 V, six halvings); the PV source's
+    extremes: 'nominal' (section 7d), 'slow loop' (the slowest honest current loop: the lowest crossover the PV study reports and one
+    current-loop computation delay before the decay - still the first-order, charge-equivalent decay; the PI's own voltage-limited
+    response is faster) and 'slow loop + late detection' (the coordination row's chain taking its ASSUMED time margin: the decay a further
+    (k - 1) x chain later); section 7d's one-node model as the reference column.  Then the small-run limit (the model check), a lossless
+    run, the enforced window (the product rule with the operating-map floors) and the harness contract for the integrator"""
+    pv, cab, w = P["pv"], A("dc_cable"), A("dc_bus_window")
+    ohm = lambda mm2, T_: cab["rho_20C_ohm_m"] * (1 + cab["alpha_per_K"] * (T_ - 20.0)) / (mm2 * 1e-6)    # noqa: E731  per conductor metre
+    cor = [dict(run_m=l_, L_uH_per_m=lp, L_uH=l_ * lp, R_mOhm=2e3 * l_ * ohm(max(cab["mm2"]), min(cab["T_C"])))
+           for l_ in cab["run_m"] for lp in cab["L_uH_per_m"]]
+    tau, late = 1 / (2 * math.pi * pv["fc_min"]), (pv["k_margin"] - 1) * pv["chain_us"] * 1e-6
+    srcs = {"nominal (7d)": dict(par={}, basis=f"section 7d's: the decay at the {pv['fc_i']:.0f} Hz design crossover from the detection"),
+            "slow loop": dict(par=dict(tau_i=tau, t_add=pv["t_comp"]), basis=(
+                f"the PV study's lowest crossover {pv['fc_min']:.0f} Hz (its inductance-tolerance and port corners) and one "
+                f"{1e6 * pv['t_comp']:.1f} us current-loop computation delay before the decay (first-order, charge-equivalent: the PI's own "
+                "voltage-limited response is faster)")),
+            "slow loop + late detection": dict(par=dict(tau_i=tau, t_add=pv["t_comp"] + late), basis=(
+                f"'slow loop' with the coordination row's {pv['chain_us']:.0f} us chain taking its x{pv['k_margin']:.0f} time margin "
+                f"(ASSUMED): the decay a further {1e6 * late:.0f} us later"))}
+    cases = [(1, pv["P_rated"]), (1, pv["P_max"]), (2, P_N / 2), (2, pv["P_rated"])]
+
+    def worst(c, kCs=(0.9, 1.1), **kw):
+        """the worst over the link factors and both PV evaluation phases; c None = section 7d's one-node model and phases"""
+        runs = [dc_coupled(P, G, R, kC=k, phase=p * P["T"], **kw) if c is None else
+                dc_coupled(P, G, R, kC=k, phase=p * P["T"] / 2, cable=(1e-6 * c["L_uH"], 1e-3 * c["R_mOhm"]), **kw) for k in kCs for p in (0, 1)]
+        d, tc = max(runs, key=lambda x: x["vdc_pk"]), [x["t_cut_ms"] for x in runs if x.get("t_cut_ms") is not None]
+        return dict(vdc_pk=d["vdc_pk"], v_pv_pk=max((x.get("v_pv_pk") or 0.0) for x in runs) or None, kC=d["kC"], phase_us=d["phase_us"],
+                    vdc_end=d.get("vdc_end"), t_cut_ms=[min(tc), max(tc)] if tc else None, rides=all(x["rides"] for x in runs))
+    rows = [dict(v_set=v, n=n, P_each_kW=p / 1e3, source=sn, one_node=worst(None, n=n, P_each=p, v_set=v, src=s["par"]),
+                 cable=[dict(c, **worst(c, n=n, P_each=p, v_set=v, src=s["par"])) for c in cor])
+            for v in (w["default_V"], pv["valid"]) for n, p in cases for sn, s in srcs.items()]
+
+    def v_max(c, n, p, s):                                                 # section 7d's search: link -10 %, 750-950 V, six halvings
+        ok = lambda v: worst(c, kCs=(0.9,), n=n, P_each=p, v_set=v, src=s, tail=False)["rides"]      # noqa: E731
+        a, b = 750.0, 950.0
+        if not ok(a):
+            return None
+        for _ in range(6):
+            m = (a + b) / 2
+            a, b = (m, b) if ok(m) else (a, m)
+        return math.floor(a)
+    val = [dict(case=f"{n} x {p / 1e3:g} kW", source=sn, one_node=v_max(None, n, p, s["par"]), cable=[v_max(c, n, p, s["par"]) for c in cor])
+           for n, p in (cases[1], cases[3]) for sn, s in srcs.items()]
+    vc = [x for v in val for x in v["cable"]]
+    v_min = None if None in vc else min(vc)
+    one = dict(n=2, P_each=pv["P_rated"], v_set=pv["valid"], kC=0.9)
+    lim = dict(case="2 x %g kW at %.0f V, link -10 %%, phase 0" % (pv["P_rated"] / 1e3, pv["valid"]),
+               one_node=dc_coupled(P, G, R, **one)["vdc_pk"], cable_small=dc_coupled(P, G, R, cable=(0.4e-6, 0.0), **one)["vdc_pk"],
+               basis="0.4 uH lossless runs, 0.2 uH for the two in parallel - about the smallest the diode tail's 1 us step resolves; the "
+                     "difference is the runs themselves and the one-node model's forward-Euler step on the decaying PV current, conservative "
+                     "there by a few volts")
+    big = max(cor, key=lambda c: (c["L_uH"], c["run_m"]))
+    loss = dict(run=big, R_mOhm=big["R_mOhm"], with_R=worst(big, n=2, P_each=pv["P_rated"], v_set=pv["valid"])["vdc_pk"],
+                lossless=worst(dict(big, R_mOhm=0.0), n=2, P_each=pv["P_rated"], v_set=pv["valid"])["vdc_pk"])
+    fk = [1e-3 / (2 * math.pi * math.sqrt(c["L_uH"] * 1e-6 / n * k * P["Cdc"] * n * pv["C_B"] / (P["Cdc"] + n * pv["C_B"])))
+          for c in cor for n in (1, 2) for k in (0.9, 1.1)]
+    r_hot = 2 * max(cab["run_m"]) * ohm(min(cab["mm2"]), max(cab["T_C"]))     # the qualified harness's highest loop resistance per run
+    drop = r_hot * pv["I_B_max"]
+    floor = {k: (f + drop) / (1 - pv["acc"]) for k, f in P["op_win"].items()}
+    by_build = {k: w["default_V"] if f <= w["default_V"] else w["round_V"] * math.ceil(f / w["round_V"]) for k, f in floor.items()}
+    assert max(by_build.values()) <= pv["valid"], ("a build's set-point floor is above the PV row's validity", floor)
+    contract = [
+        f"run length <= {max(cab['run_m']):g} m per PV module, its port-B terminals to the PCS's DC terminals; one run per module (a shared "
+        "busbar section counts in each run)",
+        f"loop inductance <= {max(cab['L_uH_per_m']):g} uH per metre of run and <= {max(c['L_uH'] for c in cor):g} uH per run including fuses, "
+        "disconnectors and busbar sections: DC+ and DC- routed together (a two-core cable, or the single cores bundled and touching in the same "
+        "tray), never separated or looped through other sections; no series choke or ferrite on the link (its differential-mode inductance "
+        "counts)",
+        f"cross-section: copper, sized by the installation rules for the module's {pv['I_B_max']:.0f} A port current; loop resistance <= "
+        f"{1e3 * r_hot:.1f} mOhm per run ({max(cab['run_m']):g} m of {min(cab['mm2']):g} mm2 at {max(cab['T_C']):g} C: {drop:.1f} V at "
+        f"{pv['I_B_max']:.0f} A, the drop the set-point floors carry); heavier conductors allowed (the first peak hardly depends on the "
+        f"resistance: {loss['lossless'] - loss['with_R']:+.1f} V lossless at the worst run)",
+        "nothing else on the link: no capacitance, filter, DC source or load beyond the PCS's DC link and the PV modules' port-B banks as drawn "
+        "(a battery or another source is a different study); at most two PV-P75 modules per PCS link, their power <= the PCS's DC power tier "
+        "(section 7d)",
+        "the commissioning record carries the as-built runs (length, cross-section, routing), the battery-less declaration, the set point and both "
+        "modules' serials"]
+    window = dict(
+        rule="VF on a battery-less DC bus fed by PV-P75 modules (review R4 E04): the enforced operating window - a product rule in both modules' "
+             "parameter sets (firmware row 'DC-bus set point on a battery-less bus')",
+        default_set_point_V=w["default_V"], set_point_by_build_V=by_build, firmware_limit_V=pv["valid"],
+        firmware_limit_basis=(f"the PV coordination row's own validity, its x{pv['k_margin']:.0f} time margin ASSUMED (sim/out/pv_control/"
+                              "control_spec.json); enforced as the PV module's V_B* clamp on a bus declared battery-less"),
+        pcs_vf_permissive_V=pv["valid"] * (1 + pv["acc"]) * (1 + P["adc_acc"]["total"] / 100),
+        pcs_vf_permissive_basis=(f"the firmware limit plus the PV's {100 * pv['acc']:.2f} % V_B accuracy and the PCS-CTL's "
+                                 f"{P['adc_acc']['total']:.2f} % ADC accuracy: VF on a bus declared battery-less starts only below it"),
+        set_point_floor_V=floor, full_load_floor_at_pcs_V=P["op_win"], harness_drop_V=drop, pv_vb_accuracy_pct=100 * pv["acc"],
+        lumped_model_validity_V=R["dcc"]["v_set_max"],
+        lumped_model_note="the one-node model's validity (section 7d: the PV banks on the PCS node, no cable) - a model figure, NOT a rating",
+        cable_model_validity_min_V=v_min,
+        cable_model_note="the cable model's validity (section 7e: the worst run and PV source extreme) - a model figure, NOT a rating",
+        margin_firmware_limit_to_cable_validity_V=None if v_min is None else v_min - pv["valid"], harness_contract=contract,
+        status="CALCULATED / SIMULATED (averaged PCS model, executed PV detection, the runs as lumped R-L on an ASSUMED harness) - not "
+               "measured; the bench and a switched model are the gate")
+    return dict(corners=cor, sources={k: dict(v["par"], basis=v["basis"]) for k, v in srcs.items()}, cases=[f"{n} x {p / 1e3:g} kW" for n, p in cases],
+                rows=rows, validity=val, validity_min_V=v_min, limit_check=lim, lossless=loss, f_cable_kHz=[min(fk), max(fk)], window=window,
+                harness=dict(cab, basis=ASSUME["dc_cable"][1]))
 
 
 def design_vf_ff(P, K, Kv):
@@ -4264,7 +4495,10 @@ def write_spec(P, G, R):
             "review_r2": review_r2(P, G, R),
             # review R3 (615e4b5): new keys only
             "sync_close_state_machine": R["sync"], "four_wire_short_protection": R["n4"]["short_protection"],
-            "dc_bus_coupled_pv": R["dcc"], "vf_envelope_basis": R["vfb"]["envelope_basis"], "review_r3": review_r3(P, G, R)}
+            "dc_bus_coupled_pv": R["dcc"], "vf_envelope_basis": R["vfb"]["envelope_basis"], "review_r3": review_r3(P, G, R),
+            # review R4 (845131d): new keys only
+            "dc_bus_cable": {k: v for k, v in R["dcb"].items() if k != "window"}, "dc_bus_operating_window": R["dcb"]["window"],
+            "review_r4": review_r4(P, G, R)}
     spec = clean(spec)
     json.dump(spec, open(os.path.join(OUT, "pcs_control_spec.json"), "w"), indent=1)
     return spec
@@ -4495,13 +4729,35 @@ def fw_rows_r3(P, R):
          f"{rr['margin_cmpss_A']:.1f} / {rr['margin_cmpss_net_A']:.1f} A"),
         ("VF on a battery-less DC bus with PV-P75 (review R3-03; installation / system rule)", "the PV modules' coordination row "
          f"(V_B > V_B* + {P['pv']['dv']:.0f} V -> current references to zero) is required: with it the island rides through a full-load "
-         f"rejection up to a CV set point of {min(v for v in vm.values() if v):.0f} V (worst corner: link -10 %, residual energy at the cells' "
-         f"peak, two modules at the PCS's 2-min power; one module {max(v for v in vm.values() if v):.0f} V), the PV row's "
-         f"{P['pv']['valid']:.0f} V validity is conservative; without it the PCS trips (the bus ends at "
+         f"rejection inside the enforced window (row 'DC-bus set point on a battery-less bus', review R4 E04: default "
+         f"{R['dcb']['window']['default_set_point_V']:.0f} V, firmware limit {P['pv']['valid']:.0f} V); the one-node model rides to "
+         f"{min(v for v in vm.values() if v):.0f} V (two modules at the PCS's 2-min power, link -10 %, residual energy at the cells' peak; one "
+         f"module {max(v for v in vm.values() if v):.0f} V) - a model validity, not a rating; without it the PCS trips (the bus ends at "
          f"{min(d['vdc_end'] for d in dc['backstop'] if d['scenario'].startswith('coordination')):.0f}-"
          f"{max(d['vdc_end'] for d in dc['backstop'] if d['scenario'].startswith('coordination')):.0f} V); the external stop path "
-         f"({1e3 * P['pv']['t_ext']:.2f} ms) changes nothing on this event; a hardwired trip line is needed only above the validity (the PV "
-         f"stopped within {min(v for v in dc['line_us_max_at_950V'].values() if v):.0f} us of the rejection at 950 V; cost class low, not added)")]
+         f"({1e3 * P['pv']['t_ext']:.2f} ms) changes nothing on this event; a hardwired trip line is needed only above the one-node validity "
+         f"(the PV stopped within {min(v for v in dc['line_us_max_at_950V'].values() if v):.0f} us of the rejection at 950 V; cost class low, not "
+         "added)")] + fw_rows_r4(P, R)
+
+
+def fw_rows_r4(P, R):
+    """firmware / product rows of review R4 (sections 7c, 7e)"""
+    wd = R["dcb"]["window"]
+    other = {k: v for k, v in wd["set_point_by_build_V"].items() if v != wd["default_set_point_V"]}
+    return [
+        ("DC-bus set point on a battery-less bus (product rule, review R4 E04)", f"PV-P75 parameter set: V_B* default "
+         f"{wd['default_set_point_V']:.0f} V in CV mode on a bus the installation declares battery-less" + (" (" + "; ".join(
+             f"{k}: {v:.0f} V - its full-load floor {wd['full_load_floor_at_pcs_V'][k]:.1f} V at the PCS terminals + the harness drop "
+             f"{wd['harness_drop_V']:.1f} V over the PV's {wd['pv_vb_accuracy_pct']:.2f} % V_B accuracy = {wd['set_point_floor_V'][k]:.1f} V"
+             for k, v in other.items()) + ")" if other else "") + f", clamped to <= {wd['firmware_limit_V']:.0f} V (the coordination row's "
+         f"validity), the coordination row enabled; PCS-P125: VF on a bus declared battery-less starts only with V_dc,meas <= "
+         f"{wd['pcs_vf_permissive_V']:.0f} V, else it refuses and reports; the one-node model's "
+         f"{min(v for v in wd['lumped_model_validity_V'].values() if v):.0f} V and the cable model's {gd(wd['cable_model_validity_min_V'], 0)} V "
+         "are model validities, not ratings; the harness contract (section 7e) is part of the installation"),
+        ("operating-mode release (product rule, review R4 E06)", "the parameter set carries the released operating modes (CRC with the "
+         "calibration, reported with the serial, like the grade record): stage 1 - " + VF_RELEASE[0] + " (as shipped until grid forming is "
+         "qualified); stage 2 - " + VF_RELEASE[1] + " (enabled per installation, the agreement recorded with the serial); stage 3 - "
+         + VF_RELEASE[2] + ": not released; the controller refuses a mode the parameter set does not release")]
 
 
 def review_r3(P, G, R):
@@ -4559,7 +4815,8 @@ def review_r3(P, G, R):
              ours=f"the PV module's own protections read from its specs: at {', '.join(f'{v:g}' for v in sorted({d['v_set'] for d in m750}))} V every "
                   f"corner rides through (bus <= {max(d['vdc_pk'] for d in m750):.0f} V against the {P['ov_soft'][0]:.0f} V soft limit; PV cut "
                   f"{min(d['t_cut_ms'] for d in m750):.2f}-{max(d['t_cut_ms'] for d in m750):.2f} ms after the rejection); at 950 V the PCS trips "
-                  f"(bus {min(d['vdc_pk'] for d in m950):.0f}-{max(d['vdc_pk'] for d in m950):.0f} V, dark); set-point limit "
+                  f"(bus {min(d['vdc_pk'] for d in m950):.0f}-{max(d['vdc_pk'] for d in m950):.0f} V, dark); one-node set-point validity (a "
+                  "model figure, not a rating - review R4 E04) "
                   + ", ".join(f"{k} {v} V" for k, v in dc["v_set_max"].items()) + "; without the coordination row the bus ends at "
                   f"{min(d['vdc_end'] for d in dc['backstop'] if d['scenario'].startswith('coordination')):.0f}-"
                   f"{max(d['vdc_end'] for d in dc['backstop'] if d['scenario'].startswith('coordination')):.0f} V (aux running), with the PV "
@@ -4579,6 +4836,64 @@ def review_r3(P, G, R):
                     f"the {rv['R3-05']['superseded_pu']} pu figure stays superseded",
              change="ASSUME vf_envelope (declared = ITIC-style), vf_classes_iec62040_3, VF_ENV_D079 (superseded), env_margins",
              keys=["vf_envelope_basis", "vf_bounded.envelope_basis"])]
+
+
+def review_r4(P, G, R):
+    """review R4 of commit 845131d (gen/data/review_r4.csv; this study's items E03, E04, E06): classification and evidence computed in this
+    run"""
+    sp, dcb, eb = R["n4"]["short_protection"], R["dcb"], R["vfb"]["envelope_basis"]
+    ad, wd = [d for d in sp["variants"] if d["adopted"]], dcb["window"]
+    pk = lambda v, nom: max(c["vdc_pk"] for r in dcb["rows"] if r["v_set"] == v and r["source"].startswith("nominal") == nom   # noqa: E731
+                            for c in r["cable"])
+    dec = next(v for k, v in eb["margins_worst_corner"].items() if k.startswith("declared"))
+    vnom = min(x for v in dcb["validity"] if v["source"].startswith("nominal") for x in v["cable"] if x is not None)
+    sets = (wd["default_set_point_V"], P["pv"]["valid"])
+    return [
+        dict(id="E03", classification="Already Fixed (D-080) - the declared behaviour restated from this run; no change",
+             reviewer="keep the 270 A onset clamp for 5 ms and replay both comparator paths; a protective trip may be accepted for severe shorts; "
+                      "threshold and survival limits may not be ignored",
+             ours=(f"section 9c-2 recomputed: the onset clamp {sp['onset_clamp']['clamp']:.0f} A for {1e3 * sp['onset_clamp']['t_on']:.0f} ms on "
+                   f"the shorted phase - first-ms peaks <= {max(max(d['first_ms_A'].values()) for d in ad):.0f} A, no hardware layer trips at any "
+                   f"studied threshold / sensor / ripple / plant corner, the smallest margin {sp['adopted_margin_A']:.1f} A to the lower edge "
+                   f"{sp['lowest_edge_A']:.1f} A (the hold; a bench / DVT item), the firmware trip at {max(d['fw_trip_ms'] or 0 for d in ad):.0f} ms; "
+                   f"declared: {sp['declared_outcome']}; on a hardware trip: {sp['on_hardware_trip']}. The hard-short figures read from pcs_spec in "
+                   f"this run: window chain {P['pc']['t_resp_us']:.3f} us, gates off at {P['pc']['I_gates_off']:.1f} A, admissible "
+                   f"{P['pc']['I_screen']:.1f} A, CMPSS chain {P['chain']['cmpss_total']:.3f} us; DESAT at {gd(P['desat']['V_DS_trip_V'], 2)} V V_DS, "
+                   f"backstop {gd(P['desat']['backstop_A'], 0)} A per device (record only: DESAT is not in the averaged short's screen)"),
+             change="none", keys=["four_wire_short_protection (unchanged)", "review_r4"]),
+        dict(id="E04", classification="Confirmed (a model boundary) - the inter-module cable added to the coupled model; the window enforced as "
+                                      "a product rule; no hardware",
+             reviewer="the coupled model puts the PCS and the remote PV capacitance on one node; the cable is not modelled, which matters when "
+                      "remote capacitance is credited in a sub-millisecond event; keep the PV row's 782 V validity as the firmware limit, the 909 V "
+                      "not an unrestricted rating; prototype at 750 V where the PCS operating map allows",
+             ours=(f"section 7e: series R-L per module ({', '.join(f'{x:g}' for x in A('dc_cable')['run_m'])} m, "
+                   f"{' / '.join(f'{x:g}' for x in A('dc_cable')['L_uH_per_m'])} uH/m ASSUMED, the least damping), the PV banks behind it, the PV "
+                   f"detection on its own port: at {sets[0]:.0f} / {sets[1]:.0f} V every corner rides through - PCS-node peak <= "
+                   f"{pk(sets[0], True):.0f} / {pk(sets[1], True):.0f} V with the nominal source, <= {pk(sets[0], False):.0f} / "
+                   f"{pk(sets[1], False):.0f} V with the slow loop and the late detection, against the {P['ov_soft'][0]:.0f} V soft limit; the cable "
+                   f"adds up to {max(c['vdc_pk'] - r['one_node']['vdc_pk'] for r in dcb['rows'] for c in r['cable']):+.0f} V to the one-node peak "
+                   f"(cable mode {dcb['f_cable_kHz'][0]:.1f}-{dcb['f_cable_kHz'][1]:.1f} kHz); set-point validity with the cable {vnom} V (nominal "
+                   f"source) / {gd(dcb['validity_min_V'], 0)} V (every extreme) against the one-node "
+                   f"{min(v for v in R['dcc']['v_set_max'].values() if v):.0f} V: the firmware limit keeps "
+                   f"{gd(wd['margin_firmware_limit_to_cable_validity_V'], 0)} V; enforced window (product rule): default "
+                   f"{wd['default_set_point_V']:.0f} V (" + ", ".join(f"{k} {v:.0f} V" for k, v in wd["set_point_by_build_V"].items()) +
+                   f"), firmware limit {wd['firmware_limit_V']:.0f} V, the PCS's VF permissive {wd['pcs_vf_permissive_V']:.0f} V; the one-node "
+                   + " / ".join(f"{v} V" for v in R["dcc"]["v_set_max"].values()) + " recorded as model validities only; the harness contract "
+                   f"({len(wd['harness_contract'])} items) for the integrator"),
+             change="CableBus; dc_coupled(cable=, src=, tail=); PVBus(tau_i=, t_add=); prot_run on the inter-sample peak; study_dc_cable (section "
+                    "7e); the requirement and firmware texts that quoted the one-node validity as a limit reworded",
+             keys=["dc_bus_cable", "dc_bus_operating_window", "dc_bus_coupled_pv.requirements (reworded)", "firmware.limits"]),
+        dict(id="E06", classification="Improvement Recommended (an application decision) - the statement reframed; no control change",
+             reviewer="the ITI curve describes the input tolerance of IT equipment at 120 V / 60 Hz and is not a product or distribution "
+                      "specification: AC-04 adopting an ITIC-style envelope does not by itself establish 400 / 230 V load compatibility",
+             ours=(f"the envelope is the module's DECLARED OUTPUT CAPABILITY on a load step (what the module does: the simulated worst corner "
+                   f"clears the ITIC-style points FROM MEMORY by {dec['min_margin_pu']:+.3f} pu), not a load-compatibility claim; release "
+                   "sequence as a product / firmware row: " + "; ".join(f"({i + 1}) {x}" for i, x in enumerate(VF_RELEASE)) + "; not claimed: "
+                   + "; ".join(VF_NOT_CLAIMED) + f"; the {REVIEW_R3['R3-05']['superseded_pu']} pu figure stays superseded; REQUIREMENTS AC-04 "
+                   "carries the same wording (checked by the self-check); the control measures unchanged"),
+             change="vf_envelope_basis: declared / adoption reworded, statement / release_sequence / not_claimed added; firmware row "
+                    "'operating-mode release'; section 7c text",
+             keys=["vf_envelope_basis.statement", "vf_envelope_basis.release_sequence", "vf_envelope_basis.not_claimed", "firmware.limits"])]
 
 
 def tab(head, rows):
@@ -4832,10 +5147,12 @@ def rep_7c(P, R):
         "; under " + ", ".join(f"{v:g} pu to {t_:g} ms" if math.isfinite(t_) else f"{v:g} pu after" for t_, v in e["under"])
     eb = vb["envelope_basis"]
     a(f"|v_C| is the alpha-beta magnitude (for a three-wire load an upper bound of every instantaneous line-to-neutral value). "
-      f"**Declared envelope (review R3-05): standard-style points, not set to the simulation** - the ITIC (CBEMA) curve as remembered "
-      f"(FROM MEMORY, not verified; the standard texts ITIC and IEC 62040-3 are not on file and are the gate): {fmt(env)}. Adopting a "
-      "dynamic output-voltage envelope as a requirement was adopted as REQUIREMENTS AC-04 under the delegation of D-051 (D-080); bench validation of the first "
-      "milliseconds at every corner of the drawn parts is the gate. The D-079 envelope (set to contain the simulated worst corner with "
+      f"**Declared output capability (reviews R3-05, R4 E06): what the module does on a 100 % linear load step, drawn as standard-style "
+      f"points not set to the simulation** - the ITIC (CBEMA) curve as remembered (FROM MEMORY, not verified; the standard texts ITIC and "
+      f"IEC 62040-3 are not on file and are the gate): {fmt(env)}. **Not a load-compatibility claim:** {eb['statement']}. Declared as "
+      "REQUIREMENTS AC-04 under the delegation of D-051 (D-080, reworded on review R4 E06); release sequence (product rule, firmware row "
+      "'operating-mode release'): " + "; ".join(f"({i + 1}) {x}" for i, x in enumerate(eb["release_sequence"])) + ". Bench validation of "
+      "the first milliseconds at every corner of the drawn parts is the gate. The D-079 envelope (set to contain the simulated worst corner with "
       f"margin: {fmt(eb['superseded_d079'])}) is superseded, as are the D-077 {eb['superseded_d077_pu']['sag']:.2f} / "
       f"{eb['superseded_d077_pu']['overshoot']:.2f} pu (the unbounded averaged model). Paralleled modules (virtual impedance on): the same "
       "first milliseconds, then the plateau the secondary layer restores (section 7b) - "
@@ -5134,6 +5451,73 @@ def rep_9d(P, R):
     return L
 
 
+def rep_r4(P, R, spec):
+    """report section: the economical re-check R4 of commit 845131d (this study's items)"""
+    return ["## Review R4 (economical re-check of commit 845131d): items of this study\n",
+            "Verified first, then classified; changed only where required - firmware / product rules and the model, no hardware; the figures "
+            "are this run's (SIMULATED on the averaged models with the executed PV detection, or CALCULATED - nothing measured; the harness "
+            "ASSUMED).\n",
+            tab(("item", "classification", "reviewer", "this study (computed in this run)", "change", "new keys"),
+                [(d["id"], d["classification"], d["reviewer"], d["ours"], d["change"], ", ".join(d["keys"])) for d in spec["review_r4"]])]
+
+
+def rep_7e(P, R):
+    """report section 7e: the inter-module DC cable, the PV source's extremes and the enforced window (review R4 E04)"""
+    cb, L = R["dcb"], []
+    a = L.append
+    cab, pv, wd = A("dc_cable"), P["pv"], cb["window"]
+    cn = tuple(f"{c['run_m']:g} m, {c['L_uH_per_m']:g} uH/m" for c in cb["corners"])
+    a("## 7e. Battery-less DC bus: the inter-module cable and the PV source's extremes (review R4 E04)\n")
+    a(f"Section 7d puts the PCS link and the PV modules' port-B banks on one node, so the banks' charge arrives at once. Here each module's bank "
+      f"({pv['C_B'] * 1e6:.1f} uF) sits on its own node behind its run to the PCS link (series R + L per module; identical runs, n in parallel), "
+      f"the PCS link is its own {P['Cdc'] * 1e6:.1f} uF; the PV current (section 7d's source: held until the cut, then the decay) feeds the PV "
+      "node and the PV protections (coordination row, firmware limit, comparator) read the PV node; the PCS's soft limit and comparator read "
+      f"its own node at the inter-sample peak; the network is integrated exactly (zero-order hold) in {cab['sub']} steps per control period and "
+      "continued through the PCS's diode tail; the bus end is the value both nodes settle to (charge-weighted). Harness ASSUMED ('dc_cable'): "
+      "runs of " + ", ".join(f"{x:g}" for x in cab["run_m"]) + " m, loop inductance " + " / ".join(f"{x:g}" for x in cab["L_uH_per_m"])
+      + f" uH per metre of run (DC+ and DC- together), the resistance of {max(cab['mm2']):g} mm2 copper at {min(cab['T_C']):g} C (the least "
+      "damping: " + ", ".join(f"{c['run_m']:g} m {c['R_mOhm']:.2f} mOhm" for c in cb["corners"][::len(cab["L_uH_per_m"])]) + " per run; capacitor "
+      f"ESR, busbars and the skin effect not credited); the cable mode {cb['f_cable_kHz'][0]:.1f}-{cb['f_cable_kHz'][1]:.1f} kHz. PV source: "
+      + "; ".join(f"**{k}** - {v['basis']}" for k, v in cb["sources"].items()) + ". SIMULATED (averaged PCS) + the executed PV detection; the "
+      "runs are lumped R-L (no transmission-line effects at these lengths).\n")
+    rows = []
+    for r in cb["rows"]:
+        cs = r["cable"]
+        cut = [t for c in cs if c["t_cut_ms"] for t in c["t_cut_ms"]]
+        rows.append((f"{r['v_set']:.0f}", f"{r['n']} x {r['P_each_kW']:g}", r["source"], f"{r['one_node']['vdc_pk']:.0f}")
+                    + tuple(f"{c['vdc_pk']:.0f}" + ("" if c["rides"] else " TRIP") for c in cs)
+                    + (f"{max(c['v_pv_pk'] or 0.0 for c in cs):.0f}", f"{min(cut):.2f}-{max(cut):.2f}" if cut else "-",
+                       "rides through" if r["one_node"]["rides"] and all(c["rides"] for c in cs) else "TRIPS at a corner"))
+    a(f"**PCS-node bus peak, V** (the worst over the link -10 / +10 % and both PV evaluation phases; soft limit {P['ov_soft'][0]:.0f} V, the "
+      f"comparator band from {P['ov_dc'][1]:.0f} V; SIMULATED):\n")
+    a(tab(("V_B* V", "modules x kW", "PV source", "one node (7d)") + cn + ("PV-node peak V", "PV cut ms (cable)", "outcome"), rows))
+    a("**Set-point validity, V** (the largest V_B* whose worst corner rides through - link -10 %, both phases; section 7d's search):\n")
+    a(tab(("modules x kW", "PV source", "one node (7d)") + cn + ("worst with the cable",),
+          [(v["case"], v["source"], gd(v["one_node"], 0)) + tuple(gd(x, 0) for x in v["cable"])
+           + (gd(None if None in v["cable"] else min(v["cable"]), 0),) for v in cb["validity"]]))
+    lc, lo = cb["limit_check"], cb["lossless"]
+    a(f"**Model check:** {lc['case']}: one node {lc['one_node']:.1f} V, near-zero runs {lc['cable_small']:.1f} V ({lc['basis']}). "
+      f"**Resistance:** the worst run ({lo['run']['run_m']:g} m, {lo['run']['L_uH_per_m']:g} uH/m, two modules at {pv['valid']:.0f} V) "
+      f"{lo['with_R']:.1f} V at {lo['R_mOhm']:.2f} mOhm, {lo['lossless']:.1f} V lossless - the first peak is set by the inductance, not the "
+      "damping.\n")
+    a(f"**Reading.** The run delays the PV banks' charge and the PV module's own detection (it reads the slower PV node): the PCS node "
+      f"overshoots by up to {max(c['vdc_pk'] - r['one_node']['vdc_pk'] for r in cb['rows'] for c in r['cable']):+.0f} V over the one-node "
+      "model, most on the longest, most inductive run with two modules. Every corner at the default and at the PV row's validity rides "
+      f"through, with the slow loop and the late detection too (largest {max(c['vdc_pk'] for r in cb['rows'] for c in r['cable']):.0f} V). "
+      f"The set-point validity falls from the one-node {min(v for v in R['dcc']['v_set_max'].values() if v):.0f} V to "
+      f"{gd(cb['validity_min_V'], 0)} V at the worst run and source extreme - {gd(wd['margin_firmware_limit_to_cable_validity_V'], 0)} V above the "
+      f"firmware limit {wd['firmware_limit_V']:.0f} V. Neither validity is a rating.\n")
+    a(f"**The enforced window (product rule; pcs_control_spec dc_bus_operating_window):** default set point {wd['default_set_point_V']:.0f} V - "
+      f"per build, against its floor = (full load from, at the PCS terminals, + the {wd['harness_drop_V']:.1f} V harness drop) / (1 - the PV's "
+      f"{wd['pv_vb_accuracy_pct']:.2f} % V_B accuracy): " + "; ".join(f"{k} {v:.0f} V (full load from {wd['full_load_floor_at_pcs_V'][k]:.1f} V, "
+                                                                 f"floor {wd['set_point_floor_V'][k]:.1f} V)" for k, v in wd["set_point_by_build_V"].items())
+      + f"; firmware limit {wd['firmware_limit_V']:.0f} V ({wd['firmware_limit_basis']}); the PCS's VF permissive {wd['pcs_vf_permissive_V']:.0f} V "
+      f"({wd['pcs_vf_permissive_basis']}); {wd['lumped_model_note']}: " + ", ".join(f"{k} {v} V" for k, v in wd["lumped_model_validity_V"].items())
+      + f"; {wd['cable_model_note']}: {gd(wd['cable_model_validity_min_V'], 0)} V.\n")
+    a("**Qualified harness contract (for the integrator):** " + " ".join(f"({i + 1}) {x}." for i, x in enumerate(wd["harness_contract"])) + "\n")
+    return L
+
+
 def rep_r3(P, R, spec):
     """report section: the re-check R3 of commit 615e4b5 (this study's findings)"""
     L, rv = ["## Review R3 (re-check of commit 615e4b5): findings of this study\n"], REVIEW_R3["corroboration"]
@@ -5264,9 +5648,11 @@ def rep_7d(P, R):
     a(tab(("V_B* V", "modules x kW", "link factor", "link uF", "PV cut ms", "PCS trip ms", "bus peak V", "bus end V", "half peak V",
            "outcome"), rows))
     a("Residual energy at the operating current instead of the cells' peak (750 V, link -10 %): " + "; ".join(
-        f"{d['n']} x {d['P_each_kW']:g} kW {d['vdc_pk']:.0f} V" for d in dc["sens"]) + ". **Set-point validity** (the largest V_B* whose worst "
+        f"{d['n']} x {d['P_each_kW']:g} kW {d['vdc_pk']:.0f} V" for d in dc["sens"]) + ". **Set-point validity of this one-node model** (the largest V_B* whose worst "
       "corner - link -10 %, peak residual energy, the worse phase - rides through): " + ", ".join(f"{k} {v} V" for k, v in dc["v_set_max"].items())
-      + f"; the PV row's {pv['valid']:.0f} V (its x2 time-margin rule, ASSUMED) is conservative against it. **What a hardwired trip line could do** "
+      + f" - a model figure, NOT a rating (review R4 E04: section 7e adds the inter-module cable and the PV source's extremes; the enforced window "
+        f"is default {A('dc_bus_window')['default_V']:.0f} V, firmware limit {pv['valid']:.0f} V = the PV row's validity, its x2 time-margin rule "
+        "ASSUMED). **What a hardwired trip line could do** "
       "(the PV gates off a fixed time after the rejection): an ideal one at the rejection leaves " + "; ".join(
           f"{d['n']} x {d['P_each_kW']:g} kW at {d['v_set']:.0f} V -> {d['vdc_pk']:.0f} V" for d in dc["ideal"]) + " (the PCS's own returned "
       "LCL energy); at 950 V it must stop the modules within " + ", ".join(f"{k} {v:.0f} us" if v else f"{k} (not possible)"
@@ -5373,11 +5759,18 @@ def write_report(P, G, R, spec, t_run):
     a(f"- **Four-wire bolted L-N short (9c-2, review R3-02):** both hardware layers replayed; with the D-079 firmware the CMPSS backup can "
       f"trip at a tolerance corner; the adopted onset clamp keeps every corner off both layers (smallest margin {sp_['adopted_margin_A']:.1f} A), "
       "then the 200 ms firmware ride; a hardware trip, if one occurs, is declared (FAULT, no automatic clear).")
-    a(f"- **Battery-less DC bus with PV-P75 (7d, review R3-03):** the coupled trajectory with the PV modules' own protections: the island "
-      f"rides a full-load rejection up to V_B* = {min(v for v in dcc_['v_set_max'].values() if v):.0f} V at the worst corner; without the PV "
-      "coordination row the PCS trips; no hardware added.")
-    a("- **VF envelope (7c, review R3-05):** declared = the ITIC-style points FROM MEMORY with the simulated worst corner's margins; IEC "
-      "62040-3 class points FROM MEMORY not met; adoption is adopted as REQUIREMENTS AC-04 (D-080), the bench the gate.")
+    dcb_ = R["dcb"]
+    a(f"- **Battery-less DC bus with PV-P75 (7d, 7e; reviews R3-03, R4 E04):** the coupled trajectory with the PV modules' own protections "
+      f"and the inter-module cable (2-20 m, ASSUMED harness): at {dcb_['window']['default_set_point_V']:.0f} and {P['pv']['valid']:.0f} V the "
+      "island rides a full-load rejection at every corner, also with the PV source's extremes (PCS-node peak <= "
+      f"{max(c['vdc_pk'] for r in dcb_['rows'] for c in r['cable']):.0f} V against the {P['ov_soft'][0]:.0f} V soft limit); enforced window: "
+      f"default {dcb_['window']['default_set_point_V']:.0f} V, firmware limit {P['pv']['valid']:.0f} V; the one-node model's "
+      f"{min(v for v in dcc_['v_set_max'].values() if v):.0f} V and the cable model's {gd(dcb_['validity_min_V'], 0)} V are model validities, "
+      "not ratings; without the PV coordination row the PCS trips; no hardware added.")
+    a("- **VF envelope (7c; reviews R3-05, R4 E06):** the module's declared output capability on a 100 % load step (ITIC-style points FROM "
+      "MEMORY, the simulated worst corner's margins) - not a load-compatibility claim; release sequence: grid-following first, grid forming "
+      "for managed island loads with an agreed voltage-time and interruption specification, general off-grid or UPS-like supply only after "
+      "an output class and its test method exist; IEC 62040-3 not claimed; the bench the gate.")
     mm = [h[0] for h in R["hw"] if h[3].startswith("MISMATCH")]
     a(f"- **Drawn hardware:** {len(mm)} mismatches (section 10): " + "; ".join(mm) + ".\n")
     a("## What it does not establish\n")
@@ -5394,6 +5787,7 @@ def write_report(P, G, R, spec, t_run):
       "the ride-through onset prediction, section 4c), sensor offsets.\n")
     L.extend(rep_r2(P, R, spec))
     L.extend(rep_r3(P, R, spec))
+    L.extend(rep_r4(P, R, spec))
     a("## 1. Inputs and assumptions\n")
     a(f"Read at run time: `{os.path.relpath(SPEC, ROOT)}` (L1 {P['L1'] * 1e6:.0f} uH, C_f {P['Cf'] * 1e6:.0f} uF, L2 "
       f"{P['L2'] * 1e6:.1f} uH, R_d {P['Rd']:.1f} ohm + C_d {P['Cd'] * 1e6:.0f} uF; f_sw {P['fsw'] / 1e3:.0f} kHz, sampling "
@@ -5586,6 +5980,7 @@ def write_report(P, G, R, spec, t_run):
     L.extend(rep_7d(P, R))
     a("![bounded](bounded.png)\n")
     a("![vf](vf_and_ride_through.png)\n")
+    L.extend(rep_7e(P, R))
     a("## 8. THDi estimate and dead time (CALCULATED, assumed background distortion)\n")
     rows = []
     for ctl in dict.fromkeys(r["ctrl"] for r in R["thd"]):
@@ -5664,9 +6059,15 @@ def write_report(P, G, R, spec, t_run):
       "at low DC voltage; the third-harmonic zero sequence (firmware option) is not adopted or simulated.")
     a("- Review R3: the DC-start close's relay timings, synchronisation model and path-check method are ASSUMED (9e); the four-wire short's "
       "hold sits " + f"{R['n4']['short_protection']['adopted_margin_A']:.0f} A under the CMPSS backup's low edge with the window-top ripple - a "
-      "switched model and the bench confirm it (9c-2); the coupled DC bus does not credit the PV V_B loop, credits the PV port-B banks, ignores "
-      "the cable between the boards, and its set-point validity is a simulation figure - the PV row's own limit stays the firmware limit until "
-      "the bench (7d); the declared VF points and the IEC 62040-3 class figures are FROM MEMORY (7c).")
+      "switched model and the bench confirm it (9c-2); the coupled DC bus does not credit the PV V_B loop, and the cable between the boards "
+      "is a lumped R-L per module on an ASSUMED harness (7e); its set-point validities are model figures - the enforced window stands until "
+      "the bench; the declared VF points and the IEC 62040-3 class figures are FROM MEMORY (7c).")
+    a(f"- Review R4: the harness (loop inductance per metre, copper resistance) is ASSUMED - an as-built harness outside the contract of 7e "
+      "is a new study; the slow-loop extreme is a first-order, charge-equivalent decay (the PI's own voltage-limited response is faster) and the "
+      "late-detection extreme the row's ASSUMED time margin consumed, not a measured chain; capacitor ESR and the skin effect are not credited; "
+      "the declared VF capability (7c) is not a load-compatibility claim - a managed island needs an agreed voltage-time and interruption "
+      f"specification, general off-grid an output class and test method; the four-wire short's {R['n4']['short_protection']['adopted_margin_A']:.1f} "
+      "A hold margin is a bench / DVT item (9c-2).")
     a(f"- The per-sample clamp is referenced to the lower edge of the two layers (coordinator decision on the review R3-02 side finding): "
       f"{P['iclamp_basis']}; the generator's window rule (bottom - ripple/2 - clamp >= {A('iclamp_margin_A'):.0f} A) now leaves "
       f"{P['win']['lo'] - P['ripple_pp'] / 2 - P['iclamp']:.1f} A and its text should read ride_through_rule.clamp_basis.\n")
@@ -5794,6 +6195,18 @@ def self_check(P, G, R):
     assert all(d["dev_ok"] and d["half_ok"] for d in dcc["main"] + dcc["backstop"] + list(dcc["uncoordinated"].values())), "coupled bus: device / film"
     eb = R["vfb"]["envelope_basis"]["margins_worst_corner"]
     assert next(v for k, v in eb.items() if k.startswith("declared"))["met"], "VF: the simulated worst corner outside the declared points"
+    # review R4 (sections 7c, 7e)
+    dcb = R["dcb"]
+    assert all(r["one_node"]["rides"] and all(c["rides"] for c in r["cable"]) for r in dcb["rows"]), "cable bus: a corner inside the window trips"
+    assert dcb["validity_min_V"] is not None and dcb["validity_min_V"] > P["pv"]["valid"], ("cable bus: validity not above the firmware limit",
+                                                                                           dcb["validity_min_V"])
+    assert abs(dcb["limit_check"]["cable_small"] - dcb["limit_check"]["one_node"]) < 5.0, ("cable bus: the small-run limit is not the one-node "
+                                                                                          "model", dcb["limit_check"])
+    assert all(v["one_node"] == R["dcc"]["v_set_max"][v["case"]] for v in dcb["validity"] if v["source"].startswith("nominal")), \
+        ("cable study: the one-node reference is not section 7d's", dcb["validity"])
+    ac04 = next(ln for ln in open(REQ).read().splitlines() if ln.startswith("| AC-04 |"))
+    assert "DECLARED OUTPUT CAPABILITY" in ac04 and "not a load-compatibility claim" in ac04, \
+        "REQUIREMENTS AC-04 is no longer the declared output capability the study states (review R4 E06)"
 
 
 def main():
@@ -5821,6 +6234,7 @@ def main():
     R["rtr"] = study_rt_rule(P, G, R)
     R["vfb"], R["dct"] = study_vf_bounded(P, G, R), study_dc_trip(P, G)
     R["dcc"] = study_dc_coupled(P, G, R)                  # review R3-03 (also fills vf_bounded 'uncoordinated')
+    R["dcb"] = study_dc_cable(P, G, R)                    # review R4 E04
     R["acc"], R["gfm_harm"] = vf_accuracy(P, R["sec"]), design_gfm_harm(P, K, G["Kv"])
     R["thdu"] = study_thdu(P, G, R)
     R["imb"], R["nleg"] = study_imbalance(P, R), study_neutral(P, G, R)

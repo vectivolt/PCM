@@ -817,12 +817,13 @@ def _(pub):
     frac = th["frac"][f"{hi:g}C"]
     holds = min(frac.values()) >= t["continuous"][0] / t["rated"][0] - 1e-9
     two = "holds" if th["derated"]["120 % 2 min"] >= t["2_min"][0] - 1e-9 else f"derates to {th['derated']['120 % 2 min']:.0f} A"
-    assert "the fans rated" in K("spec", S["spec"], "declarations", "environment"), F["spec"] + ": the environment declaration no longer lists the fans' rating"
+    _env = K("spec", S["spec"], "declarations", "environment")
+    assert ("the fans rated" in _env) or ("fans off (rated -10 C)" in _env), F["spec"] + ": the environment declaration no longer lists the fans' rating"
     a = audit()
     fw = fourwire()
     n60 = fw["nleg"]["198 A, 900 V, 60 C"]["tj_max_C"]
-    c = (f"cold side: the {c3n} ({c4n} on the four-wire build) x {mpn} fans are rated {fl:+g}~{fh:+g} C (module BOM) against the {lo:+g} C of the published module (pcs_spec declares the "
-         f"same target and lists the fans as an open risk); the temperature audit has no row for {a['bom'][1]} of {a['bom'][0]} orderable parts of the module "
+    c = (f"cold side: the {c3n} ({c4n} on the four-wire build) x {mpn} fans are rated {fl:+g}~{fh:+g} C (module BOM) against the {lo:+g} C of the published module (since D-081 pcs_spec declares full operation from -10 C inlet only; -30..-10 C is standby or the "
+         f"passive-cooling table, 20 / 15 / 8 kVA at 600 V DC and -30 / -20 / -10 C for the three-wire build, ESTIMATE; -30 C at power needs a cold-rated fan, RFQ open); the temperature audit has no row for {a['bom'][1]} of {a['bom'][0]} orderable parts of the module "
          f"BOM{', the fans among them' if a['bom'][2] else ''}, so the cold side of those is unaudited. Hot side: the 110 % tier ({t['continuous'][0]:g} A) holds "
          f"to {hi:g} C inlet with the hottest device at {th['tj60']:.0f} C against {th['limit']:g} C - no derating where the published module derates above "
          f"{derate:g} C - provided the R_DS(on) acceptance rule is applied (production requirement); the fan is at its {fh:g} C limit; the 2-min tier {two}, "

@@ -1285,31 +1285,31 @@
   "firmware_undervoltage_V": 240.0,
   "desat": {
    "blank_range_us": [
-    0.263,
-    0.8210000000000001
+    0.276,
+    0.861
    ],
    "filter_range_us": [
     0.1,
     0.32
    ],
    "off_after_detect_us": 0.42,
-   "typ_us": 0.962,
-   "max_us": 1.241,
+   "typ_us": 0.9884999999999999,
+   "max_us": 1.281,
    "scwt_1100_us": 2.0,
    "withstand_basis": "no Chinese datasheet states one; MSC035SMA170B4 3.1 us typ (1200 V, 20 V), ROHM SCT4036KRHR 4 us - ASSUMPTION to be confirmed by the makers or a SC test",
    "soft_off_only_us": 1.96,
    "required_detect_to_off_us": 1.0,
    "vth": [
-    5.43,
-    8.47
+    6.41,
+    9.37
    ],
    "desat_A_25C": [
-    271.5,
-    484.0
+    320.5,
+    535.4285714285713
    ],
    "desat_A_175C": [
-    123.4090909090909,
-    260.61538461538464
+    145.6818181818182,
+    288.30769230769226
    ],
    "meets_typ": true,
    "meets_max": true,
@@ -1807,6 +1807,16 @@
     "start-up self-test": "-",
     "consequence": "otherwise the PCS trips on DC over-voltage 1.50-1.94 ms after the rejection and the bus is left at 1060-1061 V, latched",
     "source": "sim/out/pcs_control/pcs_control_spec.json (vf_bounded, dc_rejection_bounded, inputs) + this study's V_B chain"
+   },
+   {
+    "item": "DC-bus set point on a battery-less bus (product rule, review R4 E04; bus forming on port B, the validity of the coordination row above)",
+    "peripheral and setting": "parameter set: V_B* default 750 V in CV mode on a bus the installation declares battery-less (755 V when the PCS-P125 is the 3W+N+PE, mode A (N leg at 50 %) build), clamped to <= 782 V: the coordination row's own validity (its x2 time margin, ASSUMED, holds to V_B* = 782 V); a V_B* above the clamp is refused while the bus is declared battery-less, and the coordination row stays enabled; the PCS-P125 starts an island only at V_dc <= 791 V (its own refusal)",
+    "threshold / band": "V_B* <= 782 V, default 750 V; the one-node model's 921 V (1 x 82.5 kW) / 909 V (2 x 75 kW) and the cable model's 846 V are model validities, not ratings; the harness contract of the installation (pcs_control_spec dc_bus_operating_window harness_contract): run length <= 20 m per PV module, its port-B terminals to the PCS's DC terminals; one run per module (a shared busbar section counts in each run) | loop inductance <= 1 uH per metre of run and <= 20 uH per run including fuses, disconnectors and busbar sections: DC+ and DC- routed together (a two-core cable, or the single cores bundled and touching in the same tray), never separated or looped through other sections; no series choke or ferrite on the link (its differential-mode inductance counts) | cross-section: copper, sized by the installation rules for the module's 135 A port current; loop resistance <= 12.6 mOhm per run (20 m of 70 mm2 at 90 C: 1.7 V at 135 A, the drop the set-point floors carry); heavier conductors allowed (the first peak hardly depends on the resistance: +1.8 V lossless at the worst run) | nothing else on the link: no capacitance, filter, DC source or load beyond the PCS's DC link and the PV modules' port-B banks as drawn (a battery or another source is a different study); at most two PV-P75 modules per PCS link, their power <= the PCS's DC power tier (section 7d) | the commissioning record carries the as-built runs (length, cross-section, routing), the battery-less declaration, the set point and both modules' serials",
+    "filter": "-",
+    "latency": "-",
+    "start-up self-test": "parameter-set CRC; V_B* inside the window and the battery-less declaration read before CV starts",
+    "consequence": "above 782 V the coordination row's x2 margin is not held (a shared hardwired trip line or a battery would be needed): the PCS trips on DC over-voltage and the island goes dark",
+    "source": "this study's coordination budget + sim/out/pcs_control/pcs_control_spec.json dc_bus_operating_window"
    }
   ]
  },

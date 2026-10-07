@@ -243,7 +243,7 @@ def price_line(row, module, book, by_sku, est, fac):
         rows = book[mpn]
         rk, price, pick = best_price(rows)
         out.update(status="priced", unit=price, conf="high" if rk < 2 and "snippet" not in pick["src"].lower() else "medium",
-                   src="%s %s %s (2026-10-04)%s" % (pick["src"], pick["sku"], "@%d+" % pick["qty"] if pick["known"] else "break not stated", " single-piece price" if pick["qty"] < 10 else ""))
+                   src="%s %s %s (%s)%s" % (pick["src"], pick["sku"], "@%d+" % pick["qty"] if pick["known"] else "break not stated", pick.get("date") or "2026-10-04", " single-piece price" if pick["qty"] < 10 else ""))
         ev = [c for c in candidates(rows, annual) if c[2]["qty"] >= EVIDENCE_MIN_BREAK]
         if ev:
             _, p5, pk5 = min(ev, key=lambda c: (c[0], c[1]))

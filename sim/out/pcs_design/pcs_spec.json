@@ -633,7 +633,7 @@
   "basis": "review R2-02 / R2-03 (2026-10-07): gates-off current = trip band top (PCS-CTL as built) + V_FAULT / L1(I) integrated over the response with every delay at its maximum; L1 = the envelope of the magnetics design file's trajectory (hot 100 C, the -10 % level with the +5 % part's knee); the turn-off peak from the leg deck (drawn films and dampers, bus and board inductance x1.5) at that current and the over-voltage band top; CALCULATED, not measured",
   "inputs": {
    "source": "hardware/PCS-CTL/outputs/PCS-CTL_design_check.txt",
-   "sha256": "b5a553959c47f60f",
+   "sha256": "0679714b26382442",
    "status": {
     "local": "PASS",
     "backup": "PASS"
@@ -1762,7 +1762,48 @@
    "NSI6651_peak_A": 10.0
   },
   "desat": {
-   "threshold_V_DS": "set by the gate-drive preset (gen/gdrv.py '6 x SG2M040170HJ': NSI6651 8.5-9.8 V less 100 ohm x I_CHG and the US1M string); PCS-PWR's design check coordinates it with the on-state voltage below",
+   "threshold_V_DS": "set by the gate-drive preset (gen/gdrv.py '6 x SG2M040170HJ': NSI6651 8.5-10.0 V less 100 ohm x I_CHG and the 2 x BYG23T-M3/TR string, DESAT_PCS); PCS-PWR's design check coordinates it with the on-state voltage below",
+   "string_envelope": {
+    "static_V": {
+     "operating, the opposite switch on: the link": [
+      590.0,
+      950.0
+     ],
+     "DC over-voltage trip band (PCS-CTL as built)": [
+      978.0,
+      1048.0
+     ],
+     "the link when that trip turns the gates off (OV gates-off corner)": [
+      1071.0
+     ],
+     "latched after a weak-grid DC-load rejection trip (pcs_control_spec dc_rejection_bounded)": [
+      1093.54,
+      1106.06
+     ],
+     "latched, link shared with PV modules, no coordination row (dc_bus_coupled_pv uncoordinated)": [
+      1060.48,
+      1061.22
+     ],
+     "latched, the PV modules' firmware dead - their hardware band trips (dc_bus_coupled_pv backstop)": [
+      1062.53,
+      1130.08
+     ],
+     "PV modules' hardware OV band top on a shared link (dc_bus_coupled_pv pv)": [
+      1110.0
+     ]
+    },
+    "static_max_V": 1130.08,
+    "floating_node": "gates off, contactors open, the current decayed: the switch node is held only by leakage and the HV dividers (6 M to VMID on every C_f node), so the split between the two switches of a leg is not bounded - up to the whole link across one switch, i.e. the static figures above",
+    "peak_deck_V": {
+     "local window (as drawn)": 1437.10083,
+     "over-voltage corner (bus at the OV gates-off, current at the window top)": 1438.02064,
+     "CMPSS backup at its required band top": 1444.75686,
+     "CMPSS backup as drawn": 1440.86446
+    },
+    "peak_max_deck_V": 1444.75686,
+    "peak_limit_V": 1445.0,
+    "basis": "static: the link across an OFF switch for longer than the leakage needs to move the split (ms .. the 15 min discharge); peak: the leg decks of protection_chain at the gates-off currents, held to the 0.85 x V_DSS limit; simulated (control study, averaged) and calculated, not measured"
+   },
    "V_DS_at_OC_trip_V": 6.303,
    "blanking_ns": [
     150,
@@ -5267,7 +5308,7 @@
       "tj_phase_C": 149.64722741125846,
       "note": "four-wire: the N leg (same devices, the module's grade) at the same current runs at 149.3 C against the phase legs' 149.6 C, so the neutral current takes the same table"
      },
-     "summary": "grade B (any device above 40.0 mOhm, up to 52 mOhm; calculated as six devices at 52 mOhm): continuous 198.0 / 198.0 / 196.8 / 179.8 A at 25 / 35 / 45 / 60 C inlet (110 % = 198 A not held at 60 C: 179.8-192.2 A there by V_dc), 2 min 216.0 / 215.1 / 207.5 / 192.6 A from steady / 216.0 / 216.0 / 215.8 / 204.3 A from cold, 200 ms = the 2-min tier (from the start state alone 229.8 / 221.2 / 212.8 / 207.5 A from steady); grade A (every device <= 40.0 mOhm): 198 / 216 / 259.2 A at <= 45 C, at 60 C 198.0 / 216.0 / 242.9 A (continuous / 2 min / 200 ms from steady) - each the lowest over 600 / 750 / 950 V and PF 1 / 0"
+     "summary": "grade B (any device above 40.0 mOhm, up to 52 mOhm; calculated as six devices at 52 mOhm): continuous 198.0 / 198.0 / 196.8 / 179.8 A at 25 / 35 / 45 / 60 C inlet (110 % = 198 A not held at 60 C: 179.8-192.2 A there by V_dc; the 60 C continuous limit 179.8 A = 124.57 kW at PF 1 and 400 V AC - the rated 125 kW at 400 V needs 180.42 A (the rated 180 A is 124.71 kW)), 2 min 216.0 / 215.1 / 207.5 / 192.6 A from steady / 216.0 / 216.0 / 215.8 / 204.3 A from cold, 200 ms = the 2-min tier (from the start state alone 229.8 / 221.2 / 212.8 / 207.5 A from steady); grade A (every device <= 40.0 mOhm): 198 / 216 / 259.2 A at <= 45 C, at 60 C 198.0 / 216.0 / 242.9 A (continuous / 2 min / 200 ms from steady) - each the lowest over 600 / 750 / 950 V and PF 1 / 0"
     },
     "DESAT_lowest_trip_V_string_ge_45C": 6.71,
     "margin_stated": 1.05,
@@ -5901,6 +5942,458 @@
      "ang": 90.0
     }
    }
+  },
+  "cold_start": {
+   "tables": {
+    "three-wire": [
+     {
+      "inlet_C": -30.0,
+      "vdc_V": 600.0,
+      "I_A": 29.5320859375,
+      "kVA": 20.460429318896143,
+      "loss_W": 293.42975278840794,
+      "air_inside_C": 32.87293747842573,
+      "heatsink_C": 74.80947669285085,
+      "L1_C": 54.74666359430199,
+      "binding": "heatsink",
+      "kVA_pessimistic": 3.1670806117688666,
+      "kVA_optimistic": 35.805231692825984
+     },
+     {
+      "inlet_C": -30.0,
+      "vdc_V": 650.0,
+      "I_A": 20.391511718750003,
+      "kVA": 14.127653736004465,
+      "loss_W": 305.5434662600636,
+      "air_inside_C": 35.47558305001267,
+      "heatsink_C": 74.96935648353713,
+      "L1_C": 65.05368484933825,
+      "binding": "heatsink"
+     },
+     {
+      "inlet_C": -30.0,
+      "vdc_V": 700.0,
+      "I_A": 4.571287109375,
+      "kVA": 3.1670806117688666,
+      "loss_W": 328.62470442364406,
+      "air_inside_C": 40.42503529855259,
+      "heatsink_C": 74.9192274932769,
+      "L1_C": 83.58088762163972,
+      "binding": "heatsink",
+      "kVA_pessimistic": 0.0,
+      "kVA_optimistic": 23.626817110341985
+     },
+     {
+      "inlet_C": -30.0,
+      "vdc_V": 750.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 378.77435179501435,
+      "air_inside_C": 51.17234766490027,
+      "heatsink_C": 88.15048805778261,
+      "L1_C": 105.14969248664465,
+      "binding": "heatsink"
+     },
+     {
+      "inlet_C": -30.0,
+      "vdc_V": 850.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 505.39085375025013,
+      "air_inside_C": 78.30676075855946,
+      "heatsink_C": 123.37399377597214,
+      "L1_C": 157.12963346003673,
+      "binding": "heatsink"
+     },
+     {
+      "inlet_C": -30.0,
+      "vdc_V": 950.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 649.1561831274004,
+      "air_inside_C": 109.11599461189104,
+      "heatsink_C": 162.33481055023705,
+      "L1_C": 216.31301276737946,
+      "binding": "heatsink"
+     },
+     {
+      "inlet_C": -20.0,
+      "vdc_V": 600.0,
+      "I_A": 21.446193359375002,
+      "kVA": 14.858358610953506,
+      "loss_W": 263.74186542715825,
+      "air_inside_C": 36.51760471825484,
+      "heatsink_C": 74.99300887856893,
+      "L1_C": 57.51015071328418,
+      "binding": "heatsink",
+      "kVA_pessimistic": 0.0,
+      "kVA_optimistic": 30.20316098488334
+     },
+     {
+      "inlet_C": -20.0,
+      "vdc_V": 650.0,
+      "I_A": 11.250937500000001,
+      "kVA": 7.794878153112787,
+      "loss_W": 276.2085387986382,
+      "air_inside_C": 39.19146196707817,
+      "heatsink_C": 74.62603574763165,
+      "L1_C": 68.15126963775744,
+      "binding": "heatsink"
+     },
+     {
+      "inlet_C": -20.0,
+      "vdc_V": 700.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 322.9135626388718,
+      "air_inside_C": 49.20127602215456,
+      "heatsink_C": 83.67614890879022,
+      "L1_C": 92.3124570517102,
+      "binding": "heatsink",
+      "kVA_pessimistic": 0.0,
+      "kVA_optimistic": 16.80690494415094
+     },
+     {
+      "inlet_C": -20.0,
+      "vdc_V": 750.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 379.0286634596481,
+      "air_inside_C": 61.226830537412965,
+      "heatsink_C": 99.43269631344457,
+      "L1_C": 115.20417535915735,
+      "binding": "heatsink"
+     },
+     {
+      "inlet_C": -20.0,
+      "vdc_V": 850.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 505.78488883229613,
+      "air_inside_C": 88.3911967938649,
+      "heatsink_C": 134.46425421574466,
+      "L1_C": 167.2140694953422,
+      "binding": "heatsink"
+     },
+     {
+      "inlet_C": -20.0,
+      "vdc_V": 950.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 649.6998433771848,
+      "air_inside_C": 119.23248445731994,
+      "heatsink_C": 172.9962077260622,
+      "L1_C": 226.42950261280836,
+      "binding": "heatsink"
+     },
+     {
+      "inlet_C": -10.0,
+      "vdc_V": 600.0,
+      "I_A": 11.954058593750002,
+      "kVA": 8.282014736412147,
+      "loss_W": 234.74562214407786,
+      "air_inside_C": 40.30587836795748,
+      "heatsink_C": 74.74804366936074,
+      "L1_C": 60.620681130434676,
+      "binding": "heatsink",
+      "kVA_pessimistic": 0.0,
+      "kVA_optimistic": 23.87038540199167
+     },
+     {
+      "inlet_C": -10.0,
+      "vdc_V": 650.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 252.35832915296072,
+      "air_inside_C": 44.08112935152379,
+      "heatsink_C": 75.65415303888466,
+      "L1_C": 72.77033628703532,
+      "binding": "heatsink"
+     },
+     {
+      "inlet_C": -10.0,
+      "vdc_V": 700.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 323.121546822529,
+      "air_inside_C": 59.24585068526605,
+      "heatsink_C": 94.86295352324363,
+      "L1_C": 102.35703171482169,
+      "binding": "heatsink",
+      "kVA_pessimistic": 0.0,
+      "kVA_optimistic": 9.012719611361186
+     },
+     {
+      "inlet_C": -10.0,
+      "vdc_V": 750.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 379.29351311402775,
+      "air_inside_C": 71.28359326527335,
+      "heatsink_C": 110.57399176042881,
+      "L1_C": 125.26093808701773,
+      "binding": "heatsink"
+     },
+     {
+      "inlet_C": -10.0,
+      "vdc_V": 850.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 506.1721547714874,
+      "air_inside_C": 98.47418487104163,
+      "heatsink_C": 145.35657001012623,
+      "L1_C": 177.2970575725189,
+      "binding": "heatsink"
+     },
+     {
+      "inlet_C": -10.0,
+      "vdc_V": 950.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 650.2316912543297,
+      "air_inside_C": 129.34645142027645,
+      "heatsink_C": 183.4258355182558,
+      "L1_C": 236.54346957576487,
+      "binding": "heatsink"
+     }
+    ],
+    "four-wire": [
+     {
+      "inlet_C": -30.0,
+      "vdc_V": 600.0,
+      "I_A": 19.688390625,
+      "kVA": 13.640517152705105,
+      "loss_W": 312.18286011136615,
+      "air_inside_C": 36.899404378430944,
+      "heatsink_C": 74.5602209228617,
+      "L1_C": 57.73737909591654,
+      "binding": "heatsink",
+      "kVA_pessimistic": 0.0,
+      "kVA_optimistic": 31.177434151482064
+     },
+     {
+      "inlet_C": -30.0,
+      "vdc_V": 650.0,
+      "I_A": 7.0322109375,
+      "kVA": 4.872058653316627,
+      "loss_W": 333.26253951367994,
+      "air_inside_C": 41.418831058026626,
+      "heatsink_C": 74.88702612026748,
+      "L1_C": 70.21375267880221,
+      "binding": "heatsink"
+     },
+     {
+      "inlet_C": -30.0,
+      "vdc_V": 700.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 416.3236915626904,
+      "air_inside_C": 59.21930275856799,
+      "heatsink_C": 94.83262896333933,
+      "L1_C": 102.33048378812364,
+      "binding": "heatsink",
+      "kVA_pessimistic": 0.0,
+      "kVA_optimistic": 13.640517152705105
+     },
+     {
+      "inlet_C": -30.0,
+      "vdc_V": 750.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 491.35996142447937,
+      "air_inside_C": 75.2996736617412,
+      "heatsink_C": 114.97692925450525,
+      "L1_C": 129.27701848348556,
+      "binding": "heatsink"
+     },
+     {
+      "inlet_C": -30.0,
+      "vdc_V": 850.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 661.0884686440249,
+      "air_inside_C": 111.67313823490665,
+      "heatsink_C": 159.3094822093569,
+      "L1_C": 190.49601093638393,
+      "binding": "heatsink"
+     },
+     {
+      "inlet_C": -30.0,
+      "vdc_V": 950.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 842.6357078033544,
+      "air_inside_C": -30.0,
+      "heatsink_C": 271.7644906253566,
+      "L1_C": 77.19701815548842,
+      "binding": "no steady state"
+     },
+     {
+      "inlet_C": -20.0,
+      "vdc_V": 600.0,
+      "I_A": 10.196255859375,
+      "kVA": 7.0641732781637465,
+      "loss_W": 284.3038378542103,
+      "air_inside_C": 40.92650429526352,
+      "heatsink_C": 74.60714309898766,
+      "L1_C": 61.158072901189726,
+      "binding": "heatsink",
+      "kVA_pessimistic": 0.0,
+      "kVA_optimistic": 25.088226860240066
+     },
+     {
+      "inlet_C": -20.0,
+      "vdc_V": 650.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 322.07227326015413,
+      "air_inside_C": 49.02101620579714,
+      "heatsink_C": 81.14272806853725,
+      "L1_C": 77.71022314130867,
+      "binding": "heatsink"
+     },
+     {
+      "inlet_C": -20.0,
+      "vdc_V": 700.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 416.6102919174593,
+      "air_inside_C": 69.28070237101392,
+      "heatsink_C": 105.90062765401865,
+      "L1_C": 112.39188340056955,
+      "binding": "heatsink",
+      "kVA_pessimistic": 0.0,
+      "kVA_optimistic": 5.115626944966307
+     },
+     {
+      "inlet_C": -20.0,
+      "vdc_V": 750.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 491.7126422543683,
+      "air_inside_C": 85.3752196261996,
+      "heatsink_C": 125.90831121666648,
+      "L1_C": 139.35256444794396,
+      "binding": "heatsink"
+     },
+     {
+      "inlet_C": -20.0,
+      "vdc_V": 850.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 661.6149046095503,
+      "air_inside_C": 121.78593728536805,
+      "heatsink_C": 169.75911869119224,
+      "L1_C": 200.6088099868453,
+      "binding": "heatsink"
+     },
+     {
+      "inlet_C": -20.0,
+      "vdc_V": 950.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 843.0447104169303,
+      "air_inside_C": -20.0,
+      "heatsink_C": 278.31921449336943,
+      "L1_C": 87.19701815548842,
+      "binding": "no steady state"
+     },
+     {
+      "inlet_C": -10.0,
+      "vdc_V": 600.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 261.01078615371165,
+      "air_inside_C": 45.93538845619447,
+      "heatsink_C": 75.53517990201671,
+      "L1_C": 65.94471155152813,
+      "binding": "heatsink",
+      "kVA_pessimistic": 0.0,
+      "kVA_optimistic": 18.268314694049025
+     },
+     {
+      "inlet_C": -10.0,
+      "vdc_V": 650.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 322.2714923530131,
+      "air_inside_C": 59.06371044497055,
+      "heatsink_C": 92.21117784494805,
+      "L1_C": 87.75291738048209,
+      "binding": "heatsink"
+     },
+     {
+      "inlet_C": -10.0,
+      "vdc_V": 700.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 416.8975643024035,
+      "air_inside_C": 79.34226576936916,
+      "heatsink_C": 116.8159216104931,
+      "L1_C": 122.4534467989248,
+      "binding": "heatsink",
+      "kVA_pessimistic": 0.0,
+      "kVA_optimistic": 0.0
+     },
+     {
+      "inlet_C": -10.0,
+      "vdc_V": 750.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 492.07454881605304,
+      "air_inside_C": 95.45277705545995,
+      "heatsink_C": 136.6659676437757,
+      "L1_C": 149.43012187720433,
+      "binding": "heatsink"
+     },
+     {
+      "inlet_C": -10.0,
+      "vdc_V": 850.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 662.1308948157449,
+      "air_inside_C": 131.8965042478034,
+      "heatsink_C": 179.9980490447889,
+      "L1_C": 210.71937694928067,
+      "binding": "heatsink"
+     },
+     {
+      "inlet_C": -10.0,
+      "vdc_V": 950.0,
+      "I_A": 0.0,
+      "kVA": 0.0,
+      "loss_W": 843.4537130305063,
+      "air_inside_C": -10.0,
+      "heatsink_C": 280.2918711660809,
+      "L1_C": 97.19701815548842,
+      "binding": "no steady state"
+     }
+    ]
+   },
+   "useful": false,
+   "highest_vdc_with_any_power_V": {
+    "three-wire": {
+     "-30C": 700.0,
+     "-20C": 650.0,
+     "-10C": 600.0
+    },
+    "four-wire": {
+     "-30C": 650.0,
+     "-20C": 600.0,
+     "-10C": null
+    }
+   },
+   "firmware_rule": [
+    "fans OFF while the inlet NTC reads below -10 C (the AFB1224SHE-F00 rating, -10..60 C)",
+    "below it the current reference is limited to this table at the measured inlet and V_dc (the warmer inlet row and the higher V_dc point between table points); where the table is 0 the module stays in standby, gates off (aux and contactor coils only) - it may not even switch at no load (the L1 ripple loss and the devices' no-load loss exceed what the closed enclosure sheds)",
+    "fans ON at an inlet of -10 C or above, or whatever the inlet reads once any heatsink NTC exceeds 80 C (override: a fan run below its rating rather than an overheated module; the passive limit is 75 C)"
+   ],
+   "alternatives": {
+    "milder ambient rating": "declare full operation from -10 C inlet (the fans' rating) and below it only the passive table: zero cost; the competitor declares -30..+60 C (AC-02 benchmark), so the -30 C claim becomes 'standby to -30 C, power from -10 C' - an AC-02 change for the owner",
+    "cold-rated fan": "RFQ: a 120 mm 24 V fan rated to -30 C or below inside the drawn 12 W per fan (a low-temperature variant of the drawn Delta, or a Chinese maker) - cost class unknown until quoted; the one fan on file that reaches -30 C is Sanyo Denki 9GT1224P1S001 (-40..+85 C, 26.4 W) at 88-113 USD against 13.15 USD: +225..+299 USD per three-wire module (+299..+399 four-wire) and 2.2 x the fan power on the SELV budget (the one 120 mm fan on file reaching -30 C (sim/pv_module.py FAN_ALT_USD, gen/data/prices.csv: 88 USD stock dealer, 112.92 USD DigiKey 21+))"
+   },
+   "decision": "by cost: the drawn fans stay and the firmware rule above applies (zero cost) - the passive table is too small to be useful over the DC window (no power above 700 V DC at any table inlet), so the declaration reads full operation from -10 C inlet and below it standby or the passive table only (the milder rating); the cold-rated catalogue fan (+225..+299 USD per three-wire module) is not taken; the cold-rated fan RFQ stays open as the path back to -30 C at power, worth adopting if its quote keeps the module within a few USD",
+   "basis": "ESTIMATES (+/-50 %: the pessimistic / optimistic columns take R_sa,nc x1.5 / x0.7 and G_enc x0.7 / x1.4 as the PV model): fans off, each section 24 fins x 60 mm, 400 mm long in natural convection (Bar-Cohen and Rohsenow, fins vertical; ~0.7 K/W per section against 0.050 K/W with the fans), the step-b loss model with the drawn E_on / E_off factors, L1 / L2 / aux / coils from other_losses (no fans), L1 hot spot with h 8 W/m2K on 0.172 m2, the enclosure 650 x 700 x 220 mm (the PMA0125 body, ASSUMED) losing G_enc 4.7 W/K through its walls (h 6 / 8 W/m2K in / out, rear face on the rack); limits Tj 150 C, heatsink NTC 75 C, air inside 60 C, L1 140 C; AC 400 V, the lower of PF 1 / PF 0 (pairs PF 1 (0.0, 180.0), PF 0 (90.0, -90.0)); no bench data"
   }
  },
  "inductors": {
@@ -12149,7 +12642,7 @@
     "A": "every device of the module R_DS(on) <= 40.0 mOhm at 25 C (the absolute limit) and within the +/-5 % matching rule",
     "B": "any device of the module above 40.0 mOhm at 25 C, up to the data-sheet maximum 52 mOhm (the +/-5 % matching rule still applies)"
    },
-   "statement": "the tiers above (kVA, motor start) are grade A's up to 45 C inlet; above it, and for a grade-B module, these tables apply - per inlet the lowest over 600-950 V and PF (full map: pcs_spec rds_acceptance grade_tier_tables); at 60 C continuous / 2 min / 200 ms (steady start): grade A 198.0 / 216.0 / 242.9 A; grade B 179.8 / 192.6 / 192.6 A; a 200 ms excursion is admitted only from the continuous state or cold; once the current has been above the continuous tier for more than 0.22 s (the 200 ms excursion + 20 ms) the 200 ms limit equals the 2 min tier until the current has been at or below the continuous tier for 12 min - both grades (grade B's 200 ms tier already equals its 2-min tier); the grade is bound to the module serial"
+   "statement": "the tiers above (kVA, motor start) are grade A's up to 45 C inlet; above it, and for a grade-B module, these tables apply - per inlet the lowest over 600-950 V and PF (full map: pcs_spec rds_acceptance grade_tier_tables); at 60 C continuous / 2 min / 200 ms (steady start): grade A 198.0 / 216.0 / 242.9 A; grade B 179.8 / 192.6 / 192.6 A (grade B: the 60 C continuous limit 179.8 A = 124.57 kW at PF 1 and 400 V AC - the rated 125 kW at 400 V needs 180.42 A (the rated 180 A is 124.71 kW)); a 200 ms excursion is admitted only from the continuous state or cold; once the current has been above the continuous tier for more than 0.22 s (the 200 ms excursion + 20 ms) the 200 ms limit equals the 2 min tier until the current has been at or below the continuous tier for 12 min - both grades (grade B's 200 ms tier already equals its 2-min tier); the grade is bound to the module serial"
   },
   "operating_windows": {
    "3W+PE": {
@@ -12194,7 +12687,7 @@
    "ours": "the operating map holds at 50 and 60 Hz (both computed); PLL integrator clamp +/-5 Hz (control study), trip windows = the grid code's parameters (EN 50549-1 47.5-51.5 Hz class, FROM MEMORY)",
    "competitor": "datasheet 50 +/- 5 / 60 +/- 5 Hz; user manual 50 +/- 2 / 60 +/- 2 Hz (pp. 38, 41-42)"
   },
-  "environment": "operating -30..+60 C (> 45 C derating by module grade - tiers_by_grade, at 60 C grade A 198.0 / 216.0 / 242.9 A; grade B 179.8 / 192.6 / 192.6 A; the fans rated -10 C: open risk), storage -40..+70 C (ASSUMED: parts' storage ratings to confirm), altitude: see the control board's barrier rating, OVC DC II / AC III, pollution degree external 3 / internal 2; IP rating and enclosure out of scope (schematic and BOM only)",
+  "environment": "operating -10..+60 C at power (> 45 C derating by module grade - tiers_by_grade, at 60 C grade A 198.0 / 216.0 / 242.9 A; grade B 179.8 / 192.6 / 192.6 A (grade B: the 60 C continuous limit 179.8 A = 124.57 kW at PF 1 and 400 V AC - the rated 125 kW at 400 V needs 180.42 A (the rated 180 A is 124.71 kW))); -30..-10 C inlet: fans off (rated -10 C), standby or the passive table only - the milder rating, decided by cost; a cold-rated fan RFQ is the path back to -30 C at power (pcs_spec thermal_and_losses cold_start, review R4 / E11, ESTIMATES: three-wire at 600 V DC 20 / 15 / 8 kVA at -30 / -20 / -10 C inlet, no power above 700 V DC); storage -40..+70 C (ASSUMED: parts' storage ratings to confirm), altitude: see the control board's barrier rating, OVC DC II / AC III, pollution degree external 3 / internal 2; IP rating and enclosure out of scope (schematic and BOM only)",
   "communication": "the control board's declared port roles: module bus = CAN (paralleling, carrier synchronisation by CAN time-stamping, software addressing); BMS = RS-485 (Modbus RTU) or CAN when not paralleled; EMS = Ethernet (Modbus TCP, port 502, over the isolated Ethernet bridge) or RS-485; service RS-485 at 9600-8-N-1",
   "airflow": {
    "sections": {
@@ -12277,7 +12770,7 @@
    "superseded": "D-077's stiff-grid pre-fault derating as the primary measure - now the fallback, its table recomputed by the control study (pcs_control_spec ride_through_rule; the fallback above)",
    "cv_mode_dc_dc_power": "SCR 5 89.5 kW, SCR 10 119.5 kW, SCR 20 125 kW, stiff 125 kW: a DC/DC trip then stays below the 975 V soft limit (simulated, averaged; full power from SCR 20) - the DC/DC power the link may serve in CV mode, selected from the grid-stiffness estimate (the ride-through fallback's estimator): the row at or below the estimate / 1.3, no interpolation upward, no valid estimate = the weakest row (selection ASSUMED); published to the DC/DC over the module CAN / the EMS, which enforce it"
   },
-  "dc_bus_without_battery": "coupled PCS / PV trajectory (pcs_control_spec dc_bus_coupled_pv, review R3-03): with the coordination row the island rides through at 750 / 782 V set points (bus <= 853 V against the 975 V soft limit, the PV current cut 0.20-0.28 ms after the rejection) and the PCS trips at 950 V (bus 994-1016 V, dark); set-point limit by PV module count: 1 x 82.5 kW 921 V, 2 x 75 kW 909 V; the cut is needed within 0.51 ms of an AC load rejection at the study's 750 V bus and 125 kW (16.1 J of LCL energy returned: 801 V even with an ideal source); uncoordinated the comparator trips 1.50 / 1.94 ms after the step (band edges 978 / 1048 V) and the bus is left at 1060-1061 V, latched - below the aux's 1107 V input lock-out; requirements: the PV modules' coordination row (V_B > V_B* + 30 V -> every cell's current reference to zero) is required for VF on a battery-less bus: without it every full-load rejection trips the PCS (bus 1063-1069 V); the CV set point in VF on a battery-less bus <= 909 V (the coupled worst corner; the PV row keeps its 782 V as the firmware limit with its own margin rule); the PV power on one link <= the PCS's DC power tier (one module at 82.5 kW and two at the 2-min tier studied); the external stop wiring (1.47 ms) is not needed for this event - it acts after the PV module's own limit and comparator; it stays a general interlock; a hardwired trip line (cost class low: an isolated digital line, a connector and a latch input, a few USD per module) is needed only for set points above 909 V; it must stop the modules within 1 x 82.5 kW 116 us, 2 x 75 kW 56 us of the rejection at 950 V; not added; with the PV firmware dead the bus ends at 1126-1130 V, above the aux's 1107 V input lock-out: dark until it bleeds down - outside this module: the PV modules' coordination row (V_B > V_B* + 30 V -> every cell's current reference to zero; sim/out/pv_control/control_spec.json firmware_second_layer 'system') on a battery-less bus that this module turns into an island (VF) - a CAN message is too slow; the PCS cannot absorb the energy (no brake chopper drawn)"
+  "dc_bus_without_battery": "coupled PCS / PV trajectory (pcs_control_spec dc_bus_coupled_pv, review R3-03): with the coordination row the island rides through at 750 / 782 V set points (bus <= 853 V against the 975 V soft limit, the PV current cut 0.20-0.28 ms after the rejection) and the PCS trips at 950 V (bus 994-1016 V, dark); enforced operating window (product rule in both modules' parameter sets, pcs_control_spec dc_bus_operating_window, review R4 E04): CV set point default 750 V (3W+PE 750 V, 3W+N+PE, mode A (N leg at 50 %) 755 V, 3W+N+PE, mode B (zero sequence on four legs) 750 V); clamped to <= 782 V in the PV module's parameter set (the PV coordination row's own validity, its x2 time margin ASSUMED (sim/out/pv_control/control_spec.json); enforced as the PV module's V_B* clamp on a bus declared battery-less); the PCS refuses to start an island (VF) on a bus declared battery-less above 791 V (the firmware limit plus the PV's 0.57 % V_B accuracy and the PCS-CTL's 0.57 % ADC accuracy: VF on a bus declared battery-less starts only below it); the one-node model's 921 V (1 x 82.5 kW) / 909 V (2 x 75 kW) and the cable model's 846 V are model validities, NOT ratings (64 V between the clamp and the cable validity); cable model (2 / 10 / 20 m runs, 0.6 / 1 uH/m): every corner rides through, PCS-node peaks 849-887 V at 750 V, 878-914 V at 782 V; harness contract (installation): run length <= 20 m per PV module, its port-B terminals to the PCS's DC terminals; one run per module (a shared busbar section counts in each run) | loop inductance <= 1 uH per metre of run and <= 20 uH per run including fuses, disconnectors and busbar sections: DC+ and DC- routed together (a two-core cable, or the single cores bundled and touching in the same tray), never separated or looped through other sections; no series choke or ferrite on the link (its differential-mode inductance counts) | cross-section: copper, sized by the installation rules for the module's 135 A port current; loop resistance <= 12.6 mOhm per run (20 m of 70 mm2 at 90 C: 1.7 V at 135 A, the drop the set-point floors carry); heavier conductors allowed (the first peak hardly depends on the resistance: +1.8 V lossless at the worst run) | nothing else on the link: no capacitance, filter, DC source or load beyond the PCS's DC link and the PV modules' port-B banks as drawn (a battery or another source is a different study); at most two PV-P75 modules per PCS link, their power <= the PCS's DC power tier (section 7d) | the commissioning record carries the as-built runs (length, cross-section, routing), the battery-less declaration, the set point and both modules' serials; the cut is needed within 0.51 ms of an AC load rejection at the study's 750 V bus and 125 kW (16.1 J of LCL energy returned: 801 V even with an ideal source); uncoordinated the comparator trips 1.50 / 1.94 ms after the step (band edges 978 / 1048 V) and the bus is left at 1060-1061 V, latched - below the aux's 1107 V input lock-out; requirements: the PV modules' coordination row (V_B > V_B* + 30 V -> every cell's current reference to zero) is required for VF on a battery-less bus: without it every full-load rejection trips the PCS (bus 1063-1069 V); the CV set point in VF on a battery-less bus: default 750 V, firmware limit <= 782 V (the PV coordination row's own validity) - the enforced product rule (review R4 E04: pcs_control_spec dc_bus_operating_window); 909 V is this one-node model's validity only (no cable, the PV banks on the PCS node) - not a rating; the PV power on one link <= the PCS's DC power tier (one module at 82.5 kW and two at the 2-min tier studied); the external stop wiring (1.47 ms) is not needed for this event - it acts after the PV module's own limit and comparator; it stays a general interlock; a hardwired trip line (cost class low: an isolated digital line, a connector and a latch input, a few USD per module) is not needed inside the enforced window; in this one-node model it would be needed above 909 V and must stop the modules within 1 x 82.5 kW 116 us, 2 x 75 kW 56 us of the rejection at 950 V; not added; with the PV firmware dead the bus ends at 1126-1130 V, above the aux's 1107 V input lock-out: dark until it bleeds down - outside this module: the PV modules' coordination row (V_B > V_B* + 30 V -> every cell's current reference to zero; sim/out/pv_control/control_spec.json firmware_second_layer 'system') on a battery-less bus that this module turns into an island (VF) - a CAN message is too slow; the PCS cannot absorb the energy (no brake chopper drawn)"
  },
  "handover": {
   "control_engineer": {
@@ -12324,7 +12817,7 @@
    "device_acceptance_absolute": "R_DS(on) <= 40.0 mOhm for each device at V_GS 18 V, I_D 38 A pulsed (< 200 us), T_J 25 C - the same incoming measurement as the +/-5 % matching rule (no extra test, no extra hardware); data sheet 40 typ / 52 max: parts between 40.0 and 52 mOhm are not scrapped - a module with any of them is grade B and runs grade B's tier table (pcs_spec desat rds_acceptance grade_tier_tables, by inlet, V_dc, PF and start state; at 45 C inlet continuous 196.8 A, 2 min = 200 ms 207.5 A; at 60 C 179.8 / 192.6 A, 110 % not held), a parameter set bound to the module serial",
    "device_grades": "grade A: every device of the module R_DS(on) <= 40.0 mOhm at 25 C (the absolute limit) and within the +/-5 % matching rule; grade B: any device of the module above 40.0 mOhm at 25 C, up to the data-sheet maximum 52 mOhm (the +/-5 % matching rule still applies) - the grade is a property of the assembled module (all 36 / 48 devices, three- / four-wire): grade A only if every device passed the absolute limit in the incoming measurement, otherwise grade B; the end-of-line test writes the grade's tier table into the controller's parameter set (CRC with the calibration set) from the lot's incoming R_DS(on) record, the controller reports the grade with the module serial, and the integrator records the grade with the module serial; a module without a grade record runs grade B; replacing a device re-grades the module from the replacement's record (pcs_spec desat rds_acceptance grade_tier_tables, review R3-04)",
    "power_stage": "3 two-level legs (4 for four-wire): 6 x SG2M040170HJ per switch (TO-247-4L, Kelvin source), Al2O3 pads on one earthed section per leg; per device pair 3 x 2.2 uF / 1300 V film at the pins + RC damper (2 x 4.7 nF 2 kV C0G, 6 x 15 ohm 2512); DC link 5 + 5 x C3D1U147 in two series halves, midpoint to the C_f star",
-   "gate_drive": "6 channels (8 four-wire): NSI6651ASC + NPN/PNP buffer per channel driving 6 gates, R_G,on 8.75 / R_G,off 8.75 ohm per device, R_KS 0.5 ohm, per-gate clamp FET, DESAT 100 ohm + 2 x US1MH (PCM-07), booster, RC dead-time stretch and negative-rail detector (stretch=True, neg_det=True - new '6 x SG2M040170HJ' preset needed), rails +18 / -3.5 V; bias: one SN6505B transformer per phase (2 secondaries); default-off pull-downs; EN from the external stop (wired-AND); FLT/RDY to the latch and the trip zone (D-050)",
+   "gate_drive": "6 channels (8 four-wire): NSI6651ASC + NPN/PNP buffer per channel driving 6 gates, R_G,on 8.75 / R_G,off 8.75 ohm per device, R_KS 0.5 ohm, per-gate clamp FET, DESAT 100 ohm + 2 x BYG23T-M3/TR (PCM-07; 1300 V each, review R4 / E01), booster, RC dead-time stretch and negative-rail detector (stretch=True, neg_det=True - new '6 x SG2M040170HJ' preset needed), rails +18 / -3.5 V; bias: one SN6505B transformer per phase (2 secondaries); default-off pull-downs; EN from the external stop (wired-AND); FLT/RDY to the latch and the trip zone (D-050)",
    "control_board": "PCS-CTL as drawn (gen/pcs_ctrl.py: the PV-CTL design with the PCS_X header), assemblies PCS-CTL-3W / PCS-CTL-4W: discrete window comparators for each phase current (ladders re-valued for +-450 A on the STK-250HO/4), DC over-voltage 1050 V, over-temperature and open probe, the set-dominant latch, heartbeat watchdog, AND gating of 6 (8) PWM, EN, K_DC, K_PRE, K_AC1 and K_AC2 (a spare LVC08 gate) and K_ACPRE (the PWM16 line); the controller's CMPSS / ADC limits / trip zone as the second layer",
    "sensing": {
     "phase_current": "3 (4) Sinomags STK-250HO/4 (open-loop Hall, I_PN 250 A, +-625 A, 3.2 mV/A around its Uref pin, 200 kHz, <= 2 us step response; pcs_spec phase_current_sensor, PCM-20) on the C_f side of L1, the busbar through its aperture; windows at +-450 A",
@@ -12368,16 +12861,17 @@
    "current limit and overload tiers: 110 % continuous 198 A = 117 / 137 / 158 kVA at 340 / 400 / 460 V; 120 % 2 min 216 A = 127 / 150 / 172 kVA at 340 / 400 / 460 V; 200 ms limit (1.2 x 216 A) 259 A = 153 / 180 / 206 kVA at 340 / 400 / 460 V; at 60 C inlet (grade A, the tier table's lowest over 600-950 V): 120 % 2 min 216.0 A, 200 ms 242.9 A; by module grade, inlet, V_dc, PF and start state: the grade tier table (row 'overload and continuous tiers by module grade', review R3-04) - the lower value applies; a 200 ms excursion during or after a 2-min overload: row '200 ms tier during and after a 2-min overload' - rms of IL1-3 over each grid period, one timer / I2t per tier; reference limited to min(tier, 150 kVA / (sqrt(3) V_ac), the operating map); inlet above 45 C: derated tiers",
    "contactor coil sequencing (live 24 V budget, PCS-PWR): settled = pull-in window (AC coil module: ASSUMED <= 100 ms) + 100 ms; budget and limits in the PCS-PWR design check - K_PRE_M, K_B_M, K_A_M, K_AC2_M: never two coils pulling in at once; the DC contactor pulls in at the end of the precharge with the gates idle; the second AC contactor only after the first has settled on its economiser; a coil that does not reach its state (relay test VG / VC, the bank following the terminal) is released and retried after >= 10 s (ASSUMED: coil module and aux recovery), at most 3 attempts per start, then lock-out with the cause logged until a reset; a welded contact found by the relay test locks out at once; the DC precharge keeps the port's 3 attempts / 30 s lock-out (port_spec precharge)",
    "CMPSS phase-current backup threshold (review R2-03, pcs_spec protection_chain): band top <= 504.1 A, bottom >= 417.3 A (DAC centre <= about 467 A): gates off <= 533.6 A <= the admissible 534 A - adopted on PCS-CTL (D-078) - CMPSS1-4 DACH / DACL on ILn_ADC after the idle null: the backup band must end below the deck's admissible current - as first drawn (+/-461 A -> 423.9-497.5 A) it did not (1441 V at 527 A), the DAC band of D-078 closes it; the band then overlaps the discrete window, whichever trips first turns the gates off, the trip cause is logged from the OST flag and the latch",
-   "overload and continuous tiers by module grade (absolute R_DS(on) limit; reviews R2-07, R3-04): R_DS(on) <= 40.0 mOhm for each device at V_GS 18 V, I_D 38 A pulsed (< 200 us), T_J 25 C; grade B (any device above 40.0 mOhm, up to 52 mOhm; calculated as six devices at 52 mOhm): continuous 198.0 / 198.0 / 196.8 / 179.8 A at 25 / 35 / 45 / 60 C inlet (110 % = 198 A not held at 60 C: 179.8-192.2 A there by V_dc), 2 min 216.0 / 215.1 / 207.5 / 192.6 A from steady / 216.0 / 216.0 / 215.8 / 204.3 A from cold, 200 ms = the 2-min tier (from the start state alone 229.8 / 221.2 / 212.8 / 207.5 A from steady); grade A (every device <= 40.0 mOhm): 198 / 216 / 259.2 A at <= 45 C, at 60 C 198.0 / 216.0 / 242.9 A (continuous / 2 min / 200 ms from steady) - each the lowest over 600 / 750 / 950 V and PF 1 / 0; the controller indexes the table by the inlet NTC - the next higher inlet row between points, the 25 C row below it (the on-state falls faster with the inlet than the DESAT minimum, 4 mV/K), none above 60 C (the fan's limit) - and may refine by the measured V_dc / PF from 'rows'; the reference is limited to min(the grade's tier, the operating map) - overload-tier parameter set chosen at end of line from the lot's incoming R_DS(on) record: the grade's tier table (A or B) in the controller's parameter set (CRC with the calibration set), reported with the module serial; the integrator records the grade with the module serial; no grade record = grade B; a replaced device re-grades the module; indexed by the inlet NTC, refined by V_dc / PF; start state cold = idle (switching at no load) in thermal equilibrium: the firmware may use it only after >= 4 x the heatsink time constant (179 s) = 12 min at no load; otherwise 'steady'",
+   "overload and continuous tiers by module grade (absolute R_DS(on) limit; reviews R2-07, R3-04): R_DS(on) <= 40.0 mOhm for each device at V_GS 18 V, I_D 38 A pulsed (< 200 us), T_J 25 C; grade B (any device above 40.0 mOhm, up to 52 mOhm; calculated as six devices at 52 mOhm): continuous 198.0 / 198.0 / 196.8 / 179.8 A at 25 / 35 / 45 / 60 C inlet (110 % = 198 A not held at 60 C: 179.8-192.2 A there by V_dc; the 60 C continuous limit 179.8 A = 124.57 kW at PF 1 and 400 V AC - the rated 125 kW at 400 V needs 180.42 A (the rated 180 A is 124.71 kW)), 2 min 216.0 / 215.1 / 207.5 / 192.6 A from steady / 216.0 / 216.0 / 215.8 / 204.3 A from cold, 200 ms = the 2-min tier (from the start state alone 229.8 / 221.2 / 212.8 / 207.5 A from steady); grade A (every device <= 40.0 mOhm): 198 / 216 / 259.2 A at <= 45 C, at 60 C 198.0 / 216.0 / 242.9 A (continuous / 2 min / 200 ms from steady) - each the lowest over 600 / 750 / 950 V and PF 1 / 0; the controller indexes the table by the inlet NTC - the next higher inlet row between points, the 25 C row below it (the on-state falls faster with the inlet than the DESAT minimum, 4 mV/K), none above 60 C (the fan's limit) - and may refine by the measured V_dc / PF from 'rows'; the reference is limited to min(the grade's tier, the operating map) - overload-tier parameter set chosen at end of line from the lot's incoming R_DS(on) record: the grade's tier table (A or B) in the controller's parameter set (CRC with the calibration set), reported with the module serial; the integrator records the grade with the module serial; no grade record = grade B; a replaced device re-grades the module; indexed by the inlet NTC, refined by V_dc / PF; start state cold = idle (switching at no load) in thermal equilibrium: the firmware may use it only after >= 4 x the heatsink time constant (179 s) = 12 min at no load; otherwise 'steady'",
    "200 ms tier during and after a 2-min overload (both grades; review R3-04 decision 2): a 200 ms excursion is admitted only from the continuous state or cold; once the current has been above the continuous tier for more than 0.22 s (the 200 ms excursion + 20 ms) the 200 ms limit equals the 2 min tier until the current has been at or below the continuous tier for 12 min - both grades (grade B's 200 ms tier already equals its 2-min tier); calculated: a full 2 min at the 2-min tier from the continuous state leaves the heatsink up to 4.43 K above that state (grade A, the worst entry), decaying with tau_hs 179 s; down to 0.10 K (ASSUMED residual, about the tables' own resolution) takes tau_hs x ln(4.43 / 0.10) = 679 s -> 12 min in the firmware; the devices settle within seconds (tau_cs 0.54 s calculated, tau_jc 30 ms ASSUMED); calculated: inside the 0.22 s window up to 0.02 s in the 2-min band before an excursion adds up to 0.16 K to its junction (device tau_cs 0.54 s); the table's 200 ms tier absorbs it where its headroom is larger; at the entries that sit at their limit (grade A 60 C / 600 V, grade A 60 C / 750 V, grade A 60 C / 950 V) it is of the order of the 0.10 K residual the recovery takes as negligible and is taken as negligible likewise (ASSUMED) - closed - the current-limit tier timers on the rms of IL1-3 per grid period: the time above the module grade's continuous tier (its inlet row) and the time since the current was last above it",
+   "fans, cold start (review R4 / E11; the PV modules' rule, D-072): the passive table (pcs_spec thermal_and_losses cold_start, ESTIMATES +/-50 %), kVA at 400 V AC by inlet -30 / -20 / -10 C: three-wire 600 V DC 20 / 15 / 8, 650 V DC 14 / 8 / 0, 700 V DC 3 / 0 / 0, 750 V DC 0 / 0 / 0, 850 V DC 0 / 0 / 0, 950 V DC 0 / 0 / 0; four-wire 600 V DC 14 / 7 / 0, 650 V DC 5 / 0 / 0, 700 V DC 0 / 0 / 0, 750 V DC 0 / 0 / 0, 850 V DC 0 / 0 / 0, 950 V DC 0 / 0 / 0 - FAN_PWM from the inlet NTC and the heatsink NTCs: fans OFF while the inlet NTC reads below -10 C (the AFB1224SHE-F00 rating, -10..60 C); below it the current reference is limited to this table at the measured inlet and V_dc (the warmer inlet row and the higher V_dc point between table points); where the table is 0 the module stays in standby, gates off (aux and contactor coils only) - it may not even switch at no load (the L1 ripple loss and the devices' no-load loss exceed what the closed enclosure sheds); fans ON at an inlet of -10 C or above, or whatever the inlet reads once any heatsink NTC exceeds 80 C (override: a fan run below its rating rather than an overheated module; the passive limit is 75 C)",
    "four-wire N leg (PCS-PWR-4W): modes A / B: mode A from 724 V DC at 230 V (746 V for rated current at the worst PF; 796 / 833 V at +10 / +15 %), mode B below it down to the three-wire window (624 / 643 V); neutral current IL4 <= the phase tiers (198 A rms continuous, 216 A 2 min, 259 A 200 ms), IL4 window and CMPSS4 as the phases - ePWM4 A/B = PWM7/8 (the N leg); mode A: reference = L_N di_N/dt + the v(N_F - M) loop on VGN - VA (contactors closed; 6.8 kHz dividers), sinusoidal phase legs; mode B: the min-max zero sequence of the phase references added to all four legs (3D-SVM-equivalent)",
    "per-phase power control (four-wire, on-grid split-phase): each phase <= its tier (45.7 kW at 230 V and 198 A continuous, 49.9 kW for 2 min); |i_a + i_b + i_c| <= 198 A rms (the N leg; in-phase currents could reach 3 x); competitor claim, no published parameters; our values ASSUMED (standards not on file) - per-phase P / Q set points through the PR current loops of each phase (positive, negative and zero sequence)",
    "operating modes PQ / CP / CC / CV / VF / generator-following / standby: PQ: P, Q inside the operating map, PF -1..+1 at full current; CP / CC: DC power / current set point (IB), ramps <= 125 kW in 20 ms (the control study's DC-link rule); CV: the DC-link loop (PI 40 Hz + DC-current feed-forward), battery voltage from VBX; VF and generator-following: rows below - mode state above the protection state machine; mode changes only through the stop -> start path except PQ <-> CC / CP",
    "DC-link over-voltage soft limit in CV mode (review R2-04; amends the control board's 'OV / UV soft limits' row): 975 V (31 us); simulated weak-grid DC-load rejection (SCR 5, 750 V, 125 kW DC/DC load trips, averaged): the loop alone peaks at 1098 V; with the protection the comparator turns the gates off at 1001-1068 V after 0.59-0.89 ms and the diode-bridge dump leaves the bus at 1094-1106 V (halves <= 559 V), latched - holding the loop changes nothing there (the comparator trips first) but lets a smaller rejection recover below the band - outer loop on VB: in CV mode the soft limit holds the DC-link loop - the bridge keeps exporting up to its current limit, the only sink on the link - instead of the controlled stop; in PQ / CP / CC and VF it keeps the controlled stop (no latch); the stop on DC over-voltage stays with the hardware: comparator band 978-1048 V (47 us to gates off) and its ADC-PPB backup 1019-1051 V (34.0 us), latched, no automatic clear",
    "CV mode with DC/DC loads at weak grids (review R2-04): SCR 5 89.5 kW, SCR 10 119.5 kW, SCR 20 125 kW, stiff 125 kW: a DC/DC trip then stays below the 975 V soft limit (simulated, averaged; full power from SCR 20) - the DC/DC power the link may serve in CV mode, selected from the grid-stiffness estimate (the ride-through fallback's estimator): the row at or below the estimate / 1.3, no interpolation upward, no valid estimate = the weakest row (selection ASSUMED); published to the DC/DC over the module CAN / the EMS, which enforce it",
-   "DC/DC coordination on a DC bus without a battery (installation / system rule; reviews R2-04, R3-03): coupled PCS / PV trajectory (pcs_control_spec dc_bus_coupled_pv, review R3-03): with the coordination row the island rides through at 750 / 782 V set points (bus <= 853 V against the 975 V soft limit, the PV current cut 0.20-0.28 ms after the rejection) and the PCS trips at 950 V (bus 994-1016 V, dark); set-point limit by PV module count: 1 x 82.5 kW 921 V, 2 x 75 kW 909 V; the cut is needed within 0.51 ms of an AC load rejection at the study's 750 V bus and 125 kW (16.1 J of LCL energy returned: 801 V even with an ideal source); uncoordinated the comparator trips 1.50 / 1.94 ms after the step (band edges 978 / 1048 V) and the bus is left at 1060-1061 V, latched - below the aux's 1107 V input lock-out; requirements: the PV modules' coordination row (V_B > V_B* + 30 V -> every cell's current reference to zero) is required for VF on a battery-less bus: without it every full-load rejection trips the PCS (bus 1063-1069 V); the CV set point in VF on a battery-less bus <= 909 V (the coupled worst corner; the PV row keeps its 782 V as the firmware limit with its own margin rule); the PV power on one link <= the PCS's DC power tier (one module at 82.5 kW and two at the 2-min tier studied); the external stop wiring (1.47 ms) is not needed for this event - it acts after the PV module's own limit and comparator; it stays a general interlock; a hardwired trip line (cost class low: an isolated digital line, a connector and a latch input, a few USD per module) is needed only for set points above 909 V; it must stop the modules within 1 x 82.5 kW 116 us, 2 x 75 kW 56 us of the rejection at 950 V; not added; with the PV firmware dead the bus ends at 1126-1130 V, above the aux's 1107 V input lock-out: dark until it bleeds down - outside this module: the PV modules' coordination row (V_B > V_B* + 30 V -> every cell's current reference to zero; sim/out/pv_control/control_spec.json firmware_second_layer 'system') on a battery-less bus that this module turns into an island (VF) - a CAN message is too slow; the PCS cannot absorb the energy (no brake chopper drawn)",
+   "DC/DC coordination on a DC bus without a battery (installation / system rule; reviews R2-04, R3-03): coupled PCS / PV trajectory (pcs_control_spec dc_bus_coupled_pv, review R3-03): with the coordination row the island rides through at 750 / 782 V set points (bus <= 853 V against the 975 V soft limit, the PV current cut 0.20-0.28 ms after the rejection) and the PCS trips at 950 V (bus 994-1016 V, dark); enforced operating window (product rule in both modules' parameter sets, pcs_control_spec dc_bus_operating_window, review R4 E04): CV set point default 750 V (3W+PE 750 V, 3W+N+PE, mode A (N leg at 50 %) 755 V, 3W+N+PE, mode B (zero sequence on four legs) 750 V); clamped to <= 782 V in the PV module's parameter set (the PV coordination row's own validity, its x2 time margin ASSUMED (sim/out/pv_control/control_spec.json); enforced as the PV module's V_B* clamp on a bus declared battery-less); the PCS refuses to start an island (VF) on a bus declared battery-less above 791 V (the firmware limit plus the PV's 0.57 % V_B accuracy and the PCS-CTL's 0.57 % ADC accuracy: VF on a bus declared battery-less starts only below it); the one-node model's 921 V (1 x 82.5 kW) / 909 V (2 x 75 kW) and the cable model's 846 V are model validities, NOT ratings (64 V between the clamp and the cable validity); cable model (2 / 10 / 20 m runs, 0.6 / 1 uH/m): every corner rides through, PCS-node peaks 849-887 V at 750 V, 878-914 V at 782 V; harness contract (installation): run length <= 20 m per PV module, its port-B terminals to the PCS's DC terminals; one run per module (a shared busbar section counts in each run) | loop inductance <= 1 uH per metre of run and <= 20 uH per run including fuses, disconnectors and busbar sections: DC+ and DC- routed together (a two-core cable, or the single cores bundled and touching in the same tray), never separated or looped through other sections; no series choke or ferrite on the link (its differential-mode inductance counts) | cross-section: copper, sized by the installation rules for the module's 135 A port current; loop resistance <= 12.6 mOhm per run (20 m of 70 mm2 at 90 C: 1.7 V at 135 A, the drop the set-point floors carry); heavier conductors allowed (the first peak hardly depends on the resistance: +1.8 V lossless at the worst run) | nothing else on the link: no capacitance, filter, DC source or load beyond the PCS's DC link and the PV modules' port-B banks as drawn (a battery or another source is a different study); at most two PV-P75 modules per PCS link, their power <= the PCS's DC power tier (section 7d) | the commissioning record carries the as-built runs (length, cross-section, routing), the battery-less declaration, the set point and both modules' serials; the cut is needed within 0.51 ms of an AC load rejection at the study's 750 V bus and 125 kW (16.1 J of LCL energy returned: 801 V even with an ideal source); uncoordinated the comparator trips 1.50 / 1.94 ms after the step (band edges 978 / 1048 V) and the bus is left at 1060-1061 V, latched - below the aux's 1107 V input lock-out; requirements: the PV modules' coordination row (V_B > V_B* + 30 V -> every cell's current reference to zero) is required for VF on a battery-less bus: without it every full-load rejection trips the PCS (bus 1063-1069 V); the CV set point in VF on a battery-less bus: default 750 V, firmware limit <= 782 V (the PV coordination row's own validity) - the enforced product rule (review R4 E04: pcs_control_spec dc_bus_operating_window); 909 V is this one-node model's validity only (no cable, the PV banks on the PCS node) - not a rating; the PV power on one link <= the PCS's DC power tier (one module at 82.5 kW and two at the 2-min tier studied); the external stop wiring (1.47 ms) is not needed for this event - it acts after the PV module's own limit and comparator; it stays a general interlock; a hardwired trip line (cost class low: an isolated digital line, a connector and a latch input, a few USD per module) is not needed inside the enforced window; in this one-node model it would be needed above 909 V and must stop the modules within 1 x 82.5 kW 116 us, 2 x 75 kW 56 us of the rejection at 950 V; not added; with the PV firmware dead the bus ends at 1126-1130 V, above the aux's 1107 V input lock-out: dark until it bleeds down - outside this module: the PV modules' coordination row (V_B > V_B* + 30 V -> every cell's current reference to zero; sim/out/pv_control/control_spec.json firmware_second_layer 'system') on a battery-less bus that this module turns into an island (VF) - a CAN message is too slow; the PCS cannot absorb the energy (no brake chopper drawn)",
    "VF (grid forming, off-grid): voltage +/-1 % (C_f dividers 0.5 % after calibration), frequency 50 / 60 Hz +/-0.2 % (crystal clock), THDu < 3 % on linear load, imbalance +/-1 % and 120 +/-1 deg on linear balanced load, 100 % unbalanced load (four-wire only), DC component < 0.5 % Un (row below); load acceptance: the declaration (crest factor <= 2.04 at rated rms, DOL motors <= 36 A rated at 6 x start); transient: the declared envelope (row below) - droop + virtual impedance + C_f-voltage PR loop (control study); per-phase voltage loops in the four-wire build",
-   "VF transient envelope, single module, 100 % linear load step (declared: REQUIREMENTS AC-04; reviews R2-04, R3-05): |v_C| over: <= 2 pu to 1 ms, 1.4 pu to 3 ms, 1.2 pu to 500 ms, 1.1 pu after; under: >= 0 pu to 20 ms, 0.7 pu to 500 ms, 0.8 pu to 10000 ms, 0.9 pu after - the ITIC (CBEMA) curve style points FROM MEMORY - a standard-style curve, not set to the simulation (review R3-05); the standard texts (ITIC, IEC 62040-3) are not on file and are the gate; worst-corner margin +0.054 pu at the tightest point (over-voltage, 3-500 ms: limit 1.2 pu, worst 1.146 pu); IEC 62040-3 classes 1-3 not claimed (margins class 1 -0.47 pu, class 2 -0.47 pu, class 3 -0.47 pu, FROM MEMORY); adopted declaration: REQUIREMENTS AC-04 (declared, adopted by delegation under D-051 on 2026-10-07, D-080; bench validation of the first milliseconds at every corner is the gate); simulated (averaged, every corner): 0 -> rated dip to >= 0.430 pu, rated -> 0 overshoot <= 1.772 pu, within 10 % after <= 3.4 ms and 1 % after <= 25.0 ms; the D-077 figures 0.38 / 2.17 pu were the unbounded averaged model without these measures - superseded - the VF cascade with the load-current feed-forward and the over-voltage deadbeat (the next two rows), the per-sample clamp and the virtual impedance at 0 for a single module; paralleled modules keep the droop's for sharing - the envelope is not declared for them (their first milliseconds are the same, the plateau is the secondary layer's)",
+   "VF transient envelope, single module, 100 % linear load step (declared: REQUIREMENTS AC-04; reviews R2-04, R3-05): the module's declared output capability on a 100 % linear load step, NOT a load-compatibility claim: |v_C| over: <= 2 pu to 1 ms, 1.4 pu to 3 ms, 1.2 pu to 500 ms, 1.1 pu after; under: >= 0 pu to 20 ms, 0.7 pu to 500 ms, 0.8 pu to 10000 ms, 0.9 pu after - the module's DECLARED OUTPUT CAPABILITY on a 100 % linear load step (what the module does), drawn as ITIC (CBEMA)-style points FROM MEMORY, not set to the simulation (review R3-05) - not a load-compatibility claim (review R4 E06); the standard texts (ITIC, IEC 62040-3) are not on file and are the gate; the ITI (CBEMA) curve describes the input tolerance of information-technology equipment at 120 V / 60 Hz; it is not a product or distribution design specification, so meeting ITIC-style points does not by itself establish compatibility with 400 / 230 V loads - that is the load's own specification, agreed per application (review R4 E06); the points state what the module does on a load step (its declared output capability), nothing about what a load tolerates; worst-corner margin +0.054 pu at the tightest point (over-voltage, 3-500 ms: limit 1.2 pu, worst 1.146 pu); not claimed: compatibility with an arbitrary 400 / 230 V load; an IEC 62040-3 output dynamic performance class (1-3); UPS-like or general-purpose off-grid supply (IEC 62040-3 margins: class 1 -0.47 pu, class 2 -0.47 pu, class 3 -0.47 pu, FROM MEMORY); release sequence: (1) grid-following operation qualified and released first -> (2) grid forming (VF) released for managed island loads with an agreed voltage-time and interruption specification, against which the declared capability is checked -> (3) general-purpose off-grid or UPS-like supply only after the required output class and its test method are established (IEC 62040-3 not claimed); REQUIREMENTS AC-04 (adopted by delegation under D-051 on 2026-10-07, D-080, reworded D-081) carries the same wording; simulated (averaged, every corner): 0 -> rated dip to >= 0.430 pu, rated -> 0 overshoot <= 1.772 pu, within 10 % after <= 3.4 ms and 1 % after <= 25.0 ms; the D-077 figures 0.38 / 2.17 pu were the unbounded averaged model without these measures - superseded - the VF cascade with the load-current feed-forward and the over-voltage deadbeat (the next two rows), the per-sample clamp and the virtual impedance at 0 for a single module; paralleled modules keep the droop's for sharing - the envelope is not declared for them (their first milliseconds are the same, the plateau is the secondary layer's)",
    "VF load-current feed-forward (review R2-04; adopted): low-pass 1000 Hz, the highest of the scan meeting the rule (PM 52.7 deg, GM 7.4 dB at every corner); 2000 Hz (GM 5.2 dB), 5000 Hz (GM 3.3 dB) fail it - control ISR, VF only (not in grid-connected grid forming): i_ref += LPF(i_1 - C_eq (v_C[k] - v_C[k-1]) / T), the load current estimated from the converter current and the C_f voltage (no grid-side sensor)",
    "VF over-voltage deadbeat (review R2-04; adopted): 1.2 pu; full-load rejection <= 1.77 pu at the worst corner (the D-077 configuration, unbounded and without the measures: 2.17 pu) - control ISR, VF only: above the threshold (divider-inverted C_f sample) the inner command is the one that ends the next period with i_1 at the unfiltered load-current estimate; the voltage PR does not integrate meanwhile",
    "DC-component regulator (VF, half-wave loads): |DC| <= 0.5 % Un = 1.15 V; measurement after calibration: divider TCR mismatch 0.56 V at 750 V (calculated) plus the ADC gain drift of the two channels - pair VG_x and VGN on one ADC module or null them at no load (OPEN); half-wave load <= 280 A peak (89 A DC, 140 A rms) per phase: L_N's peak within the L1 part's 311 A - one-cycle mean of each phase-to-N voltage (VG_x - VGN; three-wire: the line-to-line means) -> integrator -> offset on that phase's reference; the N leg carries the DC current",
@@ -12456,7 +12950,7 @@
    {
     "item": "overload and continuous tiers by module grade (absolute R_DS(on) limit; reviews R2-07, R3-04)",
     "peripheral": "overload-tier parameter set chosen at end of line from the lot's incoming R_DS(on) record: the grade's tier table (A or B) in the controller's parameter set (CRC with the calibration set), reported with the module serial; the integrator records the grade with the module serial; no grade record = grade B; a replaced device re-grades the module; indexed by the inlet NTC, refined by V_dc / PF; start state cold = idle (switching at no load) in thermal equilibrium: the firmware may use it only after >= 4 x the heatsink time constant (179 s) = 12 min at no load; otherwise 'steady'",
-    "threshold": "R_DS(on) <= 40.0 mOhm for each device at V_GS 18 V, I_D 38 A pulsed (< 200 us), T_J 25 C; grade B (any device above 40.0 mOhm, up to 52 mOhm; calculated as six devices at 52 mOhm): continuous 198.0 / 198.0 / 196.8 / 179.8 A at 25 / 35 / 45 / 60 C inlet (110 % = 198 A not held at 60 C: 179.8-192.2 A there by V_dc), 2 min 216.0 / 215.1 / 207.5 / 192.6 A from steady / 216.0 / 216.0 / 215.8 / 204.3 A from cold, 200 ms = the 2-min tier (from the start state alone 229.8 / 221.2 / 212.8 / 207.5 A from steady); grade A (every device <= 40.0 mOhm): 198 / 216 / 259.2 A at <= 45 C, at 60 C 198.0 / 216.0 / 242.9 A (continuous / 2 min / 200 ms from steady) - each the lowest over 600 / 750 / 950 V and PF 1 / 0; the controller indexes the table by the inlet NTC - the next higher inlet row between points, the 25 C row below it (the on-state falls faster with the inlet than the DESAT minimum, 4 mV/K), none above 60 C (the fan's limit) - and may refine by the measured V_dc / PF from 'rows'; the reference is limited to min(the grade's tier, the operating map)",
+    "threshold": "R_DS(on) <= 40.0 mOhm for each device at V_GS 18 V, I_D 38 A pulsed (< 200 us), T_J 25 C; grade B (any device above 40.0 mOhm, up to 52 mOhm; calculated as six devices at 52 mOhm): continuous 198.0 / 198.0 / 196.8 / 179.8 A at 25 / 35 / 45 / 60 C inlet (110 % = 198 A not held at 60 C: 179.8-192.2 A there by V_dc; the 60 C continuous limit 179.8 A = 124.57 kW at PF 1 and 400 V AC - the rated 125 kW at 400 V needs 180.42 A (the rated 180 A is 124.71 kW)), 2 min 216.0 / 215.1 / 207.5 / 192.6 A from steady / 216.0 / 216.0 / 215.8 / 204.3 A from cold, 200 ms = the 2-min tier (from the start state alone 229.8 / 221.2 / 212.8 / 207.5 A from steady); grade A (every device <= 40.0 mOhm): 198 / 216 / 259.2 A at <= 45 C, at 60 C 198.0 / 216.0 / 242.9 A (continuous / 2 min / 200 ms from steady) - each the lowest over 600 / 750 / 950 V and PF 1 / 0; the controller indexes the table by the inlet NTC - the next higher inlet row between points, the 25 C row below it (the on-state falls faster with the inlet than the DESAT minimum, 4 mV/K), none above 60 C (the fan's limit) - and may refine by the measured V_dc / PF from 'rows'; the reference is limited to min(the grade's tier, the operating map)",
     "filter": "-",
     "latency": "-",
     "self_test": "parameter CRC with the calibration set; the grade is reported with the module serial",
@@ -12580,6 +13074,14 @@
     "self_test": "-"
    },
    {
+    "item": "fans, cold start (review R4 / E11; the PV modules' rule, D-072)",
+    "peripheral": "FAN_PWM from the inlet NTC and the heatsink NTCs: fans OFF while the inlet NTC reads below -10 C (the AFB1224SHE-F00 rating, -10..60 C); below it the current reference is limited to this table at the measured inlet and V_dc (the warmer inlet row and the higher V_dc point between table points); where the table is 0 the module stays in standby, gates off (aux and contactor coils only) - it may not even switch at no load (the L1 ripple loss and the devices' no-load loss exceed what the closed enclosure sheds); fans ON at an inlet of -10 C or above, or whatever the inlet reads once any heatsink NTC exceeds 80 C (override: a fan run below its rating rather than an overheated module; the passive limit is 75 C)",
+    "threshold": "the passive table (pcs_spec thermal_and_losses cold_start, ESTIMATES +/-50 %), kVA at 400 V AC by inlet -30 / -20 / -10 C: three-wire 600 V DC 20 / 15 / 8, 650 V DC 14 / 8 / 0, 700 V DC 3 / 0 / 0, 750 V DC 0 / 0 / 0, 850 V DC 0 / 0 / 0, 950 V DC 0 / 0 / 0; four-wire 600 V DC 14 / 7 / 0, 650 V DC 5 / 0 / 0, 700 V DC 0 / 0 / 0, 750 V DC 0 / 0 / 0, 850 V DC 0 / 0 / 0, 950 V DC 0 / 0 / 0",
+    "filter": "inlet NTC over 10 s (ASSUMED)",
+    "latency": "-",
+    "self_test": "inlet NTC open / short -> fans ON (protects the module; the fan may then run below its rating)"
+   },
+   {
     "item": "four-wire N leg (PCS-PWR-4W): modes A / B",
     "peripheral": "ePWM4 A/B = PWM7/8 (the N leg); mode A: reference = L_N di_N/dt + the v(N_F - M) loop on VGN - VA (contactors closed; 6.8 kHz dividers), sinusoidal phase legs; mode B: the min-max zero sequence of the phase references added to all four legs (3D-SVM-equivalent)",
     "threshold": "mode A from 724 V DC at 230 V (746 V for rated current at the worst PF; 796 / 833 V at +10 / +15 %), mode B below it down to the three-wire window (624 / 643 V); neutral current IL4 <= the phase tiers (198 A rms continuous, 216 A 2 min, 259 A 200 ms), IL4 window and CMPSS4 as the phases",
@@ -12622,7 +13124,7 @@
    {
     "item": "DC/DC coordination on a DC bus without a battery (installation / system rule; reviews R2-04, R3-03)",
     "peripheral": "outside this module: the PV modules' coordination row (V_B > V_B* + 30 V -> every cell's current reference to zero; sim/out/pv_control/control_spec.json firmware_second_layer 'system') on a battery-less bus that this module turns into an island (VF) - a CAN message is too slow; the PCS cannot absorb the energy (no brake chopper drawn)",
-    "threshold": "coupled PCS / PV trajectory (pcs_control_spec dc_bus_coupled_pv, review R3-03): with the coordination row the island rides through at 750 / 782 V set points (bus <= 853 V against the 975 V soft limit, the PV current cut 0.20-0.28 ms after the rejection) and the PCS trips at 950 V (bus 994-1016 V, dark); set-point limit by PV module count: 1 x 82.5 kW 921 V, 2 x 75 kW 909 V; the cut is needed within 0.51 ms of an AC load rejection at the study's 750 V bus and 125 kW (16.1 J of LCL energy returned: 801 V even with an ideal source); uncoordinated the comparator trips 1.50 / 1.94 ms after the step (band edges 978 / 1048 V) and the bus is left at 1060-1061 V, latched - below the aux's 1107 V input lock-out; requirements: the PV modules' coordination row (V_B > V_B* + 30 V -> every cell's current reference to zero) is required for VF on a battery-less bus: without it every full-load rejection trips the PCS (bus 1063-1069 V); the CV set point in VF on a battery-less bus <= 909 V (the coupled worst corner; the PV row keeps its 782 V as the firmware limit with its own margin rule); the PV power on one link <= the PCS's DC power tier (one module at 82.5 kW and two at the 2-min tier studied); the external stop wiring (1.47 ms) is not needed for this event - it acts after the PV module's own limit and comparator; it stays a general interlock; a hardwired trip line (cost class low: an isolated digital line, a connector and a latch input, a few USD per module) is needed only for set points above 909 V; it must stop the modules within 1 x 82.5 kW 116 us, 2 x 75 kW 56 us of the rejection at 950 V; not added; with the PV firmware dead the bus ends at 1126-1130 V, above the aux's 1107 V input lock-out: dark until it bleeds down",
+    "threshold": "coupled PCS / PV trajectory (pcs_control_spec dc_bus_coupled_pv, review R3-03): with the coordination row the island rides through at 750 / 782 V set points (bus <= 853 V against the 975 V soft limit, the PV current cut 0.20-0.28 ms after the rejection) and the PCS trips at 950 V (bus 994-1016 V, dark); enforced operating window (product rule in both modules' parameter sets, pcs_control_spec dc_bus_operating_window, review R4 E04): CV set point default 750 V (3W+PE 750 V, 3W+N+PE, mode A (N leg at 50 %) 755 V, 3W+N+PE, mode B (zero sequence on four legs) 750 V); clamped to <= 782 V in the PV module's parameter set (the PV coordination row's own validity, its x2 time margin ASSUMED (sim/out/pv_control/control_spec.json); enforced as the PV module's V_B* clamp on a bus declared battery-less); the PCS refuses to start an island (VF) on a bus declared battery-less above 791 V (the firmware limit plus the PV's 0.57 % V_B accuracy and the PCS-CTL's 0.57 % ADC accuracy: VF on a bus declared battery-less starts only below it); the one-node model's 921 V (1 x 82.5 kW) / 909 V (2 x 75 kW) and the cable model's 846 V are model validities, NOT ratings (64 V between the clamp and the cable validity); cable model (2 / 10 / 20 m runs, 0.6 / 1 uH/m): every corner rides through, PCS-node peaks 849-887 V at 750 V, 878-914 V at 782 V; harness contract (installation): run length <= 20 m per PV module, its port-B terminals to the PCS's DC terminals; one run per module (a shared busbar section counts in each run) | loop inductance <= 1 uH per metre of run and <= 20 uH per run including fuses, disconnectors and busbar sections: DC+ and DC- routed together (a two-core cable, or the single cores bundled and touching in the same tray), never separated or looped through other sections; no series choke or ferrite on the link (its differential-mode inductance counts) | cross-section: copper, sized by the installation rules for the module's 135 A port current; loop resistance <= 12.6 mOhm per run (20 m of 70 mm2 at 90 C: 1.7 V at 135 A, the drop the set-point floors carry); heavier conductors allowed (the first peak hardly depends on the resistance: +1.8 V lossless at the worst run) | nothing else on the link: no capacitance, filter, DC source or load beyond the PCS's DC link and the PV modules' port-B banks as drawn (a battery or another source is a different study); at most two PV-P75 modules per PCS link, their power <= the PCS's DC power tier (section 7d) | the commissioning record carries the as-built runs (length, cross-section, routing), the battery-less declaration, the set point and both modules' serials; the cut is needed within 0.51 ms of an AC load rejection at the study's 750 V bus and 125 kW (16.1 J of LCL energy returned: 801 V even with an ideal source); uncoordinated the comparator trips 1.50 / 1.94 ms after the step (band edges 978 / 1048 V) and the bus is left at 1060-1061 V, latched - below the aux's 1107 V input lock-out; requirements: the PV modules' coordination row (V_B > V_B* + 30 V -> every cell's current reference to zero) is required for VF on a battery-less bus: without it every full-load rejection trips the PCS (bus 1063-1069 V); the CV set point in VF on a battery-less bus: default 750 V, firmware limit <= 782 V (the PV coordination row's own validity) - the enforced product rule (review R4 E04: pcs_control_spec dc_bus_operating_window); 909 V is this one-node model's validity only (no cable, the PV banks on the PCS node) - not a rating; the PV power on one link <= the PCS's DC power tier (one module at 82.5 kW and two at the 2-min tier studied); the external stop wiring (1.47 ms) is not needed for this event - it acts after the PV module's own limit and comparator; it stays a general interlock; a hardwired trip line (cost class low: an isolated digital line, a connector and a latch input, a few USD per module) is not needed inside the enforced window; in this one-node model it would be needed above 909 V and must stop the modules within 1 x 82.5 kW 116 us, 2 x 75 kW 56 us of the rejection at 950 V; not added; with the PV firmware dead the bus ends at 1126-1130 V, above the aux's 1107 V input lock-out: dark until it bleeds down",
     "filter": "-",
     "latency": "-",
     "self_test": "-"
@@ -12638,7 +13140,7 @@
    {
     "item": "VF transient envelope, single module, 100 % linear load step (declared: REQUIREMENTS AC-04; reviews R2-04, R3-05)",
     "peripheral": "the VF cascade with the load-current feed-forward and the over-voltage deadbeat (the next two rows), the per-sample clamp and the virtual impedance at 0 for a single module; paralleled modules keep the droop's for sharing - the envelope is not declared for them (their first milliseconds are the same, the plateau is the secondary layer's)",
-    "threshold": "|v_C| over: <= 2 pu to 1 ms, 1.4 pu to 3 ms, 1.2 pu to 500 ms, 1.1 pu after; under: >= 0 pu to 20 ms, 0.7 pu to 500 ms, 0.8 pu to 10000 ms, 0.9 pu after - the ITIC (CBEMA) curve style points FROM MEMORY - a standard-style curve, not set to the simulation (review R3-05); the standard texts (ITIC, IEC 62040-3) are not on file and are the gate; worst-corner margin +0.054 pu at the tightest point (over-voltage, 3-500 ms: limit 1.2 pu, worst 1.146 pu); IEC 62040-3 classes 1-3 not claimed (margins class 1 -0.47 pu, class 2 -0.47 pu, class 3 -0.47 pu, FROM MEMORY); adopted declaration: REQUIREMENTS AC-04 (declared, adopted by delegation under D-051 on 2026-10-07, D-080; bench validation of the first milliseconds at every corner is the gate); simulated (averaged, every corner): 0 -> rated dip to >= 0.430 pu, rated -> 0 overshoot <= 1.772 pu, within 10 % after <= 3.4 ms and 1 % after <= 25.0 ms; the D-077 figures 0.38 / 2.17 pu were the unbounded averaged model without these measures - superseded",
+    "threshold": "the module's declared output capability on a 100 % linear load step, NOT a load-compatibility claim: |v_C| over: <= 2 pu to 1 ms, 1.4 pu to 3 ms, 1.2 pu to 500 ms, 1.1 pu after; under: >= 0 pu to 20 ms, 0.7 pu to 500 ms, 0.8 pu to 10000 ms, 0.9 pu after - the module's DECLARED OUTPUT CAPABILITY on a 100 % linear load step (what the module does), drawn as ITIC (CBEMA)-style points FROM MEMORY, not set to the simulation (review R3-05) - not a load-compatibility claim (review R4 E06); the standard texts (ITIC, IEC 62040-3) are not on file and are the gate; the ITI (CBEMA) curve describes the input tolerance of information-technology equipment at 120 V / 60 Hz; it is not a product or distribution design specification, so meeting ITIC-style points does not by itself establish compatibility with 400 / 230 V loads - that is the load's own specification, agreed per application (review R4 E06); the points state what the module does on a load step (its declared output capability), nothing about what a load tolerates; worst-corner margin +0.054 pu at the tightest point (over-voltage, 3-500 ms: limit 1.2 pu, worst 1.146 pu); not claimed: compatibility with an arbitrary 400 / 230 V load; an IEC 62040-3 output dynamic performance class (1-3); UPS-like or general-purpose off-grid supply (IEC 62040-3 margins: class 1 -0.47 pu, class 2 -0.47 pu, class 3 -0.47 pu, FROM MEMORY); release sequence: (1) grid-following operation qualified and released first -> (2) grid forming (VF) released for managed island loads with an agreed voltage-time and interruption specification, against which the declared capability is checked -> (3) general-purpose off-grid or UPS-like supply only after the required output class and its test method are established (IEC 62040-3 not claimed); REQUIREMENTS AC-04 (adopted by delegation under D-051 on 2026-10-07, D-080, reworded D-081) carries the same wording; simulated (averaged, every corner): 0 -> rated dip to >= 0.430 pu, rated -> 0 overshoot <= 1.772 pu, within 10 % after <= 3.4 ms and 1 % after <= 25.0 ms; the D-077 figures 0.38 / 2.17 pu were the unbounded averaged model without these measures - superseded",
     "filter": "-",
     "latency": "-",
     "self_test": "bench: the first-millisecond excursion at every corner of the drawn parts, and the standard texts (ITIC, IEC 62040-3) on file - the gate (OPEN)"

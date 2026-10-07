@@ -345,7 +345,7 @@
      ]
     }
    ],
-   "VF transient envelope for a 100 % linear (resistive) load step, |v_C| in pu against the time after the step, piecewise constant (each limit valid up to its time in ms): first = the envelope DECLARED (review R3-05: standard-style points, not set to the simulation) = second = the ITIC (CBEMA) curve as remembered (2.0 / 1.4 / 1.2 / 1.1 pu over to 1 ms / 3 ms / 0.5 s / steady, 0 / 0.7 / 0.8 / 0.9 pu under to 20 ms / 0.5 s / 10 s / steady) - FROM MEMORY, not verified: the standard texts (ITIC, IEC 62040-3) are not on file and are the gate; adopting it as a requirement is the adopted as REQUIREMENTS AC-04 under the delegation of D-051 (D-080)"
+   "VF transient envelope for a 100 % linear (resistive) load step, |v_C| in pu against the time after the step, piecewise constant (each limit valid up to its time in ms): first = the module's DECLARED OUTPUT CAPABILITY (review R3-05: standard-style points, not set to the simulation; review R4 E06: what the module does on a load step, not a load-compatibility claim) = second = the ITIC (CBEMA) curve as remembered (2.0 / 1.4 / 1.2 / 1.1 pu over to 1 ms / 3 ms / 0.5 s / steady, 0 / 0.7 / 0.8 / 0.9 pu under to 20 ms / 0.5 s / 10 s / steady) - FROM MEMORY, not verified: the standard texts (ITIC, IEC 62040-3) are not on file and are the gate; declared as REQUIREMENTS AC-04 under the delegation of D-051 (D-080)"
   ],
   "vf_classes_iec62040_3": [
    {
@@ -445,6 +445,38 @@
     }
    },
    "IEC 62040-3 output dynamic performance classifications 1 / 2 / 3 as remembered (FROM MEMORY, uncertain in the intermediate step): +/-30 % to 5 ms, +/-20 % to 100 ms, +/-10 % after; class 2 tolerates 1 ms and class 3 10 ms at zero voltage; not verified - the standard text is the gate, no class is claimed"
+  ],
+  "dc_cable": [
+   {
+    "run_m": [
+     2.0,
+     10.0,
+     20.0
+    ],
+    "L_uH_per_m": [
+     0.6,
+     1.0
+    ],
+    "mm2": [
+     70.0,
+     95.0
+    ],
+    "T_C": [
+     20.0,
+     90.0
+    ],
+    "rho_20C_ohm_m": 1.724e-08,
+    "alpha_per_K": 0.00393,
+    "sub": 8
+   },
+   "inter-module DC cable (review R4 E04): one run per PV module from its port-B terminals to the PCS link, DC+ and DC- laid together in the cabinet (the reference harness: 2 x 10 m of 70-95 mm2 copper); run lengths studied, loop inductance per metre of run (ASSUMED 0.6-1.0 uH/m for a pair laid together), cross-sections and conductor temperatures; R = 2 x run x rho (1 + alpha (T - 20 C)) / A (annealed copper); the dynamic cases take the LOWEST resistance (95 mm2 at 20 C: the least damping - capacitor ESR, busbars and the skin effect not credited), the static drop the highest (70 mm2 at 90 C); the n modules' runs identical (n in parallel: R / n, L / n, the banks n C_B on one node); the runs as lumped R-L, integrated exactly (zero-order hold) in 'sub' steps per control period"
+  ],
+  "dc_bus_window": [
+   {
+    "default_V": 750.0,
+    "round_V": 5.0
+   },
+   "VF on a battery-less DC bus (review R4 E04, the product rule): the PV modules' default CV set point - the reviewer's economical prototype recommendation, adopted where the PCS operating map allows it; a build whose full-load floor at the PCS terminals (+ the harness drop, over the PV's V_B accuracy) is above it gets the next multiple of round_V; the firmware limit is the PV coordination row's own validity (read at run time)"
   ],
   "dc_reg_T_s": [
    0.02,
@@ -10161,7 +10193,15 @@
    ],
    [
     "VF on a battery-less DC bus with PV-P75 (review R3-03; installation / system rule)",
-    "the PV modules' coordination row (V_B > V_B* + 30 V -> current references to zero) is required: with it the island rides through a full-load rejection up to a CV set point of 909 V (worst corner: link -10 %, residual energy at the cells' peak, two modules at the PCS's 2-min power; one module 921 V), the PV row's 782 V validity is conservative; without it the PCS trips (the bus ends at 1063-1069 V); the external stop path (1.47 ms) changes nothing on this event; a hardwired trip line is needed only above the validity (the PV stopped within 56 us of the rejection at 950 V; cost class low, not added)"
+    "the PV modules' coordination row (V_B > V_B* + 30 V -> current references to zero) is required: with it the island rides through a full-load rejection inside the enforced window (row 'DC-bus set point on a battery-less bus', review R4 E04: default 750 V, firmware limit 782 V); the one-node model rides to 909 V (two modules at the PCS's 2-min power, link -10 %, residual energy at the cells' peak; one module 921 V) - a model validity, not a rating; without it the PCS trips (the bus ends at 1063-1069 V); the external stop path (1.47 ms) changes nothing on this event; a hardwired trip line is needed only above the one-node validity (the PV stopped within 56 us of the rejection at 950 V; cost class low, not added)"
+   ],
+   [
+    "DC-bus set point on a battery-less bus (product rule, review R4 E04)",
+    "PV-P75 parameter set: V_B* default 750 V in CV mode on a bus the installation declares battery-less (3W+N+PE, mode A (N leg at 50 %): 755 V - its full-load floor 746.4 V at the PCS terminals + the harness drop 1.7 V over the PV's 0.57 % V_B accuracy = 752.3 V), clamped to <= 782 V (the coordination row's validity), the coordination row enabled; PCS-P125: VF on a bus declared battery-less starts only with V_dc,meas <= 791 V, else it refuses and reports; the one-node model's 909 V and the cable model's 846 V are model validities, not ratings; the harness contract (section 7e) is part of the installation"
+   ],
+   [
+    "operating-mode release (product rule, review R4 E06)",
+    "the parameter set carries the released operating modes (CRC with the calibration, reported with the serial, like the grade record): stage 1 - grid-following operation qualified and released first (as shipped until grid forming is qualified); stage 2 - grid forming (VF) released for managed island loads with an agreed voltage-time and interruption specification, against which the declared capability is checked (enabled per installation, the agreement recorded with the serial); stage 3 - general-purpose off-grid or UPS-like supply only after the required output class and its test method are established (IEC 62040-3 not claimed): not released; the controller refuses a mode the parameter set does not release"
    ]
   ],
   "anti_islanding": [
@@ -12113,7 +12153,18 @@
   "f_io": 1000.0,
   "vclamp_pu": 1.2,
   "envelope_basis": {
-   "declared": "the ITIC (CBEMA) curve style points FROM MEMORY - a standard-style curve, not set to the simulation (review R3-05); the standard texts (ITIC, IEC 62040-3) are not on file and are the gate",
+   "declared": "the module's DECLARED OUTPUT CAPABILITY on a 100 % linear load step (what the module does), drawn as ITIC (CBEMA)-style points FROM MEMORY, not set to the simulation (review R3-05) - not a load-compatibility claim (review R4 E06); the standard texts (ITIC, IEC 62040-3) are not on file and are the gate",
+   "statement": "the ITI (CBEMA) curve describes the input tolerance of information-technology equipment at 120 V / 60 Hz; it is not a product or distribution design specification, so meeting ITIC-style points does not by itself establish compatibility with 400 / 230 V loads - that is the load's own specification, agreed per application (review R4 E06); the points state what the module does on a load step (its declared output capability), nothing about what a load tolerates",
+   "release_sequence": [
+    "grid-following operation qualified and released first",
+    "grid forming (VF) released for managed island loads with an agreed voltage-time and interruption specification, against which the declared capability is checked",
+    "general-purpose off-grid or UPS-like supply only after the required output class and its test method are established (IEC 62040-3 not claimed)"
+   ],
+   "not_claimed": [
+    "compatibility with an arbitrary 400 / 230 V load",
+    "an IEC 62040-3 output dynamic performance class (1-3)",
+    "UPS-like or general-purpose off-grid supply"
+   ],
    "margins_worst_corner": {
     "declared (ITIC-style, FROM MEMORY)": {
      "over": [
@@ -12577,7 +12628,7 @@
     "overshoot": 2.17,
     "basis": "the unbounded averaged model without the VF measures (D-077) - SUPERSEDED"
    },
-   "adoption": "adopting a dynamic output-voltage envelope as a requirement is adopted as REQUIREMENTS AC-04 (D-080) (a REQUIREMENTS.md entry); bench validation of the first milliseconds at every corner is the gate"
+   "adoption": "declared as REQUIREMENTS AC-04 (D-080, reworded on review R4 E06 as the module's declared output capability, not a load-compatibility claim); release sequence - grid-following operation qualified and released first, then grid forming (VF) released for managed island loads with an agreed voltage-time and interruption specification, against which the declared capability is checked, then general-purpose off-grid or UPS-like supply only after the required output class and its test method are established (IEC 62040-3 not claimed); bench validation of the first milliseconds at every corner is the gate"
   }
  },
  "dc_rejection_bounded": {
@@ -18192,10 +18243,10 @@
   },
   "requirements": [
    "the PV modules' coordination row (V_B > V_B* + 30 V -> every cell's current reference to zero) is required for VF on a battery-less bus: without it every full-load rejection trips the PCS (bus 1063-1069 V)",
-   "the CV set point in VF on a battery-less bus <= 909 V (the coupled worst corner; the PV row keeps its 782 V as the firmware limit with its own margin rule)",
+   "the CV set point in VF on a battery-less bus: default 750 V, firmware limit <= 782 V (the PV coordination row's own validity) - the enforced product rule (review R4 E04: pcs_control_spec dc_bus_operating_window); 909 V is this one-node model's validity only (no cable, the PV banks on the PCS node) - not a rating",
    "the PV power on one link <= the PCS's DC power tier (one module at 82.5 kW and two at the 2-min tier studied)",
    "the external stop wiring (1.47 ms) is not needed for this event - it acts after the PV module's own limit and comparator; it stays a general interlock",
-   "a hardwired trip line (cost class low: an isolated digital line, a connector and a latch input, a few USD per module) is needed only for set points above 909 V; it must stop the modules within 1 x 82.5 kW 116 us, 2 x 75 kW 56 us of the rejection at 950 V; not added",
+   "a hardwired trip line (cost class low: an isolated digital line, a connector and a latch input, a few USD per module) is not needed inside the enforced window; in this one-node model it would be needed above 909 V and must stop the modules within 1 x 82.5 kW 116 us, 2 x 75 kW 56 us of the rejection at 950 V; not added",
    "with the PV firmware dead the bus ends at 1126-1130 V, above the aux's 1107 V input lock-out: dark until it bleeds down"
   ],
   "limits": {
@@ -18231,11 +18282,27 @@
    "P_rated": 75000.0,
    "P_max": 82500.0,
    "t_ext": 0.00147,
+   "fc_min": 2279.22,
+   "t_comp": 1.5625e-05,
+   "k_margin": 2.0,
+   "acc": 0.0057,
+   "I_B_max": 135.0,
    "source": "sim/out/pv_control/control_spec.json (firmware_second_layer system row, sampling, current_loop, hardware_trips), sim/out/pv_design/cell_spec.json (inductor, ov_trip_costfirst), hardware/PV-CTL design check (external stop), REQUIREMENTS PV-01"
   }
  },
  "vf_envelope_basis": {
-  "declared": "the ITIC (CBEMA) curve style points FROM MEMORY - a standard-style curve, not set to the simulation (review R3-05); the standard texts (ITIC, IEC 62040-3) are not on file and are the gate",
+  "declared": "the module's DECLARED OUTPUT CAPABILITY on a 100 % linear load step (what the module does), drawn as ITIC (CBEMA)-style points FROM MEMORY, not set to the simulation (review R3-05) - not a load-compatibility claim (review R4 E06); the standard texts (ITIC, IEC 62040-3) are not on file and are the gate",
+  "statement": "the ITI (CBEMA) curve describes the input tolerance of information-technology equipment at 120 V / 60 Hz; it is not a product or distribution design specification, so meeting ITIC-style points does not by itself establish compatibility with 400 / 230 V loads - that is the load's own specification, agreed per application (review R4 E06); the points state what the module does on a load step (its declared output capability), nothing about what a load tolerates",
+  "release_sequence": [
+   "grid-following operation qualified and released first",
+   "grid forming (VF) released for managed island loads with an agreed voltage-time and interruption specification, against which the declared capability is checked",
+   "general-purpose off-grid or UPS-like supply only after the required output class and its test method are established (IEC 62040-3 not claimed)"
+  ],
+  "not_claimed": [
+   "compatibility with an arbitrary 400 / 230 V load",
+   "an IEC 62040-3 output dynamic performance class (1-3)",
+   "UPS-like or general-purpose off-grid supply"
+  ],
   "margins_worst_corner": {
    "declared (ITIC-style, FROM MEMORY)": {
     "over": [
@@ -18699,7 +18766,7 @@
    "overshoot": 2.17,
    "basis": "the unbounded averaged model without the VF measures (D-077) - SUPERSEDED"
   },
-  "adoption": "adopting a dynamic output-voltage envelope as a requirement is adopted as REQUIREMENTS AC-04 (D-080) (a REQUIREMENTS.md entry); bench validation of the first milliseconds at every corner is the gate"
+  "adoption": "declared as REQUIREMENTS AC-04 (D-080, reworded on review R4 E06 as the module's declared output capability, not a load-compatibility claim); release sequence - grid-following operation qualified and released first, then grid forming (VF) released for managed island loads with an agreed voltage-time and interruption specification, against which the declared capability is checked, then general-purpose off-grid or UPS-like supply only after the required output class and its test method are established (IEC 62040-3 not claimed); bench validation of the first milliseconds at every corner is the gate"
  },
  "review_r3": [
   {
@@ -18730,7 +18797,7 @@
    "id": "R3-03",
    "classification": "Confirmed (an untied interface) - replaced by the coupled PCS / PV trajectory; firmware / installation rules, no hardware",
    "reviewer": "ASSUMED 50 us stop after the PCS trip vs the PV external stop 1.47 ms; the 0.51 ms figure has a different reference",
-   "ours": "the PV module's own protections read from its specs: at 750, 782 V every corner rides through (bus <= 853 V against the 975 V soft limit; PV cut 0.20-0.28 ms after the rejection); at 950 V the PCS trips (bus 994-1016 V, dark); set-point limit 1 x 82.5 kW 921 V, 2 x 75 kW 909 V; without the coordination row the bus ends at 1063-1069 V (aux running), with the PV firmware dead 1126-1130 V (aux locked out); halves <= 571 V against U_N 600 V, device <= 1445 V; the external stop never acts first; a hardwired line only above the validity (1 x 82.5 kW 116 us, 2 x 75 kW 56 us at 950 V)",
+   "ours": "the PV module's own protections read from its specs: at 750, 782 V every corner rides through (bus <= 853 V against the 975 V soft limit; PV cut 0.20-0.28 ms after the rejection); at 950 V the PCS trips (bus 994-1016 V, dark); one-node set-point validity (a model figure, not a rating - review R4 E04) 1 x 82.5 kW 921 V, 2 x 75 kW 909 V; without the coordination row the bus ends at 1063-1069 V (aux running), with the PV firmware dead 1126-1130 V (aux locked out); halves <= 571 V against U_N 600 V, device <= 1445 V; the external stop never acts first; a hardwired line only above the validity (1 x 82.5 kW 116 us, 2 x 75 kW 56 us at 950 V)",
    "change": "ASSUME dcdc_stop_us removed; PVBus / dc_coupled / study_dc_coupled (section 7d); gates_off_tail takes a stateful source; vf_bounded 'uncoordinated' recomputed on the coupled model",
    "keys": [
     "dc_bus_coupled_pv",
@@ -18746,6 +18813,3058 @@
    "keys": [
     "vf_envelope_basis",
     "vf_bounded.envelope_basis"
+   ]
+  }
+ ],
+ "dc_bus_cable": {
+  "corners": [
+   {
+    "run_m": 2.0,
+    "L_uH_per_m": 0.6,
+    "L_uH": 1.2,
+    "R_mOhm": 0.725895
+   },
+   {
+    "run_m": 2.0,
+    "L_uH_per_m": 1.0,
+    "L_uH": 2.0,
+    "R_mOhm": 0.725895
+   },
+   {
+    "run_m": 10.0,
+    "L_uH_per_m": 0.6,
+    "L_uH": 6.0,
+    "R_mOhm": 3.62947
+   },
+   {
+    "run_m": 10.0,
+    "L_uH_per_m": 1.0,
+    "L_uH": 10.0,
+    "R_mOhm": 3.62947
+   },
+   {
+    "run_m": 20.0,
+    "L_uH_per_m": 0.6,
+    "L_uH": 12.0,
+    "R_mOhm": 7.25895
+   },
+   {
+    "run_m": 20.0,
+    "L_uH_per_m": 1.0,
+    "L_uH": 20.0,
+    "R_mOhm": 7.25895
+   }
+  ],
+  "sources": {
+   "nominal (7d)": {
+    "basis": "section 7d's: the decay at the 2500 Hz design crossover from the detection"
+   },
+   "slow loop": {
+    "tau_i": 6.98287e-05,
+    "t_add": 1.5625e-05,
+    "basis": "the PV study's lowest crossover 2279 Hz (its inductance-tolerance and port corners) and one 15.6 us current-loop computation delay before the decay (first-order, charge-equivalent: the PI's own voltage-limited response is faster)"
+   },
+   "slow loop + late detection": {
+    "tau_i": 6.98287e-05,
+    "t_add": 0.000224625,
+    "basis": "'slow loop' with the coordination row's 209 us chain taking its x2 time margin (ASSUMED): the decay a further 209 us later"
+   }
+  },
+  "cases": [
+   "1 x 75 kW",
+   "1 x 82.5 kW",
+   "2 x 62.5 kW",
+   "2 x 75 kW"
+  ],
+  "rows": [
+   {
+    "v_set": 750.0,
+    "n": 1,
+    "P_each_kW": 75.0,
+    "source": "nominal (7d)",
+    "one_node": {
+     "vdc_pk": 803.985,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 15.625,
+     "vdc_end": 803.972,
+     "t_cut_ms": [
+      0.21875,
+      0.265625
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 801.503,
+      "v_pv_pk": 801.65,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 800.85,
+      "t_cut_ms": [
+       0.21875,
+       0.257812
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 806.455,
+      "v_pv_pk": 806.962,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 804.344,
+      "t_cut_ms": [
+       0.226562,
+       0.28125
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 805.258,
+      "v_pv_pk": 806.236,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 800.691,
+      "t_cut_ms": [
+       0.21875,
+       0.257812
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 814.999,
+      "v_pv_pk": 817.253,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 804.09,
+      "t_cut_ms": [
+       0.226562,
+       0.257812
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 817.197,
+      "v_pv_pk": 820.064,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 805.145,
+      "t_cut_ms": [
+       0.25,
+       0.28125
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 819.882,
+      "v_pv_pk": 824.544,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 804.864,
+      "t_cut_ms": [
+       0.25,
+       0.289062
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 750.0,
+    "n": 1,
+    "P_each_kW": 75.0,
+    "source": "slow loop",
+    "one_node": {
+     "vdc_pk": 807.159,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 15.625,
+     "vdc_end": 807.146,
+     "t_cut_ms": [
+      0.234375,
+      0.28125
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 805.777,
+      "v_pv_pk": 806.195,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 804.096,
+      "t_cut_ms": [
+       0.234375,
+       0.273437
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 808.71,
+      "v_pv_pk": 808.957,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 807.593,
+      "t_cut_ms": [
+       0.242187,
+       0.296875
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 808.054,
+      "v_pv_pk": 808.939,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 803.945,
+      "t_cut_ms": [
+       0.234375,
+       0.273437
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 818.412,
+      "v_pv_pk": 820.671,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 807.345,
+      "t_cut_ms": [
+       0.242187,
+       0.273437
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 820.839,
+      "v_pv_pk": 823.748,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 808.393,
+      "t_cut_ms": [
+       0.265625,
+       0.296875
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 824.65,
+      "v_pv_pk": 829.738,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 808.095,
+      "t_cut_ms": [
+       0.265625,
+       0.304687
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 750.0,
+    "n": 1,
+    "P_each_kW": 75.0,
+    "source": "slow loop + late detection",
+    "one_node": {
+     "vdc_pk": 837.402,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 15.625,
+     "vdc_end": 837.385,
+     "t_cut_ms": [
+      0.443375,
+      0.49025
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 837.741,
+      "v_pv_pk": 838.331,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 835.201,
+      "t_cut_ms": [
+       0.443375,
+       0.482438
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 840.865,
+      "v_pv_pk": 841.346,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 838.694,
+      "t_cut_ms": [
+       0.451188,
+       0.505875
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 838.863,
+      "v_pv_pk": 839.654,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 835.062,
+      "t_cut_ms": [
+       0.443375,
+       0.482438
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 847.421,
+      "v_pv_pk": 849.588,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 838.453,
+      "t_cut_ms": [
+       0.451188,
+       0.482438
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 847.14,
+      "v_pv_pk": 848.969,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 839.514,
+      "t_cut_ms": [
+       0.474625,
+       0.505875
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 849.909,
+      "v_pv_pk": 852.722,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 839.391,
+      "t_cut_ms": [
+       0.474625,
+       0.513688
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 750.0,
+    "n": 1,
+    "P_each_kW": 82.5,
+    "source": "nominal (7d)",
+    "one_node": {
+     "vdc_pk": 807.072,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 0.0,
+     "vdc_end": 807.072,
+     "t_cut_ms": [
+      0.203125,
+      0.25
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 806.996,
+      "v_pv_pk": 807.165,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 806.273,
+      "t_cut_ms": [
+       0.21875,
+       0.257812
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 809.092,
+      "v_pv_pk": 809.764,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 806.274,
+      "t_cut_ms": [
+       0.21875,
+       0.257812
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 810.419,
+      "v_pv_pk": 811.304,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 806.111,
+      "t_cut_ms": [
+       0.21875,
+       0.25
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 814.947,
+      "v_pv_pk": 817.113,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 806.023,
+      "t_cut_ms": [
+       0.21875,
+       0.257812
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 821.105,
+      "v_pv_pk": 823.636,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 809.731,
+      "t_cut_ms": [
+       0.226562,
+       0.257812
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 826.624,
+      "v_pv_pk": 831.55,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 810.683,
+      "t_cut_ms": [
+       0.25,
+       0.289062
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 750.0,
+    "n": 1,
+    "P_each_kW": 82.5,
+    "source": "slow loop",
+    "one_node": {
+     "vdc_pk": 810.572,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 0.0,
+     "vdc_end": 810.572,
+     "t_cut_ms": [
+      0.21875,
+      0.265625
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 811.48,
+      "v_pv_pk": 811.885,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 809.846,
+      "t_cut_ms": [
+       0.234375,
+       0.273437
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 812.208,
+      "v_pv_pk": 812.777,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 809.851,
+      "t_cut_ms": [
+       0.234375,
+       0.273437
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 813.311,
+      "v_pv_pk": 814.066,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 809.692,
+      "t_cut_ms": [
+       0.234375,
+       0.265625
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 819.407,
+      "v_pv_pk": 821.7,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 809.599,
+      "t_cut_ms": [
+       0.234375,
+       0.273437
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 825.418,
+      "v_pv_pk": 828.114,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 813.305,
+      "t_cut_ms": [
+       0.242187,
+       0.273437
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 831.918,
+      "v_pv_pk": 837.336,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 814.238,
+      "t_cut_ms": [
+       0.265625,
+       0.304687
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 750.0,
+    "n": 1,
+    "P_each_kW": 82.5,
+    "source": "slow loop + late detection",
+    "one_node": {
+     "vdc_pk": 843.908,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 0.0,
+     "vdc_end": 843.908,
+     "t_cut_ms": [
+      0.42775,
+      0.474625
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 846.581,
+      "v_pv_pk": 847.178,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 844.048,
+      "t_cut_ms": [
+       0.443375,
+       0.482438
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 846.79,
+      "v_pv_pk": 847.441,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 844.054,
+      "t_cut_ms": [
+       0.443375,
+       0.482438
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 847.065,
+      "v_pv_pk": 847.839,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 843.906,
+      "t_cut_ms": [
+       0.443375,
+       0.474625
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 850.199,
+      "v_pv_pk": 851.804,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 843.824,
+      "t_cut_ms": [
+       0.443375,
+       0.482438
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 853.724,
+      "v_pv_pk": 855.369,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 847.515,
+      "t_cut_ms": [
+       0.451188,
+       0.482438
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 860.688,
+      "v_pv_pk": 863.906,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 848.639,
+      "t_cut_ms": [
+       0.474625,
+       0.513688
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 750.0,
+    "n": 2,
+    "P_each_kW": 62.5,
+    "source": "nominal (7d)",
+    "one_node": {
+     "vdc_pk": 813.385,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 0.0,
+     "vdc_end": 813.385,
+     "t_cut_ms": [
+      0.203125,
+      0.234375
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 819.707,
+      "v_pv_pk": 816.534,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 812.324,
+      "t_cut_ms": [
+       0.21875,
+       0.25
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 818.209,
+      "v_pv_pk": 815.358,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 812.34,
+      "t_cut_ms": [
+       0.21875,
+       0.25
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 814.754,
+      "v_pv_pk": 813.478,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 810.939,
+      "t_cut_ms": [
+       0.195312,
+       0.226562
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 821.197,
+      "v_pv_pk": 816.165,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 812.313,
+      "t_cut_ms": [
+       0.21875,
+       0.226562
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 823.782,
+      "v_pv_pk": 817.358,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 812.153,
+      "t_cut_ms": [
+       0.21875,
+       0.25
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 833.14,
+      "v_pv_pk": 823.262,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 811.927,
+      "t_cut_ms": [
+       0.21875,
+       0.257812
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 750.0,
+    "n": 2,
+    "P_each_kW": 62.5,
+    "source": "slow loop",
+    "one_node": {
+     "vdc_pk": 817.024,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 0.0,
+     "vdc_end": 817.024,
+     "t_cut_ms": [
+      0.21875,
+      0.25
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 821.855,
+      "v_pv_pk": 819.217,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 816.07,
+      "t_cut_ms": [
+       0.234375,
+       0.265625
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 820.56,
+      "v_pv_pk": 818.722,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 816.08,
+      "t_cut_ms": [
+       0.234375,
+       0.265625
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 818.119,
+      "v_pv_pk": 816.234,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 814.681,
+      "t_cut_ms": [
+       0.210937,
+       0.242187
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 822.727,
+      "v_pv_pk": 819.331,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 816.057,
+      "t_cut_ms": [
+       0.234375,
+       0.242187
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 826.683,
+      "v_pv_pk": 821.191,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 815.905,
+      "t_cut_ms": [
+       0.234375,
+       0.265625
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 838.697,
+      "v_pv_pk": 828.056,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 815.664,
+      "t_cut_ms": [
+       0.234375,
+       0.273437
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 750.0,
+    "n": 2,
+    "P_each_kW": 62.5,
+    "source": "slow loop + late detection",
+    "one_node": {
+     "vdc_pk": 851.636,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 0.0,
+     "vdc_end": 851.636,
+     "t_cut_ms": [
+      0.42775,
+      0.459
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 857.756,
+      "v_pv_pk": 855.268,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 851.849,
+      "t_cut_ms": [
+       0.443375,
+       0.474625
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 857.888,
+      "v_pv_pk": 855.402,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 851.854,
+      "t_cut_ms": [
+       0.443375,
+       0.474625
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 856.973,
+      "v_pv_pk": 854.257,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 850.468,
+      "t_cut_ms": [
+       0.419938,
+       0.451188
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 857.814,
+      "v_pv_pk": 855.268,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 851.845,
+      "t_cut_ms": [
+       0.443375,
+       0.451188
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 860.137,
+      "v_pv_pk": 856.422,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 851.697,
+      "t_cut_ms": [
+       0.443375,
+       0.474625
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 863.721,
+      "v_pv_pk": 858.435,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 851.573,
+      "t_cut_ms": [
+       0.443375,
+       0.482438
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 750.0,
+    "n": 2,
+    "P_each_kW": 75.0,
+    "source": "nominal (7d)",
+    "one_node": {
+     "vdc_pk": 824.519,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 15.625,
+     "vdc_end": 823.496,
+     "t_cut_ms": [
+      0.1875,
+      0.21875
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 827.841,
+      "v_pv_pk": 825.308,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 819.225,
+      "t_cut_ms": [
+       0.1875,
+       0.226562
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 833.858,
+      "v_pv_pk": 829.621,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 824.054,
+      "t_cut_ms": [
+       0.195312,
+       0.226562
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 828.925,
+      "v_pv_pk": 826.357,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 819.146,
+      "t_cut_ms": [
+       0.1875,
+       0.21875
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 831.332,
+      "v_pv_pk": 825.58,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 819.178,
+      "t_cut_ms": [
+       0.1875,
+       0.226562
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 836.853,
+      "v_pv_pk": 829.616,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 823.866,
+      "t_cut_ms": [
+       0.195312,
+       0.226562
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 849.057,
+      "v_pv_pk": 837.899,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 825.223,
+      "t_cut_ms": [
+       0.21875,
+       0.25
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 750.0,
+    "n": 2,
+    "P_each_kW": 75.0,
+    "source": "slow loop",
+    "one_node": {
+     "vdc_pk": 827.885,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 15.625,
+     "vdc_end": 827.885,
+     "t_cut_ms": [
+      0.203125,
+      0.234375
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 832.719,
+      "v_pv_pk": 829.128,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 823.706,
+      "t_cut_ms": [
+       0.203125,
+       0.242187
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 835.828,
+      "v_pv_pk": 832.59,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 828.552,
+      "t_cut_ms": [
+       0.210937,
+       0.242187
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 831.162,
+      "v_pv_pk": 828.45,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 823.647,
+      "t_cut_ms": [
+       0.203125,
+       0.234375
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 834.389,
+      "v_pv_pk": 829.147,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 823.682,
+      "t_cut_ms": [
+       0.203125,
+       0.242187
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 840.387,
+      "v_pv_pk": 833.765,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 828.375,
+      "t_cut_ms": [
+       0.210937,
+       0.242187
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 855.636,
+      "v_pv_pk": 843.029,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 829.716,
+      "t_cut_ms": [
+       0.234375,
+       0.265625
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 750.0,
+    "n": 2,
+    "P_each_kW": 75.0,
+    "source": "slow loop + late detection",
+    "one_node": {
+     "vdc_pk": 869.7,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 15.625,
+     "vdc_end": 869.7,
+     "t_cut_ms": [
+      0.412125,
+      0.443375
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 872.274,
+      "v_pv_pk": 869.864,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 866.714,
+      "t_cut_ms": [
+       0.412125,
+       0.451188
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 878.109,
+      "v_pv_pk": 875.42,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 871.53,
+      "t_cut_ms": [
+       0.419938,
+       0.451188
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 872.677,
+      "v_pv_pk": 870.023,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 866.66,
+      "t_cut_ms": [
+       0.412125,
+       0.443375
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 874.821,
+      "v_pv_pk": 871.333,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 866.704,
+      "t_cut_ms": [
+       0.412125,
+       0.451188
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 879.759,
+      "v_pv_pk": 876.254,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 871.386,
+      "t_cut_ms": [
+       0.419938,
+       0.451188
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 887.212,
+      "v_pv_pk": 881.498,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 872.796,
+      "t_cut_ms": [
+       0.443375,
+       0.474625
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 782.0,
+    "n": 1,
+    "P_each_kW": 75.0,
+    "source": "nominal (7d)",
+    "one_node": {
+     "vdc_pk": 836.526,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 0.0,
+     "vdc_end": 835.973,
+     "t_cut_ms": [
+      0.234375,
+      0.28125
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 836.825,
+      "v_pv_pk": 837.317,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 834.092,
+      "t_cut_ms": [
+       0.226562,
+       0.289062
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 837.463,
+      "v_pv_pk": 837.749,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 835.212,
+      "t_cut_ms": [
+       0.25,
+       0.289062
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 836.094,
+      "v_pv_pk": 837.77,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 830.59,
+      "t_cut_ms": [
+       0.21875,
+       0.257812
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 844.553,
+      "v_pv_pk": 846.039,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 833.871,
+      "t_cut_ms": [
+       0.226562,
+       0.257812
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 846.501,
+      "v_pv_pk": 849.383,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 834.99,
+      "t_cut_ms": [
+       0.25,
+       0.28125
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 857.07,
+      "v_pv_pk": 861.387,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 837.965,
+      "t_cut_ms": [
+       0.257812,
+       0.289062
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 782.0,
+    "n": 1,
+    "P_each_kW": 75.0,
+    "source": "slow loop",
+    "one_node": {
+     "vdc_pk": 839.545,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 0.0,
+     "vdc_end": 839.014,
+     "t_cut_ms": [
+      0.25,
+      0.296875
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 840.319,
+      "v_pv_pk": 840.94,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 837.203,
+      "t_cut_ms": [
+       0.242187,
+       0.304687
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 839.352,
+      "v_pv_pk": 839.355,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 838.324,
+      "t_cut_ms": [
+       0.265625,
+       0.304687
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 838.641,
+      "v_pv_pk": 840.235,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 833.709,
+      "t_cut_ms": [
+       0.234375,
+       0.273437
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 847.772,
+      "v_pv_pk": 849.21,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 836.99,
+      "t_cut_ms": [
+       0.242187,
+       0.273437
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 850.009,
+      "v_pv_pk": 853.037,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 838.099,
+      "t_cut_ms": [
+       0.265625,
+       0.296875
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 861.256,
+      "v_pv_pk": 865.825,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 841.069,
+      "t_cut_ms": [
+       0.273437,
+       0.304687
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 782.0,
+    "n": 1,
+    "P_each_kW": 75.0,
+    "source": "slow loop + late detection",
+    "one_node": {
+     "vdc_pk": 868.225,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 0.0,
+     "vdc_end": 867.997,
+     "t_cut_ms": [
+      0.459,
+      0.505875
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 868.502,
+      "v_pv_pk": 868.794,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 867.018,
+      "t_cut_ms": [
+       0.451188,
+       0.513688
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 870.111,
+      "v_pv_pk": 870.534,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 868.135,
+      "t_cut_ms": [
+       0.474625,
+       0.513688
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 868.009,
+      "v_pv_pk": 868.815,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 863.529,
+      "t_cut_ms": [
+       0.443375,
+       0.482438
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 875.176,
+      "v_pv_pk": 877.193,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 866.798,
+      "t_cut_ms": [
+       0.451188,
+       0.482438
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 875.179,
+      "v_pv_pk": 876.05,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 867.806,
+      "t_cut_ms": [
+       0.474625,
+       0.505875
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 880.473,
+      "v_pv_pk": 882.722,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 871.003,
+      "t_cut_ms": [
+       0.482438,
+       0.513688
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 782.0,
+    "n": 1,
+    "P_each_kW": 82.5,
+    "source": "nominal (7d)",
+    "one_node": {
+     "vdc_pk": 839.293,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 15.625,
+     "vdc_end": 839.292,
+     "t_cut_ms": [
+      0.21875,
+      0.25
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 836.851,
+      "v_pv_pk": 837.047,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 836.069,
+      "t_cut_ms": [
+       0.21875,
+       0.257812
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 838.981,
+      "v_pv_pk": 839.645,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 836.069,
+      "t_cut_ms": [
+       0.21875,
+       0.257812
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 840.49,
+      "v_pv_pk": 841.554,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 835.905,
+      "t_cut_ms": [
+       0.21875,
+       0.257812
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 845.424,
+      "v_pv_pk": 847.571,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 835.817,
+      "t_cut_ms": [
+       0.21875,
+       0.257812
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 851.086,
+      "v_pv_pk": 854.16,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 839.377,
+      "t_cut_ms": [
+       0.226562,
+       0.257812
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 856.199,
+      "v_pv_pk": 860.816,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 840.308,
+      "t_cut_ms": [
+       0.25,
+       0.289062
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 782.0,
+    "n": 1,
+    "P_each_kW": 82.5,
+    "source": "slow loop",
+    "one_node": {
+     "vdc_pk": 842.647,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 15.625,
+     "vdc_end": 842.646,
+     "t_cut_ms": [
+      0.234375,
+      0.265625
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 841.186,
+      "v_pv_pk": 841.588,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 839.493,
+      "t_cut_ms": [
+       0.234375,
+       0.273437
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 841.955,
+      "v_pv_pk": 842.525,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 839.497,
+      "t_cut_ms": [
+       0.234375,
+       0.273437
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 843.367,
+      "v_pv_pk": 844.319,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 839.337,
+      "t_cut_ms": [
+       0.234375,
+       0.273437
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 849.683,
+      "v_pv_pk": 851.937,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 839.244,
+      "t_cut_ms": [
+       0.234375,
+       0.273437
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 855.17,
+      "v_pv_pk": 858.354,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 842.801,
+      "t_cut_ms": [
+       0.242187,
+       0.273437
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 861.192,
+      "v_pv_pk": 866.244,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 843.905,
+      "t_cut_ms": [
+       0.265625,
+       0.304687
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 782.0,
+    "n": 1,
+    "P_each_kW": 82.5,
+    "source": "slow loop + late detection",
+    "one_node": {
+     "vdc_pk": 874.615,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 15.625,
+     "vdc_end": 874.614,
+     "t_cut_ms": [
+      0.443375,
+      0.474625
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 874.848,
+      "v_pv_pk": 875.449,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 872.295,
+      "t_cut_ms": [
+       0.443375,
+       0.482438
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 875.122,
+      "v_pv_pk": 875.775,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 872.3,
+      "t_cut_ms": [
+       0.443375,
+       0.482438
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 875.795,
+      "v_pv_pk": 876.609,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 872.151,
+      "t_cut_ms": [
+       0.443375,
+       0.482438
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 879.121,
+      "v_pv_pk": 880.842,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 872.068,
+      "t_cut_ms": [
+       0.443375,
+       0.482438
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 882.418,
+      "v_pv_pk": 884.166,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 875.621,
+      "t_cut_ms": [
+       0.451188,
+       0.482438
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 887.698,
+      "v_pv_pk": 890.29,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 876.718,
+      "t_cut_ms": [
+       0.474625,
+       0.513688
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 782.0,
+    "n": 2,
+    "P_each_kW": 62.5,
+    "source": "nominal (7d)",
+    "one_node": {
+     "vdc_pk": 842.983,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 0.0,
+     "vdc_end": 842.983,
+     "t_cut_ms": [
+      0.203125,
+      0.25
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 848.379,
+      "v_pv_pk": 845.608,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 841.964,
+      "t_cut_ms": [
+       0.21875,
+       0.257812
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 847.2,
+      "v_pv_pk": 845.117,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 841.977,
+      "t_cut_ms": [
+       0.21875,
+       0.25
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 844.319,
+      "v_pv_pk": 843.414,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 841.918,
+      "t_cut_ms": [
+       0.21875,
+       0.226562
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 850.322,
+      "v_pv_pk": 846.074,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 841.936,
+      "t_cut_ms": [
+       0.21875,
+       0.25
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 853.272,
+      "v_pv_pk": 847.647,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 841.804,
+      "t_cut_ms": [
+       0.21875,
+       0.25
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 869.454,
+      "v_pv_pk": 858.572,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 845.439,
+      "t_cut_ms": [
+       0.226562,
+       0.257812
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 782.0,
+    "n": 2,
+    "P_each_kW": 62.5,
+    "source": "slow loop",
+    "one_node": {
+     "vdc_pk": 846.472,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 0.0,
+     "vdc_end": 846.472,
+     "t_cut_ms": [
+      0.21875,
+      0.265625
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 851.067,
+      "v_pv_pk": 848.878,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 845.554,
+      "t_cut_ms": [
+       0.234375,
+       0.273437
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 850.492,
+      "v_pv_pk": 848.559,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 845.561,
+      "t_cut_ms": [
+       0.234375,
+       0.265625
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 848.698,
+      "v_pv_pk": 847.518,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 845.504,
+      "t_cut_ms": [
+       0.234375,
+       0.242187
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 852.005,
+      "v_pv_pk": 849.152,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 845.524,
+      "t_cut_ms": [
+       0.234375,
+       0.265625
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 856.201,
+      "v_pv_pk": 851.362,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 845.4,
+      "t_cut_ms": [
+       0.234375,
+       0.265625
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 874.09,
+      "v_pv_pk": 862.942,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 849.029,
+      "t_cut_ms": [
+       0.242187,
+       0.273437
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 782.0,
+    "n": 2,
+    "P_each_kW": 62.5,
+    "source": "slow loop + late detection",
+    "one_node": {
+     "vdc_pk": 879.655,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 0.0,
+     "vdc_end": 879.655,
+     "t_cut_ms": [
+      0.42775,
+      0.474625
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 885.806,
+      "v_pv_pk": 883.396,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 879.862,
+      "t_cut_ms": [
+       0.443375,
+       0.482438
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 886.315,
+      "v_pv_pk": 883.715,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 879.863,
+      "t_cut_ms": [
+       0.443375,
+       0.474625
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 886.645,
+      "v_pv_pk": 884.045,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 879.813,
+      "t_cut_ms": [
+       0.443375,
+       0.451188
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 886.236,
+      "v_pv_pk": 883.616,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 879.839,
+      "t_cut_ms": [
+       0.443375,
+       0.474625
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 888.87,
+      "v_pv_pk": 885.103,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 879.719,
+      "t_cut_ms": [
+       0.443375,
+       0.474625
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 897.691,
+      "v_pv_pk": 891.819,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 883.393,
+      "t_cut_ms": [
+       0.451188,
+       0.482438
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 782.0,
+    "n": 2,
+    "P_each_kW": 75.0,
+    "source": "nominal (7d)",
+    "one_node": {
+     "vdc_pk": 853.041,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 15.625,
+     "vdc_end": 852.705,
+     "t_cut_ms": [
+      0.1875,
+      0.21875
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 856.224,
+      "v_pv_pk": 853.827,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 848.604,
+      "t_cut_ms": [
+       0.1875,
+       0.226562
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 862.328,
+      "v_pv_pk": 858.163,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 853.229,
+      "t_cut_ms": [
+       0.195312,
+       0.226562
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 856.577,
+      "v_pv_pk": 854.507,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 848.529,
+      "t_cut_ms": [
+       0.1875,
+       0.226562
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 859.477,
+      "v_pv_pk": 853.656,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 848.547,
+      "t_cut_ms": [
+       0.1875,
+       0.226562
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 865.346,
+      "v_pv_pk": 858.049,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 853.821,
+      "t_cut_ms": [
+       0.195312,
+       0.226562
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 877.574,
+      "v_pv_pk": 866.601,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 854.631,
+      "t_cut_ms": [
+       0.21875,
+       0.257812
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 782.0,
+    "n": 2,
+    "P_each_kW": 75.0,
+    "source": "slow loop",
+    "one_node": {
+     "vdc_pk": 857.867,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 15.625,
+     "vdc_end": 857.681,
+     "t_cut_ms": [
+      0.203125,
+      0.234375
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 860.924,
+      "v_pv_pk": 857.512,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 853.869,
+      "t_cut_ms": [
+       0.203125,
+       0.242187
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 864.326,
+      "v_pv_pk": 862.132,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 858.244,
+      "t_cut_ms": [
+       0.210937,
+       0.242187
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 858.726,
+      "v_pv_pk": 856.513,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 852.842,
+      "t_cut_ms": [
+       0.203125,
+       0.242187
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 862.485,
+      "v_pv_pk": 857.479,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 853.216,
+      "t_cut_ms": [
+       0.203125,
+       0.242187
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 868.873,
+      "v_pv_pk": 862.435,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 857.647,
+      "t_cut_ms": [
+       0.210937,
+       0.242187
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 883.886,
+      "v_pv_pk": 871.979,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 858.938,
+      "t_cut_ms": [
+       0.234375,
+       0.273437
+      ],
+      "rides": true
+     }
+    ]
+   },
+   {
+    "v_set": 782.0,
+    "n": 2,
+    "P_each_kW": 75.0,
+    "source": "slow loop + late detection",
+    "one_node": {
+     "vdc_pk": 896.987,
+     "v_pv_pk": null,
+     "kC": 0.9,
+     "phase_us": 15.625,
+     "vdc_end": 896.987,
+     "t_cut_ms": [
+      0.412125,
+      0.443375
+     ],
+     "rides": true
+    },
+    "cable": [
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 1.2,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 899.506,
+      "v_pv_pk": 897.192,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 894.124,
+      "t_cut_ms": [
+       0.412125,
+       0.451188
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 2.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 2.0,
+      "R_mOhm": 0.725895,
+      "vdc_pk": 905.604,
+      "v_pv_pk": 902.816,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 898.739,
+      "t_cut_ms": [
+       0.419938,
+       0.451188
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 6.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 899.606,
+      "v_pv_pk": 897.797,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 894.876,
+      "t_cut_ms": [
+       0.412125,
+       0.451188
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 10.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 10.0,
+      "R_mOhm": 3.62947,
+      "vdc_pk": 902.072,
+      "v_pv_pk": 898.874,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 894.435,
+      "t_cut_ms": [
+       0.412125,
+       0.451188
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 0.6,
+      "L_uH": 12.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 906.947,
+      "v_pv_pk": 903.38,
+      "kC": 0.9,
+      "phase_us": 0.0,
+      "vdc_end": 898.866,
+      "t_cut_ms": [
+       0.419938,
+       0.451188
+      ],
+      "rides": true
+     },
+     {
+      "run_m": 20.0,
+      "L_uH_per_m": 1.0,
+      "L_uH": 20.0,
+      "R_mOhm": 7.25895,
+      "vdc_pk": 914.382,
+      "v_pv_pk": 908.945,
+      "kC": 0.9,
+      "phase_us": 7.8125,
+      "vdc_end": 900.216,
+      "t_cut_ms": [
+       0.443375,
+       0.482438
+      ],
+      "rides": true
+     }
+    ]
+   }
+  ],
+  "validity": [
+   {
+    "case": "1 x 82.5 kW",
+    "source": "nominal (7d)",
+    "one_node": 921,
+    "cable": [
+     918,
+     918,
+     918,
+     909,
+     909,
+     900
+    ]
+   },
+   {
+    "case": "1 x 82.5 kW",
+    "source": "slow loop",
+    "one_node": 918,
+    "cable": [
+     915,
+     918,
+     915,
+     906,
+     906,
+     896
+    ]
+   },
+   {
+    "case": "1 x 82.5 kW",
+    "source": "slow loop + late detection",
+    "one_node": 887,
+    "cable": [
+     887,
+     884,
+     887,
+     878,
+     878,
+     878
+    ]
+   },
+   {
+    "case": "2 x 75 kW",
+    "source": "nominal (7d)",
+    "one_node": 909,
+    "cable": [
+     903,
+     903,
+     909,
+     903,
+     896,
+     884
+    ]
+   },
+   {
+    "case": "2 x 75 kW",
+    "source": "slow loop",
+    "one_node": 906,
+    "cable": [
+     900,
+     900,
+     903,
+     900,
+     893,
+     878
+    ]
+   },
+   {
+    "case": "2 x 75 kW",
+    "source": "slow loop + late detection",
+    "one_node": 868,
+    "cable": [
+     859,
+     856,
+     868,
+     859,
+     856,
+     846
+    ]
+   }
+  ],
+  "validity_min_V": 846,
+  "limit_check": {
+   "case": "2 x 75 kW at 782 V, link -10 %, phase 0",
+   "one_node": 850.442,
+   "cable_small": 854.177,
+   "basis": "0.4 uH lossless runs, 0.2 uH for the two in parallel - about the smallest the diode tail's 1 us step resolves; the difference is the runs themselves and the one-node model's forward-Euler step on the decaying PV current, conservative there by a few volts"
+  },
+  "lossless": {
+   "run": {
+    "run_m": 20.0,
+    "L_uH_per_m": 1.0,
+    "L_uH": 20.0,
+    "R_mOhm": 7.25895
+   },
+   "R_mOhm": 7.25895,
+   "with_R": 877.574,
+   "lossless": 879.37
+  },
+  "f_cable_kHz": [
+   2.50027,
+   13.5879
+  ],
+  "harness": {
+   "run_m": [
+    2.0,
+    10.0,
+    20.0
+   ],
+   "L_uH_per_m": [
+    0.6,
+    1.0
+   ],
+   "mm2": [
+    70.0,
+    95.0
+   ],
+   "T_C": [
+    20.0,
+    90.0
+   ],
+   "rho_20C_ohm_m": 1.724e-08,
+   "alpha_per_K": 0.00393,
+   "sub": 8,
+   "basis": "inter-module DC cable (review R4 E04): one run per PV module from its port-B terminals to the PCS link, DC+ and DC- laid together in the cabinet (the reference harness: 2 x 10 m of 70-95 mm2 copper); run lengths studied, loop inductance per metre of run (ASSUMED 0.6-1.0 uH/m for a pair laid together), cross-sections and conductor temperatures; R = 2 x run x rho (1 + alpha (T - 20 C)) / A (annealed copper); the dynamic cases take the LOWEST resistance (95 mm2 at 20 C: the least damping - capacitor ESR, busbars and the skin effect not credited), the static drop the highest (70 mm2 at 90 C); the n modules' runs identical (n in parallel: R / n, L / n, the banks n C_B on one node); the runs as lumped R-L, integrated exactly (zero-order hold) in 'sub' steps per control period"
+  }
+ },
+ "dc_bus_operating_window": {
+  "rule": "VF on a battery-less DC bus fed by PV-P75 modules (review R4 E04): the enforced operating window - a product rule in both modules' parameter sets (firmware row 'DC-bus set point on a battery-less bus')",
+  "default_set_point_V": 750.0,
+  "set_point_by_build_V": {
+   "3W+PE": 750.0,
+   "3W+N+PE, mode A (N leg at 50 %)": 755.0,
+   "3W+N+PE, mode B (zero sequence on four legs)": 750.0
+  },
+  "firmware_limit_V": 782.0,
+  "firmware_limit_basis": "the PV coordination row's own validity, its x2 time margin ASSUMED (sim/out/pv_control/control_spec.json); enforced as the PV module's V_B* clamp on a bus declared battery-less",
+  "pcs_vf_permissive_V": 790.94,
+  "pcs_vf_permissive_basis": "the firmware limit plus the PV's 0.57 % V_B accuracy and the PCS-CTL's 0.57 % ADC accuracy: VF on a bus declared battery-less starts only below it",
+  "set_point_floor_V": {
+   "3W+PE": 648.789,
+   "3W+N+PE, mode A (N leg at 50 %)": 752.342,
+   "3W+N+PE, mode B (zero sequence on four legs)": 648.789
+  },
+  "full_load_floor_at_pcs_V": {
+   "3W+PE": 643.395,
+   "3W+N+PE, mode A (N leg at 50 %)": 746.358,
+   "3W+N+PE, mode B (zero sequence on four legs)": 643.395
+  },
+  "harness_drop_V": 1.69581,
+  "pv_vb_accuracy_pct": 0.57,
+  "lumped_model_validity_V": {
+   "1 x 82.5 kW": 921,
+   "2 x 75 kW": 909
+  },
+  "lumped_model_note": "the one-node model's validity (section 7d: the PV banks on the PCS node, no cable) - a model figure, NOT a rating",
+  "cable_model_validity_min_V": 846,
+  "cable_model_note": "the cable model's validity (section 7e: the worst run and PV source extreme) - a model figure, NOT a rating",
+  "margin_firmware_limit_to_cable_validity_V": 64.0,
+  "harness_contract": [
+   "run length <= 20 m per PV module, its port-B terminals to the PCS's DC terminals; one run per module (a shared busbar section counts in each run)",
+   "loop inductance <= 1 uH per metre of run and <= 20 uH per run including fuses, disconnectors and busbar sections: DC+ and DC- routed together (a two-core cable, or the single cores bundled and touching in the same tray), never separated or looped through other sections; no series choke or ferrite on the link (its differential-mode inductance counts)",
+   "cross-section: copper, sized by the installation rules for the module's 135 A port current; loop resistance <= 12.6 mOhm per run (20 m of 70 mm2 at 90 C: 1.7 V at 135 A, the drop the set-point floors carry); heavier conductors allowed (the first peak hardly depends on the resistance: +1.8 V lossless at the worst run)",
+   "nothing else on the link: no capacitance, filter, DC source or load beyond the PCS's DC link and the PV modules' port-B banks as drawn (a battery or another source is a different study); at most two PV-P75 modules per PCS link, their power <= the PCS's DC power tier (section 7d)",
+   "the commissioning record carries the as-built runs (length, cross-section, routing), the battery-less declaration, the set point and both modules' serials"
+  ],
+  "status": "CALCULATED / SIMULATED (averaged PCS model, executed PV detection, the runs as lumped R-L on an ASSUMED harness) - not measured; the bench and a switched model are the gate"
+ },
+ "review_r4": [
+  {
+   "id": "E03",
+   "classification": "Already Fixed (D-080) - the declared behaviour restated from this run; no change",
+   "reviewer": "keep the 270 A onset clamp for 5 ms and replay both comparator paths; a protective trip may be accepted for severe shorts; threshold and survival limits may not be ignored",
+   "ours": "section 9c-2 recomputed: the onset clamp 270 A for 5 ms on the shorted phase - first-ms peaks <= 351 A, no hardware layer trips at any studied threshold / sensor / ripple / plant corner, the smallest margin 13.3 A to the lower edge 423.9 A (the hold; a bench / DVT item), the firmware trip at 200 ms; declared: a bolted output short in four-wire grid forming: ridden for the firmware's 200 ms at the 200 ms tier (the onset clamp keeps every studied corner off both hardware layers), then the firmware trip -> FAULT; on a hardware trip: a unit whose layers sit outside the modelled bands trips in hardware instead: gates off within the protection chain (far below the ceiling), the latch holds, FAULT; no automatic clear after an over-current trip (the latch-clear row); a restart by command into a persisting short trips again; the third hazard trip of a class within 10 min -> LOCKOUT (ASSUMED, the firmware-practice row). The hard-short figures read from pcs_spec in this run: window chain 3.542 us, gates off at 520.5 A, admissible 533.6 A, CMPSS chain 2.969 us; DESAT at 6.30 V V_DS, backstop 140 A per device (record only: DESAT is not in the averaged short's screen)",
+   "change": "none",
+   "keys": [
+    "four_wire_short_protection (unchanged)",
+    "review_r4"
+   ]
+  },
+  {
+   "id": "E04",
+   "classification": "Confirmed (a model boundary) - the inter-module cable added to the coupled model; the window enforced as a product rule; no hardware",
+   "reviewer": "the coupled model puts the PCS and the remote PV capacitance on one node; the cable is not modelled, which matters when remote capacitance is credited in a sub-millisecond event; keep the PV row's 782 V validity as the firmware limit, the 909 V not an unrestricted rating; prototype at 750 V where the PCS operating map allows",
+   "ours": "section 7e: series R-L per module (2, 10, 20 m, 0.6 / 1 uH/m ASSUMED, the least damping), the PV banks behind it, the PV detection on its own port: at 750 / 782 V every corner rides through - PCS-node peak <= 849 / 878 V with the nominal source, <= 887 / 914 V with the slow loop and the late detection, against the 975 V soft limit; the cable adds up to +28 V to the one-node peak (cable mode 2.5-13.6 kHz); set-point validity with the cable 884 V (nominal source) / 846 V (every extreme) against the one-node 909 V: the firmware limit keeps 64 V; enforced window (product rule): default 750 V (3W+PE 750 V, 3W+N+PE, mode A (N leg at 50 %) 755 V, 3W+N+PE, mode B (zero sequence on four legs) 750 V), firmware limit 782 V, the PCS's VF permissive 791 V; the one-node 921 V / 909 V recorded as model validities only; the harness contract (5 items) for the integrator",
+   "change": "CableBus; dc_coupled(cable=, src=, tail=); PVBus(tau_i=, t_add=); prot_run on the inter-sample peak; study_dc_cable (section 7e); the requirement and firmware texts that quoted the one-node validity as a limit reworded",
+   "keys": [
+    "dc_bus_cable",
+    "dc_bus_operating_window",
+    "dc_bus_coupled_pv.requirements (reworded)",
+    "firmware.limits"
+   ]
+  },
+  {
+   "id": "E06",
+   "classification": "Improvement Recommended (an application decision) - the statement reframed; no control change",
+   "reviewer": "the ITI curve describes the input tolerance of IT equipment at 120 V / 60 Hz and is not a product or distribution specification: AC-04 adopting an ITIC-style envelope does not by itself establish 400 / 230 V load compatibility",
+   "ours": "the envelope is the module's DECLARED OUTPUT CAPABILITY on a load step (what the module does: the simulated worst corner clears the ITIC-style points FROM MEMORY by +0.054 pu), not a load-compatibility claim; release sequence as a product / firmware row: (1) grid-following operation qualified and released first; (2) grid forming (VF) released for managed island loads with an agreed voltage-time and interruption specification, against which the declared capability is checked; (3) general-purpose off-grid or UPS-like supply only after the required output class and its test method are established (IEC 62040-3 not claimed); not claimed: compatibility with an arbitrary 400 / 230 V load; an IEC 62040-3 output dynamic performance class (1-3); UPS-like or general-purpose off-grid supply; the 2.17 pu figure stays superseded; REQUIREMENTS AC-04 carries the same wording (checked by the self-check); the control measures unchanged",
+   "change": "vf_envelope_basis: declared / adoption reworded, statement / release_sequence / not_claimed added; firmware row 'operating-mode release'; section 7c text",
+   "keys": [
+    "vf_envelope_basis.statement",
+    "vf_envelope_basis.release_sequence",
+    "vf_envelope_basis.not_claimed",
+    "firmware.limits"
    ]
   }
  ]

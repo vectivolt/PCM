@@ -314,7 +314,8 @@ REVIEWS = [("review_ctrl_sys.csv", "Control card + system I/O (CSR)"), ("review_
            ("review_dab60.csv", "DAB60 board (DR)"), ("review_insulation.csv", "Insulation (IC)"),
            ("review_magnetics.csv", "Magnetics (MG)"), ("review_pcm.csv", "Independent PCM review of 033d8d8 (PCM)"),
            ("review_r2.csv", "Independent re-check of a427981 (R2)"),
-           ("review_r3.csv", "Independent re-check of 615e4b5 (R3)")]
+           ("review_r3.csv", "Independent re-check of 615e4b5 (R3)"),
+           ("review_r4.csv", "Independent economical re-check of 845131d (R4)")]
 
 
 def fig_reviews():

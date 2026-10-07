@@ -2571,7 +2571,35 @@ def bus_coordination(P, G, R):
                f"ms after the rejection and the bus is left at {unc[0]['vdc_end']:.0f}-{unc[-1]['vdc_end']:.0f} V, latched"
                + (" - at the band top above the aux's input lock-out: the island goes dark" if unc[-1]["aux_lockout"] else "")),
            "source": "sim/out/pcs_control/pcs_control_spec.json (vf_bounded, dc_rejection_bounded, inputs) + this study's V_B chain"}
-    return dict(row=row, t_c_s=t_c(v0), t_need_s=t_need(v0), v_max=v_max, k=k)
+    # review R4 E04: the operating window the row above is valid in - the PCS study encloses it as a product rule in both modules'
+    # parameter sets (pcs_control_spec dc_bus_operating_window, read fail closed); this module's half: the V_B* default and clamp
+    try:
+        ow = pc["dc_bus_operating_window"]
+        sp, clamp, perm, hc = ow["set_point_by_build_V"], ow["firmware_limit_V"], ow["pcs_vf_permissive_V"], ow["harness_contract"]
+        assert abs(clamp - v_max) < 0.5 and ow["default_set_point_V"] <= clamp < perm and all(v <= clamp for v in sp.values()) \
+            and len(hc) >= 5, "the window's clamp is not this row's validity, a set point above it, or the harness contract short"
+    except (KeyError, TypeError, AssertionError) as e:
+        raise SystemExit(f"pcs_control_spec dc_bus_operating_window: {e!r} - re-run sim/pcs_control.py (review R4 E04)") from None
+    four_a = {k: v for k, v in sp.items() if v != ow["default_set_point_V"]}
+    sp_row = {"item": "DC-bus set point on a battery-less bus (product rule, review R4 E04; bus forming on port B, the validity of the "
+                      "coordination row above)",
+              "peripheral and setting": (
+                  f"parameter set: V_B* default {ow['default_set_point_V']:.0f} V in CV mode on a bus the installation declares battery-less"
+                  + "".join(f" ({v:.0f} V when the PCS-P125 is the {k} build)" for k, v in four_a.items())
+                  + f", clamped to <= {clamp:.0f} V: the coordination row's own validity (its x{k:.0f} time margin, ASSUMED, holds to "
+                  f"V_B* = {v_max:.0f} V); a V_B* above the clamp is refused while the bus is declared battery-less, and the coordination "
+                  f"row stays enabled; the PCS-P125 starts an island only at V_dc <= {perm:.0f} V (its own refusal)"),
+              "threshold / band": (
+                  f"V_B* <= {clamp:.0f} V, default {ow['default_set_point_V']:.0f} V; the one-node model's "
+                  + " / ".join(f"{v:.0f} V ({c_})" for c_, v in ow["lumped_model_validity_V"].items())
+                  + f" and the cable model's {ow['cable_model_validity_min_V']:.0f} V are model validities, not ratings; the harness "
+                  "contract of the installation (pcs_control_spec dc_bus_operating_window harness_contract): " + " | ".join(hc)),
+              "filter": "-", "latency": "-",
+              "start-up self-test": "parameter-set CRC; V_B* inside the window and the battery-less declaration read before CV starts",
+              "consequence": (f"above {clamp:.0f} V the coordination row's x{k:.0f} margin is not held (a shared hardwired trip line or a "
+                              f"battery would be needed): the PCS trips on DC over-voltage and the island goes dark"),
+              "source": "this study's coordination budget + sim/out/pcs_control/pcs_control_spec.json dc_bus_operating_window"}
+    return dict(row=row, sp_row=sp_row, t_c_s=t_c(v0), t_need_s=t_need(v0), v_max=v_max, k=k, clamp=clamp)
 
 
 def limits_section(P, R):
@@ -2827,7 +2855,7 @@ def write_spec(P, G, R):
         "sharing": {"max_dev_pct_calibrated": max(r["dev_pct"] for r in sh if r["label"] == "calibrated"),
                     "max_dev_pct_uncalibrated": max(r["dev_pct"] for r in sh if r["label"] == "uncalibrated")},
         "mppt": old.get("mppt", "run sim/pv_mppt.py"),
-        "firmware_second_layer": dict(firmware_handoff(P), system=[R["bus"]["row"]]),
+        "firmware_second_layer": dict(firmware_handoff(P), system=[R["bus"]["row"], R["bus"]["sp_row"]]),
         "honesty": "Simulation only. Power stage ideal-switch, sensors first-order, PV/battery/CPL models are assumptions "
                    "listed in report.md; nothing is bench-validated.",
     }
@@ -3326,9 +3354,9 @@ def write_report(P, G, R, spec):
       "over-temperature derating, heartbeat, latch-clear rules, configuration lock, clock loss); it is carried into "
       "control_spec.json `firmware_second_layer` together with the lean ports' rules (polarity and dV enables, port OC "
       "latency).\n")
-    b_ = R["bus"]["row"]
-    a(f"System row (control_spec.json `firmware_second_layer` `system`), **{b_['item']}**: {b_['peripheral and setting']}; threshold: "
-      f"{b_['threshold / band']}; {b_['consequence']}.\n")
+    for b_ in (R["bus"]["row"], R["bus"]["sp_row"]):
+        a(f"System row (control_spec.json `firmware_second_layer` `system`), **{b_['item']}**: {b_['peripheral and setting']}; "
+          f"threshold: {b_['threshold / band']}; {b_['consequence']}.\n")
     a("![protection](protection.png)\n")
     a("## 10. Requirements on sensing and protection hardware\n")
     a("| signal / trip | requirement | as drawn | met |")
@@ -3566,6 +3594,7 @@ def self_check(P, G, R):
     rq, pr = R["req"], R["prot"]
     bc = R["bus"]
     assert bc["t_c_s"] >= bc["k"] * bc["t_need_s"] and bc["v_max"] > 750.0, "battery-less bus: detection + cut inside the PCS budget"
+    assert bc["clamp"] <= bc["v_max"] + 0.5 and "refused" in bc["sp_row"]["peripheral and setting"], "battery-less bus: V_B* clamp row"
     assert pr["rej_ctrl"]["vb_peak"] < P["v_ov_sw"] and not pr["rej_ctrl"]["trip"], "load rejection handled by the limit loop"
     for kind in ("power", "current"):          # model consistency: later detection -> higher voltage at gates off
         cur = pr["ov"][kind]["curve"]

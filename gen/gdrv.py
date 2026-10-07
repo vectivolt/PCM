@@ -31,7 +31,8 @@ Per channel (NSI66x1A-Q1 Rev 1.1 application section 9; UCC14241-Q1 SLUSF09A sec
   bias    UCC14241-Q1 24 V -> +15/-4 V or +20/-4 V (VDD-COM / COM-VEE, GATE_V), regulated, reinforced barrier, RDR.
   gate    split Ron/Roff, CLAMP straight to the gate (Miller clamp), 10k gate-source, anti-series Zener clamp; with
           paralleled devices all of that per device plus an AO3400A Miller clamp at the gate-Kelvin pins (see channel()).
-  DESAT   NSI6651 DESAT pin (internal blanking source), Rs + 3 x US1MH (1000 V) string to the drain, BAT54S clamp.
+  DESAT   NSI6651 DESAT pin (internal blanking source), Rs + HV diode string to the drain, BAT54S clamp: 1700 V-device presets
+          (PV cell, PCS) 2 x BYG23T-M3 (1300 V each, review R4 / E01); 1200 V class (DAB / GDRV-HB) 3 x US1MH (1000 V).
   SC      booster: DESAT above the driver's maximum trip fires an AO3400A + R_sb per gate (two-level, then fast off).
   NTC     none on the driver (no AIN/APWM): thermistors are plain analog lines to the CELL connector AN2/AN3.
 Design numbers are computed and asserted by design_check() on every build.
@@ -116,6 +117,14 @@ PARTS = {
     "US1M": dict(mfr="Taiwan Semiconductor", mpn="US1MH", prefix="D", pkg="SMA (DO-214AC)", stock=("Diode", "US1M"),
                  ds=DS + "power-semiconductors/TSC-US1xH.pdf",
                  desc="Ultrafast rectifier 1000 V 1 A trr 75 ns, AEC-Q101 (DESAT string)"),
+    # DESAT string of the 1700 V-device presets (review R4 / E01, 2026-10-07): Vishay BYG23T-M3 (BYG23T.pdf, doc 89429 rev 25-Feb-2020):
+    # p1 cathode band = cathode (KiCad US1M symbol: 1 K, 2 A, the same SMA land as the US1MH), V_RRM 1300 V, I_F 1 A, I_FSM 18 A,
+    # E_R 5 mJ (avalanche, non-repetitive, I(BR)R 0.4 A, 25 C), T_J 150 C; p2 V_F 1.74 / 1.9 V (typ / max) at 1 A, I_R <= 5 / 50 uA at
+    # 1300 V and 25 / 125 C, trr <= 75 ns, C_J 9 pF typ at 4 V; p3 Fig. 3 V_F from 0.1 A, Fig. 4 I_R vs % V_RRM, Fig. 5 C_J 0.1-100 V;
+    # p4 outline and pad layout. Commercial grade (M3): no AEC-Q101 variant; JEDEC J-STD-020 MSL 1 and JESD 201 class 2 (p1). LCSC C145454.
+    "BYG23T": dict(mfr="Vishay", mpn="BYG23T-M3/TR", prefix="D", pkg="SMA (DO-214AC)", stock=("Diode", "US1M"),
+                   ds=DS + "power-semiconductors/BYG23T.pdf",
+                   desc="Ultrafast avalanche rectifier 1300 V 1 A trr 75 ns, E_R 5 mJ (DESAT string)"),
     # Rev 7 per-phase bias (bias_phase): custom transformer, PNP-pass regulator, shunt for COM. PBSS5540X (Nexperia,
     # Nexperia-PBSS5540X.pdf p1-2, SOT-89: 1 E, 2 C/tab, 3 B; VCEO -40 V, IC -4 A, AEC-Q101). ATL431BIDBZR (TI ATL431.pdf
     # p3-4: DBZ 1 K, 2 REF, 3 A; Vref 2.475-2.525 V, IKA(min) <= 35 uA, VKA <= 36 V).
@@ -179,10 +188,15 @@ PARTS = {
 CATALOG = dict(catalog.PARTS, **PARTS)
 
 R_GATE = (2.0, 1.0)                     # Ron, Roff (ohm) for the GM4 module card; checked in design_check()
-# DESAT per device voltage class (NSI6651 DESAT pin, p9: internal ICHG source, VDESAT_TH 8.5-10.0 V (-Q1 / industrial envelope)): DESAT - Rs - n x US1M
-# - drain, BAT54S clamp of the pin to COM/VDD, Cblk footprint fitted DNP (c_blk None): string, clamp and pin capacitance
-# alone set the blanking. 3 x 1000 V for both classes (fewer diodes = more capacitance = longer blanking).
-DESAT_CLASS = {1200: dict(n_dhv=3, rs=100.0, c_blk=None), 1700: dict(n_dhv=3, rs=100.0, c_blk=None)}
+# DESAT per device voltage class (NSI6651 DESAT pin, p9: internal ICHG source, VDESAT_TH 8.5-10.0 V (-Q1 / industrial envelope)): DESAT - Rs - n x
+# diode ("part", a catalog key of STRING_DIODE) - drain, BAT54S clamp of the pin to COM/VDD, Cblk footprint fitted DNP (c_blk None): string, clamp
+# and pin capacitance alone set the blanking. 1200 V class (DAB-D60 / GDRV-HB, kept, not developed further - D-044): 3 x US1MH as drawn.
+# 1700 V class = the PV cell AND the PCS (DESAT_PCS below is the same preset), review R4 / E01: 2 x BYG23T-M3 - each 1300 V diode alone
+# blocks the highest static link of STRING_ENV, so the split by leakage (no datasheet bounds it) is not relied on; was 3 x US1MH (PV) and
+# 2 x US1MH (PCS), whose 1000 V diodes needed that split. Two diodes, not three: one V_F more threshold (the PCS's 200 ms overload on-state,
+# PCM-07) and fewer parts; the V_F band (vf at the string temperatures vf_t, slope vf_tc) is derived at DESAT_PCS below.
+DESAT_1700 = dict(n_dhv=2, rs=100.0, c_blk=None, part="BYG23T", vf=(0.30, 1.01), vf_t=(-30.0, 125.0), vf_tc=-2e-3)
+DESAT_CLASS = {1200: dict(n_dhv=3, rs=100.0, c_blk=None, part="US1M"), 1700: DESAT_1700}
 DEADTIME = (2.37e3, 100e-12)            # falling-edge stretch R, C on the interlock input (GM4 / Gen-3 turn-off 75 ns;
                                         # 2.21k -> 2.37k for the NSI6651's 70 ns delay-mismatch budget)
 DEADTIME_DAB3 = (4.02e3, 100e-12)       # 2-3 x 1200 V discretes per switch: the rev-5 clamps of the slowest set
@@ -298,7 +312,7 @@ def channel(B, tag, pwm, en, flt_n, rdy, gate, source, drain, vdd, vee, interloc
                                     RLIM1 1.58k; r_on/r_off 3.75/2.5 ohm
         2 x MSC035SMA170B4 (fallback): gate_v=(20, 4) -> FBVDD 86.6k/10k, FBVEE 6.04k/10k, Zeners BZX84-B22 + B5V6,
                                     RLIM1 1.54k; r_on/r_off 6.0/4.0 ohm
-        common: vclass=1700, r_sb=22.0, deadtime DEADTIME_PV (3.40k/100p), RLIM2 97.6R, 3 x 22u, DESAT Rs 100R + 3 x US1MH
+        common: vclass=1700, r_sb=22.0, deadtime DEADTIME_PV (3.40k/100p), RLIM2 97.6R, 3 x 22u, DESAT Rs 100R + 2 x BYG23T-M3
 
     Footprint fallback TI UCC21750 (8 kV VIMP): pin 1 is VEE2 on the NSI6651 but AIN on the UCC21750 (net P1: 0R to VEE
     fitted, 0R to COM DNP - swap them for the UCC21750, never fit both); pin 16 is TEST / APWM (1k to GND1 suits both).
@@ -487,9 +501,10 @@ def channel(B, tag, pwm, en, flt_n, rdy, gate, source, drain, vdd, vee, interloc
         B.part("BZX84-B10", {"1": vee, "2": None, "3": n("BG")})        # A VEE, K BG
         B.R("1k", n("BG"), vee)
 
-    B.block("%s: DESAT" % tag, "DESAT pin (internal %.0f uA blanking source, trip 8.5-10.0 V) - Rs - %d x US1M - drain.\n"
+    part = desat.get("part", "US1M")
+    B.block("%s: DESAT" % tag, "DESAT pin (internal %.0f uA blanking source, trip 8.5-10.0 V) - Rs - %d x %s (%.0f V each) - drain.\n"
             "BAT54S keeps DX between COM and VDD against dv/dt through the string; Cblk footprint DNP."
-            % (NSI["ichg"][1] * 1e6, desat["n_dhv"]))
+            % (NSI["ichg"][1] * 1e6, desat["n_dhv"], CATALOG[part]["mpn"], STRING_DIODE[part]["vrrm"]))
     off = "desat" in dnp
     if not lean or desat["c_blk"]:
         B.C(farad(desat["c_blk"] or 2.2e-12), n("DX"), com, diel="C0G", tol="5%", dnp=desat["c_blk"] is None)
@@ -505,7 +520,7 @@ def channel(B, tag, pwm, en, flt_n, rdy, gate, source, drain, vdd, vee, interloc
     nodes = [n("DY")] + [n("DS%d" % i) for i in range(1, desat["n_dhv"])] + [drain]
     sec |= set(nodes[:-1])
     for a, k in zip(nodes, nodes[1:]):
-        xing.append(B.part("US1M", {"2": a, "1": k}, dnp=off).ref)
+        xing.append(B.part(part, {"2": a, "1": k}, dnp=off).ref)
     return Channel([u_drv.ref] + ([u_bias.ref] if u_bias else []), xing, sec)
 
 
@@ -693,6 +708,21 @@ UCC14241 = dict(vimp=7692.0, viosm=10000.0, certs="VDE 0884-17 certification PLA
 LVC1G17 = dict(vtm_ratio=(0.89 / 3.0, 1.20 / 3.0 + (1.97 / 4.5 - 1.20 / 3.0) * 0.465 / 1.5), tpd=(1.5e-9, 4.6e-9),
                ci=4.5e-12)                     # SCES351Y Table 5-1 p6 (3.0 V row, max interpolated to 3.465 V), p7
 US1M_VRRM, US1M_VF = 1000.0, (0.5, 1.0)        # DS16008 p2; VF at ~1 mA NOT specified (Fig 2 starts at 10 mA) - assumed
+# DESAT string diodes by catalog key: V_RRM; C_J typ at 4 V (blanking, dynamic split; +/-20 % ASSUMED); trr max; I_R max at V_RRM, 25 / 125 C;
+# e_r = published non-repetitive avalanche energy (None: no avalanche rating). A preset without "vf" uses US1M_VF.
+STRING_DIODE = {"US1M": dict(vrrm=US1M_VRRM, cj=10e-12, trr=75e-9, ir=(5e-6, 150e-6), e_r=None, src="TSC-US1xH.pdf p2"),
+                "BYG23T": dict(vrrm=1300.0, cj=9e-12, trr=75e-9, ir=(5e-6, 50e-6), e_r=5e-3, src="BYG23T.pdf p1-p2")}
+# Reverse-voltage envelope of the 1700 V-class string (review R4 / E01; the PCS-PWR check asserts pcs_spec's own figures against it):
+# static = the highest DC link a studied state leaves across an OFF switch for longer than leakage needs to move the split (ms .. the 15 min
+# discharge): the opposite switch on (the link), the floating node after the current has decayed (held by leakage and the HV dividers - up
+# to the whole link on one switch), latched after a trip: PCS 1094-1106 V (weak-grid DC-load rejection, pcs_control_spec dc_rejection_bounded),
+# 1126-1130 V on a link shared with PV modules whose firmware is dead (dc_bus_coupled_pv backstop), the PV hardware band top 1110 V
+# (cell_spec ov_trip_costfirst); operating 950 / 1000 V, the 1050 V OV trip and the 1071 V OV gates-off corner lie below.
+# peak = the turn-off peak every commutation deck is held to, 0.85 x 1700 V (PCS 1437-1438 V at the 521 A gates-off current and at the
+# OV corner, CMPSS backup 1441 V as drawn / 1445 V at its required band top; PV 1374 V physical leg / 1408 V backup band at the 1100 V
+# corner); c_tol = junction capacitance spread. static 1150 V = the studied maximum 1130 V rounded up by 20 V, so that a re-run of the
+# coupled study does not silently pass it (the PCS-PWR / PV-PWR checks assert their own figures <= these).
+STRING_ENV = dict(static=1150.0, peak=1445.0, c_tol=0.20)
 BAT54_VF = (0.10, 0.32)                        # BAT54 p4: <= 320 mV at 1 mA; 0.10 V assumed at end of charge
 VZ = {"BZX84-B16": (15.70, 16.30), "BZX84-B22": (21.60, 22.40), "BZX84-B5V6": (5.49, 5.71),   # BZX84 Table 8 p5, 5 mA
       "BZX84-B20,215": (19.60, 20.40), "BZX84-B10": (9.80, 10.20), "BZX84-B4V7": (4.61, 4.79),
@@ -723,7 +753,8 @@ C3M16 = dict(name="3 x C3M0016120K", gate_v=(15, 4), vclass=1200, n=3, per_dev=F
 MSC = dict(name="2 x MSC035SMA170B4", gate_v=(20, 4), vclass=1700, n=2, per_dev=True, r_gate=(6.0, 4.0), fsw=(32e3, 50e3), qg=178e-9,
            ciss=3.3e-9, rg=0.85, vth_min=1.9, t_off=32e-9, vgs_max=(-12.0, 25.0), v_on=2.4, blank=(250e-9, 500e-9),
            t_sc=(3.1e-6, "MSC035SMA170B4 p3: SCWT 3.1 us TYPICAL at VDS 1200 V, VGS 20 V"), t_resp=2.0e-6,
-           trip_nom=(6.5, 7.5), fw_dt=200e-9, vth175=1.9 * 2.5 / 3.2,   # VGS(th) min at 175 C: p2 min x Fig 1-15 typ ratio
+           trip_nom=(6.5, 8.0), fw_dt=200e-9, vth175=1.9 * 2.5 / 3.2,   # VGS(th) min at 175 C: p2 min x Fig 1-15 typ ratio; trip_nom:
+           # D-007's 7 V nominal (3 x US1M) widened to 8.0 V for the 7.75 V of 2 x BYG23T (review R4 / E01; on-state margin x2.7 kept)
            qgd=27e-9, i_m=2.75)    # p3 QGD; I_M per device: sim/out/pv_design/report.md (1.34-2.75 A, 250-1100 V)
 # Chinese devices (D-037, cell_spec / dab re-runs). Datasheet pages: sim/data/asia_devices.csv. Hot V_th is typical-only on
 # both makers' sheets: V_th(min, 175 C) = V_th(min, 25 C) x V_th(typ, 175 C) / V_th(typ, 25 C) - ASSUMPTION (same rule as the
@@ -761,15 +792,17 @@ for _d, _x in ((GM4, dict(vth_typ=2.5, i_sc=2 * 400.0, v_rated=1200.0, v_bus_sc=
 # 1 A) and release ZXTN25040DFH (>= 300 at 1 A), 1 A each ASSUMED (base currents 5.5 / 10 mA allow more). t_off scaled
 # from SC40 by (R_off + R_G,int) / (2.5 + 1.4) ohm (ESTIMATE, no switching data at 8.75 ohm). DESAT margin to the on-state
 # voltage is the board's check (v_on None here: the inverter's overload peak sits near the trip, PCS-PWR design check).
-# DESAT string of the PCS preset (PCM-07, D-061 OPEN 1): 2 x US1M instead of 3 - one V_F more threshold, so that the 200 ms overload
-# peak (66 A per device, pcs_spec desat.onstate_200ms_overload) does not reach it.  V_F of one diode at the NSI6651 I_CHG (0.35-0.65
-# mA), typical curves at 25 C only, extrapolated down (ASSUMED): Diodes US1M (DS16008 Fig. 2 p2) 0.80 V at 10 mA, 1.2-1.5 decades at
-# 0.09-0.17 V per decade -> 0.55-0.70 V; the drawn Taiwan Semi US1MH (TSC-US1xH.pdf Fig. 4 p3, starts at 0.1 A: 1.10 V there,
-# 0.13 V above the US1M) -> 0.68-0.82 V (0.118 V per decade, n = 2, below 10 mA).  Union 0.55-0.82 V; +/-10 % part spread and
-# -2 mV/K (ASSUMED: no tempco printed) over -30..+125 C -> 0.30-1.01 V per diode (vf_t: the diode temperatures of that band).
-# Blocking 2 x 1000 V against the 1445 V device limit of the 1050 V bus (x1.38; the PV rule 1.5 x 1700 V stays for the 1100 V PV
-# bus).  The PV presets keep DESAT_CLASS (3 x US1M).
-DESAT_PCS = dict(n_dhv=2, rs=100.0, c_blk=None, vf=(0.30, 1.01), vf_t=(-30.0, 125.0), vf_tc=-2e-3)
+# DESAT string of the PCS preset (PCM-07, D-061 OPEN 1; review R4 / E01): the 1700 V-class string DESAT_1700, 2 diodes instead of 3 -
+# one V_F more threshold, so that the 200 ms overload peak (66 A per device, pcs_spec desat.onstate_200ms_overload) does not reach it.
+# V_F of one diode at the NSI6651 I_CHG (0.35-0.65 mA), typical curves only, extrapolated below their first point (ASSUMED): Diodes US1M
+# (DS16008 Fig. 2 p2) 0.80 V at 10 mA, 1.2-1.5 decades at 0.09-0.17 V per decade -> 0.55-0.70 V; Taiwan Semi US1MH (TSC-US1xH.pdf
+# Fig. 4 p3, starts at 0.1 A: 1.10 V there) -> 0.68-0.82 V (0.118 V per decade, n = 2, below 10 mA); the drawn Vishay BYG23T-M3
+# (BYG23T.pdf Fig. 3 p3, starts at 0.1 A: 1.03 / 1.07 V for the 25 / -40 C pair, +0.18 V to 0.2 A = 0.03 V of n = 2 and ~0.15 V
+# ohmic) -> 0.59-0.66 V with the ohmic part taken off, 0.74-0.81 V without (n = 2).  Union 0.55-0.82 V; +/-10 % part spread and
+# -2 mV/K (ASSUMED: no tempco below 0.1 A is printed; BYG23T Fig. 3 shifts -2.9..-3.3 mV/K from 25 to 125 C at 0.1 A, the ohmic part
+# included - the hot end below covers the BYG23T's own low estimate down to -2.3 mV/K) over -30..+125 C -> 0.30-1.01 V per diode
+# (vf_t: the diode temperatures of that band).  Blocking: STRING_ENV, string_numbers(); the PV cell uses the same preset.
+DESAT_PCS = DESAT_1700
 SC40X6 = dict(SC40, name="6 x SG2M040170HJ", n=6, r_gate=(8.75, 8.75), t_off=SC40["t_off"] * (8.75 + 1.4) / (2.5 + 1.4),
               v_on=None, v_bus_sc=1050.0, bias="ext", sink_buffer=2, buf=dict(veb=1.2, icm=9.0, hfe=15.0), i_inv=1.0,
               i_rel=1.0, inv=("ZXTP25040DFH", "330R"), rel=("ZXTN25040DFH", "1.5k"), deadtime=(3.65e3, 100e-12),
@@ -814,18 +847,29 @@ def rails(gate_v):
 
 def desat_numbers(d):
     """NSI6651 DESAT (p9): trip V_DS = VDESAT_TH - ICHG x Rs - n x VF; blanking = tLEB + C x VDESAT_TH / ICHG with C =
-    Cblk + string (US1M CJ 10 pF at 4 V / n, +/-20 %) + BAT54S (2 diodes) + pin. Returns trip (min, max), nominal trip,
+    Cblk + string (the part's CJ at 4 V / n, +/-20 %) + BAT54S (2 diodes) + pin. Returns trip (min, max), nominal trip,
     blanking (min, max)."""
     n, rs, cb = d["n_dhv"], d["rs"], d["c_blk"] or 0.0
-    vf = d.get("vf", US1M_VF)                     # PCS preset: its own V_F band (spread + temperature); PV presets: US1M_VF
+    vf = d.get("vf", US1M_VF)                     # 1700 V class: its own V_F band (spread + temperature); 1200 V class: US1M_VF
+    cj = STRING_DIODE[d.get("part", "US1M")]["cj"]
     trip = (NSI["vdesat"][0] - NSI["ichg"][2] * rs * 1.01 - n * vf[1],
             NSI["vdesat"][2] - NSI["ichg"][0] * rs * 0.99 - n * vf[0])
     nom = NSI["vdesat"][1] - NSI["ichg"][1] * rs - n * 0.75
-    c_lo = cb * 0.95 + 10e-12 / n * 0.8 + 2 * BAT54S_CD[0] + C_DESAT_PIN[0]
-    c_hi = cb * 1.05 + 10e-12 / n * 1.2 + 2 * BAT54S_CD[1] + C_DESAT_PIN[1]
+    c_lo = cb * 0.95 + cj / n * 0.8 + 2 * BAT54S_CD[0] + C_DESAT_PIN[0]
+    c_hi = cb * 1.05 + cj / n * 1.2 + 2 * BAT54S_CD[1] + C_DESAT_PIN[1]
     blank = (NSI["t_leb"][0] + c_lo * NSI["vdesat"][0] / NSI["ichg"][2],
              NSI["t_leb"][2] + c_hi * NSI["vdesat"][2] / NSI["ichg"][0])
     return trip, nom, blank
+
+
+def string_numbers(d, env=STRING_ENV):
+    """review R4 / E01: what each diode of a DESAT string must block. Static (env static: the link across an OFF switch for ms to minutes)
+    - the split by leakage is not relied on (the datasheets give maximum leakage only), so each diode alone; dynamic (env peak: the turn-off
+    peak, ns) - the split follows the junction capacitances (V_i ~ 1 / C_i): the worst diode at C x (1 - c_tol), the others at C x (1 + c_tol)."""
+    p, n, c = STRING_DIODE[d.get("part", "US1M")], d["n_dhv"], env["c_tol"]
+    dyn = env["peak"] / (1 - c) / (1 / (1 - c) + (n - 1) / (1 + c))
+    return dict(n=n, vrrm=p["vrrm"], total=n * p["vrrm"], static=env["static"], peak=env["peak"], dyn=dyn,
+                m_static=p["vrrm"] / env["static"], m_dyn=p["vrrm"] / dyn, e_r=p["e_r"], cj=p["cj"], trr=p["trr"], ir=p["ir"])
 
 
 def stretch(deadtime):
@@ -970,9 +1014,9 @@ def design_check():
 
         d = dev.get("desat") or DESAT_CLASS[dev["vclass"]]
         (vlo, vhi), nom, (tlo, thi) = desat_numbers(d)
-        say("desat" + k, "   DESAT (NSI6651 pin, Rs %s, %d x US1M, Cblk DNP): trip at V_DS %.2f-%.2f V (nominal %.2f V), string "
-            ">= %.2f mA at trip; blanking %.0f-%.0f ns (>= %.0f ns needed)", ohm(d["rs"]), d["n_dhv"], vlo, vhi, nom,
-            NSI["ichg"][0] * 1e3, tlo * 1e9, thi * 1e9, dev["blank"][0] * 1e9)
+        say("desat" + k, "   DESAT (NSI6651 pin, Rs %s, %d x %s, Cblk DNP): trip at V_DS %.2f-%.2f V (nominal %.2f V), string "
+            ">= %.2f mA at trip; blanking %.0f-%.0f ns (>= %.0f ns needed)", ohm(d["rs"]), d["n_dhv"],
+            CATALOG[d.get("part", "US1M")]["mpn"], vlo, vhi, nom, NSI["ichg"][0] * 1e3, tlo * 1e9, thi * 1e9, dev["blank"][0] * 1e9)
         assert dev["blank"][0] <= tlo, "blanking shorter than the device turn-on + ringing"
         if dev["v_on"]:
             assert vlo >= 1.5 * dev["v_on"], "DESAT could trip in normal operation"
@@ -1056,7 +1100,7 @@ def design_check():
         t_f = (r_sb + rgi) * c_g * math.log((vg2 + v3[0]) / (dev["vth_typ"] + v3[0]))
         i_sc2 = n * dev["i_sc"] * max(0.0, (vg2 - dev["vth_typ"]) / (v2[1] - dev["vth_typ"])) ** 2
         v_pk = dev["v_bus_sc"] + dev["l_loop"] * i_sc2 / t_f
-        dx_on = dev["v_on"] + d["n_dhv"] * US1M_VF[1] + NSI["ichg"][2] * d["rs"] if dev["v_on"] else 0.0
+        dx_on = dev["v_on"] + d["n_dhv"] * d.get("vf", US1M_VF)[1] + NSI["ichg"][2] * d["rs"] if dev["v_on"] else 0.0
         thr = (VZ["BZX84-B10"][0] + 0.5, VZ["BZX84-B10"][1] + 0.75)               # DESAT level that fires the booster
         t_hold = 1e3 * nd * AO["ciss"] * math.log(VZ["BZX84-B10"][0] / AO["vth"][2])
         e_rsb = (vt[1] * r_sb / (r_sb + r_up)) ** 2 / r_sb * t_drv
@@ -1113,10 +1157,28 @@ def design_check():
             assert hold[0][3] <= dev["vth175"] - 0.5, "module die gate-source within 0.5 V of VGS(th) min at the DAB dv/dt"
         rec.update(trip=(vlo, vhi), blank=(tlo, thi), t_sc=sc["booster"], dt=(g_min, g_max, fw))
 
-    n_v = min(d["n_dhv"] for d in DESAT_CLASS.values()) * US1M_VRRM
-    say("string", "DESAT string >= %d x US1M = %.0f V blocking vs 1700 V devices (margin %.2f) on the 1000 V bus",
-        n_v / US1M_VRRM, n_v, n_v / 1700)
-    assert n_v >= 1.5 * 1700, "DESAT string blocking below 1.5 x 1700 V"
+    s = string_numbers(DESAT_1700)
+    say("string1700", "DESAT string of the 1700 V-device presets (PV cell and PCS, review R4 / E01): %d x %s, %.0f V each (trr <= %.0f ns, "
+        "C_J %.0f pF at 4 V typ, I_R <= %.0f / %.0f uA at 25 / 125 C, avalanche E_R %.0f mJ non-repetitive) = %.0f V (>= 1.5 x 1700 V "
+        "device). Envelope (STRING_ENV): static %.0f V - the link across an OFF switch: opposite switch on, floating node after the current "
+        "has decayed (up to the whole link on one switch), latched after a trip (PCS 1094-1106 V, 1126-1130 V with the PV firmware dead, "
+        "PV band top 1110 V; the studied 1130 V rounded up); peak %.0f V - the turn-off peak every commutation deck is held to. Static split by leakage NOT relied on (no "
+        "datasheet gives a minimum leakage): each diode alone blocks the static envelope (x%.2f); dynamic split by the junction "
+        "capacitances (+/-%.0f %%, ASSUMED): <= %.0f V per diode (x%.2f). Neither rule covers a stored-charge mismatch at the partner's "
+        "turn-on after reverse conduction (V_DS below about -2 V drives tens of mA through the BAT54S and the string): no datasheet gives "
+        "the stored charge at mA currents - the avalanche rating is the backstop (non-repetitive; a repetitive event of this kind is not "
+        "rated - bench item: per-diode split at that edge). dv/dt displacement into the DESAT node at the own turn-on: C_J %.0f pF at "
+        "4 V, 2.8 pF at 100 V (BYG23T Fig. 5 p3) per diode, into the BAT54S clamp - not more than the US1MH's 10 pF at 4 V",
+        s["n"], CATALOG[DESAT_1700["part"]]["mpn"], s["vrrm"], s["trr"] * 1e9, s["cj"] * 1e12, s["ir"][0] * 1e6, s["ir"][1] * 1e6,
+        s["e_r"] * 1e3, s["total"], s["static"], s["peak"], s["m_static"], STRING_ENV["c_tol"] * 100, s["dyn"], s["m_dyn"],
+        s["cj"] * 1e12)
+    assert s["m_static"] >= 1.1 and s["m_dyn"] >= 1.2 and s["total"] >= 1.5 * 1700, \
+        "1700 V-class DESAT string: a diode alone below 1.1 x the static envelope, below 1.2 x its dynamic share, or the string below 1.5 x 1700 V"
+    s12 = string_numbers(DESAT_CLASS[1200], dict(STRING_ENV, static=1048.0, peak=1400.0))
+    say("string1200", "DESAT string of the 1200 V-device presets (DAB-D60 / GDRV-HB, kept, not developed further - D-044): %d x US1MH = "
+        "%.0f V; NOT re-rated by review R4 / E01: one 1000 V diode alone holds x%.2f of the DAB port-1 OV band peak 1048 V (dab_spec "
+        "local_ov_board), dynamic share %.0f V of the 1400 V trip-corner requirement (x%.2f) - OPEN until that board is developed (the "
+        "1700 V-class string is the drop-in)", s12["n"], s12["total"], s12["m_static"], s12["dyn"], s12["m_dyn"])
     say("no_tsc", "Wolfspeed CBB011M12GM4T / C3M0016120K / C3M0021120K datasheets give NO short-circuit withstand time; "
         "MSC035SMA170B4 gives 3.1 us as a typical value only")
     say("barrier", "Barrier vs 1000 V DC bus: NSI6651 reinforced VIOWM %.0f VDC / VIORM %.0f Vpk / VIOTM %.0f Vpk "

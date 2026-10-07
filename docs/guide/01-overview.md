@@ -2,9 +2,9 @@
 
 # 🧭 Overview
 
-> What the PCM product family is, what each product is for, where the design came from and where it stands as of 2026-10-06.
+> What the PCM product family is, what each product is for, where the design came from and where it stands as of 2026-10-07.
 
-![as of](https://img.shields.io/badge/as%20of-2026--10--06-5B6B7A?style=flat-square)
+![as of](https://img.shields.io/badge/as%20of-2026--10--07-5B6B7A?style=flat-square)
 ![products](https://img.shields.io/badge/products-PV--P75%20%C2%B7%20PCS--P125%20%C2%B7%20DAB--D60-0B1F33?style=flat-square)
 ![scope](https://img.shields.io/badge/scope-schematic%20%C2%B7%20BOM%20%C2%B7%20simulation-00A99D?style=flat-square)
 ![bench](https://img.shields.io/badge/bench--validated-nothing-E4572E?style=flat-square)
@@ -35,11 +35,11 @@ flowchart LR
     classDef ext fill:#FFFFFF,stroke:#5B6B7A,stroke-dasharray:4 3
 ```
 
-| Product | What it is for | Rating | Topology as designed | Status as of 2026-10-06 |
+| Product | What it is for | Rating | Topology as designed | Status as of 2026-10-07 |
 |---|---|---|---|---|
-| **PV-P75** | DC-coupled solar: tracks the array's maximum power point and moves power in either direction between the PV port and a battery or DC bus | 75 kW, 82.5 kW max · both ports 250–1000 V, 135 A | three interleaved two-level four-switch buck-boost phases, 2 × 1700 V SiC per switch, 32 kHz | power board PV-PWR rev A2 and control board PV-CTL rev A2 drawn (recorder flash, discrete I/O, Ethernet footprints, [D-075](../requirements/DECISIONS.md)); all build checks pass; independent review answered ([D-065](../requirements/DECISIONS.md), [D-072](../requirements/DECISIONS.md)); rated power from 562 V at equal port voltages, 73.3 kW at 550 / 550 V (calculated) |
+| **PV-P75** | DC-coupled solar: tracks the array's maximum power point and moves power in either direction between the PV port and a battery or DC bus | 75 kW, 82.5 kW max · both ports 250–1000 V, 135 A | three interleaved two-level four-switch buck-boost phases, 2 × 1700 V SiC per switch, 32 kHz | power board PV-PWR rev A2 and control board PV-CTL rev A2 drawn (recorder flash, discrete I/O, Ethernet footprints, [D-075](../requirements/DECISIONS.md)); all build checks pass; independent review answered ([D-065](../requirements/DECISIONS.md), [D-072](../requirements/DECISIONS.md)); **75 kW from 556 V; 74.25 kW at 550 V × 135 A** — the current-limited corner, stated as such (73.3 kW delivered at 550 / 550 V, the delivered rating from 562 V at equal port voltages; calculated); DESAT string two 1,300 V diodes per channel since [D-081](../requirements/DECISIONS.md); module BOM 980 / 820 USD |
 | **PV-P100/110** | the same for larger hybrid and microgrid systems | 100 / 110 kW · 180 A | the same with four phases | PV-PWR-4 and PV-CTL drawn; checks pass; a derated build: PV-P100 rated from 690 / 697 V (A→B / B→A) to 35 °C inlet; PV-P110's 110 kW is a PV-input rating (108.8 kW delivered A→B) |
-| **PCS-P125** | battery inverter: a battery or DC bus to three-phase AC, grid-following and off-grid; three-wire (3W+PE) and four-wire (3W+N+PE, PCS-P125-4W) builds | 125 kW, 150 kVA for 2 min · DC 590–950 V required · 400/230 V AC, 180 A | two-level, 6 × 1700 V SiC per switch (36 devices; 48 with the fourth leg of the four-wire build), 32 kHz, LCL filter ([D-053](../requirements/DECISIONS.md), design point of [D-060](../requirements/DECISIONS.md)) | both builds drawn: power boards PCS-PWR and PCS-PWR-4W rev A0, control board PCS-CTL rev A0 in two assemblies, every build check passes ([D-061](../requirements/DECISIONS.md) to [D-064](../requirements/DECISIONS.md), [D-074](../requirements/DECISIONS.md)); start-up from the grid through an AC tap and AC precharge on both builds; Ethernet (Modbus TCP), recorder flash and discrete I/O on the control board ([D-075](../requirements/DECISIONS.md)); module BOM 1,588 / 1,348 USD three-wire, 1,924 / 1,635 USD four-wire (catalogue / 5,000 units, estimates where no price exists, [bom/COST.md](../../bom/COST.md)); control studied by calculation, including off-grid accuracy, ride-through and the neutral leg ([D-066](../requirements/DECISIONS.md), [D-077](../requirements/DECISIONS.md)); independent review answered ([D-067](../requirements/DECISIONS.md)); AC-02's full load from 600 V is not reachable (owner's decision); against the PMA0125: 4 of 53 published rows below ([Comparison](11-megarevo-comparison.md)) |
+| **PCS-P125** | battery inverter: a battery or DC bus to three-phase AC, grid-following and off-grid; three-wire (3W+PE) and four-wire (3W+N+PE, PCS-P125-4W) builds | 125 kW, 150 kVA for 2 min · DC 590–950 V required · 400/230 V AC, 180 A | two-level, 6 × 1700 V SiC per switch (36 devices; 48 with the fourth leg of the four-wire build), 32 kHz, LCL filter ([D-053](../requirements/DECISIONS.md), design point of [D-060](../requirements/DECISIONS.md)) | both builds drawn: power boards PCS-PWR and PCS-PWR-4W rev A0, control board PCS-CTL rev A0 in two assemblies, every build check passes ([D-061](../requirements/DECISIONS.md) to [D-064](../requirements/DECISIONS.md), [D-074](../requirements/DECISIONS.md)); start-up from the grid through an AC tap and AC precharge on both builds; Ethernet (Modbus TCP), recorder flash and discrete I/O on the control board ([D-075](../requirements/DECISIONS.md)); module BOM 1,589 / 1,349 USD three-wire, 1,926 / 1,636 USD four-wire (catalogue / 5,000 units, estimates where no price exists, [bom/COST.md](../../bom/COST.md)); control studied by calculation, including off-grid accuracy, ride-through and the neutral leg ([D-066](../requirements/DECISIONS.md), [D-077](../requirements/DECISIONS.md)); independent review answered ([D-067](../requirements/DECISIONS.md)) and three re-checks answered ([D-078](../requirements/DECISIONS.md) to [D-081](../requirements/DECISIONS.md)): since D-081 a 750 V default / 782 V clamped DC-bus window on a battery-less bus, the off-grid envelope as a declared output capability, full operation from −10 °C inlet, grade B rated 124.57 kW at 60 °C; AC-02's full load from 600 V is not reachable (owner's decision); against the PMA0125: 4 of 53 published rows below ([Comparison](11-megarevo-comparison.md)) |
 | **DAB-D60** | isolation and voltage adaptation between a DC bus and a battery; one to four branches in parallel | 60 kW · port 1 590–950 V, port 2 400–900 V | dual active bridge, 100 kHz, custom transformer, liquid cold plate; DAB60 rev B0: one CBB011M12GM4T per bridge; device study (not drawn): 2 discretes per switch | device study with Chinese discretes corrected after the review ([D-068](../requirements/DECISIONS.md)): full power at 11 of 20 window points until a double-pulse test; board DAB60 rev B0 frozen, to be redrawn cost-first |
 | *Earlier platform* | the roadmap's full-featured implementation: protected low-voltage control, eight boards per PV module | — | as PV-P75, with a reinforced barrier at every driver and sensor | kept as the reference implementation; not developed further ([D-044](../requirements/DECISIONS.md)) |
 
@@ -77,7 +77,7 @@ hardware and a bench. PCB layout, mechanics, firmware and certification are out 
 
 ## 🗺️ How the design got here
 
-Eighty decisions in five days, each a row of the [decision register](../requirements/DECISIONS.md)
+Eighty-one decisions in five days, each a row of the [decision register](../requirements/DECISIONS.md)
 (digest: [Decisions](decisions.md)):
 
 ```mermaid
@@ -103,7 +103,19 @@ timeline
     section 7 October
         Re-check R2 : D-078 trip chain, backup band, SiC acceptance, coil and RCM contracts : D-079 tolerance regression, bounded transients, ride-through, AC-start machine
         Re-check R3 : D-080 one-coil close, both trip layers, PCS-PV bus, SiC grades, AC-04 envelope
+        Re-check R4 : D-081 1300 V DESAT diodes, enforced DC-bus window, envelope as capability, cold rating -10 C, magnetics RFQ index
 ```
+
+**The latest re-check.** The economical re-check R4 of commit `845131d` grouped its points into twelve decision areas,
+E01 to E12 — 3 *Confirmed*, 4 *Already Fixed*, 3 *Improvement Recommended*, 2 *Not Applicable*, all closed in
+[review_r4.csv](../../gen/data/review_r4.csv). [D-081](../requirements/DECISIONS.md) answered it with one diode
+substitution (the DESAT string's two 1,000 V diodes replaced by two 1,300 V ones, each able to block the whole static
+envelope alone: +0.96 to +2.12 USD per module at 5,000 units), firmware and product rules (the enforced 750 / 782 V
+window on a battery-less DC bus with a harness contract, the inverter's cold rating from −10 °C inlet), a requirement
+wording (AC-04 as a declared output capability with a release sequence), grade B's rating statement (124.57 kW at
+60 °C) and an RFQ index for the custom magnetics ([RFQ-MAGNETICS.md](../requirements/RFQ-MAGNETICS.md)) — all
+calculated, nothing measured. Where it stands, with the restrictions it accepts and their boundaries:
+[Risks and open items](12-risks-and-open-items.md#-the-re-check-r4-of-commit-845131d-2026-10-07).
 
 ---
 
@@ -119,8 +131,8 @@ timeline
 | Board | Role | Rev | Sheets | Drawn symbols | Nets | Build checks | Schematic |
 |---|---|---|---:|---:|---:|---|---|
 | `PV-CTL` | cost-first module | A2 | 8 | 316 | 222 | pass (6/6) | [PDF](../../hardware/PV-CTL/outputs/PV-CTL_schematic.pdf) |
-| `PV-PWR` | cost-first module | A2 | 22 | 1,874 | 939 | pass (6/6) | [PDF](../../hardware/PV-PWR/outputs/PV-PWR_schematic.pdf) |
-| `PV-PWR-4` | cost-first module | A2 | 25 | 2,322 | 1,150 | pass (6/6) | [PDF](../../hardware/PV-PWR-4/outputs/PV-PWR-4_schematic.pdf) |
+| `PV-PWR` | cost-first module | A2 | 22 | 1,862 | 927 | pass (6/6) | [PDF](../../hardware/PV-PWR/outputs/PV-PWR_schematic.pdf) |
+| `PV-PWR-4` | cost-first module | A2 | 25 | 2,306 | 1,134 | pass (6/6) | [PDF](../../hardware/PV-PWR-4/outputs/PV-PWR-4_schematic.pdf) |
 | `PCS-CTL` | inverter (PCS-P125, PCS-P125-4W) | A0 | 9 | 339 | 241 | pass (6/6) | [PDF](../../hardware/PCS-CTL/outputs/PCS-CTL_schematic.pdf) |
 | `PCS-PWR` | inverter (PCS-P125) | A0 | 27 | 1,708 | 768 | pass (6/6) | [PDF](../../hardware/PCS-PWR/outputs/PCS-PWR_schematic.pdf) |
 | `PCS-PWR-4W` | inverter (PCS-P125-4W) | A0 | 31 | 2,110 | 930 | pass (6/6) | [PDF](../../hardware/PCS-PWR-4W/outputs/PCS-PWR-4W_schematic.pdf) |
@@ -129,7 +141,7 @@ timeline
 | `CTRL-C2000` | earlier platform | E0 | 14 | 599 | 468 | pass (4/4) | [PDF](../../hardware/CTRL-C2000/outputs/CTRL-C2000_schematic.pdf) |
 | `PV-PORT` | earlier platform | F0 | 6 | 563 | 345 | pass (6/6) | [PDF](../../hardware/PV-PORT/outputs/PV-PORT_schematic.pdf) |
 | `PV-PORT-180` | earlier platform | F0 | 6 | 563 | 345 | pass (6/6) | [PDF](../../hardware/PV-PORT-180/outputs/PV-PORT-180_schematic.pdf) |
-| `PVCELL-25` | earlier platform | C0 | 9 | 587 | 284 | pass (6/6) | [PDF](../../hardware/PVCELL-25/outputs/PVCELL-25_schematic.pdf) |
+| `PVCELL-25` | earlier platform | C0 | 9 | 583 | 280 | pass (6/6) | [PDF](../../hardware/PVCELL-25/outputs/PVCELL-25_schematic.pdf) |
 | `SYS-IO-AUX` | earlier platform | E0 | 12 | 566 | 351 | pass (5/5) | [PDF](../../hardware/SYS-IO-AUX/outputs/SYS-IO-AUX_schematic.pdf) |
 | `DAB60` | frozen: rev B outputs kept | B0 | 16 | 1,264 | 683 | pass (5/5) | [PDF](../../hardware/DAB60/outputs/DAB60_schematic.pdf) |
 | `GDRV-HB` | verification / reference board | J0 | 3 | 128 | 68 | pass (6/6) | [PDF](../../hardware/GDRV-HB/outputs/GDRV-HB_schematic.pdf) |

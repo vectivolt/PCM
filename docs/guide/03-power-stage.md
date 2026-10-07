@@ -176,8 +176,9 @@ Calculated device stress (PV-PWR design check, worst case of the envelope):
 > The primary device carries the design without a qualification statement, a short-circuit rating or a price
 > quotation (its LCSC catalogue price is now read, [D-069](../requirements/DECISIONS.md)). Sichain's reliability data and a
 > quote are a release condition ([D-043](../requirements/DECISIONS.md), risk R-02); the short-circuit protection timing
-> below assumes a 2.0 µs withstand, and the release needs the maker to confirm t<sub>SC</sub> ≥ 2.10 µs and
-> E<sub>SC</sub> ≥ 0.87 J per device at 1100 V / 150 °C (risk C2).
+> below assumes a 2.0 µs withstand, and the release needs the maker to confirm t<sub>SC</sub> ≥ 2.19 µs and
+> E<sub>SC</sub> ≥ 0.91 J per device at 1100 V / 150 °C (risk C2; 2.10 µs / 0.87 J before the DESAT string of
+> [D-081](../requirements/DECISIONS.md) lengthened the blanking).
 
 ## 🛡️ Gate-drive channel
 
@@ -191,8 +192,8 @@ longer carries a reinforced claim ([02 · Architecture](02-architecture.md)).
 | Gate bias: per phase one SN6505B push-pull + transformer T_BIAS4 (1 : 6, 4 secondaries); per channel a regulator for V<sub>DD</sub>–V<sub>EE</sub> 21.29–21.80 V and a shunt for COM–V<sub>EE</sub> 3.47–3.54 V | V<sub>GS</sub> on 17.75–18.33 V (window 17.5–18.5 V), off −3.47…−3.54 V; 3.11 W per phase from 5 V; winding capacitance ≤ 3.43 pF | too low a gate voltage (UVLO → RDY → latch) |
 | Split gate resistors per device: 3.75 Ω on, 2.5 Ω off, plus 0.5 Ω Kelvin-source resistor | — | turn-on ringing beyond 0.85 × V<sub>DSS</sub>; current sharing between the paralleled devices |
 | Miller clamp: one clamp MOSFET per gate at the gate–Kelvin pins (clamp loop ≤ 1 nH, a layout rule) | die +1.21…+1.40 V against a 1.94 V minimum threshold at 175 °C on the leg deck with the drawn capacitors (margin 0.54 V, design margin 0.5 V); pin −2.51…−2.47 V | false turn-on of the off device at 124 V/ns |
-| DESAT: string of 3 × US1MH to the drain | trips at V<sub>DS</sub> 5.43–8.47 V (1.7 × the 3.13 V on-state at the trip current, 175 °C); blanking 263–821 ns | shoot-through, short circuit |
-| Short-circuit booster: fires above the driver's 10.0 V maximum DESAT trip | gates off 0.42 µs after detection: the driver's DESAT-to-output delay (≤ 360 ns, its deglitch filter inside it), then the booster; from the fault 1.17 µs typical / 1.51 µs worst in the control model, which adds the deglitch after the blanking once more (conservative) — against an **assumed** 2.0 µs withstand; energy-equivalent full-current time 1.05 µs | the driver's slow soft turn-off (1.96 µs alone) |
+| DESAT: string of **2 × Vishay BYG23T-M3/TR, 1,300 V each,** to the drain (3 × US1MH, 1,000 V, until [D-081](../requirements/DECISIONS.md)) | trips at V<sub>DS</sub> 6.41–9.37 V (2.0 × the 3.13 V on-state at the trip current, 175 °C; was 5.43–8.47 V, 1.7 ×); blanking 276–861 ns; each diode alone blocks the 1,150 V static design envelope (× 1.13), the capacitive share of the 1,445 V peak ≤ 867 V per diode ([the rating argument](04-protection-and-safety.md#desat-string-rating)) | shoot-through, short circuit |
+| Short-circuit booster: fires above the driver's 10.0 V maximum DESAT trip | gates off 0.42 µs after detection: the driver's DESAT-to-output delay (≤ 360 ns, its deglitch filter inside it), then the booster; from the fault 0.99 µs typical / 1.28 µs worst — against an **assumed** 2.0 µs withstand; energy-equivalent full-current time 1.09 µs (fault energy 0.45 J per device at 1,100 V) | the driver's slow soft turn-off (1.96 µs alone) |
 | Dead-time stretch: RC (4.02 kΩ / 100 pF C0G) + Schmitt on IN−, driver interlock | 211–554 ns at the gates; firmware dead band 200 ns | a firmware dead time of zero: about 85 ns of overlap and 59 mJ per edge, ending before the DESAT blanking — the switches would fail within milliseconds ([D-050](../requirements/DECISIONS.md)) |
 | Negative-rail detector | a lost COM–V<sub>EE</sub> trips DESAT at the next turn-on | +5.1 V at the die, 1.57 mJ per event, about 50 W at 32 kHz that DESAT would never see |
 | Default-off pull-downs and EN gating | every PWM line 10 k + AND with EN; all RST/EN pulled down | gates turning on while the controller is in reset or unprogrammed |
@@ -275,7 +276,9 @@ inlet (6.31–6.45 V). Per inlet the lowest over the DC voltages and power facto
 <sub>Grade A keeps the product's full tiers (198 / 216 / 259.2 A) to 45 °C inlet; its 60 °C 200 ms figure, 242.9 A, is
 the lowest over 600–950 V — the 246 A printed before was the 900 V point, and the lower value applies. Grade B does not
 hold the 110 % tier at 60 °C (179.8–192.2 A by DC voltage), and its 200 ms tier is held at its 2-minute tier (the start
-state alone would allow 207.5–229.8 A from steady). From a cold start — idle at no load in thermal equilibrium, which the
+state alone would allow 207.5–229.8 A from steady). Since [D-081](../requirements/DECISIONS.md) grade B's declaration
+states its rating at 60 °C: 179.8 A continuous is **124.57 kW** at PF 1 and 400 V (125 kW needs 180.42 A; the rated
+180 A is 124.71 kW). From a cold start — idle at no load in thermal equilibrium, which the
 firmware may assume only after 12 min (4 × the heatsink time constant of 179 s) — grade A keeps 259.2 A at 60 °C and
 grade B reaches 204.3 A for 2 min. The four-wire build's neutral leg runs 0.3 K cooler at the same current and takes the
 same table. R<sub>DS(on)</sub> above 25 °C follows the data sheet's typical curve (no hot maximum is published,
@@ -300,7 +303,9 @@ indexes the table by the inlet NTC — the next higher inlet row between points,
 the measured DC voltage and power factor. Sichain's R<sub>DS(on)</sub> distribution, or a ≤ 40 mΩ bin, is a
 request-for-quotation item (risk F4): the record estimates that a population centred on the typical value puts about
 half the switches above the limit. Short-circuit survival is a separate statement and stays a hardware release gate
-(risk C2). The PV module's outputs did not change with D-078 or D-080.
+(risk C2). The PV module's outputs did not change with D-078 or D-080; [D-081](../requirements/DECISIONS.md) changed
+its DESAT string (two 1,300 V diodes instead of three 1,000 V ones, above) and left the inverter's window, and with it
+these tables, as they were.
 
 ## 🔬 Losses, efficiency and temperature
 
@@ -351,6 +356,42 @@ The check also raised a finding the control board then implemented: to keep a 5 
 over-temperature trip must be ≤ 89.9 °C, not the architecture's 95 °C — PV-CTL trips at 86.2–89.6 °C. The three fans
 (Delta AFB1224SHE-F00) are rated only to −10 °C against the −30 °C of PV-20 (risk R-05): below −10 °C inlet the
 firmware keeps them off and limits the power to a passive-cooling table ([05 · Control and firmware](05-control-and-firmware.md#cold-start)).
+
+<a id="inverter-cold-start"></a>
+
+**The inverter without its fans** (review R4, E11, *Confirmed*; [D-081](../requirements/DECISIONS.md); ESTIMATES
+±50 %). PCS-P125 uses the same −10 °C fans (three; four on the four-wire build). Modelled the PV way, the module without
+its fans holds, in kVA at 400 V AC (the lower of PF 1 and PF 0; 0 = standby only, not even switching at no load):
+
+| Build | Inlet | 600 V DC | 650 V DC | 700 V DC | 750–950 V DC |
+|---|---|---:|---:|---:|---:|
+| three-wire | −30 °C | 20 | 14 | 3 | 0 |
+| three-wire | −20 °C | 15 | 8 | 0 | 0 |
+| three-wire | −10 °C | 8 | 0 | 0 | 0 |
+| four-wire | −30 °C | 14 | 5 | 0 | 0 |
+| four-wire | −20 °C | 7 | 0 | 0 | 0 |
+| four-wire | −10 °C | 0 | 0 | 0 | 0 |
+
+<sub>The binding limit is the 75 °C heatsink NTC throughout (the four-wire build has no steady state at 950 V). At 600 V
+DC the pessimistic / optimistic models give 3 / 36, 0 / 30 and 0 / 24 kVA (three-wire, −30 / −20 / −10 °C). Model: each
+heatsink section in natural convection (about 0.7 K/W against 0.050 K/W with the fans), the closed enclosure the
+PMA0125's 650 × 700 × 220 mm body (ASSUMED) losing 4.7 W/K, limits T<sub>j</sub> 150 °C, heatsink NTC 75 °C, air
+inside 60 °C, L1 140 °C; above 700 V DC the L1 ripple loss and the devices' no-load loss exceed what the enclosure
+sheds. Source: [pcs_design report (d)](../../sim/out/pcs_design/report.md) "Cold start with the fans off",
+[pcs_spec.json](../../sim/out/pcs_design/pcs_spec.json) `thermal_and_losses.cold_start`,
+[PCS-PWR design check](../../hardware/PCS-PWR/outputs/PCS-PWR_design_check.txt) "COLD START".</sub>
+
+**Firmware rule** (a hand-over row of `pcs_spec.json`, printed by the
+[PCS-CTL design check](../../hardware/PCS-CTL/outputs/PCS-CTL_design_check.txt)): the fans stay off while the inlet NTC
+reads below −10 °C; below it the current reference is limited to this table at the measured inlet and DC voltage (the
+warmer inlet row and the higher DC-voltage point between table points); where the table is 0 the module stays in
+standby with the gates off; the fans start at an inlet of −10 °C or above, or whatever the inlet reads once any heatsink
+NTC exceeds 80 °C; an open or shorted inlet NTC turns the fans on. **Decision by cost:** the table is too small to be
+useful over the DC window, so the inverter's cold rating is **full operation from −10 °C inlet**, and below it standby or
+the passive table (REQUIREMENTS AC-02, amended by delegation). The only −30 °C fan on file (Sanyo Denki 9GT1224P1S001,
+26.4 W, 88–113 USD against 13.15 USD) would add 225–299 USD per three-wire module, 299–399 USD four-wire, and 2.2 × the
+fan power on the SELV budget — not taken; a cold-rated 12 W fan from an RFQ is the way back to −30 °C at power, worth
+adopting if its quote keeps the module within a few USD.
 
 <details>
 <summary>Existing simulation plots of the cell design (efficiency maps, load curves, ngspice against analytic)</summary>

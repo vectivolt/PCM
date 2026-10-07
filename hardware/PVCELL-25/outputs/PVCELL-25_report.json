@@ -3,8 +3,8 @@
   "rev": "C0",
   "date": "2026-10-04",
   "sheets": 9,
-  "parts": 587,
-  "nets": 284,
+  "parts": 583,
+  "nets": 280,
   "erc_waivers": {
     "ground_pin_not_ground": "NSI6651ASC pin 3 is named GND2 in its datasheet (p3) but is the isolated driver-side reference = the COM_Sx star of the devices' Kelvin sources (floating gate-drive domain), deliberately not the board GND (same waiver as gen/gdrv.py GDRV-HB)"
   },
@@ -13,7 +13,7 @@
     {
       "check": "Isolation domains (only declared isolators/crossings bridge two domains)",
       "result": "pass",
-      "detail": "18 isolators, 20 crossings, 567 other parts each in one domain"
+      "detail": "18 isolators, 16 crossings, 567 other parts each in one domain"
     },
     {
       "check": "Stress: jellybean capacitor voltage <= 80 %, resistor power <= 60 % and working voltage",
@@ -28,7 +28,7 @@
     {
       "check": "Netlist identity (kicad-cli XML export == design table)",
       "result": "pass",
-      "detail": "284 nets, 587 components identical"
+      "detail": "280 nets, 583 components identical"
     },
     {
       "check": "Schematic PDF rendered",
@@ -38,7 +38,7 @@
     {
       "check": "BOM: every line has manufacturer + MPN + datasheet on file, or is GENERIC/RFQ/CUSTOM",
       "result": "pass",
-      "detail": "114 lines, 587 parts -> bom/PVCELL-25_BOM.csv"
+      "detail": "114 lines, 583 parts -> bom/PVCELL-25_BOM.csv"
     }
   ]
 }

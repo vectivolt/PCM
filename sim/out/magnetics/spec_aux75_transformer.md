@@ -71,7 +71,7 @@ Levels from `sim/out/insulation/insulation_spec.json` (V, mm):
 
 Routine tests (every part): <= 10 pC at 2472 Vpk on every unit (extinction >= 1977 Vpk); M1's 2505 Vpk covers it.
 
-Type tests (first articles): AC 4400.0 V rms 60 s; impulse 8000.0 V; thermal at 82.5 W.
+Type tests (first articles): AC 4400.0 V rms 60 s; impulse 8000.0 V (the in-situ requirement at 2,000 m; the sea-level test equivalent scales by the altitude factor of the insulation report); thermal run at 94.2 W (the aux block's continuous rating, aux75_spec).
 
 ## 6. Losses (calculated: winding 90 C, core 100 C; worst case last)
 | point | I_rms_A | B_pk_T | P_core_W | P_cu_W | P_fringe_W | P_total_W |

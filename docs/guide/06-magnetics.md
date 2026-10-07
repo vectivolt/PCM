@@ -6,7 +6,7 @@
 > Every custom magnetic part of the PV module, the DAB and the inverter's filter — what it is for, how it is built, how it was verified three ways (designer, OpenMagnetics, an independent calculation), how it compares with the reference designs, which Asian materials it uses, what it costs, what a first article must prove — and how OpenMagnetics was built and where it fell short.
 
 ![method](https://img.shields.io/badge/verification-3--way-0B1F33?style=flat-square)
-![checks](https://img.shields.io/badge/self--checks-73%20of%2077%20pass-00A99D?style=flat-square)
+![checks](https://img.shields.io/badge/self--checks-75%20of%2079%20pass-00A99D?style=flat-square)
 ![known](https://img.shields.io/badge/known%20shortfalls-4%20recorded%20%28MG--15%2C%20MG--16%2C%20MG--17%29-E4572E?style=flat-square)
 ![tool](https://img.shields.io/badge/OpenMagnetics-1.7.33%20built%20from%20source-5B6B7A?style=flat-square)
 ![measured](https://img.shields.io/badge/measured-nothing-E4572E?style=flat-square)
@@ -18,7 +18,8 @@
 > [sim/out/magnetics/report.md](../../sim/out/magnetics/report.md), the machine-readable
 > [magnetics_check.json](../../sim/out/magnetics/magnetics_check.json), one `design_<part>.json` and one winding-house
 > sheet `spec_<part>.md` per part in [sim/out/magnetics/](../../sim/out/magnetics/). Costs are engineering estimates
-> without quotations.
+> without quotations; what a quotation must hold for each custom part is indexed in
+> [RFQ-MAGNETICS.md](../requirements/RFQ-MAGNETICS.md) (review R4, item E12, [D-081](../requirements/DECISIONS.md)).
 
 ## 🧲 The parts at a glance
 
@@ -82,7 +83,7 @@ rev M1 / M2 constructions **by calculation**, 4 open (the report's own summary l
 <img src="../assets/img/design_magnetics_checks.png" width="820" alt="Self-checks of sim/magnetics.py by part: pass and fail counts">
 
 <sub>Chart: [figures_design.py](../assets/figures_design.py) from [magnetics_check.json](../../sim/out/magnetics/magnetics_check.json)
-`checks`: 77 checks, 73 pass; the other four are recorded as known shortfalls, none unexplained: the DAB transformer pair
+`checks`: 79 checks, 75 pass; the other four are recorded as known shortfalls, none unexplained: the DAB transformer pair
 at the 137 A worst corner (MG-16, two checks), the series inductor's saturation margin at 700 A (MG-15) and the
 PV-P100/110 inductor's hot spot, 5.3 K over its 155 °C limit at 114 m³/h per phase and 45 °C inlet (MG-17).</sub>
 
@@ -171,7 +172,7 @@ consistent. Wolfspeed's flyback transformer on CRD-020DD17P-J measured 94.9 °C 
 | PV inductor | — | POCO NPH-L 26 (FeSi) | about twice the core loss (36.8 W) |
 | DAB transformer and inductor | TDK N95 (PM 114/93) | **DMEGC DMR95** (EE80 shape) | 21 W against 29 W at 950 V; B<sub>sat</sub> 0.41 T at 100 °C |
 | AUX transformers | TDK N97 | DMEGC DMR95 / DMR96 | close to N97; the ETD shape comes from another maker |
-| Port CM | VITROPERM-class nanocrystalline | Yunlu, AT&M 1K107 | the high-µ grades saturate under the 150 Hz CM current; a flat-µ grade (≤ 25,000) is needed |
+| Port CM | VITROPERM-class nanocrystalline | Yunlu, AT&M 1K107 | the high-µ grades saturate under the 150 Hz CM current; a flat-µ grade is needed — the report asks for ≤ 25,000, the design uses the Shincore SC-1K107-LP class at about 30,000, and since [D-081](../requirements/DECISIONS.md) the BOM line names that flat-permeability grade as an RFQ item keyed by the size code N-C-644025 (it named the standard high-µ Yunlu grade before) |
 
 <sub>Source: [report.md §5](../../sim/out/magnetics/report.md), [asian_magnetic_materials.csv](../../sim/data/asian_magnetic_materials.csv).
 KDM, CSC and TDG data could not be retrieved.</sub>
@@ -192,12 +193,25 @@ The DAB magnetics leave little to cut: the litz grade is the only real lever, an
 requirement envelope — the 137 A transformer current and the 700 A saturation current (report, "DAB magnetics - what a
 cost-first version would give"; that section of the report still quotes the earlier 635 A).</sub>
 
+**Requests for quotation** ([RFQ-MAGNETICS.md](../requirements/RFQ-MAGNETICS.md); review R4, item E12,
+[D-081](../requirements/DECISIONS.md)). One index for the ten custom magnetic parts — the PV inductor, AUX-T1, T_BIAS4,
+the port CM ring, the inverter's L1 / L<sub>N</sub>, L2 and AC CM choke, the DAB transformer and series inductor, and
+AUX-HV T1 — with, per part, the rows a quotation must answer COMPLY or DEVIATE: inductance **at current**, not the
+nominal value alone; losses and temperature rise; leakage and capacitance limits; insulation and partial-discharge
+levels; type and production tests. The construction as designed is the reference, the rows are the contract. The custom
+magnetics are about 16 % of PV-P75's BOM and 34 % / 35 % of the three- / four-wire inverter's (catalogue basis, as the
+index sums them); the two inverter builds are quoted as separate assemblies. Eighteen rows have no number in any record
+(the frequency and level at which L(I) is measured, the NTC data, the creepage and clearance of L1 / L2, acoustic limits,
+sample plans) and stay open. The 48 kHz weight-sensitive variant of the inverter's L1 is an appendix — information, not a
+substitution. Two record conflicts the index found were fixed at the root: the port ring's BOM line now names the
+flat-permeability grade, and AUX-T1's thermal type test reads the 94.2 W rating.
+
 ## 🔬 What a first article must prove
 
 | Part | Type tests named in its specification | What else is still assumed |
 |---|---|---|
 | PV inductor | AC 2,200 V rms 1 min winding–core, 4,400 V rms NTC–winding, impulse 6 kV / 8 kV; L(I) to 72.4 A; thermal run at 83.8 W, the worst point of rev M2 | the thermal model (h = 25 W/m²K surface model); the copper loss (two models 15 % apart) |
-| AUX-T1 | AC 4,400 V rms 60 s; impulse 8 kV; thermal at 82.5 W; routine PD ≤ 10 pC at 2,472 V<sub>pk</sub> on every unit; for a 3,000 m rating ≥ 9.2 mm clearance and a 10.4 kV sea-level impulse ([D-075](../requirements/DECISIONS.md)) | leakage and switched capacitance hold the drain-voltage budget (1,336 V against 1,360 V) only within the routine-test limits |
+| AUX-T1 | AC 4,400 V rms 60 s; impulse 8 kV (the in-situ requirement at 2,000 m; the sea-level test level is an open RFQ row); thermal run at 94.2 W, the auxiliary's continuous rating (it read a stale 82.5 W until [D-081](../requirements/DECISIONS.md)); routine PD ≤ 10 pC at 2,472 V<sub>pk</sub> on every unit; for a 3,000 m rating ≥ 9.2 mm clearance and a 10.4 kV sea-level impulse ([D-075](../requirements/DECISIONS.md)) | leakage and switched capacitance hold the drain-voltage budget (1,336 V against 1,360 V) only within the routine-test limits |
 | T_BIAS4 | impulse 3,790 V between windings; thermal at 85 °C; PD ≤ 10 pC at 1,750 V<sub>pk</sub> (sample); C ≤ 5 pF (sample) | the capacitances are calculated only |
 | Port CM ring | low-frequency CM bias, saturation, attenuation with the capacitance to PE | µ at 150 Hz and the flat-µ grade are assumptions; the 11 mA touch current needs the PE measures |
 | DAB transformer and inductor | measured R<sub>th</sub>, calorimetric loss with the real current shape, leakage tolerance, L(I) to the 700 A saturation requirement at 100 °C | the 137 A corner exceeds the loss and hot-spot budgets today; four turns (0.74 B<sub>sat</sub>, 106 W) or a measured L(I) settles MG-15 |

@@ -71,7 +71,8 @@ def load_prices():
         try:
             p, cur = float(r["unit_price"]), (r["currency"].strip().upper() or "USD")
             q = int(float(r["qty"])) if r["qty"].strip() else 1
-            e = {"src": r["source"], "qty": q, "known": bool(r["qty"].strip()), "usd": usd(p, cur), "sku": r["sku"], "url": r["url"]}
+            e = {"src": r["source"], "qty": q, "known": bool(r["qty"].strip()), "usd": usd(p, cur), "sku": r["sku"], "url": r["url"],
+                 "date": (r.get("date") or "").strip()}
         except (ValueError, KeyError):      # source "none", empty price or an unknown currency: no price on this row
             if r["unit_price"].strip():
                 skipped.append("%s (%s %s)" % (r["mpn"], r["unit_price"], r["currency"]))

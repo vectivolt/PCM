@@ -92,7 +92,7 @@ Groups are assigned by rule from the line's description and the board that carri
 
 | # | BOM item | qty | value / MPN | unit USD | ext USD | % of BOM | unit USD at 5000 | basis at 5000 units | basis (catalogue) | conf |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 1 | 257 | 24 | SG2M040170HJ | 5.071 | 121.70 | 12.4 | 4.31 | ASSUMED x0.85 [short_table] | LCSC C42456100 @90+ (2026-10-04) | high |
+| 1 | 257 | 24 | SG2M040170HJ | 5.071 | 121.70 | 12.4 | 4.31 | ASSUMED x0.85 [short_table] | LCSC C42456100 @90+ (2026-10-05) | high |
 | 2 | 6 | 3 | L_CELL 224uH (CUSTOM) | 40.5 | 121.50 | 12.4 | 34.42 | ASSUMED x0.85 [custom_magnetic_large] | estimate L_CELL 224uH (CUSTOM): ESTIMATE (sim/magnetics.py design_pv_inductor.js | low |
 | 3 | 208 | 2 | HFE82V-300C/1000-24-H-C5-1 | 57.5 | 115.00 | 11.7 | 46 | ASSUMED x0.80 [protection_estimate] | estimate HFE82V-300C/1000-24-H-C5-1: ESTIMATE: no price for the 1000 V / 24 V va | low |
 | 4 | 214 | 13 | FCSA3DS456K050H8F9DE3 | 5.4 | 70.20 | 7.2 | 4.59 | ASSUMED x0.85 [asia_part_estimate] | estimate FCSA3DS456K050H8F9DE3: ESTIMATE (architect's list 5.40): Jianghai CBB-t | low |
@@ -207,7 +207,7 @@ Groups are assigned by rule from the line's description and the board that carri
 
 | # | BOM item | qty | value / MPN | unit USD | ext USD | % of BOM | unit USD at 5000 | basis at 5000 units | basis (catalogue) | conf |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 1 | 255 | 32 | SG2M040170HJ | 5.071 | 162.27 | 13.9 | 4.31 | ASSUMED x0.85 [short_table] | LCSC C42456100 @90+ (2026-10-04) | high |
+| 1 | 255 | 32 | SG2M040170HJ | 5.071 | 162.27 | 13.9 | 4.31 | ASSUMED x0.85 [short_table] | LCSC C42456100 @90+ (2026-10-05) | high |
 | 2 | 6 | 4 | L_CELL 224uH (CUSTOM) | 40.5 | 162.00 | 13.8 | 34.42 | ASSUMED x0.85 [custom_magnetic_large] | estimate L_CELL 224uH (CUSTOM): ESTIMATE (sim/magnetics.py design_pv_inductor.js | low |
 | 3 | 206 | 2 | HFE82V-300C/1000-24-H-C5-1 | 57.5 | 115.00 | 9.8 | 46 | ASSUMED x0.80 [protection_estimate] | estimate HFE82V-300C/1000-24-H-C5-1: ESTIMATE: no price for the 1000 V / 24 V va | low |
 | 4 | 212 | 16 | FCSA3DS456K050H8F9DE3 | 5.4 | 86.40 | 7.4 | 4.59 | ASSUMED x0.85 [asia_part_estimate] | estimate FCSA3DS456K050H8F9DE3: ESTIMATE (architect's list 5.40): Jianghai CBB-t | low |
@@ -323,7 +323,7 @@ Groups are assigned by rule from the line's description and the board that carri
 | # | BOM item | qty | value / MPN | unit USD | ext USD | % of BOM | unit USD at 5000 | basis at 5000 units | basis (catalogue) | conf |
 |---|---|---|---|---|---|---|---|---|---|---|
 | 1 | 8 | 3 | L1 120u (CUSTOM) | 126.6 | 379.80 | 23.9 | 107.6 | ASSUMED x0.85 [custom_mech] | estimate L1 120u (CUSTOM)@PCS-P125: ESTIMATE (sim/out/pcs_design/pcs_costed_bom. | low |
-| 2 | 274 | 36 | SG2M040170HJ | 5.071 | 182.55 | 11.5 | 4.31 | ASSUMED x0.85 [short_table] | LCSC C42456100 @90+ (2026-10-04) | high |
+| 2 | 274 | 36 | SG2M040170HJ | 5.071 | 182.55 | 11.5 | 4.31 | ASSUMED x0.85 [short_table] | LCSC C42456100 @90+ (2026-10-05) | high |
 | 3 | 9 | 3 | L2 6u (CUSTOM) | 38.6 | 115.80 | 7.3 | 32.81 | ASSUMED x0.85 [custom_mech] | estimate L2 6u (CUSTOM)@PCS-P125: ESTIMATE (sim/out/pcs_design/pcs_costed_bom.cs | low |
 | 4 | 225 | 1 | HFE82V-300C/1000-24-H-C5-1 | 57.5 | 57.50 | 3.6 | 46 | ASSUMED x0.80 [protection_estimate] | estimate HFE82V-300C/1000-24-H-C5-1: ESTIMATE: no price for the 1000 V / 24 V va | low |
 | 5 | 324 | 48 | 7461057 | 1.1 | 52.80 | 3.3 | 0.935 | ASSUMED x0.85 [asia_part_estimate] | estimate 7461057: ESTIMATE: Wurth REDCUBE press-fit M3 terminal 100 A, no readab | low |
@@ -437,7 +437,7 @@ Groups are assigned by rule from the line's description and the board that carri
 | # | BOM item | qty | value / MPN | unit USD | ext USD | % of BOM | unit USD at 5000 | basis at 5000 units | basis (catalogue) | conf |
 |---|---|---|---|---|---|---|---|---|---|---|
 | 1 | 9 | 4 | L1 120u (CUSTOM) | 126.6 | 506.40 | 26.3 | 107.6 | ASSUMED x0.85 [custom_mech] | estimate L1 120u (CUSTOM)@PCS-P125-4W: As the three-wire module (key L1 120u (CU | low |
-| 2 | 274 | 48 | SG2M040170HJ | 5.071 | 243.40 | 12.6 | 4.31 | ASSUMED x0.85 [short_table] | LCSC C42456100 @90+ (2026-10-04) | high |
+| 2 | 274 | 48 | SG2M040170HJ | 5.071 | 243.40 | 12.6 | 4.31 | ASSUMED x0.85 [short_table] | LCSC C42456100 @90+ (2026-10-05) | high |
 | 3 | 10 | 3 | L2 6u (CUSTOM) | 38.6 | 115.80 | 6.0 | 32.81 | ASSUMED x0.85 [custom_mech] | estimate L2 6u (CUSTOM)@PCS-P125-4W: As the three-wire module (key L2 6u (CUSTOM | low |
 | 4 | 325 | 58 | 7461057 | 1.1 | 63.80 | 3.3 | 0.935 | ASSUMED x0.85 [asia_part_estimate] | estimate 7461057: ESTIMATE: Wurth REDCUBE press-fit M3 terminal 100 A, no readab | low |
 | 5 | 225 | 1 | HFE82V-300C/1000-24-H-C5-1 | 57.5 | 57.50 | 3.0 | 46 | ASSUMED x0.80 [protection_estimate] | estimate HFE82V-300C/1000-24-H-C5-1: ESTIMATE: no price for the 1000 V / 24 V va | low |
@@ -561,7 +561,7 @@ Groups are assigned by rule from the line's description and the board that carri
 | 4 | 348 | 3 | B88269X7340C011 | 81.68 | 245.04 | 8.6 | 69.43 | ASSUMED x0.85 [short_table] | Mouser (web-search result; page blocked)  @100+ (2026-10-04) | medium |
 | 5 | 290 | 12 | C4AQUEW5450A3BJ | 10.87 | 130.44 | 4.6 | 9.239 | ASSUMED x0.85 [short_table] | Dasenic broker (web-search snippet) C4AQUEW5450A3BJ @500+ (2026-10-04) | medium |
 | 6 | 3 | 2 | CM choke 160 A (CUSTOM) | 65 | 130.00 | 4.6 | 55.25 | ASSUMED x0.85 [custom_magnetic_large] | estimate CM choke 160 A (CUSTOM): ESTIMATE: nanocrystalline toroid about 0.6 kg  | low |
-| 7 | 344 | 24 | SG2M040170HJ | 5.071 | 121.70 | 4.3 | 4.31 | ASSUMED x0.85 [short_table] | LCSC C42456100 @90+ (2026-10-04) | high |
+| 7 | 344 | 24 | SG2M040170HJ | 5.071 | 121.70 | 4.3 | 4.31 | ASSUMED x0.85 [short_table] | LCSC C42456100 @90+ (2026-10-05) | high |
 | 8 | 7 | 3 | L_CELL 224uH (CUSTOM) | 40.5 | 121.50 | 4.3 | 34.42 | ASSUMED x0.85 [custom_magnetic_large] | estimate L_CELL 224uH (CUSTOM): ESTIMATE (sim/magnetics.py design_pv_inductor.js | low |
 | 9 | 437 | 6 | C2M1000170D | 17.09 | 102.54 | 3.6 | 14.53 | ASSUMED x0.85 [asia_part_estimate] | estimate C2M1000170D: ESTIMATE: LCSC lists the part (C5713500) 'from US$17.0935' | low |
 | 10 | 13 | 3 | heatsink | 27 | 81.00 | 2.9 | 22.95 | ASSUMED x0.85 [custom_mech] | estimate heatsink: ESTIMATE: Al mass 4.4 kg (base 150x300x12 mm + 30 fins 60x2x3 | low |
@@ -684,7 +684,7 @@ Groups are assigned by rule from the line's description and the board that carri
 | 3 | 282 | 2 | 004110760 | 123.5 | 247.00 | 7.3 | 98.8 | ASSUMED x0.80 [protection_estimate] | estimate 004110760: ESTIMATE: ETI NH1 gBat 200 A 1000 V DC fuse link, no public  | low |
 | 4 | 348 | 3 | B88269X7340C011 | 81.68 | 245.04 | 7.2 | 69.43 | ASSUMED x0.85 [short_table] | Mouser (web-search result; page blocked)  @100+ (2026-10-04) | medium |
 | 5 | 290 | 16 | C4AQUEW5450A3BJ | 10.87 | 173.92 | 5.1 | 9.239 | ASSUMED x0.85 [short_table] | Dasenic broker (web-search snippet) C4AQUEW5450A3BJ @500+ (2026-10-04) | medium |
-| 6 | 344 | 32 | SG2M040170HJ | 5.071 | 162.27 | 4.8 | 4.31 | ASSUMED x0.85 [short_table] | LCSC C42456100 @90+ (2026-10-04) | high |
+| 6 | 344 | 32 | SG2M040170HJ | 5.071 | 162.27 | 4.8 | 4.31 | ASSUMED x0.85 [short_table] | LCSC C42456100 @90+ (2026-10-05) | high |
 | 7 | 7 | 4 | L_CELL 224uH (CUSTOM) | 40.5 | 162.00 | 4.8 | 34.42 | ASSUMED x0.85 [custom_magnetic_large] | estimate L_CELL 224uH (CUSTOM): ESTIMATE (sim/magnetics.py design_pv_inductor.js | low |
 | 8 | 3 | 2 | CM choke 200 A (CUSTOM) | 80 | 160.00 | 4.7 | 68 | ASSUMED x0.85 [custom_magnetic_large] | estimate CM choke 200 A (CUSTOM): ESTIMATE: as the 160 A choke with a larger cor | low |
 | 9 | 13 | 4 | heatsink | 27 | 108.00 | 3.2 | 22.95 | ASSUMED x0.85 [custom_mech] | estimate heatsink: ESTIMATE: Al mass 4.4 kg (base 150x300x12 mm + 30 fins 60x2x3 | low |
@@ -953,7 +953,7 @@ At 5000 units the two totals differ by +89.16 USD (this BOM 820.41, the list 731
 | BOM line | qty BOM / list | unit USD BOM / list | ext USD BOM | ext USD list | difference | basis of the BOM price |
 |---|---|---|---|---|---|---|
 | L_CELL 224uH (CUSTOM) | 3 / 3 | 40.5 / 80 | 121.50 | 240.00 | -118.50 | ESTIMATE (sim/magnetics.py design_pv_inductor.json rev M2, design to cost D-044 / D-048):  |
-| SG2M040170HJ | 24 / 24 | 5.071 / 4.07 | 121.70 | 97.68 | +24.02 | LCSC C42456100 @90+ (2026-10-04) |
+| SG2M040170HJ | 24 / 24 | 5.071 / 4.07 | 121.70 | 97.68 | +24.02 | LCSC C42456100 @90+ (2026-10-05) |
 | 7461057 | 18 / 10 | 1.1 / 0.6 | 19.80 | 6.00 | +13.80 | ESTIMATE: Wurth REDCUBE press-fit M3 terminal 100 A, no readable price; engineering estima |
 | N-C-644025 | 2 / 2 | 10.9 / 6 | 21.80 | 12.00 | +9.80 | ESTIMATE (sim/magnetics.py design_port_cm_choke.json rev M2, D-048): cased flat-mu nanocry |
 | FCSA3DS456K050H8F9DE3 | 13 / 12 | 5.4 / 5.4 | 70.20 | 64.80 | +5.40 | ESTIMATE (architect's list 5.40): Jianghai CBB-type 45 uF 1300 VDC, no Chinese price found |

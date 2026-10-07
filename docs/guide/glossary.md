@@ -36,14 +36,17 @@
 | **Earlier platform** | The roadmap's full-featured implementation (eight boards for PV-P75, modules ending in `-FULL`), kept as reference and not developed further. |
 | **ePWM** | Enhanced PWM module of the TI C2000 controller. |
 | **ERC** | Electrical rules check of the schematic (`kicad-cli`). |
+| **Fault level** | The short-circuit power of the grid at the connection point, in MVA; with the module rating it sets the SCR. Under the inverter's ride-through fallback, rated-power ride-through needs a fault level below 8.07 MVA per 125 kW module ([D-079](../requirements/DECISIONS.md)). |
 | **FIT** | Failures in time: failures per 10⁹ device-hours; used here for the cosmic-ray failure rate of high-voltage devices. |
 | **FSBB** | Four-switch buck-boost: a non-inverting converter that steps up or down, with a half bridge on each port. |
 | **Gate 0** | The roadmap's first development gate, architecture closure: specifications, topology trade-off, source review. |
+| **Gates-off current** | The current at which a trip has actually turned the gates off: the trip band's top plus the rise over the whole detection-to-turn-off delay. For the inverter's window trip 520.5 A, not the 485.5 A band top ([D-078](../requirements/DECISIONS.md)). |
 | **gBat / gPV** | Fuse classes for battery and photovoltaic circuits (full-range breaking). |
 | **GFL / GFM** | Grid-following / grid-forming control of an inverter: injecting a current in step with the grid's voltage, or forming the voltage itself (off grid or islanded). |
 | **IGBT / SiC MOSFET** | Silicon insulated-gate bipolar transistor / silicon-carbide MOSFET, the two power-switch technologies compared in this project. |
 | **IMD** | Insulation monitoring device: measures the insulation resistance of the floating DC system to earth. |
 | **Interleaving** | Running parallel phases with shifted switching instants (120° for three, 90° for four) so their ripple currents partly cancel. |
+| **ITIC curve** | A voltage-tolerance class (originally CBEMA) for how far and how long a supply may leave its nominal value; the inverter's off-grid transient envelope is compared with an ITIC-style class recalled from memory, not with the standard text. |
 | **LCL filter** | Inverter-side inductor, capacitor, grid-side inductor: the grid filter of PCS-P125. |
 | **LCSC** | Chinese electronic-component distributor, the first price source of the cost model. |
 | **LUT** | Look-up table; here the DAB's offline table of phase shifts per operating point. |
@@ -59,9 +62,12 @@
 | **PE** | Protective earth. |
 | **PELV / SELV** | Protective / safety extra-low voltage: circuits a person may touch. The earlier platform put the controller on a PELV island; the cost-first design keeps only communication and fans on the SELV side. |
 | **PLL** | Phase-locked loop: tracks the angle and frequency of the grid voltage. |
+| **PPB** | Post-processing block of the C2000 ADC: compares each conversion with a limit in hardware; used as the firmware-set backup of a comparator trip (the inverter's DC over-voltage backup at 1,035 V). |
 | **PR controller** | Proportional-resonant current controller in the stationary frame, with resonant terms at the fundamental and selected harmonics (PCS-P125: h5, h7). |
 | **Precharge** | Charging the DC-link capacitors through a resistor before the main contactor closes. |
+| **RCM** | Residual-current monitor: measures the sum of the currents in all live conductors (type B: AC, pulsating and smooth DC); the inverter's is an RFQ contract with firmware trips ([D-078](../requirements/DECISIONS.md)). |
 | **REAL (5,000-unit basis)** | A volume price taken from a published break of at least 1,000 pieces. |
+| **Ride-through** | Staying connected through a grid voltage dip (LVRT) or swell (HVRT) and returning to normal operation afterwards; the inverter holds its current in a ride-through state with a per-sample clamp. |
 | **SCR** | Short-circuit ratio of the grid at the connection point: "stiff" is very large, SCR 5 is a weak grid. |
 | **SOA** | Safe operating area of a power device. |
 | **SPS / TPS** | Single / triple phase-shift modulation of a DAB. |

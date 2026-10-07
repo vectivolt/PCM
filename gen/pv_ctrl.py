@@ -1184,7 +1184,7 @@ TPD_HL = ((5, 458), (10, 350), (20, 248), (25, 215), (50, 148), (70, 125), (100,
 T_CMP_FACTOR = 2.0
 T_LOGIC = 6e-9                                              # LVC07 / LVC1G74 / LVC08 per stage at 3.3 V (max)
 T_PB = 8e-9 + 110e-9 + 52e-9                                # power board: AHCT1G08 + NSI6651 tprop max (gdrv.NSI)
-#                                                             + SG2M040170HJ turn-off (gen/pvcell.py DEV)
+#                                                             + SG2M040170HJ turn-off (gen/pvcell.py DEV); gen/pcs_ctrl.py: six gates
 CMPSS = dict(gain=0.02, inl=16, t=60e-9, filt=5 / 120e6)    # SPRSP61C 6.13.5.3: DAC gain 2 % FSR, INL 16 LSB, comparator;
 #                                                             digital filter 5 SYSCLK (window 5, threshold 4) ASSUMED
 T_TZ = 25e-9                                                # ePWM trip-zone action
@@ -1193,6 +1193,8 @@ IL_TOP_MAX = 79.9            # A: IL window top cap (D-056); the device peak at 
 IL_LO_FACTOR, I_BK, LATCH_I, P75_SUFFIX, LATCH_VA, V_PPB = 1.10, 91.5, 85.0, "-P75", 800.0, 1100.0
 HOLD_KEEPS = ("K_A", "K_B")                                 # contactor commands a trip keeps while HOLD is high
 IL_NOM_MAX = None                                           # nominal IL trip limit (None = the sensor's I_PN)
+REQ_SRC, I_LIM_TAG = "control_spec", "50 % L0"              # source of the IL trip requirements; what the current ceiling is
+TRIP = {}                                                   # check_trips' figures, for an assembly variant's own checks (gen/pcs_ctrl.py)
 # STK-HO/A 75 (Sinomags STK-HO-A.pdf sec. 3): Voff 2.48-2.52 V; X @ 25 C +/-1 % of Ipn (+/-1.5 % of Ipm above Ipn);
 # X_TRange -40..105 C +/-3 % of Ipn (of Ipm above Ipn): Voe drift, gain drift and linearity vs the 25 C fitted gain
 SENS = dict(ipn=75.0, ipm=187.5, x25=(0.01, 0.015), xt=0.03)
@@ -1392,6 +1394,26 @@ def il_trip(p, hi):
     return abs((v * (p["r1"] + p["r2"] + p["rsi"]) / p["r2"] - p["uref"] - p["voe"]) / p["g"])
 
 
+def gates_off(i0, t, didt):
+    """inductor current (A) when the gates are off: band top i0 (A) + the fault ramp didt (A/s) over the response t (s), constant
+    slope (the PV cell); gen/pcs_ctrl.py integrates the inverter's L1 envelope instead (pcs_spec protection_chain)"""
+    return i0 + didt * t
+
+
+def backup_order(lo_l, hi_l, lo_b):
+    """(holds, wording) of the rule between the local IL window and the CMPSS backup: PV, the window's top below the backup band;
+    gen/pcs_ctrl.py: the bands overlap by design and the inverter has its own rule (review R2-03)"""
+    return hi_l < lo_b, "top below the backup %.1f A" % lo_b
+
+
+def backup_band(i_bk, n):
+    """CMPSS backup band (A) at the DAC setting +/-i_bk (A) after the idle null: DAC gain 2 % + 2 x 16 LSB INL, VREF, resistor
+    drift, sensor error over temperature (calibrated)"""
+    d = i_bk * n["g_adc"]
+    db = (CMPSS["gain"] * d + 2 * CMPSS["inl"] * LSB + d * REF_E) / n["g_adc"] + i_bk * 2 * 25e-6 * 60 + sens_err(i_bk, True)
+    return i_bk - db, i_bk + db
+
+
 def il_window(pw, cmrr_db=None, r01=None):
     """Both trip directions: (nominal, low, high, {term: +/- A}); worst case = linear sum of every term's swing. 'vcm' = the TLV9024
     common-mode error (CMRR >= cmrr_db, default CMRR_MIN_DB) at that comparator's own input common mode (TH_ILn_HI / TH_ILn_LO);
@@ -1430,19 +1452,18 @@ def check_trips(pw):
     didt = io["didt_max_A_per_us"] * 1e6
     i_lim, i_pk = CELL["inductor"]["I_at_50pct_L0_A"], CELL["inductor"]["I_peak_normal_max_A"]
     n = il_numbers(pw)
-    s_err = sens_err
     band, dead = il_window(pw)
     lo_l, hi_l = min(b[1] for b in band), max(b[2] for b in band)
     tw = {k: max(b[3][k] for b in band) for k in band[0][3]}
     t_c, t_typ, od_c = t_cmp(didt * n["g_cmp"])
     t_loc = pw["t_sens"] + pw["t_rc"] + n["tau"] + t_c + 3 * T_LOGIC + T_PB
     i_bk = I_BK
-    d = i_bk * n["g_adc"]
-    db = (CMPSS["gain"] * d + 2 * CMPSS["inl"] * LSB + d * REF_E) / n["g_adc"] + i_bk * 2 * 25e-6 * 60 + s_err(i_bk, True)
-    lo_b, hi_b = i_bk - db, i_bk + db
+    lo_b, hi_b = backup_band(i_bk, n)
+    order, order_txt = backup_order(lo_l, hi_l, lo_b)
     t_bk = (pw["t_sens"] + pw["t_rc"] + n["tau"] + val(IL_RC[0]) * val(IL_RC[1]) + 0.1e-6 + CMPSS["t"] + CMPSS["filt"] +
             T_TZ + T_PB)
-    hard = (hi_l < lo_b and hi_l + didt * t_loc <= i_lim and lo_l > i_pk and t_loc <= io["local"]["max_response_us"] * 1e-6 and
+    TRIP.update(lo_l=lo_l, hi_l=hi_l, lo_b=lo_b, hi_b=hi_b, t_loc=t_loc, t_bk=t_bk, t_c=t_c, n=n)
+    hard = (order and gates_off(hi_l, t_loc, didt) <= i_lim and lo_l > i_pk and t_loc <= io["local"]["max_response_us"] * 1e-6 and
             hi_l * 1.05 < pw["il_lin"] and dead > 2 * VIO_CMP and max(b[0] for b in band) <= (IL_NOM_MAX or SENS["ipn"]))
     ok &= say(hard, "Trip IL local window (TLV9024 on ILn_P, both directions, thresholds from each sensor's Uref)",
               "+%.1f / -%.1f A nominal -> %.1f-%.1f A, %.1f %% above the normal peak %.1f A. Worst-case terms (A, larger "
@@ -1450,18 +1471,18 @@ def check_trips(pw):
               "it), 10.0k/29.4k divider %.2f, Uref ladder %.2f, comparator VOS %.2f, TLV9024 common-mode error %.2f (+) / %.2f (-) "
               "(CMRR >= %.0f dB, the lower of its 5 V / 1.8 V guarantees; V_cm %.2f / %.2f V = %.1f / %.1f mV; it scales with the "
               "signal, so no divider value changes it), PV-PWR sources (R_out / R_ref + 100R) %.2f, VREF + 1 M pull-up %.2f; no "
-              "hysteresis (the latch holds the trip). Hard conditions (pass / fail): lowest threshold above the normal peak, top "
-              "below the backup %.1f A, dead sensor (IL = ILR = 0 V): TH_LO %.0f mV above the node -> trips, sensor linear to %.0f "
-              "A, gates off within the control_spec limit. Gates off %.2f us (sensor %.2f + PV-PWR RC %.2f + node %.2f + "
+              "hysteresis (the latch holds the trip). Hard conditions (pass / fail): lowest threshold above the normal peak, %s, "
+              "dead sensor (IL = ILR = 0 V): TH_LO %.0f mV above the node -> trips, sensor linear to %.0f "
+              "A, gates off within the %s limit. Gates off %.2f us (sensor %.2f + PV-PWR RC %.2f + node %.2f + "
               "comparator %.2f [TLV9024 %.0f ns typ at the %.0f mV overdrive that the %.1f A/us ramp builds, SNOSDA3H Fig. 5-19 "
               "at 3.3 V / 125 C, x%.0f ASSUMED because no maximum is published; was 1.0 us ASSUMED] + logic + driver) <= %.2f us "
-              "(control_spec) -> %.1f A <= %.0f A (50 %% L0)"
+              "(%s) -> %.1f A <= %.0f A (%s)"
               % (band[0][0], band[1][0], lo_l, hi_l, 100 * (lo_l / i_pk - 1), i_pk, tw["X"], tw["voe"], tw["uref"],
                  tw["r1"] + tw["r2"], tw["ra"] + tw["rb"] + tw["rc"], tw["vio"], band[0][3]["vcm"], band[1][3]["vcm"],
                  CMRR_MIN_DB, band[0][4], band[1][4], 1e3 * cm_err(band[0][4]), 1e3 * cm_err(band[1][4]), tw["rsi"] + tw["rsr"],
-                 tw["vref"] + tw["rpu"], lo_b, dead * 1e3, pw["il_lin"], t_loc * 1e6, pw["t_sens"] * 1e6, pw["t_rc"] * 1e6,
-                 n["tau"] * 1e6, t_c * 1e6, t_typ * 1e9, od_c * 1e3, didt * 1e-6,
-                 T_CMP_FACTOR, io["local"]["max_response_us"], hi_l + didt * t_loc, i_lim))
+                 tw["vref"] + tw["rpu"], order_txt, dead * 1e3, pw["il_lin"], REQ_SRC, t_loc * 1e6, pw["t_sens"] * 1e6,
+                 pw["t_rc"] * 1e6, n["tau"] * 1e6, t_c * 1e6, t_typ * 1e9, od_c * 1e3, didt * 1e-6,
+                 T_CMP_FACTOR, io["local"]["max_response_us"], REQ_SRC, gates_off(hi_l, t_loc, didt), i_lim, I_LIM_TAG))
     corridor = IL_TOP_MAX - IL_LO_FACTOR * i_pk
     sh_lo, sh_hi = IL_LO_FACTOR * i_pk - lo_l, hi_l - IL_TOP_MAX
     if max(sh_lo, sh_hi) > 1e-9:
@@ -1481,7 +1502,7 @@ def check_trips(pw):
             r_ = CELL["device_primary"]["trip_band_costfirst"]["hardware"]
             phys = ("; at this top the gates-off peak is %.1f A against %.0f A (50 %% L0) and the device peak %.0f V against %.0f V "
                     "(cell_spec trip_band_costfirst), so the margin the top cap protects is not used up" %
-                    (hi_l + didt * t_loc, i_lim, r_["v_pk_V"], r_["v_pk_limit_V"]))
+                    (gates_off(hi_l, t_loc, didt), i_lim, r_["v_pk_V"], r_["v_pk_limit_V"]))
         open_item("Trip IL local window - design-margin rules NOT met at the guaranteed CMRR (risk C9)",
                   "needs bottom >= %.1f A (%.2f x normal peak %.1f A) and top <= %.1f A (corridor %.1f A, half-width %.2f A) but the "
                   "band is %.1f-%.1f A (half-width %.2f A, already centred: +%.1f / -%.1f A nominal): %.2f A short at the bottom, "
@@ -1504,12 +1525,13 @@ def check_trips(pw):
                                                                                   == rec["band_A"] and abs(rec["response_us"] - t_loc * 1e6) < 0.006
                                                                                   else " - update TRIP_HW and re-run sim/pv_design.py"))
     bk_req = mr["cell_inductor_current"]["comparator_threshold_band_A"]            # control_spec: the band the backup layer is held to
-    ok &= say(lo_b > hi_l and hi_b + didt * t_bk <= i_lim and t_bk <= io["ctrl_backup"]["max_response_us"] * 1e-6 and
+    ok &= say(order and gates_off(hi_b, t_bk, didt) <= i_lim and t_bk <= io["ctrl_backup"]["max_response_us"] * 1e-6 and
               bk_req[0] - 0.05 <= lo_b and hi_b <= bk_req[1] + 0.05,
               "Trip IL backup (CMPSS1-4 windows on ILn_ADC, DAC set after the idle null and calibration)",
               "+/-%.1f A -> %.1f-%.1f A (DAC 2 %% + 2 x 16 LSB, VREF, resistor drift, sensor X over temperature) inside the "
-              "control_spec band %.1f-%.1f A; gates off %.2f us <= %.2f us (control_spec) -> %.1f A <= %.0f A" %
-              (i_bk, lo_b, hi_b, *bk_req, t_bk * 1e6, io["ctrl_backup"]["max_response_us"], hi_b + didt * t_bk, i_lim))
+              "%s band %.1f-%.1f A; gates off %.2f us <= %.2f us (%s) -> %.1f A <= %.0f A" %
+              (i_bk, lo_b, hi_b, REQ_SRC, *bk_req, t_bk * 1e6, io["ctrl_backup"]["max_response_us"], REQ_SRC,
+               gates_off(hi_b, t_bk, didt), i_lim))
     rows += [("IL1-4 local window", "+%.1f/-%.1f A" % (band[0][0], band[1][0]), "%.1f-%.1f A" % (lo_l, hi_l),
               "%.2f us" % (t_loc * 1e6), ">= %.1f A, <= %.1f A, <= %.2f us" % (IL_LO_FACTOR * i_pk, IL_TOP_MAX,
                                                                          io["local"]["max_response_us"])),

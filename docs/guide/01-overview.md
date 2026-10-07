@@ -100,6 +100,8 @@ timeline
         Competitor parity : D-073 Megarevo modules only, both directions
     section 6 October
         Parity work : D-074 four-wire build, start-up from the grid, firmware specification : D-075 Ethernet, recorder flash, discrete I/O : D-076 auxiliary supply re-rated : D-077 off-grid accuracy, ride-through, neutral leg
+    section 7 October
+        Re-check R2 : D-078 trip chain, backup band, SiC acceptance, coil and RCM contracts : D-079 tolerance regression, bounded transients, ride-through, AC-start machine
 ```
 
 ---

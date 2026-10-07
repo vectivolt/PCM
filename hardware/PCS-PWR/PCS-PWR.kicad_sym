@@ -11599,7 +11599,7 @@
 				)
 			)
 		)
-		(property "Description" "CHASSIS-MOUNTED RFQ 3-pole AC contactor (CHINT NXC-225 / Delixi CJX2s-185 class): AC-1 >= 248 A at 400-460 V AC, Ui 1000 V, Uimp 8 kV, 24 V DC coil WITH integrated economiser (pull-in <= 20 W for <= 100 ms, hold <= 4 W), coil-contact Ui >= 1000 V, mechanical life >= 1e6; 2 in series per phase set (relay test)"
+		(property "Description" "CHASSIS-MOUNTED RFQ 3-pole AC contactor (CHINT NXC-225 / Delixi CJX2s-185 class): AC-1 >= 248 A at 400-460 V AC, Ui 1000 V, Uimp 8 kV, 24 V DC coil WITH integrated economiser (contract: pull-in <= 20 W for <= 100 ms, hold <= 4 W), coil-contact Ui >= 1000 V, mechanical life >= 1e6; 2 in series per phase set (relay test)"
 			(at 0 -16.51 0)
 			(hide yes)
 			(effects
@@ -15788,7 +15788,7 @@
 				)
 			)
 		)
-		(property "Description" "RFQ type-B residual-current sensor (fluxgate) around L1-L3: 6 mA DC / 30 mA AC resolution, analog output 0-1.25 A range, test-winding input, 5 V supply, aperture for 3 x 250 A busbars (pcs_spec sensing.residual_current; IEC 62109-2 / IEC 62752 style)"
+		(property "Description" "RFQ type-B residual-current sensor (fluxgate) around L1-L3 - INTERFACE CONTRACT (pcs_spec residual_current_contract, review R2-13; every figure ASSUMED until the part is chosen): type B: AC to >= 2 kHz, pulsating DC and smooth DC residual current (fluxgate), one sensor around every live conductor; trips in firmware from the analog output (the sensor has no trip relay): continuous residual current >= 1250 mA (10 mA per kVA above 30 kVA, 125 kVA) within 0.3 s; sudden changes 30 mA within 0.30 s / 60 mA within 0.15 s / 150 mA within 0.04 s; DC and AC (rms) alike; range +/-2.0 A, +/-(3 % of reading + 3 mA), DC to 1 kHz; resolution <= 6 mA DC / 30 mA AC; OUT analog voltage, 2.50 V +/-1 % at zero residual current, 1.00 V/A +/-3 % (+/-2.0 A in 0.50-4.50 V), DC to >= 2 kHz (-3 dB), >= 0.25 mA into the control board's 10.0k / 13.0k divider, noise <= 3 mA rms equivalent; diagnostic on OUT, no separate pin: an internal fault (fluxgate oscillator stopped, supply out of range, failed self-check) drives OUT to <= 0.25 V or >= 4.75 V within <= 100 ms - outside the 0.50-4.50 V signal band; firmware: sensor fault -> no connection / controlled stop; TEST TEST, 3.3 V CMOS active high, >= 10 kOhm (RCM_TST from GPIO21 through PCS_X, 100k pull-down on the power board): injects 50 mA DC +/-20 % through the test winding, OUT steps by 50 mV +/-20 % within <= 50 ms; used by the start-up self-test and before every connection; supply 5 V +/-5 % from the power board's +5V, <= 50 mA including start-up (the +5V budget's allocation); aperture L1-L3: 3 bars 25 x 3 mm flat-stacked with 1 mm sleeves (27 x 19 mm, the AC CM choke's fit); the bars are LIVE (V_dc/2 + 375 V x 1.2 against DC-, <= 1050 V DC + the OVC III impulse): bar to sensor electronics through the 1.5 kV rms bar sleeves plus the sensor's own functional insulation, referenced to DC- like the board"
 			(at 0 -13.97 0)
 			(hide yes)
 			(effects
@@ -16659,7 +16659,7 @@
 				)
 			)
 		)
-		(property "Description" "SiC MOSFET 1700 V 40 mOhm, TO-247-4L with driver source, VGS -8/+22 V abs, -4/+18 V op; no qualification stated (Sichain p14: consult for high reliability). Mount on PAD_AL2O3 (0.635 mm Al2O3, pcs_spec R_cs). ACCEPTANCE per switch: R_DS(on) of the six devices of one switch within +/-5 % of their mean at V_GS 18 V, I_D 38 A pulsed (< 200 us), T_J 25 C (incoming measurement or the maker's bin; the data sheet allows 40 typ / 52 max mOhm) - bounds the conduction share at k <= 1.086; V_GS(th) within +/-0.25 V (V_DS = V_GS, I_D 12 mA, 25 C; data-sheet spread 2.5-4.0 V) for the switching share; one lot per switch"
+		(property "Description" "SiC MOSFET 1700 V 40 mOhm, TO-247-4L with driver source, VGS -8/+22 V abs, -4/+18 V op; no qualification stated (Sichain p14: consult for high reliability). Mount on PAD_AL2O3 (0.635 mm Al2O3, pcs_spec R_cs). ACCEPTANCE per switch: R_DS(on) of the six devices of one switch within +/-5 % of their mean at V_GS 18 V, I_D 38 A pulsed (< 200 us), T_J 25 C (incoming measurement or the maker's bin; the data sheet allows 40 typ / 52 max mOhm) - bounds the conduction share at k <= 1.086; V_GS(th) within +/-0.25 V (V_DS = V_GS, I_D 12 mA, 25 C; data-sheet spread 2.5-4.0 V) for the switching share; one lot per switch; ABSOLUTE: R_DS(on) <= 40.0 mOhm for each device at V_GS 18 V, I_D 38 A pulsed (< 200 us), T_J 25 C - the same incoming measurement as the +/-5 % matching rule (no extra test, no extra hardware); data sheet 40 typ / 52 max: parts between 40.0 and 52 mOhm are not scrapped - a switch with any of them makes the module an 'unscreened' build that runs the derated firmware tiers (200 ms 209 A, 2 min 209 A; parameter by lot)"
 			(at 0 -13.97 0)
 			(hide yes)
 			(effects

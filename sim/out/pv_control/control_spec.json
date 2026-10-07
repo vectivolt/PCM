@@ -1796,7 +1796,19 @@
     "the hold-off comparator stays in hardware: above 0.97-1.03 kA a closed contactor is held regardless"
    ],
    "basis": "D-050: firmware duplicates the hardware interlocks and OC trip; bands = the hardware comparators' worst-case windows; latency from the HPE501 250 A melting curve (to 0.95 kA, and to the hold-band top)"
-  }
+  },
+  "system": [
+   {
+    "item": "DC-bus coordination with PCS-P125 on a battery-less bus (system rule, review R2-04; bus forming on port B)",
+    "peripheral and setting": "outer loop (32 kHz): V_B (the period's 16-sample mean, PV-PWR divider 6.8 kHz) > V_B* + 30 V at one sample -> every cell's current reference to 0 at once (PWM running; the V_B-max candidate wins the min-select, integrators reset); released below V_B* + 15 V, the V_B loop resumes from the measured current. Local by necessity: a module-CAN message is too slow (0.54 ms for one frame behind one already on the bus at 500 kbit/s, ASSUMED, before detection and task latency)",
+    "threshold / band": "V_B* + 30 V (ASSUMED: above this module's own +23.9 V bus-forming overshoot at a full CPL drop, section 9.1); cut complete within 0.51 ms of the rejection at the PCS study's 750 V bus and 125 kW (pcs_control_spec vf_bounded); this chain 209 us = 75 us to the threshold (source current alone into the PCS link) + 23 us divider lag + 47 us sampling + 64 us current decay (1/(2 pi 2500 Hz), charge-equivalent) = x2.42 margin (x2 ASSUMED); the budget shrinks as V_B* nears the PCS's 975 V soft limit: x2 holds to V_B* = 782 V, above it a shared hardwired trip line or a battery; this module's own 335 uF port-B bank on the same bus not credited (it lengthens the budget more than the crossing)",
+    "filter": "none (the 16-sample mean)",
+    "latency": "<= 209 us at 750 V",
+    "start-up self-test": "-",
+    "consequence": "otherwise the PCS trips on DC over-voltage 0.59-0.75 ms after the rejection and the bus is left at 1048-1110 V, latched - at the band top above the aux's input lock-out: the island goes dark",
+    "source": "sim/out/pcs_control/pcs_control_spec.json (vf_bounded, dc_rejection_bounded, inputs) + this study's V_B chain"
+   }
+  ]
  },
  "honesty": "Simulation only. Power stage ideal-switch, sensors first-order, PV/battery/CPL models are assumptions listed in report.md; nothing is bench-validated."
 }

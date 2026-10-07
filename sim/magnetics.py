@@ -2773,6 +2773,22 @@ def _rows(rows):
     return table(rows, [(k, lambda r, k=k: _v(r.get(k, ""))) for k in rows[0]]) if rows else "none"
 
 
+TRAJ_ROWS = (0, 300, 450, 500, 520, 550, 575, 600, 625, 650, 700)     # A, the rows of the trajectory table in a spec sheet / report
+
+
+def traj_lines(t):
+    """the L1 trajectory (pcs_l1_trajectory) as a compact table: uH at the TRAJ_ROWS currents, then knees, flux rule and B_sat"""
+    pick = lambda col: {i: col[t["I_A"].index(i)] * 1e6 for i in TRAJ_ROWS if i in t["I_A"]}    # noqa: E731
+    cols = (("nominal, hot", t["hot_100C"]["nominal_H"]), ("-10 % part, hot", t["hot_100C"]["minus10pct_part_H"]),
+            ("+5 % part, hot", t["hot_100C"]["plus5pct_part_H"]), ("envelope, hot", t["hot_100C"]["envelope_H"]),
+            ("nominal, 25 C", t["cold_25C"]["nominal_H"]), ("+5 % part, 25 C", t["cold_25C"]["plus5pct_part_H"]))
+    rows = [dict({"I (A)": i}, **{nm: f"{pick(c)[i]:.1f}" for nm, c in cols}) for i in TRAJ_ROWS if i in t["I_A"]]
+    return ["## 2a. Incremental inductance along the fault trajectory, uH (review R2-03; the full grid is in the JSON)", "",
+            _rows(rows), "", f"Knees (L = 50 % of its 0 A value): {_v(t['I_knee_50pct_A'])} A; flux rule ({t['flux_rule']}): "
+            f"{t['I_flux_rule_A']:.0f} A; saturation: {_v(t['I_sat_A'])} A; B_sat: {t['B_sat_T']['openmagnetics_note']}. "
+            f"Type test: {t['type_test']}. {t['basis']}.", ""]
+
+
 def spec_design(d, F, closed):
     """winding-house sheet rendered from the design_<part>.json dict (one source for the file and the sheet)"""
     tags = DESIGN_TAGS.get(d["part"], ())
@@ -2784,7 +2800,8 @@ def spec_design(d, F, closed):
          f"`{d['basis']['spec']}` ({d['basis']['spec_mtime']}). Review findings (`gen/data/review_magnetics.csv`): "
          f"{', '.join(st) or 'none'}.", "",
          "## 1. Construction", d["construction"], "",
-         "## 2. Electrical (requirement and what the construction gives)", _kv(d["electrical"]), "",
+         "## 2. Electrical (requirement and what the construction gives)", _kv({k: v for k, v in d["electrical"].items() if k != "L_trajectory"}), "",
+         *(traj_lines(d["electrical"]["L_trajectory"]) if "L_trajectory" in d["electrical"] else []),
          "## 3. Core", _kv({k: v for k, v in d["core"].items() if k != "gap"}), "", "Gap: " + _v(d["core"]["gap"]), "",
          "## 4. Windings (inside out) and fit", _rows(d["windings"]), "", "Fit in the window: " + _v(d["fit"]), "",
          "## 5. Insulation system", ins["system"], "",
@@ -4489,10 +4506,10 @@ def cc_gap(c, N, L, g_max=CC_RULES["g_each"]):
     return dict(g=g, k=k, g_each=ge, F=F)
 
 
-def cc_flux(c, N, gp, I):
-    """tape flux density B(I): N I = H_c(B) le + B Ae g / (mu0 A_geo F), tape B = Bsat tanh(mu0 mu_i H / Bsat) (hot Bsat)"""
+def cc_flux(c, N, gp, I, bs=None):
+    """tape flux density B(I): N I = H_c(B) le + B Ae g / (mu0 A_geo F), tape B = Bsat tanh(mu0 mu_i H / Bsat) (hot Bsat unless bs)"""
     m = CC_MAT[c["mat"]]
-    bs, ag = m["bsat_hot"], c["A_geo"] * gp["F"]
+    bs, ag = bs or m["bsat_hot"], c["A_geo"] * gp["F"]
     f = lambda B: bs / (MU0 * m["mu_i"]) * math.atanh(min(B / bs, 1 - 1e-12)) * c["le"] + B * c["Ae"] * gp["g"] / (MU0 * ag) - N * abs(I)  # noqa: E731
     lo, hi = 0.0, bs * (1 - 1e-12)
     if f(hi) < 0:
@@ -4503,11 +4520,11 @@ def cc_flux(c, N, gp, I):
     return 0.5 * (lo + hi) * math.copysign(1, I), False
 
 
-def cc_L_of_I(c, N, gp, I, L_air):
+def cc_L_of_I(c, N, gp, I, L_air, bs=None):
     """incremental inductance at current I (central difference of the flux linkage, + air-core term)"""
     d = max(1.0, 0.01 * I)
-    b1, s1 = cc_flux(c, N, gp, I + d)
-    b0, s0 = cc_flux(c, N, gp, max(I - d, 0.0))
+    b1, s1 = cc_flux(c, N, gp, I + d, bs)
+    b0, s0 = cc_flux(c, N, gp, max(I - d, 0.0), bs)
     return N * c["Ae"] * (b1 - b0) / (I + d - max(I - d, 0.0)) + (L_air if s1 else 0.0), s1
 
 
@@ -4674,18 +4691,24 @@ def pcs_pick(rows, budget):
     return dict(cheapest=cheap, lowest_loss=low, recommended=rec)
 
 
+def _om_cc_core_fd(r, material=None):
+    """MAS functional description of the gapped C-core pair: column 0 carries that leg's gaps (k x g_each), the other leg ungapped"""
+    c, gp = r["core"], r["gap"]
+    shape = {"family": "c", "type": "custom", "name": f"C custom {r['mat']} {c['a']*1e3:.0f}x{c['H']*1e3:.0f}",
+             "magneticCircuit": "open", "dimensions": {"A": 2 * c["a"] + c["ws"], "B": c["a"] + c["wl"] / 2, "C": c["H"],
+                                                       "D": c["wl"] / 2, "E": c["ws"]}}
+    gaps = [{"type": "subtractive", "length": gp["g_each"], "coordinates": [0.0, (j + 0.5) * c["wl"] / gp["k"] - c["wl"] / 2, 0.0]}
+            for j in range(gp["k"])] + [{"type": "residual", "length": 5e-6, "coordinates": [c["a"] + c["ws"], 0.0, 0.0]}]
+    return {"type": "two-piece set", "material": material or CC_MAT[r["mat"]]["om"], "shape": shape, "numberStacks": 1, "gapping": gaps}
+
+
 def om_cc_ind(P, r, i_lf, i_hf, f=None):
     """OpenMagnetics on one coil of the two-coil C-core: N/2 turns on column 0 with that leg's gaps (k x g_each), the other leg
     ungapped -> same flux density as the part; OM's winding loss x 2 = the part, core loss = the part, L_OM x 2 = L"""
     f = f or P["f"]
-    c, gp, n_c = r["core"], r["gap"], r["N"] // 2
+    n_c = r["N"] // 2
     try:
-        shape = {"family": "c", "type": "custom", "name": f"C custom {r['mat']} {c['a']*1e3:.0f}x{c['H']*1e3:.0f}",
-                 "magneticCircuit": "open", "dimensions": {"A": 2 * c["a"] + c["ws"], "B": c["a"] + c["wl"] / 2, "C": c["H"],
-                                                           "D": c["wl"] / 2, "E": c["ws"]}}
-        gaps = [{"type": "subtractive", "length": gp["g_each"], "coordinates": [0.0, (j + 0.5) * c["wl"] / gp["k"] - c["wl"] / 2, 0.0]}
-                for j in range(gp["k"])] + [{"type": "residual", "length": 5e-6, "coordinates": [c["a"] + c["ws"], 0.0, 0.0]}]
-        core_fd = {"type": "two-piece set", "material": CC_MAT[r["mat"]]["om"], "shape": shape, "numberStacks": 1, "gapping": gaps}
+        core_fd = _om_cc_core_fd(r)
         w = r["w"]
         if r["wire"][0] == "litz":
             n_str = int(w["a_cu"] / (math.pi * r["wire"][1] ** 2 / 4))
@@ -4983,6 +5006,67 @@ def _opt_rows(pk):
                  cost_usd=r["cost"]["total_usd"], cost_5k_usd=r["cost"]["build_5k_usd"]) for k, r in pk.items()]
 
 
+L1_TRAJ_I = tuple(range(0, 705, 5))      # A: the L1 trajectory grid, past the backup path's 600 A ceiling (review R2-03)
+OM_BSAT_MAT = "Metglas 2605SA1"            # the MAS material whose saturation flux density OpenMagnetics uses for this tape
+
+
+def pcs_l1_trajectory(r, rq):
+    """incremental L(I) of the built L1 along the whole fault trajectory (review R2-03 of a427981, 2026-10-07), own tape model
+    (cc_flux: B_sat 1.40 T hot / 1.56 T at 25 C, mu_i): the nominal part, the +5 % part (gap ground -5 %: the earliest knee - the
+    part the flux rule uses), the -10 % part (0.9 x nominal, as L_inc_at_minus10pct_part_H) and their lower envelope (the -10 %
+    level with the +5 % part's knee: the curve sim/pcs_design.py's protection chain integrates); floor L_air (the winding in air once
+    the tape is saturated).  OpenMagnetics holds no DC-bias curve for this tape (MAS mu(H): 1 for 2605SA1, a flat 80 000 for the
+    substitute YNB), so its share is the saturation flux density it uses (MAS, B at 80 A/m) in its I_sat = B_sat N A_e / L"""
+    c, N, L, m = r["core"], r["N"], rq["L"], CC_MAT[r["mat"]]
+    gp_hi = cc_gap(c, N, 1.05 * L)
+    curve = lambda g, bs: [max(cc_L_of_I(c, N, g, i, r["L_air"], bs)[0], r["L_air"]) for i in L1_TRAJ_I]   # noqa: E731
+    hot, hot_hi, cold, cold_hi = (curve(g, bs) for g, bs in ((r["gap"], m["bsat_hot"]), (gp_hi, m["bsat_hot"]),
+                                                              (r["gap"], m["bsat25"]), (gp_hi, m["bsat25"])))
+    env = [(1 - rq["tol"]) * L * x / hot_hi[0] for x in hot_hi]
+
+    def knee(lc):                                                    # first crossing of 50 % of the curve's own 0 A value
+        for k in range(1, len(lc)):
+            if lc[k] < 0.5 * lc[0]:
+                return L1_TRAJ_I[k - 1] + (lc[k - 1] - 0.5 * lc[0]) / (lc[k - 1] - lc[k]) * (L1_TRAJ_I[k] - L1_TRAJ_I[k - 1])
+        return None
+
+    def i_at_b(b, bs=None):                                          # current at which the +5 % part's tape reaches b
+        lo, hi = 0.0, 2000.0
+        for _ in range(60):
+            mid = 0.5 * (lo + hi)
+            lo, hi = (mid, hi) if abs(cc_flux(c, N, gp_hi, mid, bs)[0]) < b else (lo, mid)
+        return 0.5 * (lo + hi)
+    b_om, om_note = None, "OpenMagnetics not available"
+    if HAVE_OM:
+        try:
+            core = PyOM.calculate_core_data({"functionalDescription": _om_cc_core_fd(r, OM_BSAT_MAT)}, True)
+            b_om = {t: PyOM.get_core_temperature_dependant_parameters(core, t)["magneticFluxDensitySaturation"] for t in (25.0, 100.0)}
+            om_note = (f"MAS '{OM_BSAT_MAT}': B_sat {b_om[25.0]:.2f} T at 25 C, {b_om[100.0]:.2f} T at 100 C (its B at 80 A/m - the data "
+                       "sheet's guaranteed 'induction at 80 A/m >= 1.35 T', no temperature data in MAS)")
+        except Exception as e:
+            om_note = f"OpenMagnetics call failed: {type(e).__name__}: {str(e)[:200]}"
+    i_sat_om = b_om[100.0] * N * c["Ae"] / (1.05 * L) if b_om else None
+    return dict(
+        basis=("own tape model of sim/magnetics.py (cc_flux, tanh B-H with mu_i and B_sat, gap with McLyman fringing), CALCULATED; "
+               "hot = B_sat 1.40 T (100 C, ESTIMATE from 1.56 T at 25 C), cold = 1.56 T (data sheet, 25 C); the +5 % part is the gap "
+               "ground 5 % short (the flux rule's part), the -10 % part 0.9 x nominal (the inductance rule's part), the envelope the "
+               "-10 % level with the +5 % knee (the lower bound of every tolerance corner, used by the protection chain); floor L_air "
+               f"{r['L_air']*1e6:.1f} uH"),
+        I_A=list(L1_TRAJ_I), L_air_H=r["L_air"],
+        hot_100C=dict(nominal_H=hot, minus10pct_part_H=[(1 - rq["tol"]) * x for x in hot], plus5pct_part_H=hot_hi, envelope_H=env),
+        cold_25C=dict(nominal_H=cold, plus5pct_part_H=cold_hi),
+        B_sat_T={"hot_100C": m["bsat_hot"], "25C": m["bsat25"], "openmagnetics_MAS": b_om, "openmagnetics_note": om_note},
+        I_knee_50pct_A={"hot nominal": knee(hot), "hot +5 % part": knee(hot_hi), "hot envelope": knee(env),
+                        "25 C nominal": knee(cold), "25 C +5 % part": knee(cold_hi)},
+        I_flux_rule_A=i_at_b(0.98 * m["bsat_hot"]), flux_rule="+5 % part, B <= 0.98 B_sat(100 C) (the rule the core is sized to at 450 A)",
+        I_sat_A={"own: knee of the +5 % part (L = 50 %), hot": knee(hot_hi),
+                 "OpenMagnetics MAS B_sat, +5 % part (I_sat = B_sat N A_e / L)": i_sat_om},
+        type_test=("L(I) to 600 A, pulsed (single half-sine or triangular pulse, I2t inside the winding's adiabatic rating), at 25 C and with "
+                   "the core at >= 100 C; acceptance: L_inc >= the envelope_H column at every point up to the flux-rule current "
+                   f"({i_at_b(0.98 * m['bsat_hot']):.0f} A, which every gates-off current of the protection chain must stay below); beyond "
+                   "it the curve records where the knee is (not an acceptance limit)"))
+
+
 PCS_TITLES = {"pcs_l1": "PCS-P125 converter-side filter inductor L1 (and four-wire neutral inductor L_N)",
               "pcs_l2": "PCS-P125 grid-side filter inductor L2", "pcs_cm_choke": "PCS-P125 AC common-mode choke"}
 
@@ -5008,7 +5092,9 @@ def pcs_designs(ins):
     lev1 = [dict(label="winding - core/PE, basic (DC side)", u_w=1000.0, imp=6000.0, ac=2200.0, pd_test=1500.0,
                  note="pcs_spec inductors.L1.insulation (ARCHITECTURE-PCS section 3)")]
     tests1 = ("winding-core AC 2.2 kV rms 1 s (60 s type), PD <= 10 pC at 1.5 kV pk; L at 0 A and at 300 A DC bias; R_dc",
-              "impulse 6 kV 1.2/50; L(I) to 450 A (pulsed); thermal run at 198 A + 32 kHz ripple in the duct air")
+              "impulse 6 kV 1.2/50; L(I) to 600 A (pulsed) at 25 C and with the core at >= 100 C, acceptance: L_inc >= "
+              "electrical.L_trajectory envelope_H up to its flux-rule current, the knee recorded beyond (review R2-03; was 'to 450 A'); "
+              "thermal run at 198 A + 32 kHz ripple in the duct air")
     prev1 = dict(study_selected_part=sel1, study_usd_cat=study["L1"]["unit_cat_usd"], study_usd_5k=study["L1"]["unit_5k_usd"],
                  basis=study["L1"]["basis_cat"], loss_budget_note=P["L1"]["loss_budget_W"].get("note"))
     sens_rows = []
@@ -5036,7 +5122,11 @@ def pcs_designs(ins):
         amorphous_loss="The amorphous options use Metglas' 20-50 kHz fit quoted from memory (Yunlu's amorphous C-core curve is an image); "
                        "OpenMagnetics (MAS 2605SA1) gives about 0.6 x that - the design takes the higher",
         flux_driver="Core size is set by the hardware-trip requirement L(450 A) >= 50 % (flux linkage 1.05 L x 450 A below B_sat at 100 C), "
-                    "not by the ripple: with a tape core that saturates sharply the 450 A point must stay below the knee")
+                    "not by the ripple: with a tape core that saturates sharply the 450 A point must stay below the knee",
+        trajectory="electrical.L_trajectory (review R2-03): L(I) to 700 A for the nominal, +5 % and -10 % parts, hot and at 25 C, the "
+                   "knee (50 % L0) of each and the current of the flux rule; sim/pcs_design.py integrates the envelope from each trip "
+                   "band's top over that path's response (pcs_spec protection_chain) - the gates-off currents must stay below the "
+                   "flux-rule current (checked here, pcs_l1_traj)")
     opts = _opt_rows(pk1)
     extra = dict(sensitivity=sens_rows, references=refs, notes=notes,
                  sensitivity_basis=f"each L re-optimised on the same grid and rules (ripple and HF current x {L1u}/L, the L(I) minima x "
@@ -5045,6 +5135,7 @@ def pcs_designs(ins):
                  selection=dict(source="pcs_spec.json inductors.L1.selected_part (sim/pcs_tradeoff.py)", part=sel1["part"],
                                 study_figures={k: v for k, v in sel1.items() if k != "part"}))
     d1 = _cc_json(P, rq1, rec, "pcs_l1", l1_ins, lev1, tests1, prev1, opts, extra)
+    d1["electrical"]["L_trajectory"] = pcs_l1_trajectory(rec, rq1)     # review R2-03: the whole fault trajectory, not 450 A
     rq2, rows2, pk2 = pcs_l2_options(P)
     sel2 = P["L2"]["selected_part"]
     rec2 = pcs_selected(P, rq2, sel2["part"])               # the inverter study's selection (pcs_spec inductors.L2.selected_part)
@@ -5136,6 +5227,21 @@ def pcs_checks(pc):
             chk(f"{tag}_om_L", f"{tag} L own (gap set) vs OpenMagnetics", pct(rel(rq["L"], lom)), "<= 15 %", abs(rel(rq["L"], lom)) <= 0.15)
     chk("pcs_l1_sens", "L1 sensitivity has a feasible design at every inductance", _v([k for k, v in pc["sens"].items() if v["picks"]]),
         _v(list(pc["sens"])), all(v["picks"] for v in pc["sens"].values()))
+    tj = pc["files"]["pcs_l1"]["electrical"]["L_trajectory"]
+    chk("pcs_l1_traj_grid", "L1 trajectory tabulated through the backup path (review R2-03)", f"0-{max(tj['I_A'])} A, "
+        f"flux-rule current {tj['I_flux_rule_A']:.0f} A, knee hot +5 % {tj['I_knee_50pct_A']['hot +5 % part']:.0f} A",
+        ">= 650 A", max(tj["I_A"]) >= 650)
+    pcn = pc["P"]["spec"].get("protection_chain")                      # sim/pcs_design.py (it reads this file's trajectory)
+    if pcn:
+        ends = pcn["gates_off_current_A"]
+        env = {k: float(np.interp(i, tj["I_A"], tj["hot_100C"]["envelope_H"])) for k, i in ends.items()}
+        chk("pcs_l1_traj", "L1 at every gates-off current of the protection chain (pcs_spec): +5 % part below the flux rule, "
+            "envelope >= 50 % of L0", _v({k: f"{i:.0f} A / {env[k]*1e6:.0f} uH" for k, i in ends.items()}),
+            f"<= {tj['I_flux_rule_A']:.0f} A, >= {0.5 * pc['rq1']['L'] * 1e6:.0f} uH",
+            all(i <= tj["I_flux_rule_A"] and env[k] >= 0.5 * pc["rq1"]["L"] for k, i in ends.items()))
+    else:
+        chk("pcs_l1_traj", "L1 at the gates-off currents of the protection chain", "pending: pcs_spec has no protection_chain yet "
+            "(run sim/pcs_design.py, then this script)", "-", True)
     cm = pc["cm"]
     chk("pcs_cm_L", f"AC CM choke L at {pc['P']['f']/1e3:.0f} kHz at -25 % mu", f"{cm['L_min']*1e6:.0f} uH", f">= {cm['L_req']*1e6:.0f} uH", cm["L_min"] >= cm["L_req"])
     bt = cm["b_lf"] + cm["b_dm"] * 198 * math.sqrt(2) / pc["P"]["L1"]["current"]["peak_A"]["200 ms"] + cm["b_hf"]
@@ -5174,6 +5280,7 @@ def pcs_report(pc, C):
          f"{n * (P['L1']['selected_part']['P_180A_750V_W'] + P['L2']['selected_part']['P_180A_W']):.0f} W. The parts on file are the study's "
          f"selections (pcs_spec inductors.*.selected_part, {P['f']/1e3:.0f} kHz, L1 {P['L1']['inductance_uH']} uH, L2 {P['L2']['inductance_uH']} uH).", "",
          f"### L1 options ({P['L1']['inductance_uH']} uH, {P['f']/1e3:.0f} kHz)", "", _rows(pc["files"]["pcs_l1"]["options"]), "",
+         *[x.replace("## 2a. ", "### L1 - ") for x in traj_lines(pc["files"]["pcs_l1"]["electrical"]["L_trajectory"])],
          "### L1 sensitivity to its inductance (filter re-optimisation input; values not changed here)", "",
          _rows([dict(L_uH=x["L_uH"], pick=x["pick"], ripple_pp_A=round(x["ripple_pp_A"], 1), P_budget_W=x["P_budget_W"], P_worst_W=x["P_worst_W"],
                      T60=x["T_hot_60_C"], kg=x["mass_kg"], usd=x["cost_usd"], usd_5k=x["cost_5k_usd"]) for x in pc["files"]["pcs_l1"]["sensitivity"]]), "",

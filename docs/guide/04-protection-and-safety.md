@@ -209,23 +209,35 @@ port A (about 7.4 kA peak onto the empty bank, a weld likely) — that needs the
 ## 🛡️ What differs on the inverter (PCS-P125)
 
 The inverter reuses the PV latch, the hardware / firmware split of [D-050](../requirements/DECISIONS.md) and the lean
-battery port; the review of 2026-10-05 changed its protection in five places ([D-067](../requirements/DECISIONS.md);
+battery port; the review of 2026-10-05 changed its protection in five places ([D-067](../requirements/DECISIONS.md)) and
+the re-check R2 of 2026-10-07 in six more ([D-078](../requirements/DECISIONS.md), register
+[review_r2.csv](../../gen/data/review_r2.csv) R2-02, R2-03, R2-06, R2-07, R2-13) — all from the
 [PCS-PWR](../../hardware/PCS-PWR/outputs/PCS-PWR_design_check.txt) and
-[PCS-CTL](../../hardware/PCS-CTL/outputs/PCS-CTL_design_check.txt) design checks, calculated):
+[PCS-CTL](../../hardware/PCS-CTL/outputs/PCS-CTL_design_check.txt) design checks and
+[pcs_spec.json](../../sim/out/pcs_design/pcs_spec.json) `protection_chain`, calculated:
 
 | Protection | As drawn now | Why |
 |---|---|---|
-| Phase current | window 426.0–485.5 A (±455 A nominal) on the frozen Sinomags STK-250HO/4, gates off 3.47 µs → 516 A; CMPSS backup 492.6–571.4 A, 2.86 µs → 596.5 A against the 600 A inductor limit | the sensor was a quotation row with 4.0 mV/A assumed |
-| DC-link over-voltage | 978–1,048 V on the bus, 508–569 V on the lower half (comparators); **upper half by firmware**: V<sub>B</sub> − V<sub>A</sub> ≥ 540 V (527–553 V) within ≤ 72 µs, a shorted-half check and a slow imbalance limit (\|V<sub>A</sub> − V<sub>B</sub>/2\| > 0.07 V<sub>B</sub> for 1 s, controlled stop) | the comparators see the bus and the lower half only; every upper-half mechanism is slow except a shorted lower-half capacitor, which only the DC contactor's ~10 ms release ends — a comparator would gain nothing (residual second-failure stress of about 20 ms) |
-| Desaturation | 2 × US1MH (was 3): 6.41–9.37 V; margin 1.08 at the 200 ms overload peak at the predicted 161 °C junction, 1.00 at 175 °C; a hard short off 1.28 µs after it starts | the three-diode band (5.43 V lowest) lay below the hot overload on-state voltage |
+| Phase current, local window | 426.0–485.5 A (±455 A nominal) on the frozen Sinomags STK-250HO/4. The gates go off at **520.5 A**, not at the window top: the band top plus 1,050 V across L1 on its hot envelope (9.84 A/µs at the top) over the chain 2.000 (sensor step, maximum) + 0.130 (power-board RC) + 0.290 (comparator node RC) + 0.830 (TLV9024, 2 × typical, ASSUMED) + 0.018 (logic) + 0.118 (AHCT1G08 + NSI6651) + 0.156 µs (six gates turning off at R<sub>G,off</sub> 8.75 Ω) = **3.54 µs** | the review's screen used a constant 120 µH and the PV channel's 52 ns turn-off (515.9 A); the chain on the L1 trajectory gives 520.5 A (R2-02; [D-078](../requirements/DECISIONS.md) records 520.8 A over 3.572 µs with the comparator at 0.860 µs) |
+| Turn-off at the gates-off current | R<sub>G,off</sub> **8.75 Ω** per device (was 7.5 Ω; now equal to R<sub>G,on</sub>): the leg deck at 520.5 A / 1,050 V peaks at **1,437 V** (387 V overshoot), 1,438 V at the over-voltage corner (1,071 V bus, 485.5 A), against 0.85 × 1,700 V = 1,445 V; the deck admits up to **533.6 A**; the window top may rise to about 498 A before the chain reaches that | at 7.5 Ω the same current peaked at 1,457 V — the earlier sweep had run at the 450 A window nominal with KEMET film values. The change costs nothing on the BOM: device loss 1,390 → 1,406 W at 125 kW / 750 V, peak efficiency 98.99 → 98.98 %, turn-off 156 ns inside the 185 ns dead-time minimum, dv/dt 64 → 58 V/ns |
+| Phase current, CMPSS backup | the controller's comparators at DAC ±1,075 codes about the nulled idle zero (0.4285 A per code) = ±460.7 A → **423.9–497.5 A** at tolerances, inside the requirement **417.3–504.1 A**; 2.97 µs → gates off at 526.9 A (about 1,441 V, an estimate between deck points); the band overlaps the window and whichever trips first turns the gates off; the discrete window stays the controller-independent layer | drawn before at 492.6–571.4 A, where a backup trip near the band top let the current run past the L1 knee toward about 866 A unless DESAT caught it (R2-03). What the ceiling protects: first the turn-off peak (533.6 A), then the L1 knee (flux rule 566 A, hot knee 578 A) — **not** the device's pulse rating (6 × 188 A / 1.1 = 1,025 A per switch for 100 µs, a thermal on-state rating) |
+| DC-link over-voltage | 978–1,048 V on the bus, 508–569 V on the lower half (comparators); the firmware ADC-PPB backup at 1,035 V nominal, 1,019–1,051 V (lowered from 1,045 V by [D-078](../requirements/DECISIONS.md): the deck's bus limit at gates-off is now 1,445 − 367 = 1,077 V); **upper half by firmware**: V<sub>B</sub> − V<sub>A</sub> ≥ 540 V (527–553 V) within ≤ 72 µs, a shorted-half check and a slow imbalance limit (\|V<sub>A</sub> − V<sub>B</sub>/2\| > 0.07 V<sub>B</sub> for 1 s, controlled stop) | the comparators see the bus and the lower half only; every upper-half mechanism is slow except a shorted lower-half capacitor, which only the DC contactor's ~10 ms release ends — a comparator would gain nothing (residual second-failure stress of about 20 ms) |
+| Desaturation | 2 × US1MH (was 3): 6.41–9.37 V; margin 1.07 at the 200 ms overload peak at the predicted 162 °C junction, 1.00 at 175 °C; a hard short off 1.28 µs after it starts | the three-diode band (5.43 V lowest) lay below the hot overload on-state voltage |
 | DC-port fault coordination | the 387–413 A window opens the contactor up to its 967–1,033 A hold-off band; 0.97–2.01 kA nothing clears quickly; the 400 A links clear 2.0–7.4 kA; above 7.5 kA prospective the contactor's short-circuit capacity (8 kA for 6 ms, 10 kA for 1.5 ms) is exceeded | an I²t comparison at one point (290 against 384 kA²s) did not bound the contactor |
 | Discharge | 4 × 93.1 kΩ per half: 60 V after 14.7 min worst case with the full 409.4 µF and the AC filter capacitors; label "wait 15 min" | the earlier bleeders were sized on the 350 µF bank alone (17.0 min with the real network) |
+| SiC acceptance, absolute | **R<sub>DS(on)</sub> ≤ 40.0 mΩ per device** at 25 °C (V<sub>GS</sub> 18 V, 38 A pulsed), in the same incoming measurement as the ±5 % matching rule; at the limit the 200 ms tier reaches 6.27 V at 162 °C against 6.39 V (the lowest DESAT trip with the string at ≥ 45 °C, 6.71 V, over the stated margin 1.05). A switch with any device above the limit is not scrapped: its module runs derated firmware tiers — 200 ms and 2 min both 209 A — a parameter per lot | the matching rule bounded the share, not the level: six 52 mΩ (data-sheet maximum) parts would reach 9.68 V at 198 °C in the 200 ms tier (R2-07). 40.0 mΩ equals the data-sheet typical, so Sichain's distribution or a ≤ 40 mΩ bin is an RFQ item. Short-circuit survival is a separate statement and stays a hardware release gate (risk C2) |
+| Residual-current monitor | an RFQ contract, ASSUMED until a part is chosen: type B around every live conductor; firmware trips at ≥ 1,250 mA continuous within 0.3 s and at 30 / 60 / 150 mA steps within 0.3 / 0.15 / 0.04 s; range ±2.0 A; output 2.50 V + 1.00 V/A (0.5–4.5 V), a sensor fault drives it to ≤ 0.25 V or ≥ 4.75 V within 100 ms; a 50 mA DC test winding driven from GPIO21; 5 V ≤ 50 mA; on PCS-CTL 100 Ω + 10.0 k / 13.0 k (0.5628 V/V, 1.30 mA per ADC step), fault window ≤ 255 / ≥ 3,586 codes | the sensor was a quotation row without an interface (R2-13); the class figures are IEC 62109-2 from memory; the sensor's output impedance (≤ 44 Ω for the fault window) belongs in the RFQ |
+| AC contactor coils | one contract per contactor: **20 W pull-in for ≤ 100 ms, 4 W hold**, one coil pulling in at a time; live 24 V 22.9 W of 30 W running and 38.9 W of 48 W (1 s) at the synchronised close; four-wire 26.2 / 42.2 W | the budget, the BOM text and the self-check carried different coil figures (R2-06); the 24 / 5.5 W the auxiliary would allow is margin to the contract (4 / 1.5 W), not the contract |
 
 **Installation requirements of the inverter's DC port** (in addition to the PV module's): the battery-side protection
 interrupts any current of **0.97–2.01 kA within 2.5 s** (25 s at 1 kA), and either keeps the prospective short-circuit
 current at the PCS DC terminals **≤ 7.5 kA** (L/R ≤ 1 ms) or interrupts above it within the contactor's short-circuit
 capacity ([port report §14](../../sim/out/port_design/report.md)). The fuse's chart tail does not match its tabulated I²t
-— a quotation or test item.
+— a quotation or test item. Every installation condition of the modules, each with the generated line it rests on, is
+collected in [INSTALLATION.md](../requirements/INSTALLATION.md); since [D-079](../requirements/DECISIONS.md) that includes
+the inverter's system rules — a DC/DC on a battery-less bus cuts its current within 0.51 ms of an AC load rejection, the
+CV-mode DC/DC power is limited by the grid's short-circuit ratio, and the ride-through fallback's 8.07 MVA fault level per
+125 kW module.
 
 ## 🎛️ Sequences
 
@@ -334,9 +346,15 @@ Stated plainly, from [ARCHITECTURE-COSTFIRST.md §6.4 and §12](../requirements/
   a rated function must open its own DC switching devices.
 - **Device short circuits beyond the assumed withstand.** No Chinese maker publishes a short-circuit rating; the 2.0 µs
   used for the DESAT timing is an assumption, and each gate-drive preset prints what the maker must confirm (risk C2).
+  The device's pulse rating (188 A for 100 µs) is a thermal on-state rating, not a short-circuit or turn-off rating:
+  survival stays a release gate for a test on samples ([D-078](../requirements/DECISIONS.md)).
+- **Turn-off above the published switching data.** Sichain's switching data stop at 70 A per device; the inverter's
+  window trip turns off about 95 A on the hottest device at 1,437 V calculated, on an estimated layout inductance — a
+  double-pulse test near 520 A / 1,050 V or the extracted layout decides (risk C10).
 - **Data the makers do not publish:** the contactor's making current at 1000 V onto an empty bank (~0.5 kA estimated,
   140 A at 20 V published), its coil-to-mounting insulation, the aR fuse's L/R and let-through, the TMR sensors' dv/dt
-  immunity at 124 V/ns.
+  immunity at 124 V/ns; on the inverter the AC coil module, the residual-current monitor (both now RFQ contracts) and the
+  L1 core's hot saturation flux (1.40 T estimated; the first-article L(I) test to 600 A decides, risk D11).
 - **Cold starts below −10 °C** are outside the fans' rating (PV-20 asks −30 °C): the firmware keeps the fans off and
   limits the power to a passive-cooling table (19.2 / 17.5 / 15.5 kW at −30 / −20 / −10 °C inlet for PV-P75, estimates
   ±50 %, [D-072](../requirements/DECISIONS.md)); full power below −10 °C is not available (R-05).

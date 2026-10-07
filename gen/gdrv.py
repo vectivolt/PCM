@@ -752,12 +752,14 @@ for _d, _x in ((GM4, dict(vth_typ=2.5, i_sc=2 * 400.0, v_rated=1200.0, v_bus_sc=
                           t_resp=1.0e-6, r_sb=22.0, deadtime=DEADTIME_PV, vgs_dc=(-10.0, 23.0)))):   # IDM 200 A, VGS(th) 3.2 typ
     _d.update(_x)
 # PCS-P125 inverter (D-053, D-060; sim/out/pcs_design/pcs_spec.json commutation_and_gate_drive): one channel drives 6 x
-# SG2M040170HJ, R_G,on 8.75 / R_G,off 7.5 ohm per device ('chosen'), +18 / -3.5 V from the per-phase transformer (bias
+# SG2M040170HJ, R_G,on 8.75 / R_G,off 8.75 ohm per device ('chosen'; R_G,off was 7.5 ohm until review R2-02 of 2026-10-07 - a
+# trip-chain constant: at the gates-off current of the drawn trip chain, 521 A, 7.5 ohm turns off at 1457 V against 1445 V, 8.75 ohm
+# at 1437 V; pcs_spec protection_chain), +18 / -3.5 V from the per-phase transformer (bias
 # 'ext': not part of the UCC14241 rail sizing above). Turn-off: 6 x 2.2 A is above the NSI6651's 10 A, so 2 PNP followers
 # (ZXTP25040DFH, 3 gates each; V_EB 1.2 V at ~6.6 A ASSUMED from VBE(sat) <= 1.0 V at 3 A, hFE >= 15 at 6.6 A ASSUMED from
 # >= 30 at 3 A) sink it; turn-on stays on OUTH (7 A). Six clamp-FET gates (33 nC): inverter ZXTP25040DFH (hFE >= 200 at
 # 1 A) and release ZXTN25040DFH (>= 300 at 1 A), 1 A each ASSUMED (base currents 5.5 / 10 mA allow more). t_off scaled
-# from SC40 by (R_off + R_G,int) / (2.5 + 1.4) ohm (ESTIMATE, no switching data at 7.5 ohm). DESAT margin to the on-state
+# from SC40 by (R_off + R_G,int) / (2.5 + 1.4) ohm (ESTIMATE, no switching data at 8.75 ohm). DESAT margin to the on-state
 # voltage is the board's check (v_on None here: the inverter's overload peak sits near the trip, PCS-PWR design check).
 # DESAT string of the PCS preset (PCM-07, D-061 OPEN 1): 2 x US1M instead of 3 - one V_F more threshold, so that the 200 ms overload
 # peak (66 A per device, pcs_spec desat.onstate_200ms_overload) does not reach it.  V_F of one diode at the NSI6651 I_CHG (0.35-0.65
@@ -768,7 +770,7 @@ for _d, _x in ((GM4, dict(vth_typ=2.5, i_sc=2 * 400.0, v_rated=1200.0, v_bus_sc=
 # Blocking 2 x 1000 V against the 1445 V device limit of the 1050 V bus (x1.38; the PV rule 1.5 x 1700 V stays for the 1100 V PV
 # bus).  The PV presets keep DESAT_CLASS (3 x US1M).
 DESAT_PCS = dict(n_dhv=2, rs=100.0, c_blk=None, vf=(0.30, 1.01), vf_t=(-30.0, 125.0), vf_tc=-2e-3)
-SC40X6 = dict(SC40, name="6 x SG2M040170HJ", n=6, r_gate=(8.75, 7.5), t_off=SC40["t_off"] * (7.5 + 1.4) / (2.5 + 1.4),
+SC40X6 = dict(SC40, name="6 x SG2M040170HJ", n=6, r_gate=(8.75, 8.75), t_off=SC40["t_off"] * (8.75 + 1.4) / (2.5 + 1.4),
               v_on=None, v_bus_sc=1050.0, bias="ext", sink_buffer=2, buf=dict(veb=1.2, icm=9.0, hfe=15.0), i_inv=1.0,
               i_rel=1.0, inv=("ZXTP25040DFH", "330R"), rel=("ZXTN25040DFH", "1.5k"), deadtime=(3.65e3, 100e-12),
               fw_dt=300e-9, c_gs=1e-9, desat=DESAT_PCS)

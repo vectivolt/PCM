@@ -233,6 +233,33 @@ surrogate) against 176 A and 3.1–3.6 A rms against 3.9 A at 85 °C. Neither ca
 (−104 V inside the bank in the bolted-short study) — open. Source: [PV-PWR design check](../../hardware/PV-PWR/outputs/PV-PWR_design_check.txt)
 "Leg commutation", [review_pcm.csv](../../gen/data/review_pcm.csv) PCM-18.</sub>
 
+**The inverter's leg at its trip current** ([D-078](../requirements/DECISIONS.md), review finding R2-02; ngspice,
+calculated). PCS-P125 uses the same device six per switch, on this leg repeated per device pair (drawn Jianghai films
+and RC dampers, bus and board inductance × 1.5). Its turn-off gate resistor is now chosen at the current the drawn trip
+chain actually turns off — **520.5 A**, the window top 485.5 A plus 3.54 µs on the L1 inductance envelope — instead of
+the 450 A window nominal, where the earlier sweep had also still carried the KEMET film values:
+
+| R<sub>G,off</sub> per device | Turn-off (ns) | Gates off at (A) | V<sub>DS</sub> peak at 1,050 V (V) | At the over-voltage corner (V) | Within 1,445 V |
+|---|---:|---:|---:|---:|:---:|
+| 7.5 Ω (drawn until D-078) | 137 | 520.3 | 1,457 | 1,456 | no |
+| **8.75 Ω (chosen)** | 156 | 520.5 | **1,437** | 1,438 | yes |
+| 10 Ω | 175 | 520.7 | 1,419 | 1,422 | yes |
+
+<sub>Over-voltage corner: 1,071 V bus at the over-voltage trip's gates-off, 485.5 A. The chosen value admits up to
+533.6 A on the deck (bisection), raises the device loss by 16 W at 125 kW / 750 V (peak efficiency 98.98 %) and turns
+off in 156 ns, inside the 185 ns dead-time minimum. Open: the × 1.5 layout inductance is an estimate (a double-pulse test
+near 520 A / 1,050 V, risk C10), Sichain publishes no turn-off data above 70 A per device, and 8.75 Ω is not an E96
+value. Source: [pcs_design report (e)](../../sim/out/pcs_design/report.md), [pcs_spec.json](../../sim/out/pcs_design/pcs_spec.json)
+`protection_chain`; the trip chain itself is on [04 · Protection](04-protection-and-safety.md#-what-differs-on-the-inverter-pcs-p125).</sub>
+
+**Device acceptance on the inverter** (review finding R2-07, the SG2M040170HJ line of the PCS-PWR BOM): besides the
+±5 % matching of the six devices of a switch, each device must measure **R<sub>DS(on)</sub> ≤ 40.0 mΩ** at 25 °C
+(V<sub>GS</sub> 18 V, 38 A pulsed) in the same incoming test — the data-sheet typical, because a switch of six
+data-sheet-maximum parts (52 mΩ) would reach 9.68 V at 198 °C in the 200 ms overload tier, far above the 6.39 V DESAT
+floor (calculated). A switch with a device above the limit is not scrapped: its module runs the 200 ms and 2-minute
+tiers at 209 A, a firmware parameter per lot. Sichain's distribution, or a ≤ 40 mΩ bin, is a request-for-quotation item
+(risk F4). The PV module's outputs did not change with D-078.
+
 ## 🔬 Losses, efficiency and temperature
 
 <img src="../assets/img/design_phase_losses.png" width="820" alt="Loss of one phase at six full-power operating points, split by mechanism">

@@ -293,7 +293,7 @@ Groups are assigned by rule from the line's description and the board that carri
 
 | group | catalogue USD | % of BOM | USD at 5000 units | lines | of which estimated |
 |---|---|---|---|---|---|
-| resistors + other board parts | 614.18 | 38.7 | 527.31 | 156 | 134 |
+| resistors + other board parts | 604.18 | 38.1 | 518.81 | 155 | 133 |
 | protection (fuses, contactors, SPD, TVS) | 254.22 | 16.0 | 207.73 | 24 | 15 |
 | power semiconductors | 185.05 | 11.7 | 157.29 | 2 | 1 |
 | connectors + harness | 149.59 | 9.4 | 127.19 | 15 | 9 |
@@ -303,7 +303,7 @@ Groups are assigned by rule from the line's description and the board that carri
 | gate drive | 41.72 | 2.6 | 29.99 | 17 | 6 |
 | control + communications | 35.30 | 2.2 | 34.59 | 27 | 5 |
 | magnetics | 32.22 | 2.0 | 24.62 | 8 | 7 |
-| auxiliary supply | 15.45 | 1.0 | 14.87 | 12 | 1 |
+| auxiliary supply | 25.45 | 1.6 | 23.37 | 13 | 2 |
 | **total BOM** | **1587.79** | 100 | **1348.18** | 334 | |
 | PCB / mechanics outside the BOM (rough, not in the BOM total) | 297.49 | | 250.44 | | all assumed |
 
@@ -407,7 +407,7 @@ Groups are assigned by rule from the line's description and the board that carri
 
 | group | catalogue USD | % of BOM | USD at 5000 units | lines | of which estimated |
 |---|---|---|---|---|---|
-| resistors + other board parts | 765.39 | 39.8 | 657.31 | 154 | 132 |
+| resistors + other board parts | 753.39 | 39.2 | 647.11 | 153 | 131 |
 | protection (fuses, contactors, SPD, TVS) | 268.76 | 14.0 | 220.03 | 26 | 17 |
 | power semiconductors | 245.90 | 12.8 | 209.02 | 2 | 1 |
 | connectors + harness | 180.59 | 9.4 | 153.54 | 15 | 9 |
@@ -417,7 +417,7 @@ Groups are assigned by rule from the line's description and the board that carri
 | sensing | 52.00 | 2.7 | 44.20 | 9 | 5 |
 | control + communications | 37.72 | 2.0 | 37.00 | 27 | 5 |
 | magnetics | 34.40 | 1.8 | 26.08 | 8 | 7 |
-| auxiliary supply | 16.37 | 0.9 | 15.79 | 12 | 1 |
+| auxiliary supply | 28.37 | 1.5 | 25.99 | 13 | 2 |
 | **total BOM** | **1924.28** | 100 | **1634.70** | 335 | |
 | PCB / mechanics outside the BOM (rough, not in the BOM total) | 327.23 | | 275.33 | | all assumed |
 

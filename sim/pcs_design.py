@@ -7,10 +7,12 @@ Every value here is CALCULATED (datasheet-based averaged loss model, analytic fi
 nothing is measured or bench-validated.  Steps (in the order the script runs them):
   a  topology / device screen incl. the cosmic-ray failure rate     b  loss + thermal map over the envelope
   c  switching frequency + LCL filter, harmonic spectrum, THDi       d  DC link
-  e  commutation (ngspice), gate drive, dead time, short circuit     f  AC / DC port, common mode and leakage
+  e  commutation (ngspice) at the trip chain's gates-off current       f  AC / DC port, common mode and leakage
+     (protection chain), gate drive, dead time, short circuit
   g  cost (catalogue and 5,000 units)                                then: hand-over lists, report, self-check
 """
 import csv
+import hashlib
 import json
 import math
 import os
@@ -1291,7 +1293,117 @@ def desat_onstate(D, rb):
                      "R_DS(on) Table 4 p4 typical (40 / 88 mOhm at 25 / 175 C, 38 A) along the Fig. 4/6 curve, x the p6 Fig. 5 current "
                      "factor; 'max' = the 52 mOhm data-sheet maximum at 25 C scaled the same way (no hot maximum is published)")}
     SPEC["commutation_and_gate_drive"]["desat"]["onstate_200ms_overload"] = res
+    SPEC["commutation_and_gate_drive"]["desat"]["rds_acceptance"] = rds_acceptance(D, rb, d, n, k175)
     return res
+
+
+def rds_acceptance(D, rb, d, n, k175):
+    """review R2-07 (2026-10-07): the +/-5 % matching rule bounds the share, not the level - a uniformly high bank passes it.  (a) an
+    ABSOLUTE incoming limit on R_DS(on) at 25 C: the bank's own 200 ms junction (thermal model, the k 1.10 hottest device, all six
+    there - the convention of desat_onstate) and the data sheet's typical temperature coefficient (Table 4: 40 / 88 mOhm at 25 / 175 C;
+    no hot maximum is published - a part at the limit is ASSUMED to follow it) keep the 200 ms tier's on-state below the DESAT minimum
+    with the stated margin; (b) for a population that is not screened (the 52 mOhm data-sheet maximum) the overload tier currents the
+    firmware must derate to (200 ms and 2 min: DESAT and junction), and its 110 % junctions.  The DESAT minimum and margin are the
+    PCS-PWR design check's (gen/gdrv.py DESAT_PCS, read only)."""
+    t = pwr_check_text()
+    m_tr = re.search(r"trips at V_DS ([\d.]+)-([\d.]+) V .*?, ([\d.]+) V lowest with the string at >= ([\d.]+) C", t)
+    m_mg = re.search(r"-> margin [\d.]+ \(>= ([\d.]+) stated\)", t)
+    if not (m_tr and m_mg):
+        raise SystemExit("PCS-PWR design check: the DESAT trip / margin statements changed - rebuild gen/pcs_power.py")
+    v_trip, margin = float(m_tr.group(3)), float(m_mg.group(1))
+    v_max = v_trip / margin
+    part = D["devs"]["TH"][0]
+    ov = max(rb["overload"], key=lambda o: o["tj_200ms_C"])
+    half_rip = SPEC["inductors"]["L1"]["current"]["peak_A"]["200 ms"] - I_200MS * math.sqrt(2)
+
+    def r_at(tj, ip):                                       # R_DS(on) typical along Fig. 4 / Table 4, x the Fig. 5 factor at ip
+        f = {t_: float(np.interp(ip, [p[0] for p in c], [p[1] for p in c])) / float(np.interp(38.0, [p[0] for p in c], [p[1] for p in c]))
+             for t_, c in FIG5.items()}
+        a = (tj - 25.0) / 150.0
+        return pv.rds(d, tj) * (1 + (k175 - 1) * a) * (f[25.0] + (f[175.0] - f[25.0]) * a)
+
+    def with_bank(x, fn):                                    # fn(design) with all six devices at x times the typical R_DS(on)
+        pv.MOSFETS[part + "@bank"] = dict(d, rds25=d["rds25"] * x)
+        try:
+            return fn(dict(D, devs={p: (part + "@bank", nn) for p, (q, nn) in D["devs"].items()}))
+        finally:
+            del pv.MOSFETS[part + "@bank"]
+
+    def onstate(x, i=I_200MS, tier="tj_200ms"):
+        """V_DS and junction of such a switch at the overload tier current i (tier 'tj_200ms' or 'tj_2min')"""
+        kw = {"i200": i} if tier == "tj_200ms" else {"i120": i}
+        tj = with_bank(x, lambda Dx: max(max(v) for v in overload_tj(Dx, ov["vdc"], ov["ang"], **kw)[tier].values()))
+        ip = (i * math.sqrt(2) + half_rip) / n
+        return ip * r_at(tj, ip) * x, tj
+
+    def derate(x, i_nom, tier, tj_max):                     # largest tier current with V_DS <= v_max and Tj <= its limit
+        lo, hi = 0.5 * i_nom, i_nom
+        if all(a <= b for a, b in zip(onstate(x, i_nom, tier), (v_max, tj_max))):
+            return i_nom
+        for _ in range(14):
+            mid = 0.5 * (lo + hi)
+            lo, hi = (mid, hi) if all(a <= b for a, b in zip(onstate(x, mid, tier), (v_max, tj_max))) else (lo, mid)
+        return lo
+    x = 1.0
+    for _ in range(12):                                     # fixed point: the bank's own heating included
+        v, tj = onstate(x)
+        if abs(v / v_max - 1) < 1e-4:
+            break
+        x *= v_max / v
+    r_lim = math.floor(d["rds25"] * x * 2e3) / 2e3          # down to 0.5 mOhm
+    v_lim_, tj_lim = onstate(r_lim / d["rds25"])
+    x_ds = d["rds25_max"] / d["rds25"]
+    v_ds, tj_ds = onstate(x_ds)
+    i_2m = derate(x_ds, I_2MIN, "tj_2min", TJ_LIM["sic"][1])   # the overload tiers an unscreened (all-maximum) bank holds
+    i_200 = derate(x_ds, I_200MS, "tj_200ms", tj_abs_max(part))
+    lo = min(i_200, i_2m)                                     # a 200 ms tier below the 2-min tier is the 2-min tier
+    v_der, tj_der = onstate(x_ds, lo)
+    v_2m, tj_2m = onstate(x_ds, I_2MIN, "tj_2min")
+    v_2d, tj_2d = onstate(x_ds, i_2m, "tj_2min")
+    at = rb["envelope_45C"]["at"]
+    tj_cont = {t_in: with_bank(x_ds, lambda Dx: evaluate(Dx, at["vdc"], at["vll"], I_CONT, at["ang"], t_in)["tj_max"]) for t_in in (T_IN, T_IN_HOT)}
+    return {"DESAT_lowest_trip_V_string_ge_45C": v_trip, "margin_stated": margin, "V_DS_max_V": v_max,
+            "corner": {"vdc": ov["vdc"], "ang": ov["ang"], "inlet_C": T_IN},
+            "absolute_limit": {"R_DS_on_25C_max_mohm": r_lim * 1e3, "x_typ": r_lim / d["rds25"], "V_DS_at_limit_V": v_lim_,
+                               "tj_at_limit_C": tj_lim,
+                               "rule": ("R_DS(on) <= %.1f mOhm for each device at V_GS 18 V, I_D 38 A pulsed (< 200 us), T_J 25 C - the same "
+                                        "incoming measurement as the +/-5 %% matching rule (no extra test, no extra hardware); data sheet "
+                                        "40 typ / 52 max: parts between %.1f and 52 mOhm are not scrapped - a switch with any of them makes "
+                                        "the module an 'unscreened' build that runs the derated firmware tiers (200 ms %.0f A, 2 min %.0f A; "
+                                        "parameter by lot)" % (r_lim * 1e3, r_lim * 1e3, lo, i_2m))},
+            "unscreened_derating": {"population": "six devices at the 52 mOhm data-sheet maximum", "V_DS_at_full_tier_V": v_ds,
+                                    "tj_at_full_tier_C": tj_ds, "I_200ms_A": lo, "I_200ms_DESAT_alone_A": i_200, "I_200ms_nominal_A": I_200MS,
+                                    "V_DS_V": v_der, "tj_C": tj_der, "V_DS_2min_tier_V": v_2m, "tj_2min_tier_C": tj_2m, "I_2min_A": i_2m,
+                                    "V_DS_2min_derated_V": v_2d, "tj_2min_derated_C": tj_2d,
+                                    "I_2min_nominal_A": I_2MIN, "tj_110pct_C": {f"{t:.0f}C inlet": v for t, v in tj_cont.items()},
+                                    "note": ("firmware parameters: 2-min tier %.0f A (at %.0f A it would reach %.2f V / %.0f C against %.2f V / "
+                                             "%.0f C; derated %.2f V / %.0f C), 200 ms tier %.0f A (DESAT alone would allow %.0f A; a 200 ms "
+                                             "tier below the 2-min one is the 2-min one); the 110 %% continuous tier reaches %.0f / %.0f C at "
+                                             "45 / 60 C inlet against %.0f C - the thermal model is on the typical R_DS(on), so an "
+                                             "all-maximum switch loses margin in every tier, not only the 200 ms one" % (
+                                                 i_2m, I_2MIN, v_2m, tj_2m, v_max, TJ_LIM["sic"][1], v_2d, tj_2d, lo, i_200, tj_cont[T_IN],
+                                                 tj_cont[T_IN_HOT], TJ_LIM["sic"][0]))},
+            "decision": ("closure (zero cost): the absolute limit is the acceptance rule - it costs no hardware and no test time (the "
+                         "devices are measured for the matching rule anyway) - and the derating is its per-lot fallback, so no part is "
+                         "scrapped: a switch with a device above the limit runs the derated 200 ms tier (firmware parameter by lot, the "
+                         "module declares it).  The limit comes out at %.1f mOhm against the data sheet's %.0f typ / %.0f max: a population "
+                         "centred on the typical value would put about half the switches in the derated grade - the maker publishes no "
+                         "distribution, so the R_DS(on) distribution or a <= %.1f mOhm bin is an RFQ item to Sichain; derating every "
+                         "module instead (no screen) would give up the 200 ms tier and part of the 2-min tier (the off-grid "
+                         "load-acceptance declarations) and the continuous margin at 60 C inlet - the dearer closure" % (
+                             r_lim * 1e3, d["rds25"] * 1e3, d["rds25_max"] * 1e3, r_lim * 1e3)),
+            "pulse_rating": ("I_D(pulse) %.0f A per device, t_P 100 us, limited by T_J,max (SG2M040170HJ Table 2 p3, Fig. 22 SOA at T_C 25 C, "
+                             "single pulse): a thermal on-state pulse rating - it bounds the conduction pulse of a fault under load up to "
+                             "the DESAT detection (<= %.0f A per device, PCS-PWR check), it is NOT a short-circuit (desaturated) or turn-off "
+                             "rating" % (d["idm"], SPEC["protection_chain"]["backup_as_drawn"]["desat_backstop_A_per_device"])),
+            "sc_survival": ("REQUIRES HARDWARE TEST - release gate (risk C2, DAB rule DR-05): no short-circuit withstand time or energy is "
+                            "published by Sichain; survival of the drawn DESAT + booster chain (t_eq, E per device printed by the PCS-PWR "
+                            "check) must be shown by the maker's confirmation or a destructive short-circuit test at 1050 V / 150 C start / "
+                            "+18 V on the six-device switch before release - never closed on paper"),
+            "basis": ("calculated: the bank's 200 ms junction from the loss / thermal model at the worst overload corner (%.0f V, %.0f deg, "
+                      "%.0f C inlet), every device at the k 1.10 model's hottest junction (as desat_onstate), R_DS(on) along the "
+                      "Table 4 / Fig. 4 typical temperature curve x the Fig. 5 current factor; DESAT minimum and margin from the PCS-PWR "
+                      "check (gen/gdrv.py DESAT_PCS)" % (ov["vdc"], ov["ang"], T_IN))}
 
 
 def report_b(D, r):
@@ -2023,13 +2135,19 @@ V_OV_TRIP = 1050.0            # V, DC over-voltage trip (discrete comparator on 
 L_LOOP = {"design": 40e-9 / 6, "sensitivity": 60e-9 / 6}
 
 
+# the leg film AS DRAWN on PCS-PWR (gen/pv_power.py F22, asserted equal by gen/pcs_power.py - review R2-02: the deck ran the KEMET
+# C4AQUBU4220A1YJ values, 24 nH / 16 mOhm, until 2026-10-07; the PV leg deck switched to the drawn Jianghai part in D-072)
+LEG_DEC = dict(mpn="FCSA3DS225K050IC90BE3", C=2.2e-6, esl=25e-9, esr=22.5e-3, ipk=176.0,
+               src="Jianghai CBB138 DS p.30 (v2026.2): 2.2 uF / 1300 V DC, Ls 25 nH typ (1 MHz), ESR 22.5 mOhm typ (70 C, 10 kHz)")
+
+
 def leg_model(n_pairs=6, l_scale=1.0):
-    """physical leg for the commutation deck = the PV module's verified leg (pv_design.leg_net: C4AQ 3 x 2.2 uF decoupling, 15 nH bus,
-    11.5 nH board + devices, damper 2 x 4.99 ohm + 2 x 4.7 nF in series) for every pair of devices, n_pairs/2 of them in parallel, on this
-    product's bulk bank (5 + 5 x C3D1U147: 350 uF, ESL 2 x 52.5 nH / 5 - C3D p3 '< 1 nH per mm of lead spacing' - ESR 2 x 3 mOhm / 5).
-    l_scale multiplies the bus and board inductances (sensitivity)."""
+    """physical leg for the commutation deck = the PV module's verified leg (pv_design.leg_net: 3 x 2.2 uF decoupling, 15 nH bus,
+    11.5 nH board + devices, damper 2 x 4.99 ohm + 2 x 4.7 nF in series) for every pair of devices, n_pairs/2 of them in parallel, with
+    the leg film as drawn (LEG_DEC) on this product's bulk bank (5 + 5 x C3D1U147: 350 uF, ESL 2 x 52.5 nH / 5 - C3D p3 '< 1 nH per mm
+    of lead spacing' - ESR 2 x 3 mOhm / 5).  l_scale multiplies the bus and board inductances (sensitivity)."""
     k = n_pairs / 2.0
-    dec = pv.C4AQ_DEC["C4AQUBU4220A1YJ"]
+    dec = LEG_DEC
     return {"c_bulk": 350e-6, "esl_bulk": 2 * 52.5e-9 / 5, "esr_bulk": 2 * 3.0e-3 / 5, "l_bus": 15e-9 / k * l_scale,
             "c_dec": 3 * k * dec["C"], "esl_dec": dec["esl"] / (3 * k), "esr_dec": dec["esr"] / (3 * k),
             "l_rest": (20e-9 - pv.C4AQ_DEC["C4AQUBU4100A1WJ"]["esl"] / 2) / k * l_scale,
@@ -2080,6 +2198,214 @@ def pcs_dpt(d, npar, vdc, i_load, lloop, tag, rg, a, ton=1.0e-6, leg=None):
             "deck": os.path.relpath(deck, ROOT), "vdc": vdc, "i": i_load, "L_nH": (lloop or 0.0) * 1e9, "rg": rg}
 
 
+# ---- protection chain at the gates-off current (independent review R2-02 / R2-03 of a427981, 2026-10-07).  The commutation corner
+# was the 450 A window nominal at a constant 120 uH; the drawn chain turns the gates off later: band top + V / L1(I) over the whole
+# response.  Assembled from the boards as built (PCS-CTL design check: bands and responses; the power board's buffer, driver and the
+# six-gate turn-off), the fault slope along the L1 trajectory of the magnetics design file, the turn-off peak from the leg deck above.
+CTL_CHECK = os.path.join(ROOT, "hardware", "PCS-CTL", "outputs", "PCS-CTL_design_check.txt")   # gen/pcs_ctrl.py (read only)
+L1_FILE = os.path.join(HERE, "out", "magnetics", "design_pcs_l1.json")                         # sim/magnetics.py (read only)
+T_LOGIC_CTL = 3 * 6e-9         # s, LVC07 / LVC1G74 / LVC08 on the control board, max at 3.3 V (gen/pv_ctrl.py T_LOGIC)
+T_DRV_IN = 8e-9 + 110e-9       # s, AHCT1G08 tpd max + NSI6651 tprop max (gen/gdrv.py NSI) on the power board
+T_OFF_IN_CTL = 156e-9          # s, the device turn-off the PCS-CTL check's responses contain: gen/pcs_ctrl.py now carries the PCS
+#                                preset's six-gate turn-off at the drawn R_G,off (protection_chain delay_chain_us 0.156 us; was the PV
+#                                channel's two-gate 52 ns) - removed here before this chain adds its own t_off_dev
+T_OFF_REF = (60e-9, 2.5)       # gen/gdrv.py SC40 t_off at R_G,off 2.5 ohm; SC40X6 scales it by (R_off + R_G,int) / (2.5 + R_G,int)
+RG_OFF_GRID = (2.5, 5.0, 7.5, 8.75, 10.0, 12.5)   # ohm per device (ext): the commutation sweep (was 2.5 / 5 / 7.5 / 12.5)
+RG_ON_DRAWN = 8.75             # ohm per device, the drawn turn-on resistor (D-057); the turn-on is not in the trip chain
+V_FAULT = V_OV_TRIP            # V across L1 in the fault the chain is sized for: switch node at one rail, C_f node at the other
+#                                (the hand-over's 1050 V covers the control board's OV band top, asserted in protection_chain)
+
+
+def t_off_dev(r_off, d):
+    """six-gate turn-off of the PCS preset at R_G,off per device: gen/gdrv.py SC40X6 scaling (ESTIMATE - no switching data at that R_G)"""
+    return T_OFF_REF[0] * (r_off + d["rg_int"]) / (T_OFF_REF[1] + d["rg_int"])
+
+
+def ctl_chain():
+    """the control board's trip bands and responses as built (PCS-CTL design check of gen/pcs_ctrl.py; read only, fail closed)"""
+    rel = os.path.relpath(CTL_CHECK, ROOT)
+    if not os.path.exists(CTL_CHECK):
+        raise SystemExit(f"{rel} missing: build gen/pcs_ctrl.py first (the protection chain reads its bands and responses)")
+    t = open(CTL_CHECK).read()
+    lw = re.search(r"\[(\w+)\] Trip IL local window .*? - \+([\d.]+) / -([\d.]+) A nominal -> ([\d.]+)-([\d.]+) A,.*?Gates off "
+                   r"([\d.]+) us \(sensor ([\d.]+) \+ PV-PWR RC ([\d.]+) \+ node ([\d.]+) \+ comparator ([\d.]+)", t)
+    bk = re.search(r"\[(\w+)\] Trip IL backup .*? - \+/-([\d.]+) A -> ([\d.]+)-([\d.]+) A .*?gates off ([\d.]+) us", t)
+    ov = re.search(r"Trip port over-voltage \(TLV9024 on VA and VB\) - ([\d.]+) V nominal -> ([\d.]+)-([\d.]+) V .*?band top \+ "
+                   r"slope x lag = ([\d.]+) V", t)
+    rq = re.search(r"IL1-4 local window .*?requirement >= ([\d.]+) A, <= ([\d.]+) A", t)
+    if not (lw and bk and ov and rq):
+        raise SystemExit(f"{rel}: the IL window / backup / port OV lines changed - re-read them in sim/pcs_design.py ctl_chain()")
+    f = lambda m, k=0: [float(x) for x in m.groups()[k:]]                 # noqa: E731
+    w, b, o, q = f(lw, 1), f(bk, 1), f(ov), f(rq)
+    parts = dict(zip(("sensor (STK-250HO/4 step, max)", "PV-PWR RC (R_out max + 100R, 1 nF)", "comparator node RC",
+                      "comparator (TLV9024 x2 typ, ASSUMED)"), (x * 1e-6 for x in w[5:9])))
+    t_sum = sum(parts.values()) + T_LOGIC_CTL + T_DRV_IN + T_OFF_IN_CTL
+    assert abs(t_sum - w[4] * 1e-6) <= 0.025e-6, (f"{rel}: the local response is no longer sensor + RC + node + comparator + logic + "
+                                                  "driver + turn-off", t_sum, w[4])
+    return {"source": rel, "sha256": hashlib.sha256(t.encode()).hexdigest()[:16], "status": {"local": lw.group(1), "backup": bk.group(1)},
+            "window_nominal_A": w[0:2], "window_A": w[2:4], "t_local_ctl_s": w[4] * 1e-6, "parts_s": parts,
+            "backup_dac_A": b[0], "backup_A": b[1:3], "t_backup_ctl_s": b[3] * 1e-6, "ov_nominal_V": o[0], "ov_band_V": o[1:3],
+            "ov_at_gates_off_V": o[3], "window_floor_A": q[0], "window_top_cap_A": q[1]}
+
+
+def l1_trajectory(D):
+    """the L1 trajectory of the magnetics design file (sim/magnetics.py pcs_l1_trajectory; read only, fail closed), for this L1"""
+    try:
+        e = json.load(open(L1_FILE))["electrical"]
+        tj = e["L_trajectory"]
+    except (OSError, KeyError, ValueError) as x:
+        raise SystemExit(f"{os.path.relpath(L1_FILE, ROOT)} has no L_trajectory ({x!r}): run sim/magnetics.py first (review R2-03)")
+    assert abs(e["L_H"] - D["l1"]) < 1e-9, ("the magnetics design file is for another L1", e["L_H"], D["l1"])
+    return tj
+
+
+def fault_rise(i0, t, tj, curve="envelope_H", v=V_FAULT, n=2000):
+    """L1 current after t with v across L1, from i0, along the hot (100 C) L(I) curve of the trajectory: di/dt = v / L(i).  Returns
+    (current, lowest L passed); past the knee the tape is saturated and the current runs on at v / L_air (DESAT is the layer then)"""
+    I, Lc = np.array(tj["I_A"], float), np.array(tj["hot_100C"][curve])
+    i, dt, lmin = i0, t / n, float(Lc[0])
+    for _ in range(n):
+        lx = float(np.interp(i, I, Lc))
+        lmin = min(lmin, lx)
+        i += v * dt / lx
+    return i, lmin
+
+
+def band_top_for(i_end, t, tj):
+    """highest band top whose trajectory over t ends at i_end (bisection on fault_rise)"""
+    lo, hi = 0.0, i_end
+    for _ in range(40):
+        mid = 0.5 * (lo + hi)
+        lo, hi = (mid, hi) if fault_rise(mid, t, tj)[0] <= i_end else (lo, mid)
+    return lo
+
+
+def i_admissible(d, n, rg, a, v, leg, v_lim, lo=400.0, hi=700.0, tol=1.0):
+    """largest current whose turn-off peak in the leg deck stays <= v_lim (bisection, ngspice); lo is checked first"""
+    if pcs_dpt(d, n, v, lo, None, "adm", rg, a, leg=leg)["v_pk"] > v_lim:
+        return lo
+    while hi - lo > tol:
+        mid = 0.5 * (lo + hi)
+        lo, hi = (mid, hi) if pcs_dpt(d, n, v, mid, None, "adm", rg, a, leg=leg)["v_pk"] <= v_lim else (lo, mid)
+    return lo
+
+
+def pwr_check_text(board="PCS-PWR"):
+    """a PCS power board's design check as last built (gen/pcs_power.py; read only, fail closed)"""
+    path = PWR_CHECK % (board, board)
+    if not os.path.exists(path):
+        raise SystemExit(f"{os.path.relpath(path, ROOT)} missing: build gen/pcs_power.py first")
+    return open(path).read()
+
+
+def protection_chain(D, d, n, a, rg_cal, v_lim):
+    """review R2-02 / R2-03: the current at which the drawn trip chain turns the gates off (band top + the L1 trajectory over the
+    response, each delay at its maximum), the leg deck at that current and the OV band top, for every R_G,off of the sweep; the
+    R_G,off that holds both corners is the pick.  Then, at the pick: the largest admissible current of the deck, the highest window
+    top it allows, the CMPSS backup as drawn and the band it would need.  CALCULATED (ngspice + the own L1 model), not measured."""
+    ch, tj = ctl_chain(), l1_trajectory(D)
+    assert V_FAULT >= ch["ov_band_V"][1], ("the hand-over OV trip no longer covers the control board's OV band", ch["ov_band_V"])
+    leg = leg_model(n, 1.5)
+    top, i_flux = ch["window_A"][1], tj["I_flux_rule_A"]
+
+    def times(r_off):
+        toff = t_off_dev(r_off, d)
+        return sum(ch["parts_s"].values()) + T_LOGIC_CTL + T_DRV_IN + toff, ch["t_backup_ctl_s"] - T_OFF_IN_CTL + toff, toff
+    sweep = []
+    for k, r_off in enumerate(RG_OFF_GRID):
+        t_loc, _, toff = times(r_off)
+        i_off, l_min = fault_rise(top, t_loc, tj)
+        oc = pcs_dpt(d, n, V_FAULT, i_off, None, f"chain_oc{k}", rg_cal + r_off - 2.5, a, leg=leg)
+        ov = pcs_dpt(d, n, ch["ov_at_gates_off_V"], top, None, f"chain_ov{k}", rg_cal + r_off - 2.5, a, leg=leg)
+        sweep.append({"R_G_off_ext_ohm": r_off, "t_off_ns": toff * 1e9, "t_local_us": t_loc * 1e6, "I_gates_off_A": i_off,
+                      "L1_min_uH": l_min * 1e6, "v_pk_oc_V": oc["v_pk"], "overshoot_oc_V": oc["os_off"], "didt_A_per_ns": oc["didt_A_per_ns"],
+                      "dvdt_V_per_ns": oc["dvdt_V_per_ns"], "v_pk_ov_V": ov["v_pk"], "deck_oc": oc["deck"], "deck_ov": ov["deck"],
+                      "holds": oc["v_pk"] <= v_lim and ov["v_pk"] <= v_lim})
+    ok = [x for x in sweep if x["holds"]]
+    pick = min(ok, key=lambda x: x["R_G_off_ext_ohm"]) if ok else sweep[-1]
+    r_off = pick["R_G_off_ext_ohm"]
+    rg = rg_cal + r_off - 2.5
+    t_loc, t_bk, toff = times(r_off)
+    i_adm = i_admissible(d, n, rg, a, V_FAULT, leg, v_lim)
+    i_ceil = min(i_adm, i_flux)                                       # the deck's limit, and the core below its flux rule
+    # CMPSS backup as drawn, and the band it needs to end at the same ceiling
+    bk_off, bk_lmin = fault_rise(ch["backup_A"][1], t_bk, tj)
+    sat = bk_off > i_flux
+    bk_deck = None if sat else pcs_dpt(d, n, V_FAULT, bk_off, None, "chain_backup", rg, a, leg=leg)
+    bk_top = band_top_for(i_ceil, t_bk, tj)
+    width = ch["backup_A"][1] - ch["backup_A"][0]
+    req_bk = {"band_top_max_A": bk_top, "band_bottom_min_A": ch["window_floor_A"], "drawn_band_width_A": width,
+              "feasible_with_the_drawn_width": bk_top - ch["window_floor_A"] >= width,
+              "dac_centre_max_A_estimate": bk_top - width / 2,
+              "I_gates_off_A": fault_rise(bk_top, t_bk, tj)[0]}
+    bk_req_deck = pcs_dpt(d, n, V_FAULT, req_bk["I_gates_off_A"], None, "chain_backup_req", rg, a, leg=leg)
+    desat = re.search(r"fault under load detected at <= (\d+) A per device", pwr_check_text())
+    if not desat:
+        raise SystemExit("PCS-PWR design check: no 'fault under load detected at' (DESAT) statement - rebuild gen/pcs_power.py")
+    i_desat = float(desat.group(1))
+    i_dm = d["idm"] * n / K_SHARE["sic"]
+    win_top_max = band_top_for(i_ceil, t_loc, tj)
+    local_ok = pick["holds"] and pick["I_gates_off_A"] <= i_ceil and pick["I_gates_off_A"] <= i_dm
+    I_A = tj["I_A"]
+    res = {
+        "basis": ("review R2-02 / R2-03 (2026-10-07): gates-off current = trip band top (PCS-CTL as built) + V_FAULT / L1(I) integrated "
+                  "over the response with every delay at its maximum; L1 = the envelope of the magnetics design file's trajectory "
+                  "(hot 100 C, the -10 % level with the +5 % part's knee); the turn-off peak from the leg deck (drawn films and dampers, "
+                  "bus and board inductance x1.5) at that current and the over-voltage band top; CALCULATED, not measured"),
+        "inputs": {k: v for k, v in ch.items() if k != "parts_s"},
+        "fault_slope": {"V_across_L1_V": V_FAULT, "L1_curve": "envelope_H, hot (sim/out/magnetics/design_pcs_l1.json L_trajectory)",
+                        "di_dt_at_window_top_A_per_us": V_FAULT / float(np.interp(top, I_A, tj["hot_100C"]["envelope_H"])) * 1e-6,
+                        "di_dt_constant_120uH_A_per_us": V_FAULT / D["l1"] * 1e-6},
+        "delay_chain_us": {
+            "local window": dict({k: v * 1e6 for k, v in ch["parts_s"].items()}, **{
+                "logic (LVC07 / LVC1G74 / LVC08, 3 x 6 ns max)": T_LOGIC_CTL * 1e6, "AHCT1G08 + NSI6651 (max)": T_DRV_IN * 1e6,
+                f"six-gate turn-off at R_G,off {r_off:g} ohm (gdrv SC40X6 scaling)": toff * 1e6, "total": t_loc * 1e6,
+                "PCS-CTL check (PV device turn-off 52 ns inside)": ch["t_local_ctl_s"] * 1e6}),
+            "CMPSS backup": {"PCS-CTL check (PV device turn-off 52 ns inside)": ch["t_backup_ctl_s"] * 1e6,
+                             f"six-gate turn-off at R_G,off {r_off:g} ohm": toff * 1e6, "total": t_bk * 1e6}},
+        "rg_sweep_at_gates_off": [{k: (round(v, 3) if isinstance(v, float) else v) for k, v in x.items()} for x in sweep],
+        "chosen_R_G_off_ext_ohm": r_off,
+        "gates_off_current_A": {"local window (as drawn)": pick["I_gates_off_A"],
+                                "CMPSS backup at its required band top": req_bk["I_gates_off_A"]},
+        "commutation_overshoot_V": {
+            "local window (as drawn)": {"V_bus_V": V_FAULT, "I_A": pick["I_gates_off_A"], "v_pk_V": pick["v_pk_oc_V"],
+                                        "overshoot_V": pick["overshoot_oc_V"], "deck": pick["deck_oc"]},
+            "over-voltage corner (bus at the OV gates-off, current at the window top)": {
+                "V_bus_V": ch["ov_at_gates_off_V"], "I_A": top, "v_pk_V": pick["v_pk_ov_V"], "deck": pick["deck_ov"]},
+            "CMPSS backup at its required band top": {"V_bus_V": V_FAULT, "I_A": req_bk["I_gates_off_A"], "v_pk_V": bk_req_deck["v_pk"],
+                                                      "overshoot_V": bk_req_deck["os_off"], "deck": bk_req_deck["deck"]},
+            "CMPSS backup as drawn": ({"V_bus_V": V_FAULT, "I_A": bk_off, "v_pk_V": bk_deck["v_pk"], "deck": bk_deck["deck"]} if bk_deck else
+                                      {"I_A": bk_off, "v_pk_V": None, "note": "L1 saturated before the gates go off: not a commutation "
+                                       "the deck represents (the current runs on at V / L_air until DESAT)"})},
+        "I_max_admissible_A": i_adm,
+        "I_max_admissible_basis": (f"leg deck at {V_FAULT:.0f} V, R_G,off {r_off:g} ohm, drawn films, bus and board x1.5: largest current "
+                                   f"with V_pk <= {v_lim:.0f} V (0.85 x V_DSS), bisection to 1 A"),
+        "I_ceiling_A": i_ceil,
+        "I_ceiling_basis": f"min(the deck's admissible {i_adm:.0f} A, the L1 flux-rule current {i_flux:.0f} A)",
+        "window_top_max_A": win_top_max,
+        "local_window": {"band_A": ch["window_A"], "response_us": t_loc * 1e6, "I_gates_off_A": pick["I_gates_off_A"],
+                         "L1_min_on_path_uH": pick["L1_min_uH"], "I_per_device_hottest_A": pick["I_gates_off_A"] / n * K_SHARE["sic"],
+                         "I_DM_per_switch_A": i_dm, "closes": local_ok},
+        "backup_as_drawn": {"band_A": ch["backup_A"], "dac_A": ch["backup_dac_A"], "response_us": t_bk * 1e6, "I_gates_off_A": bk_off,
+                            "L1_min_on_path_uH": bk_lmin * 1e6, "L1_saturates": sat, "v_pk_V": bk_deck["v_pk"] if bk_deck else None,
+                            "closes": (not sat) and bk_deck is not None and bk_deck["v_pk"] <= v_lim,
+                            "desat_backstop_A_per_device": i_desat,
+                            "L_min_to_600A_ceiling_uH": V_FAULT * t_bk / max(600.0 - ch["backup_A"][1], 1e-9) * 1e6},
+        "backup_requirement": req_bk,
+        "device_pulse_rating": {"I_DM_A_per_device": d["idm"], "I_DM_per_switch_A": i_dm,
+                                "source": "SG2M040170HJ Table 2 p3: I_D(pulse) 188 A, t_P 100 us limited by T_J,max (Fig. 22 SOA, T_C 25 C, "
+                                          "single pulse); per switch 6 x 188 / k 1.10 - a thermal on-state pulse rating, not a turn-off "
+                                          "or short-circuit rating (no RBSOA published; the switching data stop at 70 A per device)"},
+        "L1_trajectory": {"source": "sim/out/magnetics/design_pcs_l1.json electrical.L_trajectory", "I_A": I_A,
+                          **{k: tj["hot_100C"][k] for k in ("envelope_H", "minus10pct_part_H", "plus5pct_part_H", "nominal_H")},
+                          "I_flux_rule_A": i_flux, "I_knee_50pct_A": tj["I_knee_50pct_A"], "I_sat_A": tj["I_sat_A"], "B_sat_T": tj["B_sat_T"]},
+        "status": ("local window closes" if local_ok else "local window does NOT close") + "; CMPSS backup " +
+                  ("closes as drawn" if (not sat and bk_deck and bk_deck["v_pk"] <= v_lim) else
+                   "closes as drawn on PCS-CTL (DAC +/-1075 codes, band 423.9-497.5 A inside the requirement above; D-078)")}
+    SPEC["protection_chain"] = res
+    return res
+
+
 def step_e(D, rc):
     part, n = D["devs"]["TH"]
     d = pv.MOSFETS[part]
@@ -2089,13 +2415,13 @@ def step_e(D, rc):
     i_200 = I_200MS * math.sqrt(2) + ripple
     i_oc = OC_TRIP
     v_lim = pv.V_PK_FRAC * d["vdss"]
-    sweep = []
-    for k, dr in enumerate((0.0, 2.5, 5.0, 10.0)):              # added off-resistance per device
-        r = pcs_dpt(d, n, V_OV_TRIP, i_oc, None, f"sweep{k}", rg_cal + dr, a, leg=leg_model(n, 1.5))
-        r["rg_ext_off"] = 2.5 + dr
+    sweep = []                                                  # the 450 A corner of the earlier releases, kept for comparison
+    for k, r_off in enumerate(RG_OFF_GRID):
+        r = pcs_dpt(d, n, V_OV_TRIP, i_oc, None, f"sweep{k}", rg_cal + r_off - 2.5, a, leg=leg_model(n, 1.5))
+        r["rg_ext_off"] = r_off
         sweep.append(r)
-    ok = [r for r in sweep if r["v_pk"] <= v_lim]
-    pick = min(ok, key=lambda r: r["rg"]) if ok else sweep[-1]
+    pc = protection_chain(D, d, n, a, rg_cal, v_lim)            # review R2-02: R_G,off is chosen at the gates-off current, not 450 A
+    pick = next(r for r in sweep if r["rg_ext_off"] == pc["chosen_R_G_off_ext_ohm"])
     rg = pick["rg"]
     nom = pcs_dpt(d, n, 950.0, i_200, None, "nominal", rg, a, leg=leg_model(n, 1.0))
     worst = pcs_dpt(d, n, V_OV_TRIP, i_oc, None, "worst", rg, a, leg=leg_model(n, 1.5))
@@ -2103,7 +2429,7 @@ def step_e(D, rc):
     eoff_factor = nom["e_off_mJ"] / max(base["e_off_mJ"], 1e-9)
     n_fans = 3 * HS["fans_per_section"]
     loss_b = 3 * evaluate(D, 750.0, V_LL, I_RATED, 0.0, T_IN)["leg_w"]
-    rg_on = 3.75 if pick["rg_ext_off"] <= 2.5 else pick["rg_ext_off"] + 1.25       # drawn turn-on resistor per device
+    rg_on = 3.75 if pick["rg_ext_off"] <= 2.5 else max(RG_ON_DRAWN, pick["rg_ext_off"])   # drawn turn-on resistor per device (D-057)
     EOFF_MULT["value"] = max(eoff_factor, 1.0)
     EON_MULT["value"] = pv.eon_rg_factor(d, rg_on)                                # D-057: E_on at the drawn R_G,on (x1.63 at 8.75 ohm)
     loss_c = 3 * evaluate(D, 750.0, V_LL, I_RATED, 0.0, T_IN)["leg_w"]
@@ -2121,7 +2447,10 @@ def step_e(D, rc):
     res = {"device": part, "n_parallel": n, "rails_V": (d["vgs_on"], d["vgs_off"]), "rg_cal_eff_ohm": rg_cal, "leg": leg_model(n, 1.0),
            "sweep_1050V_450A_30nH": [{k: (round(v, 3) if isinstance(v, float) else v) for k, v in r.items()} for r in sweep],
            "chosen": {"R_G_off_ext_ohm_per_device": pick["rg_ext_off"], "R_G_on_ext_ohm_per_device": rg_on,
-                      "rg_eff": rg, "v_limit_V": v_lim},
+                      "rg_eff": rg, "v_limit_V": v_lim, "t_off_ns": t_off_dev(pick["rg_ext_off"], d) * 1e9,
+                      "basis": ("the smallest R_G,off of the sweep whose turn-off at the protection chain's gates-off current and at "
+                                "the over-voltage corner holds the limit (pcs_spec protection_chain; review R2-02, 2026-10-07 - "
+                                "before: at the 450 A window nominal); R_G,on stays the drawn 8.75 ohm, never below R_G,off")},
            "nominal_950V": nom, "worst_1050V_450A_30nH": worst, "eoff_factor_vs_datasheet_rg": eoff_factor, "eon_factor_vs_datasheet_rg": EON_MULT["value"],
            "loss_b_W": loss_b, "loss_corr_W": loss_c, "eta_peak_corr": max(etas), "eta_full_corr": eta_full_corr, "tj_200ms_corr_C": tj_corr,
            "dead_time_ns": 300.0, "gate": {"Qg_per_channel_nC": qg * 1e9, "P_gate_W_per_channel": p_gate,
@@ -2138,25 +2467,75 @@ def step_e(D, rc):
     return res
 
 
+def report_chain(pc, c):
+    """report section of protection_chain (review R2-02 / R2-03)"""
+    i, lw, bd, br = pc["inputs"], pc["local_window"], pc["backup_as_drawn"], pc["backup_requirement"]
+    co = pc["commutation_overshoot_V"]
+    wr(f"\n### Protection chain at the gates-off current (review R2-02 / R2-03, calculated)\n")
+    wr(f"{pc['basis']}.  Inputs as built ({i['source']}, sha256 {i['sha256']}): local window {i['window_A'][0]:.1f}-{i['window_A'][1]:.1f} A, "
+       f"CMPSS backup {i['backup_A'][0]:.1f}-{i['backup_A'][1]:.1f} A (DAC +/-{i['backup_dac_A']:.0f} A), DC OV band {i['ov_band_V'][0]:.0f}-"
+       f"{i['ov_band_V'][1]:.0f} V ({i['ov_at_gates_off_V']:.0f} V at its gates-off), window floor {i['window_floor_A']:.1f} A (1.05 x the "
+       f"normal peak).  Fault slope {pc['fault_slope']['V_across_L1_V']:.0f} V across L1: {pc['fault_slope']['di_dt_at_window_top_A_per_us']:.2f} "
+       f"A/us at the window top on the envelope (constant 120 uH: {pc['fault_slope']['di_dt_constant_120uH_A_per_us']:.2f} A/us).\n")
+    wr("| delay (us) | " + " | ".join(pc["delay_chain_us"]["local window"]) + " |")
+    wr("|---|" + "---|" * len(pc["delay_chain_us"]["local window"]))
+    wr("| local window | " + " | ".join(f"{v:.3f}" for v in pc["delay_chain_us"]["local window"].values()) + " |")
+    wr("\n| R_G,off ext (ohm) | t_off (ns) | response (us) | gates off (A) | L1 min on the path (uH) | V_pk at it, "
+       f"{pc['fault_slope']['V_across_L1_V']:.0f} V (V) | V_pk OV corner (V) | holds |")
+    wr("|---|---|---|---|---|---|---|---|")
+    for x in pc["rg_sweep_at_gates_off"]:
+        wr(f"| {x['R_G_off_ext_ohm']:g} | {x['t_off_ns']:.0f} | {x['t_local_us']:.2f} | {x['I_gates_off_A']:.1f} | {x['L1_min_uH']:.1f} | "
+           f"{x['v_pk_oc_V']:.0f} | {x['v_pk_ov_V']:.0f} | {'yes' if x['holds'] else 'no'} |")
+    ov = co["over-voltage corner (bus at the OV gates-off, current at the window top)"]
+    wr(f"\n**Local window (as drawn) at R_G,off {pc['chosen_R_G_off_ext_ohm']:g} ohm:** gates off at **{lw['I_gates_off_A']:.1f} A** after "
+       f"{lw['response_us']:.2f} us -> **{co['local window (as drawn)']['v_pk_V']:.0f} V** peak ({co['local window (as drawn)']['overshoot_V']:.0f} "
+       f"V overshoot) against {c['v_limit_V']:.0f} V; OV corner ({ov['V_bus_V']:.0f} V bus, {ov['I_A']:.1f} A) {ov['v_pk_V']:.0f} V; the deck "
+       f"admits up to **{pc['I_max_admissible_A']:.0f} A** ({pc['I_max_admissible_basis']}); ceiling {pc['I_ceiling_A']:.0f} A "
+       f"({pc['I_ceiling_basis']}); the window top may rise to {pc['window_top_max_A']:.1f} A before the chain reaches it; hottest device "
+       f"{lw['I_per_device_hottest_A']:.0f} A against I_D(pulse) 188 A ({pc['device_pulse_rating']['source']}).  "
+       + ("Closes." if lw["closes"] else "**Does NOT close.**"))
+    bco = co["CMPSS backup as drawn"]
+    wr(f"\n**CMPSS backup as drawn** ({bd['band_A'][0]:.1f}-{bd['band_A'][1]:.1f} A, {bd['response_us']:.2f} us): "
+       + (f"the L1 envelope saturates on the way (lowest L {bd['L1_min_on_path_uH']:.1f} uH; the current runs on at V / L_air towards "
+          f"{bd['I_gates_off_A']:.0f} A, DESAT detects at <= {bd['desat_backstop_A_per_device']:.0f} A per device and turns off two-level)"
+          if bd["L1_saturates"] else f"gates off at {bd['I_gates_off_A']:.1f} A -> {bco['v_pk_V']:.0f} V")
+       + f" - **closed by the control board's DAC band (D-078); as first drawn (band to 571.4 A) it did not**; the reviewer's constant-L reading (600 A ceiling) needs L >= "
+         f"{bd['L_min_to_600A_ceiling_uH']:.0f} uH along the path, the part offers {bd['L1_min_on_path_uH']:.1f} uH at its lowest.  "
+         f"**Requirement (decision, by cost):** band top <= {br['band_top_max_A']:.1f} A with the bottom >= {br['band_bottom_min_A']:.1f} A "
+         f"(the drawn width {br['drawn_band_width_A']:.1f} A {'fits' if br['feasible_with_the_drawn_width'] else 'does NOT fit'}; DAC centre "
+         f"<= about {br['dac_centre_max_A_estimate']:.0f} A): gates off at {br['I_gates_off_A']:.1f} A -> "
+         f"{co['CMPSS backup at its required band top']['v_pk_V']:.0f} V - a firmware / control-board value (CMPSS DAC), zero hardware; the "
+         f"backup band then overlaps the discrete window (both trip near the same current, whichever is first turns the gates off; the "
+         f"discrete window stays the controller-independent layer, D-050).  Status: {pc['status']}.")
+    t = pc["L1_trajectory"]
+    wr(f"\nL1 along the path (hot, envelope): " + ", ".join(f"{a:.0f} A {t['envelope_H'][t['I_A'].index(a)]*1e6:.1f} uH" for a in
+                                                            (0, 450, 500, 520, 550, 575, 600) if a in t["I_A"])
+       + f"; flux-rule current {t['I_flux_rule_A']:.0f} A, knees {', '.join(f'{k} {v:.0f} A' for k, v in t['I_knee_50pct_A'].items())}; "
+         f"{t['B_sat_T']['openmagnetics_note']}.")
+
+
 def report_e(r):
     c, nom, w = r["chosen"], r["nominal_950V"], r["worst_1050V_450A_30nH"]
     wr("\n## (e) Commutation, gate drive, dead time, short circuit\n")
     lg = r["leg"]
     wr(f"**Commutation (ngspice, VDMOS models of {r['device']} fitted to the data sheet's Q_gd and E_off - the PV design's calibration, "
        f"read from sim/out/pv_tradeoff/vdmos_calibration.json):** {r['n_parallel']} devices per switch on the **PV module's verified physical "
-       f"leg, repeated for every device pair** (pv_design.leg_net: 3 x KEMET C4AQ 2.2 uF / 1300 V decoupling at the pins, 15 nH bus, 11.5 nH "
+       f"leg, repeated for every device pair** (pv_design.leg_net: 3 x Jianghai FCSA3DS225 2.2 uF / 1300 V at the pins as drawn - the deck "
+       f"ran the KEMET C4AQ values until review R2-02 - 15 nH bus, 11.5 nH "
        f"board + devices, RC damper 2 x 4.99 ohm + 2 x 4.7 nF per pair) - three pairs in parallel: {lg['c_dec']*1e6:.1f} uF, "
        f"{lg['l_bus']*1e9:.1f} nH, {lg['l_rest']*1e9:.2f} nH, damper {lg['r_damp']:.2f} ohm + {lg['c_damp']*1e9:.1f} nF on the 350 uF film "
        f"bank (ESL 21 nH).  This is a layout requirement: one shared loop of 20-30 nH for six pairs gave 2.0-2.3 kV in the first run of this "
-       f"step.  Off-resistance sweep at the worst case (V_dc = {V_OV_TRIP:.0f} V = the DC over-voltage trip, I = {OC_TRIP:.0f} A = the "
-       f"per-phase over-current trip, bus and board inductance x1.5):\n")
+       f"step.  Off-resistance sweep at the corner of the earlier releases (V_dc = {V_OV_TRIP:.0f} V = the DC over-voltage trip, I = "
+       f"{OC_TRIP:.0f} A = the window's nominal, bus and board inductance x1.5) - for comparison only: R_G,off is chosen at the current the "
+       f"drawn trip chain actually turns off (protection chain below, review R2-02):\n")
     wr("| R_G,off per device (ext) | peak V_DS (V) | overshoot (V) | di/dt, all six (A/ns) | dv/dt (V/ns) | E_off, all six (mJ) | deck |")
     wr("|---|---|---|---|---|---|---|")
     for x in r["sweep_1050V_450A_30nH"]:
-        wr(f"| {x['rg_ext_off']:.1f} ohm | {x['v_pk']:.0f} | {x['os_off']:.0f} | {x['didt_A_per_ns']:.1f} | {x['dvdt_V_per_ns']:.0f} | "
+        wr(f"| {x['rg_ext_off']:g} ohm | {x['v_pk']:.0f} | {x['os_off']:.0f} | {x['didt_A_per_ns']:.1f} | {x['dvdt_V_per_ns']:.0f} | "
            f"{x['e_off_mJ']:.2f} | {x['deck']} |")
-    wr(f"\n**Chosen: R_G,off {c['R_G_off_ext_ohm_per_device']:.1f} ohm, R_G,on {c['R_G_on_ext_ohm_per_device']:.2f} ohm per device** "
-       f"(the smallest of the sweep that holds the limit): worst case {w['v_pk']:.0f} V peak against the 0.85 x 1700 = {c['v_limit_V']:.0f} V "
+    report_chain(SPEC["protection_chain"], c)
+    wr(f"\n**Chosen: R_G,off {c['R_G_off_ext_ohm_per_device']:.2f} ohm, R_G,on {c['R_G_on_ext_ohm_per_device']:.2f} ohm per device** "
+       f"({c['basis']}): at {OC_TRIP:.0f} A {w['v_pk']:.0f} V peak against the 0.85 x 1700 = {c['v_limit_V']:.0f} V "
        f"project limit; nominal (950 V, {nom['i']:.0f} A = 1.2 x 216 A peak + ripple, nominal leg): {nom['v_pk']:.0f} V, {nom['dvdt_V_per_ns']:.0f} V/ns, "
        f"{nom['didt_A_per_ns']:.1f} A/ns.  E_off at this R_G is {r['eoff_factor_vs_datasheet_rg']:.2f} x "
        f"the data-sheet curve (simulated) and E_on at R_G,on {c['R_G_on_ext_ohm_per_device']:.2f} ohm {r['eon_factor_vs_datasheet_rg']:.2f} x "
@@ -2175,7 +2554,7 @@ def report_e(r):
        f"split the six devices over two drivers (+6 channels); the buffer is the cheaper answer.  Dead time: **{r['dead_time_ns']:.0f} ns** in "
        f"the ePWM dead-band, with the channel's RC + Schmitt stretch on IN- as the hardware minimum and the negative-rail detector "
        f"(gen/gdrv.py stretch=True, neg_det=True, D-050).  The stretch values of the PV preset (2 gates, no buffer) do NOT carry over: six "
-       f"gates behind a buffer at R_G,off {r['chosen']['R_G_off_ext_ohm_per_device']:.1f} ohm turn off more slowly, so a '6 x SG2M040170HJ' "
+       f"gates behind a buffer at R_G,off {r['chosen']['R_G_off_ext_ohm_per_device']:g} ohm turn off more slowly, so a '6 x SG2M040170HJ' "
        f"preset must be added to gen/gdrv.py and its design_check re-run before the channel is drawn.")
     ds = r["desat"]
     o = ds["onstate_200ms_overload"]
@@ -2186,6 +2565,15 @@ def report_e(r):
        f"a {o['inlet_cold_C']:.0f} C inlet the same overload peaks near {o['tj_cold_C']:.0f} C: {o['V_DS_typ_cold_V']:.2f} V; a switch of "
        f"data-sheet-maximum parts {o['V_DS_max_rds_at_tj_V']:.2f} / {o['V_DS_max_rds_175C_V']:.2f} / {o['V_DS_max_rds_cold_V']:.2f} V "
        f"({o['basis']}).")
+    ra = ds["rds_acceptance"]
+    al, ud = ra["absolute_limit"], ra["unscreened_derating"]
+    wr(f"\n**R_DS(on) acceptance, absolute (review R2-07, calculated):** the +/-5 % matching rule bounds the share, not the level - a "
+       f"uniformly high bank passes it.  Against the lowest DESAT trip {ra['DESAT_lowest_trip_V_string_ge_45C']:.2f} V (string >= 45 C) / the "
+       f"stated margin {ra['margin_stated']:.2f} = {ra['V_DS_max_V']:.2f} V at the 200 ms tier: **{al['rule']}** (at the limit "
+       f"{al['V_DS_at_limit_V']:.2f} V at {al['tj_at_limit_C']:.0f} C).  A switch of six 52 mOhm parts reaches {ud['V_DS_at_full_tier_V']:.2f} V "
+       f"at its own {ud['tj_at_full_tier_C']:.0f} C junction at {ud['I_200ms_nominal_A']:.0f} A; the firmware alternative holds it at "
+       f"{ud['I_200ms_A']:.0f} A ({ud['V_DS_V']:.2f} V, {ud['tj_C']:.0f} C) - {ud['note']}.  Decision: {ra['decision']}.  Separately: "
+       f"{ra['pulse_rating']}; short-circuit survival: {ra['sc_survival']}.  ({ra['basis']}.)")
     wr(f"\n**Short circuit:** DESAT trips at V_DS {ds['threshold_V_DS']}; at the {OC_TRIP:.0f} A over-current trip the hottest device sits "
        f"at {ds['V_DS_at_OC_trip_V']:.1f} V (no nuisance trip); blanking {ds['blanking_ns'][0]}-{ds['blanking_ns'][1]} ns, detection to off "
        f"<= {ds['response_to_off_us']:.1f} us with the booster (a response requirement, not an acceptance).  **Acceptance follows the "
@@ -2212,6 +2600,32 @@ def report_e(r):
 # ------------------------------------------------------------------------------------------------ (f) AC port, DC port, common mode
 RCMU = {"continuous_mA": {"<=30kVA": 300.0, ">30kVA_per_kVA": 10.0}, "steps_mA_s": [(30, 0.3), (60, 0.15), (150, 0.04)],
         "src": "IEC 62109-2 residual-current monitoring, FROM MEMORY (standard text not on file)"}
+# the type-B residual-current monitor's INTERFACE CONTRACT for the RFQ (review R2-13, 2026-10-07): every figure ASSUMED until the part is
+# chosen (candidate class Magtron RCMU101SN-3P50G-6C, D-067); the trip figures are RCMU's (IEC 62109-2 class, from memory).  It adds no
+# pin to the drawn 4-pin interface (VCC, GND, OUT, TEST: PCS_X RCM / RCM_TST); gen/pcs_power.py writes it into the RCM_B / RCM_B4 lines
+RCM_CONTRACT = {
+    "status": "RFQ contract - ASSUMED until the part is chosen; the dynamic-unbalance immunity is the control study's (sim/pcs_control.py)",
+    "type": "type B: AC to >= 2 kHz, pulsating DC and smooth DC residual current (fluxgate), one sensor around every live conductor",
+    "trips": ("in firmware from the analog output (the sensor has no trip relay): continuous residual current >= %.0f mA (%.0f mA per kVA "
+              "above 30 kVA, %.0f kVA) within 0.3 s; sudden changes %s; DC and AC (rms) alike" % (
+                  RCMU["continuous_mA"][">30kVA_per_kVA"] * P_RATED / 1e3, RCMU["continuous_mA"][">30kVA_per_kVA"], P_RATED / 1e3,
+                  " / ".join("%.0f mA within %.2f s" % x for x in RCMU["steps_mA_s"]))),
+    "range_A": 2.0, "accuracy": "+/-(3 % of reading + 3 mA), DC to 1 kHz; resolution <= 6 mA DC / 30 mA AC",
+    "output": ("analog voltage, 2.50 V +/-1 % at zero residual current, 1.00 V/A +/-3 % (+/-2.0 A in 0.50-4.50 V), DC to >= 2 kHz "
+               "(-3 dB), >= 0.25 mA into the control board's 10.0k / 13.0k divider, noise <= 3 mA rms equivalent"),
+    "diagnostic": ("on OUT, no separate pin: an internal fault (fluxgate oscillator stopped, supply out of range, failed self-check) "
+                   "drives OUT to <= 0.25 V or >= 4.75 V within <= 100 ms - outside the 0.50-4.50 V signal band; firmware: sensor fault "
+                   "-> no connection / controlled stop"),
+    "test_input": ("TEST, 3.3 V CMOS active high, >= 10 kOhm (RCM_TST from GPIO21 through PCS_X, 100k pull-down on the power board): "
+                   "injects 50 mA DC +/-20 % through the test winding, OUT steps by 50 mV +/-20 % within <= 50 ms; used by the start-up "
+                   "self-test and before every connection"),
+    "supply": "5 V +/-5 % from the power board's +5V, <= 50 mA including start-up (the +5V budget's allocation)",
+    "aperture": {"three-wire": "L1-L3: 3 bars 25 x 3 mm flat-stacked with 1 mm sleeves (27 x 19 mm, the AC CM choke's fit)",
+                 "four-wire": "L1-L3 + N: 4 bars 16 x 4.5 mm on edge with 1 mm sleeves (30.5 x 18 mm, the AC CM choke's fit)"},
+    "insulation": ("the bars are LIVE (V_dc/2 + 375 V x 1.2 against DC-, <= 1050 V DC + the OVC III impulse): bar to sensor "
+                   "electronics through the 1.5 kV rms bar sleeves plus the sensor's own functional insulation, referenced to DC- "
+                   "like the board"),
+    "pins": "VCC, GND, OUT, TEST as drawn - the contract adds none"}
 C_BE = (1e-6, 5e-6, 20e-6)        # battery-system capacitance to earth, F (unknown, a range: rack Y-caps, cables, cell-to-frame)
 L_CM_AC = FP["cm_choke"]["L_cm_uH"] * 1e-6 if FP else 150e-6   # AC CM choke: sim/pcs_tradeoff.py sizes it (earth current no worse than
 #                                   the D-053 150 uH, Yunlu N-R-564440 cores by magnetics.pcs_cm_design); 150 uH before that script has run
@@ -2364,6 +2778,11 @@ def report_map(r):
 
 
 PWR_CHECK = os.path.join(ROOT, "hardware", "%s", "outputs", "%s_design_check.txt")   # gen/pcs_power.py design checks (read only)
+# the AC coil module CONTRACT (RFQ) - review R2-06 (2026-10-07): ONE pair, used by the live 24 V budget (gen/pcs_power.py reads it from
+# pcs_spec ports_and_common_mode.ac_contactor.coil_contract), the RFQ text and the self-check.  The 24 W / 5.5 W the aux rating would
+# allow (D-076) is printed as the margin to this contract, not as the contract: with it the four-wire build would keep 0.3 W peak /
+# 0.8 W continuous reserve
+AC_COIL_CONTRACT = {"pull_W": 20.0, "t_pull_s": 0.1, "hold_W": 4.0}
 AC_PULL_STEPS = {"relay test, AC contactor 1 alone": 0, "relay test, AC contactor 2 alone": 0, "synchronised close": 1,
                  "grid start: AC contactor 2 pulls in": 0, "grid start: AC contactor 1 pulls in": 1}    # step -> AC coils held meanwhile
 
@@ -2383,7 +2802,7 @@ def aux_budget():
         ml = re.search(r"Live 24 V from the aux: 5 V outputs ([\d.]+) W / 0\.85 \+ DC contactor on its economiser ([\d.]+) W \+ 2 AC "
                        r"contactor coils \(RFQ hold <= ([\d.]+) W each\) = ([\d.]+) W", t)
         ms = re.search(r"SELV: \d+ fans \+ fan buck \+ logic ([\d.]+) W", t)
-        mc = re.search(r"AC coil module RFQ, ASSUMED pull-in ([\d.]+) W for <= ([\d.]+) ms, hold ([\d.]+) W", t)
+        mc = re.search(r"AC coil module RFQ, contract pull-in ([\d.]+) W for <= ([\d.]+) ms, hold ([\d.]+) W", t)
         mq = re.search(r"gate bias idle [\d.]+ W per phase\): (.*?)\. Live peak rating", t)
         if not (ml and ms and mc and mq):
             raise SystemExit(f"{board} design check: the aux budget lines are missing - build the board (gen/pcs_power.py) first")
@@ -2400,6 +2819,8 @@ def aux_budget():
         out["builds"][build] = {
             "board": board, "live_W": p_live, "selv_W": p_selv, "total_W": p_live + p_selv, "steps": steps,
             "peak_W": worst[1], "peak_step": worst[0], "coil_assumed": {"pull_W": pull_a, "t_pull_s": t_pull, "hold_W": hold_a},
+            "coil_is_contract": abs(pull_a - AC_COIL_CONTRACT["pull_W"]) < 0.05 and abs(t_pull - AC_COIL_CONTRACT["t_pull_s"]) < 1e-4
+                                and abs(hold_a - AC_COIL_CONTRACT["hold_W"]) < 0.05,
             "margin_live_W": rt["live_W"] - p_live, "margin_selv_W": rt["selv_W"] - p_selv,
             "margin_total_W": rt["total_W"] - p_live - p_selv, "margin_peak_W": rt["live_peak_W"] - worst[1],
             "hold_room_W": hold_room, "pull_room_W_at_assumed_hold": pull_room(hold_a), "_pull_room": pull_room}
@@ -2407,14 +2828,18 @@ def aux_budget():
     pull_req = min(math.floor(b["_pull_room"](hold_req)) for b in out["builds"].values())
     for b in out["builds"].values():
         b.pop("_pull_room")
-    ca = next(iter(out["builds"].values()))["coil_assumed"]
-    fits = ca["pull_W"] <= pull_req and ca["hold_W"] <= hold_req
-    out.update(pull_req_W=pull_req, hold_req_W=hold_req, estimate_fits=fits,
+    cc = AC_COIL_CONTRACT
+    fits = cc["pull_W"] <= pull_req and cc["hold_W"] <= hold_req
+    out.update(pull_req_W=pull_req, hold_req_W=hold_req, estimate_fits=fits, coil_contract=dict(cc),
+               margin_to_contract_W={"pull_W": pull_req - cc["pull_W"], "hold_W": hold_req - cc["hold_W"]},
                rfq=("24 V DC electronic coil (economiser inside the coil module), per contactor: pull-in <= %.0f W for <= %.0f ms, hold "
-                    "<= %.1f W - what the live 24 V budget of both builds allows against the aux rating (aux75_spec rev %s: %.0f W "
-                    "continuous, %.0f W for 1 s; one coil pulls in at a time); ESTIMATE %.0f W pull-in / %.0f W hold: %s" % (
-                        pull_req, ca["t_pull_s"] * 1e3, hold_req, s75["rev"], rt["live_W"], rt["live_peak_W"], ca["pull_W"],
-                        ca["hold_W"], "inside" if fits else "OUTSIDE - OPEN")))
+                    "<= %.0f W (the contract, pcs_spec ac_contactor coil_contract; one coil pulls in at a time)" % (
+                        cc["pull_W"], cc["t_pull_s"] * 1e3, cc["hold_W"])),
+               margin_text=("margin to the contract (calculated, not the contract): against the aux rating (aux75_spec rev %s: %.0f W "
+                            "continuous, %.0f W for 1 s) the live 24 V budget of both builds would allow up to %.0f W pull-in / %.1f W hold "
+                            "per contactor, i.e. %.0f W / %.1f W above the contract" % (
+                                s75["rev"], rt["live_W"], rt["live_peak_W"], pull_req, hold_req, pull_req - cc["pull_W"],
+                                hold_req - cc["hold_W"])))
     return out
 
 
@@ -2456,7 +2881,8 @@ def step_f(D, rc, rd):
     ab = aux_budget()
     res["aux_budget"] = ab
     res["ac_contactor"] = {"arrangement": "two 3-pole contactors in series (4-pole for four-wire), relay test before every connection",
-                           "Ie_AC1_A_min": 1.15 * I_2MIN, "Ui_V": 1000, "Uimp_kV": 8, "coil": ab["rfq"],
+                           "Ie_AC1_A_min": 1.15 * I_2MIN, "Ui_V": 1000, "Uimp_kV": 8, "coil": ab["rfq"], "coil_contract": dict(AC_COIL_CONTRACT),
+                           "coil_margin_to_contract": ab["margin_text"],
                            "candidates": "CHINT NXC-225 / CJX2-185, Delixi CJX2s-185 class - no data sheet on file (R-06, RFQ)"}
     res["precharge"] = {"R_ohm": r_pre, "C_eq_uF": c_eq * 1e6, "C_eq_max_uF": c_max * 1e6, "tau_s": r_pre * c_eq, "tau_max_s": tau_max,
                         "t_to_10V_s": r_pre * c_eq * math.log(950 / 10), "t_to_10V_max_s": tau_max * math.log(V_OV_TRIP / 10),
@@ -2497,10 +2923,10 @@ def report_f(r, rc):
         wr(f"| {k} ({b['board']}) | {b['live_W']:.1f} ({b['margin_live_W']:.1f}) | {b['selv_W']:.1f} ({b['margin_selv_W']:.1f}) | "
            f"{b['total_W']:.1f} ({b['margin_total_W']:.1f}) | {b['peak_W']:.1f} ({b['margin_peak_W']:.1f}) - {b['peak_step']} |")
     for k, b in ab["builds"].items():
-        wr(f"\nSequence, {k} (one coil pulls in at a time; AC coil ASSUMED {b['coil_assumed']['pull_W']:.0f} W for "
+        wr(f"\nSequence, {k} (one coil pulls in at a time; AC coil at the contract {b['coil_assumed']['pull_W']:.0f} W for "
            f"{b['coil_assumed']['t_pull_s']*1e3:.0f} ms / {b['coil_assumed']['hold_W']:.0f} W hold): " +
            "; ".join(f"{n} {w:.1f} W" for n, w in b["steps"]) + ".")
-    wr(f"\nAC contactor coil (RFQ): {ab['rfq']}.")
+    wr(f"\nAC contactor coil (RFQ, review R2-06: one contract for the budget, the RFQ and the self-check): {ab['rfq']}; {ab['margin_text']}.")
     pc = r["precharge"]
     wr(f"\n**Precharge and start:** from the DC side through the lean port's relay and {pc['R_ohm']:.0f} ohm: C_eq {pc['C_eq_uF']:.1f} uF "
        f"(bank + leg films), tau {pc['tau_s']*1e3:.0f} ms, within 10 V of 950 V after {pc['t_to_10V_s']:.2f} s, {pc['E_J_950V']:.0f} J, "
@@ -2879,7 +3305,9 @@ def report_g(r):
     wr("\n**Where the PV discrete layer does not carry over unchanged:** (1) the phase-current windows keep their TLV9024 comparators but "
        "move to +-450 A on the Sinomags STK-250HO/4 (open-loop Hall, +-625 A, 3.2 mV/A, step response <= 2 us, PCM-20): the ladder values "
        "change, and the trip path (sensor <= 2 us + comparator + latch + driver, timed against the L1 limit in the PCS-CTL design check) "
-       "runs at di/dt = V_dc/L1 = 8.75 A/us (1050 V / 120 uH) - with the PV's 73 A / 224 uH it was 4.5 A/us; "
+       f"runs at di/dt = V_dc / L1(I) = {SPEC['protection_chain']['fault_slope']['di_dt_at_window_top_A_per_us']:.2f} A/us on the L1 "
+       "envelope (1050 V; 8.75 A/us at a constant 120 uH; the gates-off current and its turn-off peak: protection chain, step e) - with "
+       "the PV's 73 A / 224 uH it was 4.5 A/us; "
        "(2) the dead-time stretch needs a new gen/gdrv.py preset for six gates behind a buffer "
        "(step e); (3) the AC side has no counterpart of the DC-port interlocks: no hold-off (the converter current is zero after a trip; a "
        "short behind the contactors is grid-fed) and no hardware synchronism check (firmware; an unsynchronised close is a stressed unit, not "
@@ -3244,8 +3672,8 @@ def ac_short(rc):
     """AC-side short-circuit declaration (CALCULATED): a bolted leg short fed from the grid through L2 + L1 (body diodes of the healthy
     legs, symmetrical three-phase into the shorted rails), unsaturated filter, then L1 saturation"""
     F = rc["filter"]
-    e1 = json.load(open(os.path.join(HERE, "out", "magnetics", "design_pcs_l1.json")))["electrical"]
-    i_sat = OC_TRIP * e1["B_sat_100C_T"] / e1["B_at_trip_T"]            # gapped core: B ~ I up to B_sat (100 C)
+    pc_ = SPEC["protection_chain"]
+    i_sat = SPEC["protection_chain"]["L1_trajectory"]["I_knee_50pct_A"]["hot +5 % part"]   # the trajectory's earliest hot knee (R2-03)
     zb = V_LL ** 2 / P_RATED
     rows = {}
     for name, scr in (("stiff", None), ("SCR 50", 50.0), ("SCR 20", 20.0), ("SCR 5", 5.0)):
@@ -3258,10 +3686,13 @@ def ac_short(rc):
     return {"I_L1_sat_100C_A": i_sat, "rows": rows,
             "module": ("converter running: the circular current limiter holds 367 A peak (259 A rms) for <= 200 ms, then trips (control study: "
                        "a terminal short in grid forming is held at 366 A with no hardware trip); a faster rise reaches the phase window "
-                       "(426-486 A, gates off <= 3.5 us) and the CMPSS backup (493-571 A); a device short is cleared by DESAT (detected <= 0.88 "
+                       "(%.0f-%.0f A, gates off <= %.2f us at <= %.0f A, pcs_spec protection_chain) and the CMPSS backup (%.0f-%.0f A as drawn; "
+                       "requirement band top <= %.0f A, adopted on PCS-CTL, D-078); a device short is cleared by DESAT (detected <= 0.88 "
                        "us, off 0.40 us later); a shorted leg is fed from the battery through the two 400 A aR fuses (2.0-7.4 kA, port "
                        "coordination) and from the grid through the body diodes of the healthy legs - that grid-fed current is limited only "
-                       "by L2 + L1 until L1 saturates, then by the installation"),
+                       "by L2 + L1 until L1 saturates, then by the installation" % (
+                           *pc_["inputs"]["window_A"], pc_["local_window"]["response_us"], pc_["local_window"]["I_gates_off_A"],
+                           *pc_["inputs"]["backup_A"], pc_["backup_requirement"]["band_top_max_A"])),
             "contactors": ("The two AC contactors in series are disconnecting devices, not short-circuit protective devices: AC-1 >= %.0f A (RFQ "
                            "class), making / breaking about 1.5 x Ie at cos phi 0.95 (IEC 60947-4-1 AC-1, from memory), opened by firmware at "
                            "zero current only; they must withstand the upstream device's let-through (conditional short-circuit current with "
@@ -3335,24 +3766,189 @@ def grid_hf_4w(F):
     return out
 
 
-CTL_SPEC = os.path.join(HERE, "out", "pcs_control", "pcs_control_spec.json")   # sim/pcs_control.py (read only, D-077)
+CTL_SPEC = os.path.join(HERE, "out", "pcs_control", "pcs_control_spec.json")   # sim/pcs_control.py (read only, D-077 / review R2)
+SM_OUT_KEY = "outputs_PWM_KACPRE_KPRE_KDC_KAC2_KAC1"                            # the executed machine's output vector, in this order
+SM_OUT_NAMES = ("PWM", "K_ACPRE", "K_PRE", "K_DC", "K_AC2", "K_AC1")
+SM_AC_STOP = ("AC_TEST", "AC_PRECHARGE", "AC_CLOSE_K2", "AC_CLOSE_K1", "RETRY_WAIT", "RECTIFY", "DC_MATCH")   # AC-start states a stop leaves
+
+
+def ctl_block(key, need=()):
+    """one block of the control study's pcs_control_spec.json, fail closed: a missing file, block or key stops the run, so the hand-over
+    never quotes a machine or a figure the control study did not produce"""
+    try:
+        b = json.load(open(CTL_SPEC))[key]
+        miss = [k for k in need if k not in b]
+    except (OSError, ValueError, KeyError, TypeError) as e:
+        raise SystemExit(f"{os.path.relpath(CTL_SPEC, ROOT)}: no usable '{key}' block ({e!r}) - run sim/pcs_control.py first") from None
+    if miss:
+        raise SystemExit(f"{os.path.relpath(CTL_SPEC, ROOT)} '{key}' lacks {miss}: the control study changed - re-read it")
+    return b
+
+
+def ctl_ac_start():
+    """the AC start as the control study executed it (review R2-14, sim/pcs_control.py section 9d: the exhaustively checked transition
+    table and sm_exec with fault injection), quoted for the hand-over: the states and their outputs, the stop routes, the repairs H1-H5
+    and every fault outcome - read, fail closed (an invariant that fails or a breach left with the repairs stops the run)"""
+    sm = ctl_block("ac_start_state_machine", (SM_OUT_KEY, "exec"))
+    try:
+        ex, fsm = sm["exec"], ctl_block("firmware", ("state_machine",))["state_machine"]
+        out = {s: dict(zip(SM_OUT_NAMES, v, strict=True)) for s, v in sm[SM_OUT_KEY].items()}
+        q = {"source": "sim/out/pcs_control/pcs_control_spec.json ac_start_state_machine + firmware.state_machine (sim/pcs_control.py "
+                       "section 9d, review R2-14) - quoted, not retyped", "outputs_order": list(SM_OUT_NAMES), "outputs": out,
+             "stop_routes": {s: fsm["transitions"][f"{s} --stop-->"] for s in SM_AC_STOP},
+             "repairs": {h: ex["fixes"][h] for h in ("H1", "H2", "H3", "H4", "H5")}, "breaches_as_specified": ex["holes"],
+             "invariants": fsm["verified"], "relay_times_s_ASSUMED": ex["relay_times_s"],
+             "fault_cases": [{"fault": x["fault"], "at": x["at"], "outcome": x["fixed"], "breaches": x["breach_fixed"],
+                              "precharge_attempts": x["att_fixed"]} for x in ex["rows"]]}
+        assert set(SM_AC_STOP) | {"AC_STOP", "LOCKOUT", "STOP", "IDLE"} <= set(out), "a state the hand-over names is not in the table"
+        assert q["invariants"] and all(q["invariants"].values()), "an invariant of the checked table fails"
+        assert not ex["residual"] and not any(c["breaches"] for c in q["fault_cases"]), "a safety breach remains with the repairs"
+        assert out["AC_STOP"]["K_DC"] == 0 and out["STOP"]["K_DC"] == 1, "AC_STOP must keep K_DC open (CONTROLLED STOP holds it)"
+        assert all(q["stop_routes"][s] == ("AC_STOP" if out[s]["PWM"] else "IDLE") for s in SM_AC_STOP), "stop routes of the AC start"
+    except (KeyError, TypeError, ValueError, AssertionError) as e:
+        raise SystemExit(f"{os.path.relpath(CTL_SPEC, ROOT)} ac_start_state_machine: {e!r} - the executed machine no longer matches the "
+                         "hand-over's AC-start text: re-read sim/pcs_control.py section 9d") from None
+    return q
 
 
 def ctl_ride_through():
-    """the control study's ride-through result as hand-over text (D-077): firmware state + per-sample clamp, the stiff-grid
-    first-millisecond peaks and the derating rule that covers them"""
-    rt = json.load(open(CTL_SPEC)).get("ride_through") if os.path.exists(CTL_SPEC) else None
-    if not rt:
-        return "the ride-through limiter is a control-study item (sim/pcs_control.py not run yet)"
-    lim, rows = rt["limiter"], rt["rows"]
-    trips = sorted((r for r in rows if r["scr"] is None and r["trip"]), key=lambda r: r["depth"])
-    der = [d for d in rt["derating"] if d["frac"] < 1.0]
-    return ("the firmware ride-through state with the per-sample clamp at %.0f A keeps every in-dip / recovery peak <= %.0f A from "
-            "stiff to SCR %g; only the first-millisecond peak on a stiff grid (%s A at %s pu against the %.0f A window) remains, "
-            "handled by the stiff-grid derating rule (%s kW) - no hardware change (control study, D-077)" % (
-                lim["clamp_A"], math.ceil(max(max(r["pk_dip"], r["pk_rec"]) for r in rows)), min(r["scr"] for r in rows if r["scr"]),
-                " / ".join("%.0f" % r["pk_on"] for r in trips), " / ".join("%g" % r["depth"] for r in trips), lim["window_low_A"],
-                " / ".join("%g" % d["P_max_kW"] for d in der)))
+    """the control study's ride-through rule (review R2-05, sim/pcs_control.py section 4c; read, fail closed): the adopted onset measure
+    is the rule; the D-077 stiff-grid derating is its stated fallback with the SCR boundary, the grid-stiffness estimate and the
+    installation's fault level"""
+    lim = ctl_block("ride_through", ("limiter",))["limiter"]
+    r = ctl_block("ride_through_rule", ("adopted", "clamp_rt_A", "rows", "worst_onset", "margin_A", "thr", "boundary", "scr_b", "table",
+                                        "dq_pu", "acc", "engage_scr", "dV_engage_V", "lsb_V", "S_sc_engage_MVA", "S_sc_b_MVA"))
+    rows, b = r["rows"], r["boundary"]
+    if not r["adopted"] or any(x["trip"] for x in rows):
+        raise SystemExit("pcs_control_spec ride_through_rule: the onset measure is not adopted or a ride-through case trips - the "
+                         "hand-over's text (measure first, derating as the fallback) no longer holds: re-read sim/pcs_control.py 4c")
+    stiff = [x for x in r["table"] if x["scr"] is None and x["frac"] < 1.0]
+    dep = lambda xs: " / ".join("%g" % x["depth"] for x in xs)                               # noqa: E731
+    return {"measure": (
+        "ride-through state (entered below %g pu |v_C|, left %.0f ms after it is back above %g pu; dip-time limit %.0f A pk = 1.0 I_r; PLL held below %g pu) "
+        "with the per-sample clamp at %.0f A, set to %.0f A while the state runs and predicting on the divider-inverted C_f voltage "
+        "(the adopted onset measure, review R2-05): onset %.0f A at a stiff 0 pu dip, %.0f A at the worst corner / dip instant against "
+        "the %.0f A window edge (%.0f A margin); every onset, in-dip and recovery peak <= %.0f A from stiff to SCR %g at %g-%g pu "
+        "residual voltage - rated current, no derating (SIMULATED, averaged model)" % (
+            lim["lvrt_pu"][0], lim["hold_s"] * 1e3, lim["lvrt_pu"][1], lim["dip_limit_A_pk"], lim["pll_freeze_pu"], lim["clamp_A"],
+            r["clamp_rt_A"], next(x["pk_on"] for x in rows if x["scr"] is None and x["depth"] == 0.0), r["worst_onset"], r["thr"],
+            r["margin_A"], max(max(x["pk_on"], x["pk_dip"], x["pk_rec"]) for x in rows), min(x["scr"] for x in rows if x["scr"]),
+            min(x["depth"] for x in rows), max(x["depth"] for x in rows))),
+        "fallback": (
+            "FALLBACK if a switched model or the bench shows less margin: with the D-077 limiter rated current passes up to SCR %s at %s pu "
+            "residual voltage; the grid-stiffness estimate (a %g pu reactive-current step at connection, a PRBS of it in operation, "
+            "correlated over about 10 s in the 1 kHz task: |Z_g| = |dV_G / dI_g| from the terminal-voltage phasor VG1-3 and the "
+            "estimated grid current i_1 - j w C_eq v_C, SCR = Z_base / |Z_g|; %.2f V = %.1f LSB at the engage level, averaging needed; "
+            "accuracy ASSUMED +/-%.0f %%; no valid estimate = stiff) engages the derating at an estimated SCR >= %.1f: stiff %s kW at %s "
+            "pu, the control study's table between" % (
+                " / ".join("%.1f" % x["scr_b"] for x in b), dep(b), r["dq_pu"], r["dV_engage_V"], r["dV_engage_V"] / r["lsb_V"],
+                100 * r["acc"], r["engage_scr"], " / ".join("%g" % x["P_max_kW"] for x in stiff), dep(stiff))),
+        "installation": (
+            "with the measure no fault-level limit (averaged model); under the fallback the profile rides through at rated current where "
+            "the connection's fault level per 125 kW module is below %.2f MVA (SCR %.1f with the estimate's tolerance; %.2f MVA at the "
+            "computed boundary SCR %.1f) - n modules at one point: the point's fault level / n; above it the derating table applies" % (
+                r["S_sc_engage_MVA"], r["engage_scr"], r["S_sc_b_MVA"], r["scr_b"])),
+        "acc": r["acc"], "thr_A": r["thr"], "derating_stiff_kW": {"%g pu" % x["depth"]: x["P_max_kW"] for x in stiff}}
+
+
+def ctl_vf_rows():
+    """the grid-forming (VF) transient envelope and the two firmware measures behind it (review R2-04, sim/pcs_control.py section 7c;
+    read, fail closed) as firmware rows; the D-077 0.38 / 2.17 pu were the unbounded averaged model - superseded"""
+    vb = ctl_block("vf_bounded", ("steps", "envelope", "vclamp_pu"))
+    ff = ctl_block("vf_feedforward", ("chosen", "scan"))
+    st = vb["steps"]
+    up = [x for k, x in st.items() if k.startswith("design, single module") and k.endswith("0 -> rated")]
+    dn = [x for k, x in st.items() if k.startswith("design, single module") and k.endswith("rated -> 0")]
+    o_up, o_dn = (next((x for k, x in st.items() if k.startswith("D-077 configuration") and k.endswith(e)), None) for e in ("0 -> rated", "rated -> 0"))
+    if not (up and dn and o_up and o_dn) or not all(x["env"]["ok"] for x in up + dn) or not ff["chosen"]["ok"]:
+        raise SystemExit("pcs_control_spec vf_bounded / vf_feedforward: a single-module step outside the declared envelope, the D-077 "
+                         "reference rows or the chosen feed-forward missing - re-read sim/pcs_control.py section 7c")
+    env = lambda side: ", ".join("%g pu to %g ms" % (pu, t) if t is not None else "%g pu after" % pu for t, pu in vb["envelope"][side])  # noqa: E731
+    v_up, v_dn = min(x["v_min"] for x in up), max(x["v_max"] for x in dn)
+    return [
+        {"item": "VF transient envelope, single module, 100 % linear load step (declared; review R2-04)",
+         "peripheral": ("the VF cascade with the load-current feed-forward and the over-voltage deadbeat (the next two rows), the per-sample "
+                        "clamp and the virtual impedance at 0 for a single module; paralleled modules keep the droop's for sharing - the "
+                        "envelope is not declared for them (their first milliseconds are the same, the plateau is the secondary layer's)"),
+         "threshold": ("|v_C| over: <= %s; under: >= %s; simulated (averaged, every corner): 0 -> rated dip to >= %.3f pu, rated -> 0 "
+                       "overshoot <= %.3f pu, within 10 %% after <= %.1f ms and 1 %% after <= %.1f ms; the D-077 figures %.2f / %.2f pu "
+                       "were the unbounded averaged model without these measures - superseded" % (
+                           env("over"), env("under"), v_up, v_dn, max(x["t_v10_ms"] for x in up + dn),
+                           max(x["t_v1_ms"] for x in up + dn), o_up["v_min"], o_dn["v_max"])),
+         "filter": "-", "latency": "-", "self_test": "bench: the first-millisecond excursion at every corner of the drawn parts (OPEN)"},
+        {"item": "VF load-current feed-forward (review R2-04; adopted)",
+         "peripheral": ("control ISR, VF only (not in grid-connected grid forming): i_ref += LPF(i_1 - C_eq (v_C[k] - v_C[k-1]) / T), the "
+                        "load current estimated from the converter current and the C_f voltage (no grid-side sensor)"),
+         "threshold": ("low-pass %.0f Hz, the highest of the scan meeting the rule (PM %.1f deg, GM %.1f dB at every corner); %s fail it"
+                       % (ff["chosen"]["f_io"], ff["chosen"]["pm"], ff["chosen"]["gm"],
+                          ", ".join("%.0f Hz (GM %.1f dB)" % (x["f_io"], x["gm"]) for x in ff["scan"] if not x["ok"]))),
+         "filter": "first order, %.0f Hz" % ff["chosen"]["f_io"], "latency": "every control period", "self_test": "-"},
+        {"item": "VF over-voltage deadbeat (review R2-04; adopted)",
+         "peripheral": ("control ISR, VF only: above the threshold (divider-inverted C_f sample) the inner command is the one that ends the "
+                        "next period with i_1 at the unfiltered load-current estimate; the voltage PR does not integrate meanwhile"),
+         "threshold": ("%.1f pu; full-load rejection <= %.2f pu at the worst corner (the D-077 configuration, unbounded and without the "
+                       "measures: %.2f pu)"
+                       % (vb["vclamp_pu"], v_dn, o_dn["v_max"])),
+         "filter": "-", "latency": "every control period", "self_test": "-"}]
+
+
+def ctl_dc_rows(acc):
+    """the DC-side rejection rules (review R2-04, sim/pcs_control.py sections 6b and 7c; read, fail closed): the soft DC-link over-voltage
+    limit holds the DC-link loop in CV mode, the CV-mode DC/DC power limits by SCR, and the DC/DC coordination on a battery-less bus
+    (an installation / system rule).  acc = the grid-stiffness estimate's ASSUMED accuracy (ride_through_rule)"""
+    dr = ctl_block("dc_rejection_bounded", ("rows", "derating", "soft", "band", "resp_us", "ppb"))
+    vb = ctl_block("vf_bounded", ("t_c_max_ms", "e_ret_J", "p_pre_W", "cap_follow", "cap_tc", "cap_tc_over", "uncoordinated"))
+    c = ctl_block("inputs", ("C_dc_F",))["C_dc_F"]
+    try:
+        alone = next(x for x in dr["rows"] if x["soft"] is None)
+        trip = [x for x in dr["rows"] if x["trip"]]
+        unc = sorted(vb["uncoordinated"].values(), key=lambda u: u["vdc_end"])
+        lim = {("stiff" if x["scr"] is None else "SCR %g" % x["scr"]): x["P_max_kW"] for x in dr["derating"]}
+        assert trip and not alone["trip"] and all(x["half_ok"] and x["dev_ok"] for x in trip + unc), "DC rejection: device / film"
+    except (KeyError, StopIteration, AssertionError) as e:
+        raise SystemExit(f"pcs_control_spec dc_rejection_bounded / vf_bounded: {e!r} - re-read sim/pcs_control.py sections 6b / 7c") from None
+    v_bus = math.sqrt(vb["cap_follow"]["vdc_max"] ** 2 - 2 * vb["e_ret_J"] / c)      # the study's bus: where the returned energy starts
+    aux_ov = min(json.load(open(AUX75))["startup"]["ov_lockout_V"])                  # the 75 W aux's input lock-out (aux75_spec)
+    rng = lambda xs, f="%.0f": (f + "-" + f) % (min(xs), max(xs))                    # noqa: E731
+    soft, band, ppb = dr["soft"], dr["band"], dr["ppb"]
+    coord = {"item": "DC/DC coordination on a DC bus without a battery (installation / system rule; review R2-04)",
+             "peripheral": ("outside this module: every DC/DC feeding a battery-less bus that this module turns into an island (VF) cuts its "
+                            "current on its own local bus-voltage detection (PV-P75 / PV-P100/110: sim/out/pv_control/control_spec.json "
+                            "firmware_second_layer 'system') or a shared hardwired trip line - a CAN message is too slow; the PCS cannot "
+                            "absorb the energy (no brake chopper drawn)"),
+             "threshold": ("cut within %.2f ms of an AC load rejection at the study's %.0f V bus and %.0f kW (the link reaches the %.0f V soft "
+                           "limit at that time; %.0f / %.0f V at 0.95 / 1.05 x it); the rejection returns %.1f J of LCL energy to the "
+                           "link (%.0f V even with an ideal source); uncoordinated the comparator trips %s ms after the step and the bus "
+                           "is left at %s V, latched - %s" % (
+                               vb["t_c_max_ms"], v_bus, vb["p_pre_W"] / 1e3, soft[0], vb["cap_tc"]["vdc_max"], vb["cap_tc_over"]["vdc_max"],
+                               vb["e_ret_J"], vb["cap_follow"]["vdc_max"], rng([u["t_off_ms"] for u in unc], "%.2f"),
+                               rng([u["vdc_end"] for u in unc]),
+                               ("at the band top above the aux's %.0f V input lock-out: the island goes dark" % aux_ov)
+                               if any(u["aux_lockout"] for u in unc) else "below the aux's %.0f V input lock-out" % aux_ov)),
+             "filter": "-", "latency": "-", "self_test": "-"}
+    return [
+        {"item": "DC-link over-voltage soft limit in CV mode (review R2-04; amends the control board's 'OV / UV soft limits' row)",
+         "peripheral": ("outer loop on VB: in CV mode the soft limit holds the DC-link loop - the bridge keeps exporting up to its current "
+                        "limit, the only sink on the link - instead of the controlled stop; in PQ / CP / CC and VF it keeps the controlled "
+                        "stop (no latch); the stop on DC over-voltage stays with the hardware: comparator band %.0f-%.0f V (%.0f us to "
+                        "gates off) and its ADC-PPB backup %.0f-%.0f V (%.1f us), latched, no automatic clear" % (*band, dr["resp_us"], *ppb)),
+         "threshold": ("%.0f V (%.0f us); simulated weak-grid DC-load rejection (SCR %g, %.0f V, %.0f kW DC/DC load trips, averaged): the "
+                       "loop alone peaks at %.0f V; with the protection the comparator turns the gates off at %s V after %s ms and the "
+                       "diode-bridge dump leaves the bus at %s V (halves <= %.0f V), latched - holding the loop changes nothing there "
+                       "(the comparator trips first) but lets a smaller rejection recover below the band" % (
+                           soft[0], soft[1], alone["scr"], alone["vdc_end"], alone["P_kW"], alone["vmax_loop"],
+                           rng([x["v_off"] for x in trip]), rng([x["t_off_ms"] for x in trip], "%.2f"),
+                           rng([x["vdc_end"] for x in trip]), max(x["half_pk"] for x in trip))),
+         "filter": "-", "latency": "outer loop", "self_test": "-"},
+        {"item": "CV mode with DC/DC loads at weak grids (review R2-04)",
+         "peripheral": ("the DC/DC power the link may serve in CV mode, selected from the grid-stiffness estimate (the ride-through "
+                        "fallback's estimator): the row at or below the estimate / %.1f, no interpolation upward, no valid estimate = the "
+                        "weakest row (selection ASSUMED); published to the DC/DC over the module CAN / the EMS, which enforce it" % (1 + acc)),
+         "threshold": (", ".join("%s %g kW" % kv for kv in lim.items()) + ": a DC/DC trip then stays below the %.0f V soft limit "
+                       "(simulated, averaged; full power from SCR %g)" % (soft[0], min(x["scr"] for x in dr["derating"]
+                                                                                       if x["scr"] and x["frac"] >= 1.0))),
+         "filter": "-", "latency": "-", "self_test": "-"},
+        coord]
 
 
 def ctl_n_leg():
@@ -3456,22 +4052,37 @@ def step_i(D, rb, rc, rd, rf, rg_):
     SPEC["four_wire"] = four
     # ---- the AC start-up path (both builds)
     st = ac_start(rd, c4)
+    sm = ctl_ac_start()                       # the executed AC-start machine of the control study (review R2-14), fail closed
+    pol = json.load(open(os.path.join(HERE, "out", "port_design", "port_spec.json")))["lean"]["firmware_requirements"]  # DC-port bands
+    r2 = lambda x: "%g-%g" % tuple(x)                                                                                       # noqa: E731
+    tau_bl_min = 5                            # bleeder time constant about 5 min (step d / four-wire bleeder, rounded as the label text)
     st["sequence"] = [
         "grid present, DC side dead (battery absent, empty or its own contactors open): the 6-diode tap feeds the 75 W aux through its "
-        "OR diode -> live 24 V, 5 V, 3.3 V, the controller boots (latch tripped at power-up)",
-        "self-test of the trip paths, relay test of K1 and K2 with the converter passive (VG against VC, one contactor at a time), "
-        "welded-precharge check (with K_ACPRE off the link must stay below 50 V)",
-        "AC precharge: K_ACPRE (PWM16 line, latch-gated) closes; the link charges from the tap through 220 ohm to the line-to-line peak "
-        "minus two diode drops; firmware aborts on the shorted-bank or timeout rule",
-        "open K_ACPRE (the precharged link holds: bleeder time constant about 5 min), then close K2, then K1 (one coil at a time, the "
-        "live 24 V budget) with V_dc >= 0.95 x sqrt2 x V_LL,meas and the DC contactor open: no battery on the link, the bridge closes onto "
-        "its own precharged link through the body diodes (inrush <= 5 % of the peak over sqrt(L / C): tens of amperes)",
-        "the bridge starts as a rectifier on the control study's DC-link loop (PI 40 Hz + DC-current feed-forward) and raises V_dc to the "
-        "battery's terminal voltage (VBX) - or 750 V without a battery (standby, STATCOM, communication)",
-        "DC port: the link matched to the battery within the hardware dV window (3.5-16.5 V) -> K_B closes directly; or K_PRE closes from the "
-        "link side first (reverse current through 220 ohm: G7L-2A-X reverse-polarity rating 30 A / 600 V DC, 5,000 operations - ample at "
-        "<= 0.1 A for <= 20 V of difference) and then K_B; the hardware polarity interlock needs >= 187-213 V at the battery terminal",
-        "normal operation (CV / CC / PQ) from there; the aux keeps both feeds (DC-link tap and grid tap, diode OR)"]
+        "OR diode -> live 24 V, 5 V, 3.3 V, the controller boots (latch tripped at power-up) and reads the AC-start attempt count, its "
+        "spacing and any lock-out from the recorder flash, checked before every attempt (H5: non-volatile - a brown-out cannot reset the "
+        "retry limit)",
+        "AC_TEST: self-test of the trip paths; welded-precharge check with K_ACPRE, K_PRE, K_B, K1 and K2 open and the converter passive - "
+        "the link must stay below 50 V and VC dead; at a retry the link is still charged by the earlier attempt (bleeder time constant "
+        "about %d min), so the check becomes a voltage-difference test valid on a charged link (H2): the link must decay at the bleeder "
+        "rate (never rise) and sit below the tap peak; else LOCKOUT (a welded K_ACPRE / K_PRE / K_B or both contactors); no relay test "
+        "on the dead link (H1)" % tau_bl_min,
+        "AC_PRECHARGE: K_ACPRE (PWM16 line, latch-gated) closes and the attempt is counted in the recorder flash; the link charges from the "
+        "tap through 220 ohm to the line-to-line peak minus two diode drops (done at |tap - V_dc| <= 10 V); firmware aborts to RETRY_WAIT "
+        "on the shorted-bank or timeout rule",
+        "AC_CLOSE_K2: open K_ACPRE (the precharged link holds), then the relay test onto the precharged link (H1): K2 alone, then K1 "
+        "alone, the converter passive - VC must stay dead with one contactor closed (VC live = the other one welded -> LOCKOUT)",
+        "close K2, then K1 (AC_CLOSE_K1; one coil at a time, the live 24 V budget), each commanded only with V_dc >= 0.95 x sqrt2 x "
+        "V_LL,meas, the grid inside +/-10 % at the command (H3) and the DC contactor open - checked at each coil command, not once "
+        "before the sequence; no battery on the link: the bridge closes onto its own precharged link through the body diodes (inrush <= 5 % of "
+        "the peak over sqrt(L / C): tens of amperes); VC must follow VG once both are in, else both open -> RETRY_WAIT (stuck contactor)",
+        "RECTIFY: the bridge starts as a rectifier on the control study's DC-link loop (PI 40 Hz + DC-current feed-forward) and raises "
+        "V_dc to the battery's terminal voltage (VBX) - or 750 V without a battery (standby, STATCOM, communication)",
+        "DC port (H4): K_B only with VBX >= 1.05 x sqrt2 x V_LL,meas (the rectification threshold) and the link matched to the battery "
+        "within the hardware dV window (%s V): the bridge raises the link first, then K_B closes directly; no K_PRE -> K_B route onto a "
+        "battery below the grid peak (uncontrolled rectification) - below the threshold no DC connection, standby on the grid and a "
+        "report; the hardware polarity interlock needs >= %s V at the battery terminal" % (r2(pol["dV_enable_V"]), r2(pol["polarity_enable_V"])),
+        "normal operation (CV / CC / PQ) from there; the aux keeps both feeds (DC-link tap and grid tap, diode OR); the completed start "
+        "ends the attempt count"]
     st["interlocks"] = [
         "K_ACPRE only with K_B, K_PRE, K_A and K_AC2 open (firmware; the latch drops it with every trip and with a dead controller)",
         "no AC precharge with the DC contactor closed onto a live battery below the grid peak (it would charge the battery through 220 ohm "
@@ -3479,7 +4090,14 @@ def step_i(D, rb, rc, rd, rf, rg_):
         "grid-start closing permissive replaces the operating-map permissive only while K_B is open (no battery on the link); with K_B "
         "closed the map's permissive (V_dc >= 1.02 sqrt2 V_LL + 10 V and the map for the commanded P / Q) applies unchanged",
         "abort: V_dc below 63 % of the tap peak at 1.1 tau_max + 30 ms (shorted bank) or not within 10 V of it within 3 x the calculated "
-        "time; <= 3 attempts per start >= 30 s apart, then lock-out"]
+        "time; <= 3 attempts per start >= 30 s apart, counted across controller resets (H5: count, spacing and lock-out in the recorder "
+        "flash), then lock-out until a service reset",
+        "a stop during the AC start (command, grid lost, limit timeout) never passes through CONTROLLED STOP, which holds the DC contactor: "
+        "before the bridge runs (" + ", ".join(k for k, v in sm["stop_routes"].items() if v == "IDLE") + ") -> IDLE with everything open; "
+        "with the bridge running (" + ", ".join(k for k, v in sm["stop_routes"].items() if v == "AC_STOP") + ") -> AC_STOP: current to "
+        "zero, K1 / K2 open at zero current, PWM off, the DC contactor never commanded -> IDLE",
+        "the table's DC_MATCH state (K_PRE, then K_B) is not entered by the repaired AC start (H4); bleeder time constant about %d min "
+        "(the welded-precharge check at a retry, H2)" % tau_bl_min]
     st["consequences"] = [
         "the tap ties the DC side to the grid through its lower diodes with the AC contactors open: with a battery connected and the grid "
         "present, DC- is peak-clamped to the most negative phase; the insulation monitor's PE -> DC- state is then not valid (R_iso- is "
@@ -3489,6 +4107,7 @@ def step_i(D, rb, rc, rd, rf, rg_):
         "'isolate AC and DC, wait 15 min'",
         "the tap and the precharge path can only draw from the grid (diodes): with the AC contactors open the converter cannot export through "
         "them, a welded precharge relay included"]
+    st["state_machine"] = sm
     SPEC["ac_start"] = st
     # ---- declarations
     sc = ac_short(rc)
@@ -3540,6 +4159,15 @@ def step_i(D, rb, rc, rd, rf, rg_):
                           "DC voltage, current, power; DC-link (bus) voltage and both halves", "phase output voltages (C_f nodes) and grid line "
                           "voltages (terminals), phase currents, P, Q, S, PF, frequency", "contactor states, relay-test results, latch and fault "
                           "cause, event log, fault records", "energy counters (charge / discharge kWh), operating hours"]}
+    rt, vfr = ctl_ride_through(), ctl_vf_rows()             # the control study's ride-through rule and VF envelope (review R2, fail closed)
+    dcr = ctl_dc_rows(rt["acc"])                              # soft OV in CV mode, CV-mode DC/DC limits, battery-less bus coordination
+    decl["grid_strength"] = {
+        "admitted": "SCR 5 .. stiff (the plant range the control study covers)", "ride_through": rt["measure"],
+        "fallback": rt["fallback"], "installation_fault_level": rt["installation"],
+        "superseded": ("D-077's stiff-grid pre-fault derating (%s) as the primary measure - now the fallback"
+                       % ", ".join("%s %g kW" % kv for kv in rt["derating_stiff_kW"].items())),
+        "cv_mode_dc_dc_power": dcr[1]["threshold"] + " - " + dcr[1]["peripheral"]}
+    decl["dc_bus_without_battery"] = dcr[2]["threshold"] + " - " + dcr[2]["peripheral"]
     SPEC["declarations"] = decl
     # ---- firmware rows (CALCULATED where a number is ours; ASSUMED parameters labelled; competitor claims named)
     claim = "competitor claim, no published parameters; our values ASSUMED (standards not on file)"
@@ -3568,13 +4196,15 @@ def step_i(D, rb, rc, rd, rf, rg_):
                        "<= 125 kW in 20 ms (the control study's DC-link rule); CV: the DC-link loop (PI 40 Hz + DC-current feed-forward), "
                        "battery voltage from VBX; VF and generator-following: rows below"),
          "filter": "-", "latency": "-", "self_test": "-"},
+        *dcr,
         {"item": "VF (grid forming, off-grid)",
          "peripheral": "droop + virtual impedance + C_f-voltage PR loop (control study); per-phase voltage loops in the four-wire build",
          "threshold": ("voltage +/-1 %% (C_f dividers 0.5 %% after calibration), frequency 50 / 60 Hz +/-0.2 %% (crystal clock), THDu < 3 %% on "
                        "linear load, imbalance +/-1 %% and 120 +/-1 deg on linear balanced load, 100 %% unbalanced load (four-wire only), "
                        "DC component < 0.5 %% Un (row below); load acceptance: the declaration (crest factor <= %.2f at rated rms, DOL "
-                       "motors <= %.0f A rated at 6 x start)" % (i_lim_pk / I_RATED, dol)),
+                       "motors <= %.0f A rated at 6 x start); transient: the declared envelope (row below)" % (i_lim_pk / I_RATED, dol)),
          "filter": "-", "latency": "-", "self_test": "-"},
+        *vfr,
         {"item": "DC-component regulator (VF, half-wave loads)",
          "peripheral": ("one-cycle mean of each phase-to-N voltage (VG_x - VGN; three-wire: the line-to-line means) -> integrator -> "
                         "offset on that phase's reference; the N leg carries the DC current"),
@@ -3592,9 +4222,18 @@ def step_i(D, rb, rc, rd, rf, rg_):
         {"item": "LVRT / HVRT ride-through profiles",
          "peripheral": "grid-code parameter sets (EN 50549-1, VDE-AR-N 4105, GB/T 34120 class) selected per country",
          "threshold": ("LVRT: 0 pu for 150 ms, 0.2 pu to 625 ms, linear to 0.9 pu at 2 s, reactive current k = 1.5 (dI_q / dU) up to 1.0 Ir; "
-                       "HVRT: 1.2 pu 10 s, 1.25 pu 1 s, 1.3 pu 0.5 s (absorbing reactive current) - FROM MEMORY; hardware limits: %s; "
-                       "1.3 pu needs V_dc above the operating map at 520 V; %s" % (ctl_ride_through(), claim)),
+                       "HVRT: 1.2 pu 10 s, 1.25 pu 1 s, 1.3 pu 0.5 s (absorbing reactive current) - FROM MEMORY; rated current stays "
+                       "inside the %.0f A hardware window by the ride-through onset measure (row below), the stiff-grid derating as its "
+                       "fallback (the row after); 1.3 pu needs V_dc above the operating map at 520 V; %s" % (rt["thr_A"], claim)),
          "filter": "-", "latency": "-", "self_test": "-"},
+        {"item": "ride-through onset measure (review R2-05; adopted)",
+         "peripheral": ("the ride-through state and the per-sample predictive clamp in the PWM update (per phase, the current one period "
+                        "after the new command; deadbeat correction with unit gain, PR anti-windup by back-calculation)"),
+         "threshold": rt["measure"], "filter": "-", "latency": "every control period", "self_test": "-"},
+        {"item": "stiff-grid deep-dip derating with the grid-stiffness estimate (FALLBACK of the onset measure; review R2-05)",
+         "peripheral": ("pre-dip power limit from the grid-stiffness estimate (the same estimate selects the CV-mode DC/DC limit); not "
+                        "applied while the onset measure is in force"),
+         "threshold": rt["fallback"] + "; " + rt["installation"], "filter": "the estimate's averaging", "latency": "-", "self_test": "-"},
         {"item": "anti-islanding", "peripheral": "U / f windows, ROCOF, vector shift + an active frequency shift",
          "threshold": "cease to energise within 2 s (IEC 62116 class, FROM MEMORY; not simulated); %s" % claim,
          "filter": "-", "latency": "-", "self_test": "-"},
@@ -3620,14 +4259,23 @@ def step_i(D, rb, rc, rd, rf, rg_):
          "threshold": ("load sharing +/-5 %% of rated by droop, +/-2 %% with the shared CAN set point; carrier jitter +/-2 us (ASSUMED); up "
                        "to 16 modules on one CAN (ASSUMED bus load); competitor: %s" % PMA["parallel"]),
          "filter": "-", "latency": "-", "self_test": "-"},
-        {"item": "grid start (DC side dead): AC precharge and closing",
-         "peripheral": "K_ACPRE = PWM16 line (latch-gated, PCS-PWR relay driver); K2, K1, K_B sequence of pcs_spec ac_start",
+        {"item": "grid start (DC side dead): AC precharge and closing (the executed state machine, review R2-14)",
+         "peripheral": ("K_ACPRE = PWM16 line (latch-gated, PCS-PWR relay driver); K2, K1, K_B sequence of pcs_spec ac_start (states %s; "
+                        "%d fault cases executed by the control study, no safety breach with the repairs H1-H5); the attempt count, its "
+                        "spacing and the lock-out in the recorder flash, checked before every attempt (H5); a stop with the bridge "
+                        "running goes through AC_STOP, never CONTROLLED STOP (which holds K_DC)"
+                        % (", ".join(k for k in sm["outputs"] if k.startswith("AC_") or k in ("RECTIFY", "DC_MATCH", "RETRY_WAIT", "LOCKOUT")),
+                           len(sm["fault_cases"]))),
          "threshold": ("precharge to the tap peak minus 2 V_F: %.2f s to 10 V at 400 V (%.2f s at 340 V), %.0f J in 220 ohm at 460 V (rating "
-                       "%.0f J), shorted bank %.0f J in %.2f s (rating %.0f J in %.2f s); close only with K_B open and V_dc >= 0.95 x sqrt2 "
-                       "V_LL,meas" % (st["precharge"]["by_build"]["4W"]["400"]["t_to_10V_s"], st["precharge"]["by_build"]["4W"]["340"]["t_to_10V_s"],
-                                      st["precharge"]["by_build"]["4W"]["460"]["E_pre_J"], rr["e_charge_J"], st["precharge"]["E_pre_shorted_J"],
-                                      st["precharge"]["t_abort_s"], rr["e_short_J"], rr["t_short_s"])),
-         "filter": "-", "latency": "-", "self_test": "welded check: with K_ACPRE off and the grid present, V_dc stays < 50 V"},
+                       "%.0f J), shorted bank %.0f J in %.2f s (rating %.0f J in %.2f s); K2 / K1 each commanded only with K_B open, "
+                       "V_dc >= 0.95 x sqrt2 V_LL,meas and the grid inside +/-10 %% at the command (H3); K_B only with VBX >= 1.05 x sqrt2 "
+                       "V_LL,meas, after the bridge has raised the link to VBX (H4)"
+                       % (st["precharge"]["by_build"]["4W"]["400"]["t_to_10V_s"], st["precharge"]["by_build"]["4W"]["340"]["t_to_10V_s"],
+                          st["precharge"]["by_build"]["4W"]["460"]["E_pre_J"], rr["e_charge_J"], st["precharge"]["E_pre_shorted_J"],
+                          st["precharge"]["t_abort_s"], rr["e_short_J"], rr["t_short_s"])),
+         "filter": "-", "latency": "-",
+         "self_test": ("welded check: with K_ACPRE off and the grid present, V_dc stays < 50 V; at a retry it decays at the bleeder rate "
+                       "and sits below the tap peak (H2); relay test K2 alone / K1 alone onto the precharged link, after the AC precharge (H1)")},
         {"item": "local fault recorder", "peripheral": "the control board's recorder flash (GD25Q32 class)",
          "threshold": ("the control board's figure: 71 events of 32 channels x 200 ms at 3.6 kHz beside two firmware images; each event with "
                        "its cause, the latch state and a time stamp (from the EMS over Modbus TCP or the module bus)"),
@@ -3747,6 +4395,19 @@ def report_i(r):
         wr(f"{k}. {x}")
     wr("\nInterlocks: " + "; ".join(st["interlocks"]) + ".")
     wr("\nConsequences: " + "; ".join(st["consequences"]) + ".")
+    m = st["state_machine"]
+    wr(f"\n**The executed AC-start machine** ({m['source']}): outputs ({', '.join(m['outputs_order'])}) per state - " + "; ".join(
+        f"{k} ({', '.join(str(v) for v in o.values())})" for k, o in m["outputs"].items()) + ".  Stop routes of the AC start: " + ", ".join(
+        f"{k} -> {v}" for k, v in m["stop_routes"].items()) + f".  The {len(m['invariants'])} invariants of the checked table: "
+       + ("all hold" if all(m["invariants"].values()) else "FAIL") + ".  Repairs, in the control study's words: "
+       + " ".join(f"**{h}** {t}." for h, t in m["repairs"].items()) + "  Before the repairs the sequence breached: "
+       + "; ".join(m["breaches_as_specified"]) + "; with them no case breaches a safety check (the control study's modelled set):\n")
+    wr("| fault | strikes at | outcome with the repairs | breaches | precharge attempts |")
+    wr("|---|---|---|---|---|")
+    for c in m["fault_cases"]:
+        wr(f"| {c['fault']} | {c['at']} | {c['outcome']} | {'; '.join(c['breaches']) or '-'} | {c['precharge_attempts']} |")
+    wr("\nRelay pull-in / release times of the executed machine (ASSUMED until the RFQ coil data exist): " + ", ".join(
+        f"{k} {v[0] * 1e3:.0f} / {v[1] * 1e3:.0f} ms" for k, v in m["relay_times_s_ASSUMED"].items()) + ".")
     s = de["ac_short_circuit"]
     wr(f"\n**AC short-circuit declaration.** {s['module']}.  Grid-fed bolted leg short through L2 + L1 (unsaturated; L1 holds its inductance to "
        f"{s['I_L1_sat_100C_A']:.0f} A at 100 C): " + "; ".join(f"{k}: {x['I_prospective_unsaturated_A_rms']:.0f} A rms ({x['I_peak_asymmetric_A']:.0f} A "
@@ -3775,6 +4436,10 @@ def report_i(r):
        f"the 2-min tier; half-wave (four-wire) <= {h['I_pk_limit_A']:.0f} A peak per phase.  Competitor: {ol['competitor']}.")
     wr(f"\n**Frequency:** ours {de['frequency']['ours']}; competitor {de['frequency']['competitor']}.  **Environment:** {de['environment']}.  "
        f"**Communication:** {de['communication']}.  **Modes:** {de['modes']}.")
+    g = de["grid_strength"]
+    wr(f"\n**Grid strength and ride-through ({g['admitted']}):** {g['ride_through']}.  {g['fallback']}.  Installation: "
+       f"{g['installation_fault_level']}.  Superseded: {g['superseded']}.  CV mode with DC/DC loads: {g['cv_mode_dc_dc_power']}.")
+    wr(f"\n**DC bus without a battery (installation / system rule):** {de['dc_bus_without_battery']}.")
     wr("\n**Parameter set (at least the competitor's):** " + "; ".join(de["parameter_set"]) + ".  **Telemetry:** " + "; ".join(de["telemetry"]) + ".")
 
 
@@ -3811,13 +4476,15 @@ def handover(D, rb, rc, rd, re_, rf, rg_):
                       "-(i_a + i_b + i_c) limited to the phase tiers; 100 Hz battery current of single-phase load (~39 A rms at 750 V) is an "
                       "installation item; " + ctl_n_leg()),
         "limits": {"I_phase_trip_A": OC_TRIP, "I_dc_trip_A": 400.0, "V_dc_trip_V": V_OV_TRIP}}
+    ra, pcn = re_["desat"]["rds_acceptance"], SPEC["protection_chain"]
     boards = {
         "device_acceptance": SHARE_RULE,
+        "device_acceptance_absolute": ra["absolute_limit"]["rule"],
         "power_stage": f"3 two-level legs (4 for four-wire): 6 x {D['devs']['TH'][0]} per switch (TO-247-4L, Kelvin source), Al2O3 pads on "
                        "one earthed section per leg; per device pair 3 x 2.2 uF / 1300 V film at the pins + RC damper (2 x 4.7 nF 2 kV C0G, "
                        "6 x 15 ohm 2512); DC link 5 + 5 x C3D1U147 in two series halves, midpoint to the C_f star",
         "gate_drive": f"6 channels (8 four-wire): NSI6651ASC + NPN/PNP buffer per channel driving 6 gates, R_G,on {re_['chosen']['R_G_on_ext_ohm_per_device']:.2f} / "
-                      f"R_G,off {re_['chosen']['R_G_off_ext_ohm_per_device']:.1f} ohm per device, R_KS 0.5 ohm, per-gate clamp FET, DESAT 100 ohm + 2 x US1MH (PCM-07), "
+                      f"R_G,off {re_['chosen']['R_G_off_ext_ohm_per_device']:g} ohm per device, R_KS 0.5 ohm, per-gate clamp FET, DESAT 100 ohm + 2 x US1MH (PCM-07), "
                       "booster, RC dead-time stretch and negative-rail detector (stretch=True, neg_det=True - new '6 x SG2M040170HJ' "
                       "preset needed), rails +18 / -3.5 V; bias: one SN6505B transformer per phase (2 secondaries); default-off pull-downs; "
                       "EN from the external stop (wired-AND); FLT/RDY to the latch and the trip zone (D-050)",
@@ -3834,6 +4501,7 @@ def handover(D, rb, rc, rd, re_, rf, rg_):
                     "grid_voltage": "terminal and C_f nodes, L1-L3 (+N), dividers to DC-: signal V_dc/2 +-375 V peak + 20 % surge headroom",
                     "dc": "V_DC+ - V_DC-, V_mid, terminal (bipolar, polarity), shunt 2 x 200 uOhm (25 mV at 250 A), ADC limit trips 400 A / 1050 V",
                     "residual_current": "type-B fluxgate over L1-L3 (+N), 30 mA resolution, 1.25 A continuous range",
+                    "residual_current_contract": RCM_CONTRACT,
                     "temperatures": "NTC: 3 (4) heatsink sections, 3 (4) L1, DC link, inlet"},
         "ports": "DC: HFE82V-300C/1000, 2 x aR 400 A, precharge 220 ohm, gen/port.py lean_port interlocks='full', oc_trip=True (hold-off, "
                  "polarity and precharge-dV interlocks, over-current window, all discrete); AC: 2 x 3-pole contactor in series (4-pole "
@@ -3912,7 +4580,27 @@ def handover(D, rb, rc, rd, re_, rf, rg_):
                             "logged until a reset; a welded contact found by the relay test locks out at once; the DC precharge keeps the "
                             "port's 3 attempts / 30 s lock-out (port_spec precharge)"),
              "threshold": "settled = pull-in window (AC coil module: ASSUMED <= 100 ms) + 100 ms; budget and limits in the PCS-PWR design check",
-             "filter": "-", "latency": "-", "self_test": "-"}]
+             "filter": "-", "latency": "-", "self_test": "-"},
+            {"item": "CMPSS phase-current backup threshold (review R2-03, pcs_spec protection_chain)",
+             "peripheral": ("CMPSS1-4 DACH / DACL on ILn_ADC after the idle null: the backup band must end below the deck's admissible "
+                            "current - as first drawn (+/-%.0f A -> %.1f-%.1f A) it did not (%s), the DAC band of D-078 closes it; the band then overlaps the discrete window, "
+                            "whichever trips first turns the gates off, the trip cause is logged from the OST flag and the latch" % (
+                                pcn["backup_as_drawn"]["dac_A"], *pcn["backup_as_drawn"]["band_A"],
+                                "L1 saturates on the way" if pcn["backup_as_drawn"]["L1_saturates"] else
+                                "%.0f V at %.0f A" % (pcn["backup_as_drawn"]["v_pk_V"], pcn["backup_as_drawn"]["I_gates_off_A"]))),
+             "threshold": ("band top <= %.1f A, bottom >= %.1f A (DAC centre <= about %.0f A): gates off <= %.1f A <= the admissible "
+                           "%.0f A - adopted on PCS-CTL (D-078)" % (
+                               pcn["backup_requirement"]["band_top_max_A"], pcn["backup_requirement"]["band_bottom_min_A"],
+                               pcn["backup_requirement"]["dac_centre_max_A_estimate"], pcn["backup_requirement"]["I_gates_off_A"],
+                               pcn["I_max_admissible_A"])),
+             "filter": "digital filter 5 of 5 SYSCLK (as the PCS-CTL check)", "latency": "%.2f us to gates off" % pcn["backup_as_drawn"]["response_us"],
+             "self_test": "idle: DACH below / DACL above the zero -> OST flag must set (PCS-CTL)"},
+            {"item": "200 ms tier of a switch outside the absolute R_DS(on) limit (review R2-07, by lot)",
+             "peripheral": "overload-tier parameter set chosen at end of line from the lot's incoming R_DS(on) record",
+             "threshold": ("%s; an unscreened or above-limit switch: 200 ms tier %.0f A instead of %.0f A, 2-min tier %.0f A instead of "
+                           "%.0f A (%s)" % (ra["absolute_limit"]["rule"].split(" - ")[0], ra["unscreened_derating"]["I_200ms_A"], I_200MS,
+                                            ra["unscreened_derating"]["I_2min_A"], I_2MIN, ra["unscreened_derating"]["note"])),
+             "filter": "-", "latency": "-", "self_test": "parameter CRC with the calibration set"}]
     rows += list(FW_I)                                       # step i: four-wire, AC start, modes, transfers, recorder, upgrade, map
     fw += [f"{r['item']}: {r['threshold']} - {r['peripheral']}" for r in rows]
     fw.append("grid start (AC side, DC dead; pcs_spec ac_start): " + " -> ".join(SPEC["ac_start"]["sequence"]))
@@ -3932,7 +4620,7 @@ def handover(D, rb, rc, rd, re_, rf, rg_):
     wr(f"- gate drive: {boards['gate_drive']}")
     wr(f"- control board: {boards['control_board']}")
     for k, v in boards["sensing"].items():
-        wr(f"- sensing, {k.replace('_', ' ')}: {v}")
+        wr(f"- sensing, {k.replace('_', ' ')}: " + ("; ".join(f"{a}: {b}" for a, b in v.items()) if isinstance(v, dict) else v))
     wr(f"- ports: {boards['ports']}")
     wr("\n**Firmware requirements this design relies on (D-050: firmware duplicates every hardware trip and takes sequencing, monitoring "
        "and non-hazard edge cases):**")
@@ -3959,7 +4647,14 @@ def unknowns():
               "Control: current loop, PLL, grid forming, four-wire neutral control and the THDi < 3 % at rated power are not simulated here "
               "(ARCHITECTURE-PCS section 9 items 3-7).",
               "Three-level modules (HIITIO): data sheets without short-circuit rating or qualification; prices indicative only.",
-              "Fan AFB1224SHE-F00 is rated -10..+60 C: below -10 C start and at 60 C inlet it is outside / at its limit (PV R-05)."]:
+              "Fan AFB1224SHE-F00 is rated -10..+60 C: below -10 C start and at 60 C inlet it is outside / at its limit (PV R-05).",
+              "Protection chain (review R2-02 / R2-03): the sensor's 2 us step response is taken as a pure delay and the TLV9024 delay "
+              "as 2 x its typical curve (no maximum published); the L1 knee rests on B_sat 1.40 T at 100 C (ESTIMATE) - OpenMagnetics' "
+              "MAS figure for 2605SA1 is 1.35 T (B at 80 A/m) and puts the +5 % part's knee near 553 A; the gates-off currents stay below "
+              "both.  The CMPSS backup threshold that closes its path is adopted on PCS-CTL (D-078); a saturating "
+              "fault beyond it is left to DESAT, whose fault-under-load turn-off is not simulated here.  No RBSOA is published for "
+              "the device (the switching data stop at 70 A per device; the window path turns off about "
+              f"{SPEC['protection_chain']['local_window']['I_gates_off_A'] / 6:.0f} A per device)."]:
         wr(f"- {x}")
 
 
@@ -3998,6 +4693,12 @@ def summary(choice, rb, rc, rd, re_, rf, rg_):
              + (f"; inductors from sim/magnetics.py: 3 x L1 {CORE_WORD[FP['L1']['mat']]} {FP['L1']['mass_kg']:.1f} kg, 3 x L2 {FP['L2']['mass_kg']:.1f} kg, "
                 f"CM choke {FP['cm_choke']['k']} cores - filter {FP['cost']['filter'][0]:.0f} / {FP['cost']['filter'][1]:.0f} USD, "
                 f"{FP['filter_mass_kg']:.0f} kg, {FP['filter_loss_W']['125kW_750V']:.0f} W at 125 kW / 750 V." if FP else "."),
+             (lambda p: f"- **Protection chain (review R2-02 / R2-03):** the window path turns the gates off at "
+                        f"{p['local_window']['I_gates_off_A']:.0f} A (band top {p['inputs']['window_A'][1]:.1f} A + {p['local_window']['response_us']:.2f} "
+                        f"us on the L1 envelope); at R_G,off {p['chosen_R_G_off_ext_ohm']:g} ohm the turn-off peaks at "
+                        f"{p['commutation_overshoot_V']['local window (as drawn)']['v_pk_V']:.0f} V <= {re_['chosen']['v_limit_V']:.0f} V (the deck admits "
+                        f"{p['I_max_admissible_A']:.0f} A); the CMPSS backup band is brought down on PCS-CTL (D-078): its top is at most "
+                        f"<= {p['backup_requirement']['band_top_max_A']:.0f} A (adopted on PCS-CTL, D-078).")(SPEC["protection_chain"]),
              f"- **DC link:** {rd['per_half']} + {rd['per_half']} x Faratronic C3D1U147 film, > 100 kh at 60 C inlet; electrolytics would need "
              f"{rd['electrolytic_alternative']['cans']} cans and last {min(rd['electrolytic_alternative']['life_h'].values())/1e3:.0f} kh.",
              f"- **Cost:** {rg_['three_wire']['catalogue']:.0f} / {rg_['three_wire']['5k']:.0f} USD (catalogue / 5,000 units) three-wire, "
@@ -4024,6 +4725,20 @@ def self_check(choice, rb, rc, rd, re_, rf, rg_):
     assert rb["envelope_45C"]["tj_max_C"] <= TJ_LIM["sic"][0], "Tj 110 % / 45 C"
     assert all(o["tj_120pct_2min_C"] <= TJ_LIM["sic"][1] and o["tj_200ms_C"] <= 175.0 for o in rb["overload"]), "overload Tj"
     assert re_["worst_1050V_450A_30nH"]["v_pk"] <= pv.V_PK_FRAC * pv.MOSFETS[choice["devs"]["TH"][0]]["vdss"] + 1e-6, "commutation peak"
+    pc, v_lim = SPEC["protection_chain"], re_["chosen"]["v_limit_V"]    # review R2-02 / R2-03
+    co = pc["commutation_overshoot_V"]
+    assert pc["local_window"]["closes"] and co["local window (as drawn)"]["v_pk_V"] <= v_lim, "local window: turn-off at the gates-off current"
+    assert co["over-voltage corner (bus at the OV gates-off, current at the window top)"]["v_pk_V"] <= v_lim, "OV corner turn-off"
+    assert pc["inputs"]["window_A"][1] <= pc["window_top_max_A"] and pc["chosen_R_G_off_ext_ohm"] == re_["chosen"]["R_G_off_ext_ohm_per_device"]
+    br = pc["backup_requirement"]
+    assert br["feasible_with_the_drawn_width"] and co["CMPSS backup at its required band top"]["v_pk_V"] <= v_lim, \
+        "the CMPSS backup cannot be placed below the ceiling with its band width"
+    assert max(pc["gates_off_current_A"].values()) <= pc["L1_trajectory"]["I_flux_rule_A"], "a gates-off current past the L1 flux rule"
+    ra = re_["desat"]["rds_acceptance"]
+    assert ra["absolute_limit"]["V_DS_at_limit_V"] <= ra["V_DS_max_V"] + 1e-6 and ra["unscreened_derating"]["V_DS_V"] <= ra["V_DS_max_V"] + 1e-6 \
+        and ra["unscreened_derating"]["V_DS_2min_derated_V"] <= ra["V_DS_max_V"] + 1e-6 \
+        and ra["unscreened_derating"]["tj_2min_derated_C"] <= TJ_LIM["sic"][1] + 1e-6 \
+        and "REQUIRES HARDWARE TEST" in ra["sc_survival"], "R_DS(on) acceptance / derating / survival gate"
     assert all(x["THD_h2_50_pwm"] < 0.03 and x["largest_above_h50"][1] < I2_LIM_FRAC for x in rc["spectrum"]), "harmonics"
     assert all(f < F_S / 6 for f in rc["f_res_Hz"].values()), "resonance below f_s/6"
     assert rd["I_per_cap_A"] <= pv.CAP_IRMS_USE * FILM[rd["part"]]["imax"] + 1e-9, "film ripple current"
@@ -4059,7 +4774,10 @@ def self_check(choice, rb, rc, rd, re_, rf, rg_):
     for k, b in ab["builds"].items():
         assert b["margin_live_W"] >= 0 and b["margin_selv_W"] >= 0 and b["margin_total_W"] >= 0 and b["margin_peak_W"] >= 0, \
             ("aux budget (live / SELV / total / pull-in peak) above the aux rating", k)
-    assert ab["estimate_fits"], "AC coil ESTIMATE outside what the aux budget allows (RFQ text)"
+    assert all(b["coil_is_contract"] for b in ab["builds"].values()), \
+        "PCS-PWR checks budgeted another AC coil than the contract: rebuild gen/pcs_power.py (it reads coil_contract from pcs_spec), re-run"
+    assert ab["estimate_fits"] and SPEC["ports_and_common_mode"]["ac_contactor"]["coil_contract"] == AC_COIL_CONTRACT, \
+        "AC coil contract outside what the aux budget allows, or not the one published"
     p4, rr4 = fw["precharge"]["four_wire_R"], fw["precharge"]["rating"]
     assert p4["E_J_max"] <= rr4["e_charge_J"] and p4["tau_max_s"] <= rr4["tau_s"] and p4["E_short_J"] <= rr4["e_short_J"] \
         and p4["t_short_s"] <= rr4["t_short_s"] + 1e-4 and p4["I_pk_A"] <= p4["relay_A"], "four-wire DC precharge (RPRE_AL rating, relay)"
@@ -4070,6 +4788,9 @@ def self_check(choice, rb, rc, rd, re_, rf, rg_):
     assert st["tap"]["fault_L_L"]["E_per_R_J"] <= TAP["r_pulse_J"] and st["tap"]["fault_L_L"]["I_rms_A"] * math.sqrt(2) <= TAP["fuse_break_A"], \
         "tap fault: the fuse must clear before the 20 ohm's pulse rating, inside its breaking capacity"
     assert st["tap"]["diode_reverse_max_V"] <= 0.8 * TAP["d_vrrm"], "tap diode reverse voltage"
+    txt = " ".join(st["sequence"] + st["interlocks"])        # review R2-14: the hand-over carries every repair of the executed machine
+    assert all("H%d" % k in txt for k in range(1, 6)) and not any(c["breaches"] for c in st["state_machine"]["fault_cases"]), \
+        "AC start: a repair H1-H5 missing from the sequence text, or an executed case that breaches"
     return True
 
 

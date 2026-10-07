@@ -312,7 +312,8 @@ def fig_pv_inductor_options():
 REVIEWS = [("review_ctrl_sys.csv", "Control card + system I/O (CSR)"), ("review_pvcell_gdrv.csv", "PV cell + gate drive (PVR)"),
            ("review_port_auxhv.csv", "Port + AUX-HV (PA)"), ("integration_findings.csv", "Integration (INT)"),
            ("review_dab60.csv", "DAB60 board (DR)"), ("review_insulation.csv", "Insulation (IC)"),
-           ("review_magnetics.csv", "Magnetics (MG)"), ("review_pcm.csv", "Independent PCM review of 033d8d8 (PCM)")]
+           ("review_magnetics.csv", "Magnetics (MG)"), ("review_pcm.csv", "Independent PCM review of 033d8d8 (PCM)"),
+           ("review_r2.csv", "Independent re-check of a427981 (R2)")]
 
 
 def fig_reviews():
@@ -320,7 +321,7 @@ def fig_reviews():
     data = []
     for f, name in REVIEWS:
         R = rows("gen/data/" + f)
-        c = Counter(r["severity"] for r in R)
+        c = Counter({"high": "major", "medium": "minor", "low": "minor"}.get(r["severity"], r["severity"]) for r in R)
         st = Counter(r["status"] for r in R) if "status" in R[0] else None
         data.append((name, [c[s] for s in sev], st))
     fig, ax = plt.subplots(figsize=(8, 3.6))

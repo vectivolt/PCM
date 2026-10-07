@@ -45,9 +45,10 @@ PORT_SPEC = os.path.join(HERE, "out", "port_design", "port_spec.json")
 PWR_CHECK = {3: os.path.join(ROOT, "hardware", "PV-PWR", "outputs", "PV-PWR_design_check.txt"),
              4: os.path.join(ROOT, "hardware", "PV-PWR-4", "outputs", "PV-PWR-4_design_check.txt")}
 CTL_CHECK = os.path.join(ROOT, "hardware", "PV-CTL", "outputs", "PV-CTL_design_check.txt")
+PCS_CTL = os.path.join(HERE, "out", "pcs_control", "pcs_control_spec.json")   # the inverter's control study: the battery-less bus rule
 MAKER = {CELL_SPEC: "sim/pv_design.py", L_CSV: "sim/pv_design.py", MODULE_SPEC: "sim/pv_module.py",
          MODULE_GRID: "sim/pv_module.py", MAG_SPEC: "sim/magnetics.py", PORT_SPEC: "sim/port_design.py",
-         PWR_CHECK[3]: "gen/pv_power.py", PWR_CHECK[4]: "gen/pv_power.py", CTL_CHECK: "gen/pv_ctrl.py"}
+         PWR_CHECK[3]: "gen/pv_power.py", PWR_CHECK[4]: "gen/pv_power.py", CTL_CHECK: "gen/pv_ctrl.py", PCS_CTL: "sim/pcs_control.py"}
 # phases -> (drawn build, module_spec module).  1 = one phase of PV-P75 (model-agreement test only); anything else stops.
 BUILD = {1: (3, "PV-P75"), 3: (3, "PV-P75"), 4: (4, "PV-P100/110")}
 # products on the drawn builds: phases, module_spec module, rated power key (PV-15: PV-P110 = 4 x PVCELL-27.5 = the
@@ -118,6 +119,13 @@ ASSUME = {
     "batt_R": (0.032, "battery/bus source resistance incl. loop (port_design A_RS_BATT 30 mOhm + A_R_LOOP 2 mOhm)"),
     "batt_L": (3.5e-6, "battery/bus source inductance incl. loop (port_design A_LS_BATT 3 uH + A_L_LOOP 0.5 uH)"),
     "L_mismatch": (0.10, "inductance mismatch between cells for the sharing study (+/-10 %, brief; A_L tolerance 8 %)"),
+    "bus_cut_dV": (30.0, "battery-less bus feeding PCS-P125: port-B current cut when V_B exceeds the bus-forming set point by this "
+                         "(above the module's own bus-forming overshoot at a full CPL drop, section 9.1, plus about 6 V of V_B reading "
+                         "error; far above the V_B noise)"),
+    "bus_cut_margin": (2.0, "required ratio of the PCS study's coordination time to this module's detection + cut (the cable between "
+                            "the two banks, the real large-step response and the faster first rise from the returned LCL energy are not "
+                            "modelled)"),
+    "can_kbit_s": (500.0, "module CAN bit rate for the 'too slow' statement (the bit rate is not stated: INSTALLATION.md)"),
     "env_inlet_C": ((35.0, 45.0, 60.0), "inlet temperatures of the published envelope (PV-20: full power to 45 C; D-056: "
                                         "the 4-phase build to 35 C)"),
 }
@@ -2522,6 +2530,50 @@ def firmware_handoff(P):
                 ports=P["lean"]["firmware_requirements"])
 
 
+def bus_coordination(P, G, R):
+    """ONE system firmware row (review R2-04, the inverter control study's 'DC/DC coordination on a DC bus without a battery'): this
+    module forming a battery-less DC bus into PCS-P125 must cut its port-B current within the PCS study's time after an AC load
+    rejection, detected locally from V_B at the outer-loop rate.  The PCS figures are read (fail closed), the chain is this study's;
+    CALCULATED (energy balance as the PCS study's), margins ASSUMED"""
+    pc = json.load(open(need(PCS_CTL)))
+    vb, c = pc["vf_bounded"], pc["inputs"]["C_dc_F"]
+    v_soft, e, p = pc["dc_rejection_bounded"]["soft"][0], vb["e_ret_J"], vb["p_pre_W"]
+    v0 = math.sqrt(vb["cap_follow"]["vdc_max"] ** 2 - 2 * e / c)           # the PCS study's bus: where its returned energy starts
+    t_c = lambda v: (0.5 * c * (v_soft ** 2 - v ** 2) - e) / p             # noqa: E731  bus at the soft limit, source current held
+    assert abs(t_c(v0) * 1e3 / vb["t_c_max_ms"] - 1) < 0.01, "PCS study: the coordination time is no longer this energy balance"
+    dv, k = A("bus_cut_dV"), A("bus_cut_margin")
+    t_fix = P["tau_rc"] + 1.5 * G["Tv"] + 1 / (2 * math.pi * A("f_ci_Hz"))   # divider lag, next sample + half the 16-sample mean, cut
+    t_need = lambda v: c * ((v + dv) ** 2 - v ** 2) / (2 * p) + t_fix       # noqa: E731  crossing on the source current alone (later)
+    v_max = max(v for v in np.arange(600.0, v_soft, 1.0) if t_c(v) >= k * t_need(v))
+    unc = sorted(vb["uncoordinated"].values(), key=lambda u: u["vdc_end"])
+    rv = R["prot"]["rej_vb"]
+    t_can = 2 * 135 / (A("can_kbit_s") * 1e3)                              # an 8-byte frame (135 bits with stuffing) + one already sent
+    row = {"item": "DC-bus coordination with PCS-P125 on a battery-less bus (system rule, review R2-04; bus forming on port B)",
+           "peripheral and setting": (
+               f"outer loop ({1e-3 / G['Tv']:.0f} kHz): V_B (the period's 16-sample mean, PV-PWR divider {P['chain']['f_div_kHz']:.1f} kHz) "
+               f"> V_B* + {dv:.0f} V at one sample -> every cell's current reference to 0 at once (PWM running; the V_B-max candidate wins "
+               f"the min-select, integrators reset); released below V_B* + {dv / 2:.0f} V, the V_B loop resumes from the measured current. "
+               f"Local by necessity: a module-CAN message is too slow ({t_can * 1e3:.2f} ms for one frame behind one already on the bus at "
+               f"{A('can_kbit_s'):.0f} kbit/s, ASSUMED, before detection and task latency)"),
+           "threshold / band": (
+               f"V_B* + {dv:.0f} V (ASSUMED: above this module's own +{rv['vb_peak'] - rv['lg']['vb'][0]:.1f} V bus-forming overshoot at a "
+               f"full CPL drop, section 9.1); cut complete within {vb['t_c_max_ms']:.2f} ms of the rejection at the PCS study's "
+               f"{v0:.0f} V bus and {p / 1e3:.0f} kW (pcs_control_spec vf_bounded); this chain {t_need(v0) * 1e6:.0f} us = "
+               f"{c * ((v0 + dv) ** 2 - v0 ** 2) / (2 * p) * 1e6:.0f} us to the threshold (source current alone into the PCS link) + "
+               f"{P['tau_rc'] * 1e6:.0f} us divider lag + {1.5 * G['Tv'] * 1e6:.0f} us sampling + {1e6 / (2 * math.pi * A('f_ci_Hz')):.0f} "
+               f"us current decay (1/(2 pi {A('f_ci_Hz'):.0f} Hz), charge-equivalent) = x{t_c(v0) / t_need(v0):.2f} margin (x{k:.0f} "
+               f"ASSUMED); the budget shrinks as V_B* nears the PCS's {v_soft:.0f} V soft limit: x{k:.0f} holds to V_B* = {v_max:.0f} V, "
+               f"above it a shared hardwired trip line or a battery; this module's own {P['CB'] * 1e6:.0f} uF port-B bank on the same bus "
+               f"not credited (it lengthens the budget more than the crossing)"),
+           "filter": "none (the 16-sample mean)", "latency": f"<= {t_need(v0) * 1e6:.0f} us at {v0:.0f} V", "start-up self-test": "-",
+           "consequence": (
+               f"otherwise the PCS trips on DC over-voltage {min(u['t_off_ms'] for u in unc):.2f}-{max(u['t_off_ms'] for u in unc):.2f} "
+               f"ms after the rejection and the bus is left at {unc[0]['vdc_end']:.0f}-{unc[-1]['vdc_end']:.0f} V, latched"
+               + (" - at the band top above the aux's input lock-out: the island goes dark" if unc[-1]["aux_lockout"] else "")),
+           "source": "sim/out/pcs_control/pcs_control_spec.json (vf_bounded, dc_rejection_bounded, inputs) + this study's V_B chain"}
+    return dict(row=row, t_c_s=t_c(v0), t_need_s=t_need(v0), v_max=v_max, k=k)
+
+
 def limits_section(P, R):
     """the control's limits, kept apart: inductor (phase) current, node-A power, port currents, thermal derating"""
     req, bp, lo = json.load(open(need(CELL_SPEC)))["inductor"]["requirement"], R["band_peak"], P["chain"]["oc_local"][2]
@@ -2775,7 +2827,7 @@ def write_spec(P, G, R):
         "sharing": {"max_dev_pct_calibrated": max(r["dev_pct"] for r in sh if r["label"] == "calibrated"),
                     "max_dev_pct_uncalibrated": max(r["dev_pct"] for r in sh if r["label"] == "uncalibrated")},
         "mppt": old.get("mppt", "run sim/pv_mppt.py"),
-        "firmware_second_layer": firmware_handoff(P),
+        "firmware_second_layer": dict(firmware_handoff(P), system=[R["bus"]["row"]]),
         "honesty": "Simulation only. Power stage ideal-switch, sensors first-order, PV/battery/CPL models are assumptions "
                    "listed in report.md; nothing is bench-validated.",
     }
@@ -3274,6 +3326,9 @@ def write_report(P, G, R, spec):
       "over-temperature derating, heartbeat, latch-clear rules, configuration lock, clock loss); it is carried into "
       "control_spec.json `firmware_second_layer` together with the lean ports' rules (polarity and dV enables, port OC "
       "latency).\n")
+    b_ = R["bus"]["row"]
+    a(f"System row (control_spec.json `firmware_second_layer` `system`), **{b_['item']}**: {b_['peripheral and setting']}; threshold: "
+      f"{b_['threshold / band']}; {b_['consequence']}.\n")
     a("![protection](protection.png)\n")
     a("## 10. Requirements on sensing and protection hardware\n")
     a("| signal / trip | requirement | as drawn | met |")
@@ -3509,6 +3564,8 @@ def self_check(P, G, R):
         assert all(abs(x - rd[1]) < 1.0 for x in ex[1]) and min(ex[2]) > rd[2], ("reduced vs exact current loop", fac)
         assert fac != 0.92 or (max(ex[2]) < 45.0 and rd[2] < 45.0), "two samples below 45 deg at the low-L end"
     rq, pr = R["req"], R["prot"]
+    bc = R["bus"]
+    assert bc["t_c_s"] >= bc["k"] * bc["t_need_s"] and bc["v_max"] > 750.0, "battery-less bus: detection + cut inside the PCS budget"
     assert pr["rej_ctrl"]["vb_peak"] < P["v_ov_sw"] and not pr["rej_ctrl"]["trip"], "load rejection handled by the limit loop"
     for kind in ("power", "current"):          # model consistency: later detection -> higher voltage at gates off
         cur = pr["ov"][kind]["curve"]
@@ -3570,6 +3627,7 @@ def run():
     R["ripple"] = ripple_bias(P, G)
     R["spice"] = ngspice_check(P, G)
     R["req"] = derive_requirements(P, G, R)
+    R["bus"] = bus_coordination(P, G, R)
     R["meas"] = meas_requirements(P, G, R)
     R["bode_i"], R["bode_v"] = bode_sets(P, G, R)
     plot_all(P, G, R)

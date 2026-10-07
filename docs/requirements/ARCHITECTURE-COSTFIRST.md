@@ -125,7 +125,8 @@ specs) stay open as before. Six parts carry the safety barrier B1 (AUX-T1 and fi
   large live metal part in the PD3 air path (16 mm creepage standoffs, IPXXB at both air openings) and is a trap for
   service staff who expect an earthed heatsink. Rejected on safety; the EMI cost of the earthed heatsink is one
   nanocrystalline core per port (§8).
-- **What the earthed enclosure must provide.** (1) A PE stud with ≥ 16 mm² Cu (line conductors 35-50 mm²) and the
+- **What the earthed enclosure must provide.** (1) A PE stud with ≥ 16 mm² Cu (line conductors 35-50 mm²; the stud carries the installation's PE sized to the line
+  conductors - the module's own PE bond is ≥ 10 mm² Cu per D-048, INSTALLATION.md INST-42) and the
   heatsink bonded to it at two points (≥ 6 mm² each); (2) IP20 / IPXXB for every live part with the covers closed,
   covers removable only with a tool; (3) the label "Hazardous voltage — wait 10 min (PV-P100/110: 15 min) after
   disconnection" (passive bleeders, §8); (4) DC terminals at the rear with touch covers and PD3 creepage ≥ 16 mm;
@@ -266,7 +267,9 @@ firmware pulse **and** only while no source is active. No dual channel, no fault
 
 **Installation requirement (battery / DC-bus side), stated as numbers:**
 - The upstream battery protection (rack fuse, DC breaker or BMS-controlled rack contactor) must interrupt **any
-  current between 0.95 kA and 1.3 kA flowing into the module's battery port within 0.25 s** (the HPE501 250 A
+  current between 0.95 kA and 1.3 kA flowing into the module's battery port within 0.25 s** (the drawn port_spec /
+  port report states 0.97-1.25 kA within 0.26 s at L/R ≤ 1 ms; the stricter of each pair - 0.95-1.3 kA, 0.25 s - satisfies both
+  and INSTALLATION.md carries the drawn values; the HPE501 250 A
   pre-arc time at 1.375 kA, i.e. 1.25 kA + 10 % tolerance, read from its curve; the contactor carries 1000 A for 25 s).
 - The prospective short-circuit current at the module's battery terminals must not exceed **50 kA with L/R ≤ 3 ms**.
 - The cable from the battery protection to the module is protected by that upstream device (the module fuses protect

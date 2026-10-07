@@ -7,7 +7,7 @@ pin,datasheet_name,net,function,mux_pos,direction,route,trip_band,reaches
 6,GPIO47,HOLD,GPIO,0,in,PC HOLD: contactor held closed by the power board (never open it while high),,J101.36 R508.1 U504.2
 7,GPIO48,MOV_OK,GPIO,0,in,PC MOV_OK: varistor monitor loop intact,,J101.39 R509.1
 8,GPIO49,STATUS_M,GPIO,0,out,AND HEALTHY -> isolated STATUS output,,RN206.1 U510.1
-9,GPIO50,FLT_N,GPIO,0,in,INPUTXBAR5>XINT2: driver fault (diagnosis),"port OC (PV-PWR, on FLT_N): 387-413 A (0.19 us (logic)) | FLT_N (DESAT, UVLO, port OC): logic (18 ns + PV-PWR)",J101.30 R505.2 U501.5
+9,GPIO50,FLT_N,GPIO,0,in,INPUTXBAR5>XINT2: driver fault (diagnosis),"port OC (PV-PWR, on FLT_N): 387-413 A (0.29 us (logic)) | FLT_N (DESAT, UVLO, port OC): logic (18 ns + PV-PWR)",J101.30 R505.2 U501.5
 10,GPIO51,RDY_M,GPIO,0,in,INPUTXBAR14>XINT5: gate supplies ready (diagnosis; 1k from RDY),"RDY (gate supplies, +5V, 24 V): logic (18 ns)",R507.2
 11,GPIO52,DI1,GPIO,0,in,"INPUTXBAR6>XINT3: DI1 battery fault / BMS contact (CA-IS3842HW VO3, 1 = contact closed)",,U606.5
 12,GPIO53,STOP_OK,GPIO,0,in,INPUTXBAR13>XINT4: stop loop and ready permissive closed (diagnosis),external stop ENABLE: ON >= 8.8 V / OFF <= 3.4 V (1.47 ms),U501.11 U603.3
@@ -15,12 +15,12 @@ pin,datasheet_name,net,function,mux_pos,direction,route,trip_band,reaches
 14,A6,VG1_ADC,ADC,analog,ain,"grid L1 at the terminal (ADC-A), VMID + V/1203",,C801.1 R801.2
 15,B2/C6,VBX_ADC,ADC,analog,ain,terminal side B (bipolar around VMID),,C316.1 R323.2
 16,B3/VDAC,VREF,ADC+VDAC,analog,ain,CMPSS DAC reference = REF3030E (COMPDACCTL.SELREF = VDAC),,"rail, 29 pins"
-17,A2/B6/C9,IL1_ADC,ADC+CMP1_HP0+CMP1_LP0,analog,ain,CMPSS1 window = IL1 backup > ePWM X-BAR TRIP4 (all ePWM),IL1-4 CMPSS backup: 492.6-571.4 A (2.86 us),C306.1 R305.2
+17,A2/B6/C9,IL1_ADC,ADC+CMP1_HP0+CMP1_LP0,analog,ain,CMPSS1 window = IL1 backup > ePWM X-BAR TRIP4 (all ePWM),IL1-4 CMPSS backup: 423.9-497.5 A (2.97 us),C306.1 R305.2
 18,A3/B9/C7,VPE_ADC,ADC,analog,ain,insulation monitor (PE vs BUS-),,C317.1 R324.2
-19,A14/B14/C4,IL3_ADC,ADC+CMP3_HP4+CMP3_LP4,analog,ain,CMPSS3 window = IL3 backup > TRIP4,IL1-4 CMPSS backup: 492.6-571.4 A (2.86 us),C310.1 R315.2
-20,A11/B10/C0,VA_ADC,ADC,analog,ain,OV backup: ADC-A PPB on every conversion (<= 10 us) > TRIP5,port OV backup (ADC PPB): 1029-1061 V (33.9 us),C314.1 R321.2
+19,A14/B14/C4,IL3_ADC,ADC+CMP3_HP4+CMP3_LP4,analog,ain,CMPSS3 window = IL3 backup > TRIP4,IL1-4 CMPSS backup: 423.9-497.5 A (2.97 us),C310.1 R315.2
+20,A11/B10/C0,VA_ADC,ADC,analog,ain,OV backup: ADC-A PPB on every conversion (<= 10 us) > TRIP5,port OV backup (ADC PPB): 1019-1051 V (34.0 us),C314.1 R321.2
 21,B12/C2,VGN_ADC,ADC,analog,ain,"FOUR-WIRE: N terminal VGN (VMID + V/1203): N-leg loop VGN - VA, relay test of the N pole, DC-component regulator",,C807.1 R807.2 R808.1
-22,A1/B7/DACB_OUT,VB_ADC,ADC,analog,ain,OV backup: ADC-B PPB (<= 10 us) > TRIP5,port OV backup (ADC PPB): 1029-1061 V (33.9 us),C315.1 R322.2
+22,A1/B7/DACB_OUT,VB_ADC,ADC,analog,ain,OV backup: ADC-B PPB (<= 10 us) > TRIP5,port OV backup (ADC PPB): 1019-1051 V (34.0 us),C315.1 R322.2
 23,A0/B15/C15/DACA_OUT,,,,,unused (no connect),,
 24,VREFHI,VREF,,,,supply / ground,,"rail, 29 pins"
 25,VREFHI,VREF,,,,supply / ground,,"rail, 29 pins"
@@ -37,8 +37,8 @@ pin,datasheet_name,net,function,mux_pos,direction,route,trip_band,reaches
 36,A4/B8,NTC_MUX,ADC,analog,ain,"FOUR-WIRE: TMUX1208 D: NTC1-4 heatsink sections a, b, c, n; NTC5-7 L1 windings, NTC8 the L_N winding",,U801.8
 37,A8,RCM_ADC,ADC,analog,ain,residual current (type-B sensor through 10.0k / 13.0k),,C808.1 R809.2 R810.1
 38,A9,NTC9,ADC,analog,ain,DC-link bank (NCP15 on PCS-PWR),,C809.1 J801.11 R811.2
-39,B4/C8,IL4_ADC,ADC+CMP4_HP0+CMP4_LP0,analog,ain,FOUR-WIRE: N-leg current IL4 (STK-250HO/4 on PCS-PWR-4W) - ADC + CMPSS4 window = IL4 backup > TRIP4,IL1-4 CMPSS backup: 492.6-571.4 A (2.86 us),C312.1 R320.2
-40,A10/B1/C10,IL2_ADC,ADC+CMP2_HP3+CMP2_LP3,analog,ain,CMPSS2 window = IL2 backup > TRIP4,IL1-4 CMPSS backup: 492.6-571.4 A (2.86 us),C308.1 R310.2
+39,B4/C8,IL4_ADC,ADC+CMP4_HP0+CMP4_LP0,analog,ain,FOUR-WIRE: N-leg current IL4 (STK-250HO/4 on PCS-PWR-4W) - ADC + CMPSS4 window = IL4 backup > TRIP4,IL1-4 CMPSS backup: 423.9-497.5 A (2.97 us),C312.1 R320.2
+40,A10/B1/C10,IL2_ADC,ADC+CMP2_HP3+CMP2_LP3,analog,ain,CMPSS2 window = IL2 backup > TRIP4,IL1-4 CMPSS backup: 423.9-497.5 A (2.97 us),C308.1 R310.2
 41,B0/C11,VC3_ADC,ADC,analog,ain,C_f node L3 (ADC-C),,C806.1 R806.2
 42,C14,NTC_IN,ADC,analog,ain,inlet air (on board),,C328.1 R335.2 RT301.1
 43,GPIO55,SPI_SOMI,SPIA_SOMI,1,in,recorder flash SO,,U203.2
@@ -52,8 +52,8 @@ pin,datasheet_name,net,function,mux_pos,direction,route,trip_band,reaches
 51,GPIO12,PWM13_M,EPWM7_A,1,out,phase 4 leg A high side -> 74LVC08 AND HEALTHY -> PWM13 (PC); HRPWM; ePWM7,,RN204.1 U508.1
 52,GPIO11,PWM12_M,EPWM6_B,1,out,phase 3 leg B low side -> 74LVC08 AND HEALTHY -> PWM12 (PC); HRPWM; ePWM6,,RN203.4 U507.12
 53,GPIO33,CAN_RX,CANA_RX,10,in,DCAN boot option 1,,U601.3
-54,GPIO16,TRIP,GPIO,0,in,"INPUTXBAR1>TZ1: one-shot trip of every ePWM (latch Q, 1 = tripped)","IL1-4 local window: 426.0-485.5 A (3.47 us) | IL1-4 CMPSS backup: 492.6-571.4 A (2.86 us) | port OC (PV-PWR, on FLT_N): 387-413 A (0.19 us (logic)) | port OC backup: 373-427 A (30 us PPB / 15 us CMPSS4) | port OV VA / VB: 978-1048 V (47 us) | OT heatsink NTC1-4: 86.2-89.6 C (thermal (RC 1 ms)) | OT inductor NTC5-8: 126.8-133.0 C (thermal) | open NTC probe: 2.963-2.987 V (thermal) | watchdog (heartbeat): 4.7-5.8 ms (= tw) | external stop ENABLE: ON >= 8.8 V / OFF <= 3.4 V (1.47 ms) | FLT_N (DESAT, UVLO, port OC): logic (18 ns + PV-PWR) | RDY (gate supplies, +5V, 24 V): logic (18 ns) | 3.3 V supervisor / MCU reset: 2.88-3.00 V (TPS3828) (via XRSn -> WD_OK) | port OV backup (ADC PPB): 1029-1061 V (33.9 us)",D501.2 TP502.1 U502.5
-55,GPIO17,PRE_N,GPIO,0,in,"INPUTXBAR4>XINT1: any trip source active now (wired-AND of OC_N, OVT_N, FLT_N, RDY, STOP_OK, WD_OK); rev A2: read instead of OC_N and OVT_N, which comparator tripped comes from the ADC and the recorder","IL1-4 local window: 426.0-485.5 A (3.47 us) | IL1-4 CMPSS backup: 492.6-571.4 A (2.86 us) | port OC (PV-PWR, on FLT_N): 387-413 A (0.19 us (logic)) | port OC backup: 373-427 A (30 us PPB / 15 us CMPSS4) | port OV VA / VB: 978-1048 V (47 us) | OT heatsink NTC1-4: 86.2-89.6 C (thermal (RC 1 ms)) | OT inductor NTC5-8: 126.8-133.0 C (thermal) | open NTC probe: 2.963-2.987 V (thermal) | watchdog (heartbeat): 4.7-5.8 ms (= tw) | external stop ENABLE: ON >= 8.8 V / OFF <= 3.4 V (1.47 ms) | FLT_N (DESAT, UVLO, port OC): logic (18 ns + PV-PWR) | RDY (gate supplies, +5V, 24 V): logic (18 ns) | 3.3 V supervisor / MCU reset: 2.88-3.00 V (TPS3828) (via XRSn -> WD_OK) | port OV backup (ADC PPB): 1029-1061 V (33.9 us)",R501.2 TP501.1 U501.2 U501.4 U501.6 U501.8 U501.10 U501.12 U502.7
+54,GPIO16,TRIP,GPIO,0,in,"INPUTXBAR1>TZ1: one-shot trip of every ePWM (latch Q, 1 = tripped)","IL1-4 local window: 426.0-485.5 A (3.55 us) | IL1-4 CMPSS backup: 423.9-497.5 A (2.97 us) | port OC (PV-PWR, on FLT_N): 387-413 A (0.29 us (logic)) | port OC backup: 373-427 A (30 us PPB / 15 us CMPSS4) | port OV VA / VB: 978-1048 V (47 us) | OT heatsink NTC1-4: 86.2-89.6 C (thermal (RC 1 ms)) | OT inductor NTC5-8: 126.8-133.0 C (thermal) | open NTC probe: 2.963-2.987 V (thermal) | watchdog (heartbeat): 4.7-5.8 ms (= tw) | external stop ENABLE: ON >= 8.8 V / OFF <= 3.4 V (1.47 ms) | FLT_N (DESAT, UVLO, port OC): logic (18 ns + PV-PWR) | RDY (gate supplies, +5V, 24 V): logic (18 ns) | 3.3 V supervisor / MCU reset: 2.88-3.00 V (TPS3828) (via XRSn -> WD_OK) | port OV backup (ADC PPB): 1019-1051 V (34.0 us)",D501.2 TP502.1 U502.5
+55,GPIO17,PRE_N,GPIO,0,in,"INPUTXBAR4>XINT1: any trip source active now (wired-AND of OC_N, OVT_N, FLT_N, RDY, STOP_OK, WD_OK); rev A2: read instead of OC_N and OVT_N, which comparator tripped comes from the ADC and the recorder","IL1-4 local window: 426.0-485.5 A (3.55 us) | IL1-4 CMPSS backup: 423.9-497.5 A (2.97 us) | port OC (PV-PWR, on FLT_N): 387-413 A (0.29 us (logic)) | port OC backup: 373-427 A (30 us PPB / 15 us CMPSS4) | port OV VA / VB: 978-1048 V (47 us) | OT heatsink NTC1-4: 86.2-89.6 C (thermal (RC 1 ms)) | OT inductor NTC5-8: 126.8-133.0 C (thermal) | open NTC probe: 2.963-2.987 V (thermal) | watchdog (heartbeat): 4.7-5.8 ms (= tw) | external stop ENABLE: ON >= 8.8 V / OFF <= 3.4 V (1.47 ms) | FLT_N (DESAT, UVLO, port OC): logic (18 ns + PV-PWR) | RDY (gate supplies, +5V, 24 V): logic (18 ns) | 3.3 V supervisor / MCU reset: 2.88-3.00 V (TPS3828) (via XRSn -> WD_OK) | port OV backup (ADC PPB): 1019-1051 V (34.0 us)",R501.2 TP501.1 U501.2 U501.4 U501.6 U501.8 U501.10 U501.12 U502.7
 56,GPIO24,LATCH_CLR,GPIO,0,out,latch CLK: rising edge clears only while PRE_N is high; 10k pull-up = boot-mode pin 1 high (flash boot),,R208.2 U502.1
 57,GPIO25,K_PRE_M,GPIO,0,out,AND HEALTHY -> K_PRE,,RN205.4 U509.4
 58,GPIO26,FAN_PWM_M,OUTPUTXBAR3,"1,5",out,eCAP1 APWM > Output X-BAR 3 (ECAP1OUT) -> AND BIAS_EN -> isolated fan speed; 0 % = fans off,,RN206.2 U510.4

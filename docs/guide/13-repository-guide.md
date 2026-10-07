@@ -167,9 +167,12 @@ listed as UNPRICED and never counted as zero. The script exits with code 1 if it
 | `.venv/bin/python sim/magnetics.py` | every magnetic part three ways; exits 1 if a check fails |
 
 Review findings of the independent design reviews are kept in `gen/data/review_*.csv` and
-`gen/data/integration_findings.csv` ([D-023](../requirements/DECISIONS.md)). The latest,
-[review_pcm.csv](../../gen/data/review_pcm.csv) (27 findings of the review of commit `033d8d8`), adds status, class and
-closure columns; the dispositions are decisions D-065 to D-069 and D-072.
+`gen/data/integration_findings.csv` ([D-023](../requirements/DECISIONS.md)).
+[review_pcm.csv](../../gen/data/review_pcm.csv) (27 findings of the review of commit `033d8d8`) added status, class and
+closure columns; its dispositions are decisions D-065 to D-069 and D-072. The latest,
+[review_r2.csv](../../gen/data/review_r2.csv) (14 findings of the re-check of commit `a427981`, severities high /
+medium), has the same columns; its dispositions are [D-078](../requirements/DECISIONS.md) and
+[D-079](../requirements/DECISIONS.md).
 
 ### Records added on 2026-10-06
 
@@ -182,6 +185,8 @@ closure columns; the dispositions are decisions D-065 to D-069 and D-072.
 | [sim/compare_megarevo_pcs.py](../../sim/compare_megarevo_pcs.py) → [sim/out/compare_megarevo_pcs/](../../sim/out/compare_megarevo_pcs/report.md) | the PCS comparison script and its `comparison.csv` / `report.md` | the script |
 | [docs/reference-designs/megarevo/pma/spec-pma0125.md](../reference-designs/megarevo/pma/spec-pma0125.md), [MANUAL-NOTES.md](../reference-designs/megarevo/pma/MANUAL-NOTES.md) | the PMA0125 datasheet table transcribed verbatim; the PMA user manual's module-level statements with page numbers | by hand from the fetched PDFs |
 | `docs/reference-designs/megarevo/catalogue-2026/` | Megarevo's 2026 catalogue V1.2 (module pages used) — the PDF is a manifest row in [docs/SOURCES.csv](../SOURCES.csv), fetched, not kept in git | `docs/fetch.py` |
+
+Added on 2026-10-07: [requirements/INSTALLATION.md](../requirements/INSTALLATION.md) collects the installation conditions the modules depend on, one row per requirement with the generated line it comes from; it is written by hand from the design checks, so its quoted lines are re-verified after a rebuild (done once already, after the rebuild of D-078 / D-079: 74 rows). [gen/data/review_r2.csv](../../gen/data/review_r2.csv) holds the re-check R2; new keys of the hand-offs: `protection_chain` in `pcs_spec.json` (the trip chain at its gates-off current, the L1 trajectory, the backup-band requirement), `tolerance_regression`, `vf_bounded`, `dc_rejection_bounded`, `ride_through_rule`, `four_wire_coupled`, `ac_start_state_machine` and `review_r2` in `pcs_control_spec.json`.
 
 ## 📐 Conventions
 

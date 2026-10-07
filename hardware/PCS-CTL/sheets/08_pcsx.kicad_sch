@@ -1631,8 +1631,8 @@
 		(uuid "57be9c6c-45ca-5a7f-ac30-6ae0c6b13257")
 	)
 	(rectangle
-		(start 12 91.84)
-		(end 155.07 152.32)
+		(start 165.29 91.84)
+		(end 308.36 152.32)
 		(stroke
 			(width 0.254)
 			(type dash)
@@ -1644,8 +1644,8 @@
 		(uuid "7ef47932-1178-53bb-a3a7-509527e4a9d9")
 	)
 	(rectangle
-		(start 267.89 14)
-		(end 393.23 59.58)
+		(start 12 91.84)
+		(end 160.29 143.42)
 		(stroke
 			(width 0.254)
 			(type dash)
@@ -1654,22 +1654,11 @@
 		(fill
 			(type none)
 		)
-		(uuid "ec0108fa-8f0b-5ad3-ac71-639d979a5708")
-	)
-	(text "10.0k / 13.0k: a sensor output up to its 5.25 V supply reads <= 3.0 V; 1 nF C0G charge bucket."
-		(exclude_from_sim no)
-		(at 269.894 57.08 0)
-		(effects
-			(font
-				(size 1.1 1.1)
-			)
-			(justify left bottom)
-		)
-		(uuid "148e6b81-42ef-5516-b931-06e10b11e4ac")
+		(uuid "cb8ccffa-b5ee-5a33-8706-06fb2b3af489")
 	)
 	(text "NTC9: Murata NCP15 on PCS-PWR, 10.0k from VREF + 100 nF here. TMUX1208: S1-S8 = NTC1-8 (each keeps\nits 100 nF and its hardware OT / open-probe comparators, sheet 04) -> NTC_MUX, one ADC pin; A0-A2 from\nGPIO58-60 with 100k pull-downs, EN high. Firmware converts >= 5 ms after an address change."
 		(exclude_from_sim no)
-		(at 14 149.824 0)
+		(at 167.29 149.824 0)
 		(effects
 			(font
 				(size 1.1 1.1)
@@ -1691,7 +1680,7 @@
 	)
 	(text "NTC9 (DC-LINK BANK) AND THE NTC MUX"
 		(exclude_from_sim no)
-		(at 14 96.844 0)
+		(at 167.29 96.844 0)
 		(effects
 			(font
 				(size 1.8 1.8)
@@ -1700,6 +1689,17 @@
 			(justify left bottom)
 		)
 		(uuid "30ef2b31-06d0-501d-840c-cb09c21c1a15")
+	)
+	(text "OUT 2.50 V + 1.00 V/A (+/-2.0 A in 0.50-4.50 V; sensor fault <= 0.25 V or >= 4.75 V) through PCS-PWR's 100R into\n10.0k / 13.0k: 0.563 V/A at the pin, 1.3 mA per LSB; the 5.25 V supply maximum reads <= 3.0 V; 1 nF C0G charge bucket.\nFirmware sensor-fault window and the TEST step: design check and firmware table."
+		(exclude_from_sim no)
+		(at 14 140.924 0)
+		(effects
+			(font
+				(size 1.1 1.1)
+			)
+			(justify left bottom)
+		)
+		(uuid "327b3b30-7d14-5c47-8ab8-ade688852815")
 	)
 	(text "GRID AND C_F VOLTAGES (VMID + V/1203 FROM OPA2388 FOLLOWERS ON PCS-PWR)"
 		(exclude_from_sim no)
@@ -1713,9 +1713,9 @@
 		)
 		(uuid "76238905-ca49-555a-8b01-9e82009b2d03")
 	)
-	(text "RESIDUAL CURRENT (TYPE-B SENSOR, RFQ ON PCS-PWR; OUTPUT LEVEL ASSUMED, OPEN 5)"
+	(text "RESIDUAL CURRENT (TYPE-B SENSOR ON PCS-PWR, RFQ CONTRACT: PCS_SPEC RESIDUAL_CURRENT_CONTRACT)"
 		(exclude_from_sim no)
-		(at 269.894 19 0)
+		(at 14 96.844 0)
 		(effects
 			(font
 				(size 1.8 1.8)
@@ -1723,7 +1723,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "874740fb-85fa-5c59-826b-2878daa04dcf")
+		(uuid "885d873f-44af-569b-8cd2-ee3053ac7bc6")
 	)
 	(text "PCS_X CONNECTOR (GEN/INTERFACES.PY PCS_X; AGND = GND ON THIS BOARD)"
 		(exclude_from_sim no)
@@ -1749,7 +1749,7 @@
 		(uuid "c0f20356-52ef-57b8-8f60-150f451881a9")
 	)
 	(no_connect
-		(at 58.42 124.46)
+		(at 210.82 124.46)
 		(uuid "dd6acc3f-c672-5d2b-a82b-041a5f720570")
 	)
 	(wire
@@ -1764,7 +1764,7 @@
 	)
 	(wire
 		(pts
-			(xy 83.82 132.08) (xy 86.36 132.08)
+			(xy 236.22 132.08) (xy 238.76 132.08)
 		)
 		(stroke
 			(width 0)
@@ -1774,7 +1774,7 @@
 	)
 	(wire
 		(pts
-			(xy 119.38 118.11) (xy 119.38 120.65)
+			(xy 271.78 118.11) (xy 271.78 120.65)
 		)
 		(stroke
 			(width 0)
@@ -1814,7 +1814,7 @@
 	)
 	(wire
 		(pts
-			(xy 101.6 107.95) (xy 101.6 105.41)
+			(xy 256.54 107.95) (xy 256.54 105.41)
 		)
 		(stroke
 			(width 0)
@@ -1824,7 +1824,7 @@
 	)
 	(wire
 		(pts
-			(xy 306.07 25.4) (xy 303.53 25.4)
+			(xy 52.07 104.14) (xy 49.53 104.14)
 		)
 		(stroke
 			(width 0)
@@ -1854,7 +1854,7 @@
 	)
 	(wire
 		(pts
-			(xy 17.78 115.57) (xy 17.78 118.11)
+			(xy 170.18 115.57) (xy 170.18 118.11)
 		)
 		(stroke
 			(width 0)
@@ -1874,7 +1874,7 @@
 	)
 	(wire
 		(pts
-			(xy 144.78 110.49) (xy 144.78 107.95)
+			(xy 297.18 110.49) (xy 297.18 107.95)
 		)
 		(stroke
 			(width 0)
@@ -1914,7 +1914,7 @@
 	)
 	(wire
 		(pts
-			(xy 287.02 41.91) (xy 287.02 44.45)
+			(xy 30.48 120.65) (xy 30.48 123.19)
 		)
 		(stroke
 			(width 0)
@@ -1944,7 +1944,7 @@
 	)
 	(wire
 		(pts
-			(xy 58.42 111.76) (xy 55.88 111.76)
+			(xy 210.82 111.76) (xy 208.28 111.76)
 		)
 		(stroke
 			(width 0)
@@ -1954,7 +1954,7 @@
 	)
 	(wire
 		(pts
-			(xy 83.82 127) (xy 86.36 127)
+			(xy 236.22 127) (xy 238.76 127)
 		)
 		(stroke
 			(width 0)
@@ -1964,7 +1964,7 @@
 	)
 	(wire
 		(pts
-			(xy 33.02 110.49) (xy 33.02 107.95)
+			(xy 185.42 110.49) (xy 185.42 107.95)
 		)
 		(stroke
 			(width 0)
@@ -1974,7 +1974,7 @@
 	)
 	(wire
 		(pts
-			(xy 313.69 25.4) (xy 316.23 25.4)
+			(xy 59.69 104.14) (xy 62.23 104.14)
 		)
 		(stroke
 			(width 0)
@@ -2004,7 +2004,7 @@
 	)
 	(wire
 		(pts
-			(xy 132.08 110.49) (xy 132.08 107.95)
+			(xy 284.48 110.49) (xy 284.48 107.95)
 		)
 		(stroke
 			(width 0)
@@ -2014,7 +2014,7 @@
 	)
 	(wire
 		(pts
-			(xy 33.02 118.11) (xy 33.02 120.65)
+			(xy 185.42 118.11) (xy 185.42 120.65)
 		)
 		(stroke
 			(width 0)
@@ -2034,7 +2034,7 @@
 	)
 	(wire
 		(pts
-			(xy 83.82 114.3) (xy 86.36 114.3)
+			(xy 236.22 114.3) (xy 238.76 114.3)
 		)
 		(stroke
 			(width 0)
@@ -2044,7 +2044,7 @@
 	)
 	(wire
 		(pts
-			(xy 101.6 115.57) (xy 101.6 118.11)
+			(xy 256.54 115.57) (xy 256.54 118.11)
 		)
 		(stroke
 			(width 0)
@@ -2064,7 +2064,7 @@
 	)
 	(wire
 		(pts
-			(xy 83.82 124.46) (xy 86.36 124.46)
+			(xy 236.22 124.46) (xy 238.76 124.46)
 		)
 		(stroke
 			(width 0)
@@ -2084,7 +2084,7 @@
 	)
 	(wire
 		(pts
-			(xy 83.82 111.76) (xy 86.36 111.76)
+			(xy 236.22 111.76) (xy 238.76 111.76)
 		)
 		(stroke
 			(width 0)
@@ -2094,7 +2094,7 @@
 	)
 	(wire
 		(pts
-			(xy 58.42 127) (xy 55.88 127)
+			(xy 210.82 127) (xy 208.28 127)
 		)
 		(stroke
 			(width 0)
@@ -2104,7 +2104,7 @@
 	)
 	(wire
 		(pts
-			(xy 58.42 109.22) (xy 55.88 109.22)
+			(xy 210.82 109.22) (xy 208.28 109.22)
 		)
 		(stroke
 			(width 0)
@@ -2114,7 +2114,7 @@
 	)
 	(wire
 		(pts
-			(xy 274.32 34.29) (xy 274.32 31.75)
+			(xy 17.78 113.03) (xy 17.78 110.49)
 		)
 		(stroke
 			(width 0)
@@ -2194,7 +2194,7 @@
 	)
 	(wire
 		(pts
-			(xy 83.82 119.38) (xy 86.36 119.38)
+			(xy 236.22 119.38) (xy 238.76 119.38)
 		)
 		(stroke
 			(width 0)
@@ -2204,7 +2204,7 @@
 	)
 	(wire
 		(pts
-			(xy 58.42 116.84) (xy 55.88 116.84)
+			(xy 210.82 116.84) (xy 208.28 116.84)
 		)
 		(stroke
 			(width 0)
@@ -2224,7 +2224,7 @@
 	)
 	(wire
 		(pts
-			(xy 83.82 109.22) (xy 86.36 109.22)
+			(xy 236.22 109.22) (xy 238.76 109.22)
 		)
 		(stroke
 			(width 0)
@@ -2244,7 +2244,7 @@
 	)
 	(wire
 		(pts
-			(xy 55.88 109.22) (xy 55.88 111.76)
+			(xy 208.28 109.22) (xy 208.28 111.76)
 		)
 		(stroke
 			(width 0)
@@ -2264,7 +2264,7 @@
 	)
 	(wire
 		(pts
-			(xy 17.78 107.95) (xy 17.78 105.41)
+			(xy 170.18 107.95) (xy 170.18 105.41)
 		)
 		(stroke
 			(width 0)
@@ -2304,7 +2304,7 @@
 	)
 	(wire
 		(pts
-			(xy 274.32 41.91) (xy 274.32 44.45)
+			(xy 17.78 120.65) (xy 17.78 123.19)
 		)
 		(stroke
 			(width 0)
@@ -2334,7 +2334,7 @@
 	)
 	(wire
 		(pts
-			(xy 144.78 118.11) (xy 144.78 120.65)
+			(xy 297.18 118.11) (xy 297.18 120.65)
 		)
 		(stroke
 			(width 0)
@@ -2344,7 +2344,7 @@
 	)
 	(wire
 		(pts
-			(xy 58.42 119.38) (xy 55.88 119.38)
+			(xy 210.82 119.38) (xy 208.28 119.38)
 		)
 		(stroke
 			(width 0)
@@ -2374,7 +2374,7 @@
 	)
 	(wire
 		(pts
-			(xy 119.38 110.49) (xy 119.38 107.95)
+			(xy 271.78 110.49) (xy 271.78 107.95)
 		)
 		(stroke
 			(width 0)
@@ -2404,7 +2404,7 @@
 	)
 	(wire
 		(pts
-			(xy 83.82 116.84) (xy 86.36 116.84)
+			(xy 236.22 116.84) (xy 238.76 116.84)
 		)
 		(stroke
 			(width 0)
@@ -2414,7 +2414,7 @@
 	)
 	(wire
 		(pts
-			(xy 132.08 118.11) (xy 132.08 120.65)
+			(xy 284.48 118.11) (xy 284.48 120.65)
 		)
 		(stroke
 			(width 0)
@@ -2424,7 +2424,7 @@
 	)
 	(wire
 		(pts
-			(xy 287.02 34.29) (xy 287.02 31.75)
+			(xy 30.48 113.03) (xy 30.48 110.49)
 		)
 		(stroke
 			(width 0)
@@ -2434,7 +2434,7 @@
 	)
 	(wire
 		(pts
-			(xy 58.42 114.3) (xy 55.88 114.3)
+			(xy 210.82 114.3) (xy 208.28 114.3)
 		)
 		(stroke
 			(width 0)
@@ -2454,7 +2454,7 @@
 	)
 	(wire
 		(pts
-			(xy 83.82 121.92) (xy 86.36 121.92)
+			(xy 236.22 121.92) (xy 238.76 121.92)
 		)
 		(stroke
 			(width 0)
@@ -2583,7 +2583,7 @@
 		(uuid "200f9d11-c88b-5a0c-a3eb-aa52e42a0000")
 	)
 	(label "RCM"
-		(at 303.53 25.4 180)
+		(at 49.53 104.14 180)
 		(effects
 			(font
 				(size 1 1)
@@ -2714,7 +2714,7 @@
 	)
 	(global_label "MUX_A2"
 		(shape bidirectional)
-		(at 55.88 119.38 180)
+		(at 208.28 119.38 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2724,7 +2724,7 @@
 		)
 		(uuid "0db56c06-edda-5c41-8510-89a6c7ddae34")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 55.88 119.38 180)
+			(at 208.28 119.38 180)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2760,7 +2760,7 @@
 	)
 	(global_label "NTC9"
 		(shape bidirectional)
-		(at 17.78 118.11 270)
+		(at 170.18 118.11 270)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2770,7 +2770,7 @@
 		)
 		(uuid "18eb7068-0b3b-51cb-a94d-6d79cf82780a")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 17.78 118.11 270)
+			(at 170.18 118.11 270)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2829,7 +2829,7 @@
 	)
 	(global_label "NTC4"
 		(shape bidirectional)
-		(at 86.36 116.84 0)
+		(at 238.76 116.84 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2839,7 +2839,7 @@
 		)
 		(uuid "2a5772a9-a08f-5790-a1a5-363377d3634e")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 86.36 116.84 0)
+			(at 238.76 116.84 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2944,7 +2944,7 @@
 	)
 	(global_label "NTC9"
 		(shape bidirectional)
-		(at 33.02 107.95 90)
+		(at 185.42 107.95 90)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2954,7 +2954,7 @@
 		)
 		(uuid "4c69c441-168b-5117-866c-2214ffc28e17")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 33.02 107.95 90)
+			(at 185.42 107.95 90)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2967,7 +2967,7 @@
 	)
 	(global_label "NTC1"
 		(shape bidirectional)
-		(at 86.36 109.22 0)
+		(at 238.76 109.22 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2977,7 +2977,7 @@
 		)
 		(uuid "4d399657-3756-57e9-aef6-765a9f1719c5")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 86.36 109.22 0)
+			(at 238.76 109.22 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3013,7 +3013,7 @@
 	)
 	(global_label "MUX_A1"
 		(shape bidirectional)
-		(at 55.88 116.84 180)
+		(at 208.28 116.84 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -3023,7 +3023,7 @@
 		)
 		(uuid "5065cac9-5e4a-55d8-adb5-bd88a9b83ee1")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 55.88 116.84 180)
+			(at 208.28 116.84 180)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3059,7 +3059,7 @@
 	)
 	(global_label "NTC6"
 		(shape bidirectional)
-		(at 86.36 121.92 0)
+		(at 238.76 121.92 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -3069,7 +3069,7 @@
 		)
 		(uuid "57d18bdb-ed12-5ac9-911d-974248c2e901")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 86.36 121.92 0)
+			(at 238.76 121.92 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3151,7 +3151,7 @@
 	)
 	(global_label "NTC7"
 		(shape bidirectional)
-		(at 86.36 124.46 0)
+		(at 238.76 124.46 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -3161,7 +3161,7 @@
 		)
 		(uuid "7b32677d-e597-5171-9f86-b8a9b8792660")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 86.36 124.46 0)
+			(at 238.76 124.46 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3197,7 +3197,7 @@
 	)
 	(global_label "RCM_ADC"
 		(shape bidirectional)
-		(at 274.32 31.75 90)
+		(at 17.78 110.49 90)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -3207,7 +3207,7 @@
 		)
 		(uuid "8f9a4551-0a1b-5c89-99b9-01cdeba43994")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 274.32 31.75 90)
+			(at 17.78 110.49 90)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3220,7 +3220,7 @@
 	)
 	(global_label "NTC_MUX"
 		(shape bidirectional)
-		(at 86.36 132.08 0)
+		(at 238.76 132.08 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -3230,7 +3230,7 @@
 		)
 		(uuid "a5a792c5-f19d-5e4c-bcb9-29a9020c4e69")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 86.36 132.08 0)
+			(at 238.76 132.08 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3312,7 +3312,7 @@
 	)
 	(global_label "NTC5"
 		(shape bidirectional)
-		(at 86.36 119.38 0)
+		(at 238.76 119.38 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -3322,7 +3322,7 @@
 		)
 		(uuid "b30cb7bb-e488-55d9-aa25-2141d97ee75e")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 86.36 119.38 0)
+			(at 238.76 119.38 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3335,7 +3335,7 @@
 	)
 	(global_label "MUX_A0"
 		(shape bidirectional)
-		(at 119.38 107.95 90)
+		(at 271.78 107.95 90)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -3345,7 +3345,7 @@
 		)
 		(uuid "cc6b05ac-8851-56a3-a843-8317430e64bb")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 119.38 107.95 90)
+			(at 271.78 107.95 90)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3358,7 +3358,7 @@
 	)
 	(global_label "MUX_A2"
 		(shape bidirectional)
-		(at 144.78 107.95 90)
+		(at 297.18 107.95 90)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -3368,7 +3368,7 @@
 		)
 		(uuid "d70a1d7a-1f94-5c2e-928e-4fdefdd303a0")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 144.78 107.95 90)
+			(at 297.18 107.95 90)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3381,7 +3381,7 @@
 	)
 	(global_label "MUX_A0"
 		(shape bidirectional)
-		(at 55.88 114.3 180)
+		(at 208.28 114.3 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -3391,7 +3391,7 @@
 		)
 		(uuid "df4b7c6c-3e33-5b5b-bcbf-be49f2aeeda5")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 55.88 114.3 180)
+			(at 208.28 114.3 180)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3404,7 +3404,7 @@
 	)
 	(global_label "NTC3"
 		(shape bidirectional)
-		(at 86.36 114.3 0)
+		(at 238.76 114.3 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -3414,7 +3414,7 @@
 		)
 		(uuid "e1623d4f-10e0-5243-9ba5-0f0c912422c0")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 86.36 114.3 0)
+			(at 238.76 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3427,7 +3427,7 @@
 	)
 	(global_label "RCM_ADC"
 		(shape bidirectional)
-		(at 316.23 25.4 0)
+		(at 62.23 104.14 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -3437,7 +3437,7 @@
 		)
 		(uuid "e471a287-f75f-5186-bcce-1f25eba5bcc9")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 316.23 25.4 0)
+			(at 62.23 104.14 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3450,7 +3450,7 @@
 	)
 	(global_label "NTC2"
 		(shape bidirectional)
-		(at 86.36 111.76 0)
+		(at 238.76 111.76 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -3460,7 +3460,7 @@
 		)
 		(uuid "e51a0120-2486-5310-b311-726eac1d1437")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 86.36 111.76 0)
+			(at 238.76 111.76 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3496,7 +3496,7 @@
 	)
 	(global_label "MUX_A1"
 		(shape bidirectional)
-		(at 132.08 107.95 90)
+		(at 284.48 107.95 90)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -3506,7 +3506,7 @@
 		)
 		(uuid "edd275cc-9548-5181-832d-950da104503a")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 132.08 107.95 90)
+			(at 284.48 107.95 90)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3519,7 +3519,7 @@
 	)
 	(global_label "NTC8"
 		(shape bidirectional)
-		(at 86.36 127 0)
+		(at 238.76 127 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -3529,7 +3529,7 @@
 		)
 		(uuid "f49c233f-bc59-5114-ada3-8a410f388faf")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 86.36 127 0)
+			(at 238.76 127 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3565,7 +3565,7 @@
 	)
 	(global_label "RCM_ADC"
 		(shape bidirectional)
-		(at 287.02 31.75 90)
+		(at 30.48 110.49 90)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -3575,7 +3575,7 @@
 		)
 		(uuid "fbcb8d80-a20d-5711-9b06-0986754347cc")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 287.02 31.75 90)
+			(at 30.48 110.49 90)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3588,7 +3588,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_GND")
-		(at 274.32 44.45 0)
+		(at 17.78 123.19 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -3598,7 +3598,7 @@
 		(dnp no)
 		(uuid "097e1721-612e-5ac6-bdfc-696d47b526f2")
 		(property "Reference" "#PWR08014"
-			(at 274.32 44.45 0)
+			(at 17.78 123.19 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3609,7 +3609,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 274.32 48.85 0)
+			(at 17.78 127.59 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3619,7 +3619,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 274.32 44.45 0)
+			(at 17.78 123.19 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3630,7 +3630,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 274.32 44.45 0)
+			(at 17.78 123.19 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -3640,7 +3640,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 274.32 44.45 0)
+			(at 17.78 123.19 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4293,7 +4293,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:R")
-		(at 144.78 114.3 0)
+		(at 297.18 114.3 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -4303,7 +4303,7 @@
 		(dnp no)
 		(uuid "32a1b41f-c27f-54b5-bbc8-c5e2a86f0486")
 		(property "Reference" "R814"
-			(at 149.144 113.4 0)
+			(at 301.544 113.4 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4314,7 +4314,7 @@
 			)
 		)
 		(property "Value" "100k"
-			(at 149.144 115.2 0)
+			(at 301.544 115.2 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4324,7 +4324,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 144.78 114.3 0)
+			(at 297.18 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4335,7 +4335,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 144.78 114.3 0)
+			(at 297.18 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4346,7 +4346,7 @@
 			)
 		)
 		(property "Description" "Resistor 100k 1% 0603 address defined in reset"
-			(at 144.78 114.3 0)
+			(at 297.18 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4357,7 +4357,7 @@
 			)
 		)
 		(property "Manufacturer" ""
-			(at 144.78 114.3 0)
+			(at 297.18 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4368,7 +4368,7 @@
 			)
 		)
 		(property "MPN" ""
-			(at 144.78 114.3 0)
+			(at 297.18 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4379,7 +4379,7 @@
 			)
 		)
 		(property "Package" "0603"
-			(at 144.78 114.3 0)
+			(at 297.18 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4390,7 +4390,7 @@
 			)
 		)
 		(property "Sourcing" "GENERIC"
-			(at 144.78 114.3 0)
+			(at 297.18 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4401,7 +4401,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 144.78 114.3 0)
+			(at 297.18 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4503,7 +4503,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_GND")
-		(at 101.6 118.11 0)
+		(at 256.54 118.11 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -4513,7 +4513,7 @@
 		(dnp no)
 		(uuid "393874c7-ad83-5cfc-827b-7371eb5fbb29")
 		(property "Reference" "#PWR08021"
-			(at 101.6 118.11 0)
+			(at 256.54 118.11 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4524,7 +4524,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 101.6 122.51 0)
+			(at 256.54 122.51 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4534,7 +4534,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 101.6 118.11 0)
+			(at 256.54 118.11 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4545,7 +4545,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 101.6 118.11 0)
+			(at 256.54 118.11 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4555,7 +4555,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 101.6 118.11 0)
+			(at 256.54 118.11 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4713,7 +4713,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:TMUX1208")
-		(at 71.12 119.38 0)
+		(at 223.52 119.38 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -4723,7 +4723,7 @@
 		(dnp no)
 		(uuid "4970aac1-b22e-532f-ab85-5762da5abde5")
 		(property "Reference" "U801"
-			(at 71.12 102.54 0)
+			(at 223.52 102.54 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4734,7 +4734,7 @@
 			)
 		)
 		(property "Value" "TMUX1208PWR"
-			(at 71.12 136.22 0)
+			(at 223.52 136.22 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4744,7 +4744,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 71.12 119.38 0)
+			(at 223.52 119.38 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4755,7 +4755,7 @@
 			)
 		)
 		(property "Datasheet" "docs/datasheets/sensing/TMUX1208.pdf"
-			(at 71.12 119.38 0)
+			(at 223.52 119.38 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4766,7 +4766,7 @@
 			)
 		)
 		(property "Description" "8:1 analog multiplexer, 1.08-5.5 V, low leakage"
-			(at 71.12 119.38 0)
+			(at 223.52 119.38 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4777,7 +4777,7 @@
 			)
 		)
 		(property "Manufacturer" "Texas Instruments"
-			(at 71.12 119.38 0)
+			(at 223.52 119.38 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4788,7 +4788,7 @@
 			)
 		)
 		(property "MPN" "TMUX1208PWR"
-			(at 71.12 119.38 0)
+			(at 223.52 119.38 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4799,7 +4799,7 @@
 			)
 		)
 		(property "Package" "TSSOP-16 (PW)"
-			(at 71.12 119.38 0)
+			(at 223.52 119.38 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4810,7 +4810,7 @@
 			)
 		)
 		(property "Sourcing" "ORDERABLE"
-			(at 71.12 119.38 0)
+			(at 223.52 119.38 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4821,7 +4821,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 71.12 119.38 0)
+			(at 223.52 119.38 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4890,7 +4890,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:R")
-		(at 119.38 114.3 0)
+		(at 271.78 114.3 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -4900,7 +4900,7 @@
 		(dnp no)
 		(uuid "4b262965-ebce-5eba-9569-6337c6eb4ac8")
 		(property "Reference" "R812"
-			(at 123.744 113.4 0)
+			(at 276.144 113.4 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4911,7 +4911,7 @@
 			)
 		)
 		(property "Value" "100k"
-			(at 123.744 115.2 0)
+			(at 276.144 115.2 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4921,7 +4921,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 119.38 114.3 0)
+			(at 271.78 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4932,7 +4932,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 119.38 114.3 0)
+			(at 271.78 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4943,7 +4943,7 @@
 			)
 		)
 		(property "Description" "Resistor 100k 1% 0603 address defined in reset"
-			(at 119.38 114.3 0)
+			(at 271.78 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4954,7 +4954,7 @@
 			)
 		)
 		(property "Manufacturer" ""
-			(at 119.38 114.3 0)
+			(at 271.78 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4965,7 +4965,7 @@
 			)
 		)
 		(property "MPN" ""
-			(at 119.38 114.3 0)
+			(at 271.78 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4976,7 +4976,7 @@
 			)
 		)
 		(property "Package" "0603"
-			(at 119.38 114.3 0)
+			(at 271.78 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4987,7 +4987,7 @@
 			)
 		)
 		(property "Sourcing" "GENERIC"
-			(at 119.38 114.3 0)
+			(at 271.78 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4998,7 +4998,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 119.38 114.3 0)
+			(at 271.78 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5295,7 +5295,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_GND")
-		(at 119.38 120.65 0)
+		(at 271.78 120.65 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -5305,7 +5305,7 @@
 		(dnp no)
 		(uuid "5c0f33d0-e5b8-55ab-861d-0ec2a67d9532")
 		(property "Reference" "#PWR08022"
-			(at 119.38 120.65 0)
+			(at 271.78 120.65 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5316,7 +5316,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 119.38 125.05 0)
+			(at 271.78 125.05 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5326,7 +5326,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 119.38 120.65 0)
+			(at 271.78 120.65 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5337,7 +5337,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 119.38 120.65 0)
+			(at 271.78 120.65 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5347,7 +5347,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 119.38 120.65 0)
+			(at 271.78 120.65 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5445,7 +5445,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_GND")
-		(at 132.08 120.65 0)
+		(at 284.48 120.65 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -5455,7 +5455,7 @@
 		(dnp no)
 		(uuid "64149df8-cb7f-545f-97fe-5e314d6cc484")
 		(property "Reference" "#PWR08023"
-			(at 132.08 120.65 0)
+			(at 284.48 120.65 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5466,7 +5466,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 132.08 125.05 0)
+			(at 284.48 125.05 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5476,7 +5476,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 132.08 120.65 0)
+			(at 284.48 120.65 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5487,7 +5487,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 132.08 120.65 0)
+			(at 284.48 120.65 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5497,7 +5497,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 132.08 120.65 0)
+			(at 284.48 120.65 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5595,7 +5595,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_GND")
-		(at 33.02 120.65 0)
+		(at 185.42 120.65 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -5605,7 +5605,7 @@
 		(dnp no)
 		(uuid "692cfd21-a64a-529b-a00e-e2b9742a9db0")
 		(property "Reference" "#PWR08017"
-			(at 33.02 120.65 0)
+			(at 185.42 120.65 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5616,7 +5616,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 33.02 125.05 0)
+			(at 185.42 125.05 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5626,7 +5626,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 33.02 120.65 0)
+			(at 185.42 120.65 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5637,7 +5637,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 33.02 120.65 0)
+			(at 185.42 120.65 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5647,7 +5647,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 33.02 120.65 0)
+			(at 185.42 120.65 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5670,7 +5670,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_GND")
-		(at 287.02 44.45 0)
+		(at 30.48 123.19 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -5680,7 +5680,7 @@
 		(dnp no)
 		(uuid "6b7eaaa8-57ff-52c7-b05a-f765821cbc19")
 		(property "Reference" "#PWR08015"
-			(at 287.02 44.45 0)
+			(at 30.48 123.19 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5691,7 +5691,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 287.02 48.85 0)
+			(at 30.48 127.59 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5701,7 +5701,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 287.02 44.45 0)
+			(at 30.48 123.19 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5712,7 +5712,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 287.02 44.45 0)
+			(at 30.48 123.19 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5722,7 +5722,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 287.02 44.45 0)
+			(at 30.48 123.19 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6015,7 +6015,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_GND")
-		(at 55.88 127 270)
+		(at 208.28 127 270)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6025,7 +6025,7 @@
 		(dnp no)
 		(uuid "775f5b2e-1459-5956-b246-18216b7eba66")
 		(property "Reference" "#PWR08019"
-			(at 55.88 127 90)
+			(at 208.28 127 90)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6036,7 +6036,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 50.72 127 90)
+			(at 203.12 127 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6046,7 +6046,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 55.88 127 0)
+			(at 208.28 127 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6057,7 +6057,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 55.88 127 0)
+			(at 208.28 127 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6067,7 +6067,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 55.88 127 0)
+			(at 208.28 127 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6090,7 +6090,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_+3V3A")
-		(at 55.88 109.22 90)
+		(at 208.28 109.22 90)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6100,7 +6100,7 @@
 		(dnp no)
 		(uuid "78efbaa2-7530-523b-bd8e-620220b97bfa")
 		(property "Reference" "#PWR08018"
-			(at 55.88 109.22 90)
+			(at 208.28 109.22 90)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6111,7 +6111,7 @@
 			)
 		)
 		(property "Value" "+3V3A"
-			(at 49.88 109.22 90)
+			(at 202.28 109.22 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6121,7 +6121,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 55.88 109.22 0)
+			(at 208.28 109.22 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6132,7 +6132,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 55.88 109.22 0)
+			(at 208.28 109.22 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6142,7 +6142,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 55.88 109.22 0)
+			(at 208.28 109.22 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6240,7 +6240,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:R")
-		(at 17.78 111.76 0)
+		(at 170.18 111.76 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6250,7 +6250,7 @@
 		(dnp no)
 		(uuid "83083fbd-74bd-511c-a5a4-cf5f54089f12")
 		(property "Reference" "R811"
-			(at 22.606 110.86 0)
+			(at 175.006 110.86 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6261,7 +6261,7 @@
 			)
 		)
 		(property "Value" "10.0k"
-			(at 22.606 112.66 0)
+			(at 175.006 112.66 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6271,7 +6271,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 17.78 111.76 0)
+			(at 170.18 111.76 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6282,7 +6282,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 17.78 111.76 0)
+			(at 170.18 111.76 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6293,7 +6293,7 @@
 			)
 		)
 		(property "Description" "Resistor 10.0k 0.1% 0603 25 ppm/K"
-			(at 17.78 111.76 0)
+			(at 170.18 111.76 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6304,7 +6304,7 @@
 			)
 		)
 		(property "Manufacturer" ""
-			(at 17.78 111.76 0)
+			(at 170.18 111.76 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6315,7 +6315,7 @@
 			)
 		)
 		(property "MPN" ""
-			(at 17.78 111.76 0)
+			(at 170.18 111.76 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6326,7 +6326,7 @@
 			)
 		)
 		(property "Package" "0603"
-			(at 17.78 111.76 0)
+			(at 170.18 111.76 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6337,7 +6337,7 @@
 			)
 		)
 		(property "Sourcing" "GENERIC"
-			(at 17.78 111.76 0)
+			(at 170.18 111.76 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6348,7 +6348,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 17.78 111.76 0)
+			(at 170.18 111.76 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6375,7 +6375,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_GND")
-		(at 144.78 120.65 0)
+		(at 297.18 120.65 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6385,7 +6385,7 @@
 		(dnp no)
 		(uuid "87c7d14f-1912-5e09-8383-0d26a74d9f1e")
 		(property "Reference" "#PWR08024"
-			(at 144.78 120.65 0)
+			(at 297.18 120.65 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6396,7 +6396,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 144.78 125.05 0)
+			(at 297.18 125.05 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6406,7 +6406,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 144.78 120.65 0)
+			(at 297.18 120.65 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6417,7 +6417,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 144.78 120.65 0)
+			(at 297.18 120.65 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6427,7 +6427,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 144.78 120.65 0)
+			(at 297.18 120.65 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6525,7 +6525,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_VREF")
-		(at 17.78 105.41 0)
+		(at 170.18 105.41 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6535,7 +6535,7 @@
 		(dnp no)
 		(uuid "8d24bf69-a2f7-5092-88ee-0cdda81ecd1b")
 		(property "Reference" "#PWR08016"
-			(at 17.78 105.41 0)
+			(at 170.18 105.41 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6546,7 +6546,7 @@
 			)
 		)
 		(property "Value" "VREF"
-			(at 17.78 101.21 0)
+			(at 170.18 101.21 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6556,7 +6556,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 17.78 105.41 0)
+			(at 170.18 105.41 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6567,7 +6567,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 17.78 105.41 0)
+			(at 170.18 105.41 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6577,7 +6577,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 17.78 105.41 0)
+			(at 170.18 105.41 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6600,7 +6600,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:C")
-		(at 33.02 114.3 0)
+		(at 185.42 114.3 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6610,7 +6610,7 @@
 		(dnp no)
 		(uuid "93ac5d19-d966-5cfc-84fa-963e6bcd56d9")
 		(property "Reference" "C809"
-			(at 40.248 113.4 0)
+			(at 192.648 113.4 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6621,7 +6621,7 @@
 			)
 		)
 		(property "Value" "100n 50V"
-			(at 40.248 115.2 0)
+			(at 192.648 115.2 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6631,7 +6631,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 33.02 114.3 0)
+			(at 185.42 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6642,7 +6642,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 33.02 114.3 0)
+			(at 185.42 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6653,7 +6653,7 @@
 			)
 		)
 		(property "Description" "Capacitor 100n 50V X7R 0603"
-			(at 33.02 114.3 0)
+			(at 185.42 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6664,7 +6664,7 @@
 			)
 		)
 		(property "Manufacturer" ""
-			(at 33.02 114.3 0)
+			(at 185.42 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6675,7 +6675,7 @@
 			)
 		)
 		(property "MPN" ""
-			(at 33.02 114.3 0)
+			(at 185.42 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6686,7 +6686,7 @@
 			)
 		)
 		(property "Package" "0603"
-			(at 33.02 114.3 0)
+			(at 185.42 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6697,7 +6697,7 @@
 			)
 		)
 		(property "Sourcing" "GENERIC"
-			(at 33.02 114.3 0)
+			(at 185.42 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6708,7 +6708,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 33.02 114.3 0)
+			(at 185.42 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7332,7 +7332,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:PWR_+3V3A")
-		(at 101.6 105.41 0)
+		(at 256.54 105.41 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -7342,7 +7342,7 @@
 		(dnp no)
 		(uuid "c242fdb9-e7dc-56bb-a79d-d8b047545227")
 		(property "Reference" "#PWR08020"
-			(at 101.6 105.41 0)
+			(at 256.54 105.41 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7353,7 +7353,7 @@
 			)
 		)
 		(property "Value" "+3V3A"
-			(at 101.6 101.21 0)
+			(at 256.54 101.21 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7363,7 +7363,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 101.6 105.41 0)
+			(at 256.54 105.41 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7374,7 +7374,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 101.6 105.41 0)
+			(at 256.54 105.41 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7384,7 +7384,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 101.6 105.41 0)
+			(at 256.54 105.41 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8022,7 +8022,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:R")
-		(at 132.08 114.3 0)
+		(at 284.48 114.3 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -8032,7 +8032,7 @@
 		(dnp no)
 		(uuid "e66e79c4-0753-5613-9a2e-f12b8cfe7903")
 		(property "Reference" "R813"
-			(at 136.444 113.4 0)
+			(at 288.844 113.4 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8043,7 +8043,7 @@
 			)
 		)
 		(property "Value" "100k"
-			(at 136.444 115.2 0)
+			(at 288.844 115.2 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8053,7 +8053,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 132.08 114.3 0)
+			(at 284.48 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8064,7 +8064,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 132.08 114.3 0)
+			(at 284.48 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8075,7 +8075,7 @@
 			)
 		)
 		(property "Description" "Resistor 100k 1% 0603 address defined in reset"
-			(at 132.08 114.3 0)
+			(at 284.48 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8086,7 +8086,7 @@
 			)
 		)
 		(property "Manufacturer" ""
-			(at 132.08 114.3 0)
+			(at 284.48 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8097,7 +8097,7 @@
 			)
 		)
 		(property "MPN" ""
-			(at 132.08 114.3 0)
+			(at 284.48 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8108,7 +8108,7 @@
 			)
 		)
 		(property "Package" "0603"
-			(at 132.08 114.3 0)
+			(at 284.48 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8119,7 +8119,7 @@
 			)
 		)
 		(property "Sourcing" "GENERIC"
-			(at 132.08 114.3 0)
+			(at 284.48 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8130,7 +8130,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 132.08 114.3 0)
+			(at 284.48 114.3 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8157,7 +8157,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:C")
-		(at 101.6 111.76 0)
+		(at 256.54 111.76 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -8167,7 +8167,7 @@
 		(dnp no)
 		(uuid "e8a7e3b0-b4f7-5764-a110-fc5a4f43cf58")
 		(property "Reference" "C810"
-			(at 108.828 110.86 0)
+			(at 263.768 110.86 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8178,7 +8178,7 @@
 			)
 		)
 		(property "Value" "100n 50V"
-			(at 108.828 112.66 0)
+			(at 263.768 112.66 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8188,7 +8188,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 101.6 111.76 0)
+			(at 256.54 111.76 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8199,7 +8199,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 101.6 111.76 0)
+			(at 256.54 111.76 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8210,7 +8210,7 @@
 			)
 		)
 		(property "Description" "Capacitor 100n 50V X7R 0603"
-			(at 101.6 111.76 0)
+			(at 256.54 111.76 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8221,7 +8221,7 @@
 			)
 		)
 		(property "Manufacturer" ""
-			(at 101.6 111.76 0)
+			(at 256.54 111.76 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8232,7 +8232,7 @@
 			)
 		)
 		(property "MPN" ""
-			(at 101.6 111.76 0)
+			(at 256.54 111.76 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8243,7 +8243,7 @@
 			)
 		)
 		(property "Package" "0603"
-			(at 101.6 111.76 0)
+			(at 256.54 111.76 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8254,7 +8254,7 @@
 			)
 		)
 		(property "Sourcing" "GENERIC"
-			(at 101.6 111.76 0)
+			(at 256.54 111.76 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8265,7 +8265,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 101.6 111.76 0)
+			(at 256.54 111.76 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8502,7 +8502,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:R")
-		(at 309.88 25.4 90)
+		(at 55.88 104.14 90)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -8512,7 +8512,7 @@
 		(dnp no)
 		(uuid "f19c4bcc-2596-5b22-a174-2499b3253801")
 		(property "Reference" "R809"
-			(at 309.88 22.984 90)
+			(at 55.88 101.724 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8523,7 +8523,7 @@
 			)
 		)
 		(property "Value" "10.0k"
-			(at 309.88 27.816 90)
+			(at 55.88 106.556 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8533,7 +8533,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 309.88 25.4 0)
+			(at 55.88 104.14 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8544,7 +8544,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 309.88 25.4 0)
+			(at 55.88 104.14 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8555,7 +8555,7 @@
 			)
 		)
 		(property "Description" "Resistor 10.0k 1% 0603"
-			(at 309.88 25.4 0)
+			(at 55.88 104.14 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8566,7 +8566,7 @@
 			)
 		)
 		(property "Manufacturer" ""
-			(at 309.88 25.4 0)
+			(at 55.88 104.14 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8577,7 +8577,7 @@
 			)
 		)
 		(property "MPN" ""
-			(at 309.88 25.4 0)
+			(at 55.88 104.14 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8588,7 +8588,7 @@
 			)
 		)
 		(property "Package" "0603"
-			(at 309.88 25.4 0)
+			(at 55.88 104.14 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8599,7 +8599,7 @@
 			)
 		)
 		(property "Sourcing" "GENERIC"
-			(at 309.88 25.4 0)
+			(at 55.88 104.14 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8610,7 +8610,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 309.88 25.4 0)
+			(at 55.88 104.14 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8637,7 +8637,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:R")
-		(at 274.32 38.1 0)
+		(at 17.78 116.84 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -8647,7 +8647,7 @@
 		(dnp no)
 		(uuid "f9bf276e-8622-5a5c-addd-790412a286c7")
 		(property "Reference" "R810"
-			(at 279.146 37.2 0)
+			(at 22.606 115.94 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8658,7 +8658,7 @@
 			)
 		)
 		(property "Value" "13.0k"
-			(at 279.146 39 0)
+			(at 22.606 117.74 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8668,7 +8668,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 274.32 38.1 0)
+			(at 17.78 116.84 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8679,7 +8679,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 274.32 38.1 0)
+			(at 17.78 116.84 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8690,7 +8690,7 @@
 			)
 		)
 		(property "Description" "Resistor 13.0k 1% 0603"
-			(at 274.32 38.1 0)
+			(at 17.78 116.84 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8701,7 +8701,7 @@
 			)
 		)
 		(property "Manufacturer" ""
-			(at 274.32 38.1 0)
+			(at 17.78 116.84 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8712,7 +8712,7 @@
 			)
 		)
 		(property "MPN" ""
-			(at 274.32 38.1 0)
+			(at 17.78 116.84 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8723,7 +8723,7 @@
 			)
 		)
 		(property "Package" "0603"
-			(at 274.32 38.1 0)
+			(at 17.78 116.84 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8734,7 +8734,7 @@
 			)
 		)
 		(property "Sourcing" "GENERIC"
-			(at 274.32 38.1 0)
+			(at 17.78 116.84 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8745,7 +8745,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 274.32 38.1 0)
+			(at 17.78 116.84 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8772,7 +8772,7 @@
 	)
 	(symbol
 		(lib_id "dcdc:C")
-		(at 287.02 38.1 0)
+		(at 30.48 116.84 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -8782,7 +8782,7 @@
 		(dnp no)
 		(uuid "fad8307d-5bff-5315-af2e-1062ad899229")
 		(property "Reference" "C808"
-			(at 293.324 37.2 0)
+			(at 36.784 115.94 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8793,7 +8793,7 @@
 			)
 		)
 		(property "Value" "1n 50V"
-			(at 293.324 39 0)
+			(at 36.784 117.74 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8803,7 +8803,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 287.02 38.1 0)
+			(at 30.48 116.84 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8814,7 +8814,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 287.02 38.1 0)
+			(at 30.48 116.84 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8825,7 +8825,7 @@
 			)
 		)
 		(property "Description" "Capacitor 1n 5% 50V C0G 0603"
-			(at 287.02 38.1 0)
+			(at 30.48 116.84 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8836,7 +8836,7 @@
 			)
 		)
 		(property "Manufacturer" ""
-			(at 287.02 38.1 0)
+			(at 30.48 116.84 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8847,7 +8847,7 @@
 			)
 		)
 		(property "MPN" ""
-			(at 287.02 38.1 0)
+			(at 30.48 116.84 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8858,7 +8858,7 @@
 			)
 		)
 		(property "Package" "0603"
-			(at 287.02 38.1 0)
+			(at 30.48 116.84 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8869,7 +8869,7 @@
 			)
 		)
 		(property "Sourcing" "GENERIC"
-			(at 287.02 38.1 0)
+			(at 30.48 116.84 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8880,7 +8880,7 @@
 			)
 		)
 		(property "Domain" "LIVE"
-			(at 287.02 38.1 0)
+			(at 30.48 116.84 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)

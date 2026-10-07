@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-06 20:26",
+ "generated": "2026-10-07 05:27",
  "openmagnetics": {
   "available": true,
   "version": "1.7.33",
@@ -13,7 +13,7 @@
    "magneticFieldStrength": "BINNS_LAWRENSON",
    "magneticFieldStrengthFringingEffect": "ROSHEN"
   },
-  "runtime_s": 2.172078847885132
+  "runtime_s": 2.178333044052124
  },
  "designer": {
   "pv_inductor": {
@@ -57929,6 +57929,24 @@
    "what": "L1 sensitivity has a feasible design at every inductance",
    "value": "72, 96, 120, 144, 180",
    "limit": "72, 96, 120, 144, 180",
+   "ok": true,
+   "exc": "",
+   "tag": ""
+  },
+  {
+   "id": "pcs_l1_traj_grid",
+   "what": "L1 trajectory tabulated through the backup path (review R2-03)",
+   "value": "0-700 A, flux-rule current 566 A, knee hot +5 % 578 A",
+   "limit": ">= 650 A",
+   "ok": true,
+   "exc": "",
+   "tag": ""
+  },
+  {
+   "id": "pcs_l1_traj",
+   "what": "L1 at every gates-off current of the protection chain (pcs_spec): +5 % part below the flux rule, envelope >= 50 % of L0",
+   "value": "local window (as drawn) 521 A / 106 uH; CMPSS backup at its required band top 534 A / 105 uH",
+   "limit": "<= 566 A, >= 60 uH",
    "ok": true,
    "exc": "",
    "tag": ""

@@ -108,14 +108,16 @@ full-load window ends at 900 V).
 
 **Three-wire versus four-wire.** 3W+PE (PMA "3W+PE", DC from 590 V): the DC midpoint is not connected to N; the
 modulation may use zero-sequence injection (SVPWM / third harmonic). **For a TN grid the installer must connect
-3W+PE through a transformer or keep N unloaded** — otherwise the 150 Hz zero-sequence voltage between the DC side and
+3W+PE through a transformer or keep N unloaded** (superseded by the drawn rule: the three-wire build limits the battery's
+earth capacitance to about 6 µF on a TN grid, pcs_design report; the four-wire build of D-074 serves N through its own leg) — otherwise the 150 Hz zero-sequence voltage between the DC side and
 earth drives current through the battery's capacitance to earth (with 5 µF of rack capacitance and 150 V of
 zero-sequence: ≈ 0.7 A, over the 300 mA residual-current trip). 3W+N+PE (DC from 650 V, as Megarevo): N is formed by a
 **fourth T-type leg** with its own 100 µH inductor; it supplies the neutral current of a 100 % unbalanced load
 (216 A) so the split DC link sees no 50 Hz neutral current (a direct midpoint connection would need ≈ 50 mF per half (100 mF in total)
 to keep the midpoint within ±10 V). Cost **+157 USD at catalogue, +118 USD at 5,000 units** (fourth leg 14 IGBTs,
 4 channels + bias, neutral inductor + capacitor + sensor, 4-pole contactors, N terminal). The 100 Hz power pulsation
-of an unbalanced load (≈ 42 kW at 100 % unbalance) flows into the battery (≈ 45 A rms at 100 Hz): an installation
+of an unbalanced load (≈ 42 kW at 100 % unbalance) flows into the battery (≈ 45 A rms at 100 Hz here; the drawn figures are about 39 A at the operating-map point and 47 A rms worst
+in the four-wire design check - different load points): an installation
 requirement on the battery and its cabling.
 
 ---

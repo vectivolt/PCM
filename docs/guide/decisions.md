@@ -2,9 +2,9 @@
 
 # 📐 Decisions
 
-> A readable digest of the decision register, D-001 to D-081, grouped by theme — what was decided, why, and whether it still holds.
+> A readable digest of the decision register, D-001 to D-082, grouped by theme — what was decided, why, and whether it still holds.
 
-![range](https://img.shields.io/badge/register-D--001%E2%80%A6D--081-0B1F33?style=flat-square)
+![range](https://img.shields.io/badge/register-D--001%E2%80%A6D--082-0B1F33?style=flat-square)
 ![as of](https://img.shields.io/badge/as%20of-2026--10--07-5B6B7A?style=flat-square)
 ![authority](https://img.shields.io/badge/authority-DECISIONS.md-00A99D?style=flat-square)
 
@@ -156,6 +156,7 @@
 | D-023 | **Independent reviews** found 58 defects (7 critical) after every board already passed its own checks.<br/><sub>Assigned to board revisions; findings in `gen/data/review_*.csv` and `integration_findings.csv`.</sub> | ![in progress](https://img.shields.io/badge/-in%20progress-F2A007?style=flat-square) |
 | D-070 | **Pin audit ledger E completed for the cost-first boards:** 239 drawn parts, 180 pass (1,854 pins), 55 not auditable with a written reason; four naming mismatches corrected in the drawing to the datasheet wording (pin numbers and functions agreed); the F280039C's 100 pins transcribed from its datasheet table and cross-checked against its figure.<br/><sub>DEL-4. The generated audit report now counts 240 parts, 185 passing (1,892 pins), 0 failing.</sub> | ![frozen](https://img.shields.io/badge/-frozen-00A99D?style=flat-square) |
 | D-071 | **Wolfspeed firmware packages filed and cross-checked** (CRD200DA23N-GMA, CRD60DD12N-GMB, CRD-60DD12N-K): the -K is a three-phase LLC, not a DAB; the GMA and GMB firmware are open-loop starting points with almost no protection in firmware. Adopted as firmware requirements: R-WS-1…9 and, for the DAB, FW-DAB-11 (sensor offsets nulled at idle).<br/><sub>REF-2. Nothing device-specific is carried over; R-WS-10…14 stay recommendations. Notes in each package's `FIRMWARE-NOTES.md` and [REFERENCE-LESSONS §6](../requirements/REFERENCE-LESSONS.md).</sub> | ![frozen](https://img.shields.io/badge/-frozen-00A99D?style=flat-square) |
+| D-082 | **Re-check R5 (closure) — no new defect; the qualification plan:** the reviewer verified D-081 at BOM level (12 / 16 / 24 / 32 BYG23T-M3/TR on PCS-PWR / PCS-PWR-4W / PV-PWR / PV-PWR-4, two per channel) and by his own arithmetic (the 6.415–9.365 V DESAT window; 150 V of margin at the 1,150 V design envelope), confirmed the cable-aware bus window (790.9 V permissive, 1.70 V harness drop, 755 V), the −10 °C inverter grade, the AC-04 wording and the two-grade policy, and recorded that the 1,300 V diode closure does not transfer to the earlier platform's 1,200 V class; no hardware, firmware or requirement change. [QUALIFICATION-PLAN.md](../requirements/QUALIFICATION-PLAN.md) consolidates every open gate of the five rounds as Q-01 … Q-44: Q-01…Q-03 the DESAT string's dynamic qualification, Q-04…Q-06 the battery-less bus and harness, Q-07…Q-09 the cold rating, managed-island load acceptance and grid-code compliance, Q-10…Q-12 the SiC switching cell (short-circuit survival 2.03 µs / 0.80 J requested, not demonstrated), Q-13 onward the layout-, supplier- and production-dependent items — each with the acceptance number our records give, the test asset, the product or claim it blocks and the stage (representative switching cell → controlled prototype → DVT → production controls).<br/><sub>Register [review_r5.csv](../../gen/data/review_r5.csv): six rows, all closed (4 Already Fixed, 1 Not Applicable, 1 Improvement Recommended). The next useful milestone is a controlled prototype and a representative switching-cell qualification, not another script pass; a paper waiver cannot replace the physical gates. Open: every gate of the plan, by definition. Documentation only; nothing measured.</sub> | ![frozen](https://img.shields.io/badge/-frozen%2C%20documentation-00A99D?style=flat-square) |
 
 The independent review of commit `033d8d8` (27 findings, [review_pcm.csv](../../gen/data/review_pcm.csv)) was answered
 the same day by D-065 to D-069 and D-072; with PCM-14 and PCM-22 closed by D-076 / D-074, 22 findings are closed and 5
@@ -168,6 +169,9 @@ commit `845131d` (12 decision areas, [review_r4.csv](../../gen/data/review_r4.cs
 3 Improvement Recommended, 2 Not Applicable by the register) was answered by D-081; all twelve rows are closed in the
 register, and the restrictions it accepts are stated with their boundaries
 ([12 · Risks](12-risks-and-open-items.md#standing-restrictions), [08 · Verification](08-verification.md#-independent-design-reviews)).
+The closure re-check R5 of commit `5c56aaa` (6 rows, [review_r5.csv](../../gen/data/review_r5.csv): 4 Already Fixed, 1 Not Applicable,
+1 Improvement Recommended) found no new defect and was answered by D-082, which adds the
+[qualification plan](../requirements/QUALIFICATION-PLAN.md) — every open gate in one list.
 
 ---
 

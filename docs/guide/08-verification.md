@@ -159,14 +159,15 @@ unknown are a Mersen fuse and four Phoenix Contact terminals without a stated ra
 | [R2](../../gen/data/review_r2.csv) | independent re-check of commit `a427981`: the PCS-P125 protection chain, power stage, control study, start-up and hand-over; PV and DAB items | 0 | 8 | 6 | **14 closed in the register**; 9 Confirmed, 1 Firmware Handled, 2 Already Fixed, 1 Not Applicable, 1 Improvement Recommended ([D-078](../requirements/DECISIONS.md), [D-079](../requirements/DECISIONS.md)) |
 | [R3](../../gen/data/review_r3.csv) | independent re-check of commit `615e4b5` (the R2 response): the inverter's synchronised close, the four-wire short against both trip layers, the DC-bus coordination with the PV modules, the SiC grades, the off-grid envelope | 0 | 4 | 1 | **5 closed in the register**; 4 Confirmed, 1 Improvement Recommended ([D-080](../requirements/DECISIONS.md)) |
 | [R4](../../gen/data/review_r4.csv) | independent economical re-check of commit `845131d` (the D-080 documentation): twelve decision areas — the DESAT string's reverse rating, the battery-less DC bus, the off-grid envelope's applicability, the cold rating, the SiC grades, the magnetics and variant cost, and six restated or restricted items | 0 | 2 | 10 | **12 closed in the register**; 3 Confirmed, 4 Already Fixed, 3 Improvement Recommended, 2 Not Applicable ([D-081](../requirements/DECISIONS.md)) |
-| **Total** | | **12** | **95** | **65** | 172 findings |
+| [R5](../../gen/data/review_r5.csv) | independent closure re-check of commit `5c56aaa` (the D-081 documentation): six rows — the DESAT string's dynamic qualification, the battery-less link and harness, the cold and grid-forming claim boundaries, the SiC grades and the earlier platform's assemblies, and the standing physical-implementation gates | 0 | 0 | 6 | **6 closed in the register, no new defect**; 4 Already Fixed, 1 Not Applicable, 1 Improvement Recommended ([D-082](../requirements/DECISIONS.md)); every open gate of the five rounds is consolidated in [QUALIFICATION-PLAN.md](../requirements/QUALIFICATION-PLAN.md) |
+| **Total** | | **12** | **95** | **71** | 178 findings |
 
 The first four reviews are the round of [D-023](../requirements/DECISIONS.md): 58 defects (7 critical, 25 major, 26
 minor) found **after** every board had passed its own checks — the reason the review step exists. The magnetics, PCM,
-R2, R3 and R4 files carry a status column; for the others the status is taken from the decision register. The PCM
+R2, R3, R4 and R5 files carry a status column; for the others the status is taken from the decision register. The PCM
 register's severities map the reviewer's P1 to *major* and P2 / P3 to *minor*; the R2 register grades its findings
 *high* (8) and *medium* (6), the R3 register *high* (4) and *low* (1), the R4 register *high* (2), *medium* (5) and
-*low* (5), counted in the table and in the chart above as major (high) and minor (medium, low).
+*low* (5), and the R5 register *low* (6), counted in the table and in the chart above as major (high) and minor (medium, low).
 
 **How the PCM findings were handled.** Every finding was verified independently before anything changed: the
 reviewer's evidence (code reading, recalculation, datasheet check) was reproduced against the code, the datasheets and

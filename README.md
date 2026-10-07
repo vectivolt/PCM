@@ -94,6 +94,20 @@ amended by delegation); grade B states its rating, 124.57 kW at 60 °C; and the 
 line was added. The restrictions it accepts, each with the boundary that stays, are listed in
 [Risks and open items](docs/guide/12-risks-and-open-items.md#standing-restrictions).
 
+**Independent closure re-check R5 (2026-10-07).** A fifth review of commit `5c56aaa` found no new defect: six closure
+rows, 4 *Already Fixed*, 1 *Not Applicable* (the earlier platform's GDRV-HB / DAB60 keep their own 1,200 V-class diode
+strings, deferred with their own qualification), 1 *Improvement Recommended*, all closed in the register
+([review_r5.csv](gen/data/review_r5.csv)). The reviewer verified D-081 at BOM level (the BYG23T counts per board) and by
+his own arithmetic (the 6.415–9.365 V DESAT window, the 790.9 V bus permissive, the −10 °C inverter grade), and his
+bottom line is accepted in [D-082](docs/requirements/DECISIONS.md): the next useful milestone is a representative
+switching cell and a controlled prototype, not another declaration that every script passes. What changes is one
+document: every open gate of the five rounds — the DESAT string's dynamic qualification, the battery-less bus and its
+harness, the cold rating and grid code, the SiC cell's short-circuit survival, layout, supplier data, magnetics, bench
+protection tests, pre-compliance, production controls — is consolidated into the
+[Qualification plan](docs/requirements/QUALIFICATION-PLAN.md): 44 gates Q-01..Q-44 in four stages, each with the
+acceptance criterion our records give, the test asset and the product or claim it blocks. No hardware change; nothing
+is measured; no unrestricted HV, full-power or production sign-off is claimed from the script passes.
+
 ---
 
 ## 🧭 The cost-first PV module

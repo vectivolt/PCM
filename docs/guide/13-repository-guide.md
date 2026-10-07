@@ -174,10 +174,13 @@ closure columns; its dispositions are decisions D-065 to D-069 and D-072.
 medium) has the same columns; its dispositions are [D-078](../requirements/DECISIONS.md) and
 [D-079](../requirements/DECISIONS.md). [review_r3.csv](../../gen/data/review_r3.csv) (5 findings of the re-check of
 commit `615e4b5`, severities high / low) has them too; its disposition is [D-080](../requirements/DECISIONS.md). The
-latest, [review_r4.csv](../../gen/data/review_r4.csv) (the economical re-check of commit `845131d`: 12 decision areas
-E01–E12, severities high / medium / low), keeps the same status, classification and closure columns; each area's
-preferred option, alternative and no-change boundary are in its finding text, its cost basis in the evidence column and
-the boundary that may not be waived in the recommendation column; its disposition is [D-081](../requirements/DECISIONS.md).
+economical re-check, [review_r4.csv](../../gen/data/review_r4.csv) (commit `845131d`: 12 decision areas E01–E12,
+severities high / medium / low), keeps the same status, classification and closure columns; each area's preferred option,
+alternative and no-change boundary are in its finding text, its cost basis in the evidence column and the boundary that
+may not be waived in the recommendation column; its disposition is [D-081](../requirements/DECISIONS.md). The latest,
+[review_r5.csv](../../gen/data/review_r5.csv) (the closure re-check of commit `5c56aaa`: six rows R5-01…R5-06, all severity
+low, no new defect), has the same columns and its recommendation column names what a waiver may not replace; its
+disposition is [D-082](../requirements/DECISIONS.md).
 
 ### Records added on 2026-10-06
 
@@ -203,6 +206,13 @@ Added on 2026-10-07: [requirements/INSTALLATION.md](../requirements/INSTALLATION
 | `BYG23T`, `DESAT_1700` and `STRING_ENV` in [gen/gdrv.py](../../gen/gdrv.py) | the diode's catalog entry; the 1,700 V-class string preset (two diodes, the V<sub>F</sub> band); the reverse-voltage envelope every 1,700 V board check is asserted against (1,150 V static, 1,445 V peak) | the generator |
 | `CM_RING` in [gen/pv_power.py](../../gen/pv_power.py) | the port CM ring's BOM line, now the flat-permeability grade as an RFQ item keyed by the size code N-C-644025 | the generator |
 | `commutation_and_gate_drive.desat.string_envelope`, `thermal_and_losses.cold_start` in `pcs_spec.json`; `dc_bus_cable`, `dc_bus_operating_window`, `vf_envelope_basis.statement` / `release_sequence` / `not_claimed` and `review_r4` in `pcs_control_spec.json` | the DESAT reverse-voltage states, the inverter's passive cold-start table, the cable model, the enforced DC-bus window with the harness contract, the envelope's capability statement and release sequence, the study's R4 dispositions | `sim/pcs_design.py`, `sim/pcs_control.py` |
+
+### Records added on 2026-10-07 by the re-check R5
+
+| File | What it is | Written by |
+|---|---|---|
+| [gen/data/review_r5.csv](../../gen/data/review_r5.csv) | the register of the closure re-check R5: six rows with status, classification and closure — no new defect | by hand per review round ([D-082](../requirements/DECISIONS.md)) |
+| [docs/requirements/QUALIFICATION-PLAN.md](../requirements/QUALIFICATION-PLAN.md) | the one consolidated plan of every open gate of the five review rounds, Q-01…Q-44: what is tested, the acceptance number our records give, the test asset, the product or claim it blocks, the stage (representative switching cell → controlled prototype → DVT → production controls); what a paper waiver cannot replace; a gate / blocks / stage / source table | by hand from the registers, the decisions' **Open** lists, [INSTALLATION.md](../requirements/INSTALLATION.md), [RFQ-MAGNETICS.md](../requirements/RFQ-MAGNETICS.md) and the generated checks; its quoted generated lines are re-found after a rebuild |
 
 ## 📐 Conventions
 

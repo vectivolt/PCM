@@ -4,10 +4,10 @@
 
 > Every open risk and unverified assumption on record, grouped and ranked, with its consequence and what would close it.
 
-![as of](https://img.shields.io/badge/as%20of-2026--10--07%2C%20after%20the%20R4%20re--check-5B6B7A?style=flat-square)
+![as of](https://img.shields.io/badge/as%20of-2026--10--07%2C%20after%20the%20R5%20re--check-5B6B7A?style=flat-square)
 ![bench](https://img.shields.io/badge/bench%20data-none-E4572E?style=flat-square)
 ![quotes](https://img.shields.io/badge/supplier%20quotes-none-E4572E?style=flat-square)
-![register](https://img.shields.io/badge/decisions-D--001%E2%80%A6D--081-0B1F33?style=flat-square)
+![register](https://img.shields.io/badge/decisions-D--001%E2%80%A6D--082-0B1F33?style=flat-square)
 
 ---
 
@@ -19,7 +19,7 @@
 > [ARCHITECTURE-PCS.md §11](../requirements/ARCHITECTURE-PCS.md#11-open-risks), the "open items" sections of the
 > simulation reports and the open findings of the independent reviews ([review_pcm.csv](../../gen/data/review_pcm.csv),
 > [review_r2.csv](../../gen/data/review_r2.csv), [review_r3.csv](../../gen/data/review_r3.csv),
-> [review_r4.csv](../../gen/data/review_r4.csv)). Where a source has since closed an item, it is left out.
+> [review_r4.csv](../../gen/data/review_r4.csv), [review_r5.csv](../../gen/data/review_r5.csv)). Where a source has since closed an item, it is left out.
 
 **Ranking.** Priority **1** = high impact and likely, or a release condition; **2** = high impact but less likely, or
 likely with a contained consequence; **3** = worth tracking. Impact and likelihood are judgements from the records, not
@@ -204,6 +204,28 @@ rows and the records behind each (calculated, not measured):
 
 <sub>Boundaries: the register's recommendation column ([review_r4.csv](../../gen/data/review_r4.csv)) and the
 reviewer's list of what may stay restricted; figures from the generated records named in each row's risk.</sub>
+
+## 🔬 The re-check R5 of commit 5c56aaa (2026-10-07)
+
+A fifth independent review, a closure re-check of commit `5c56aaa` (the documentation of D-081), gave six rows, R5-01 to
+R5-06 (all low severity). The register [review_r5.csv](../../gen/data/review_r5.csv) holds each with its status,
+classification and closure — all six are closed there and **no new defect was found**: 4 *Already Fixed* (R5-01 to
+R5-04), 1 *Not Applicable* (R5-05), 1 *Improvement Recommended* (R5-06). The disposition is
+[D-082](../requirements/DECISIONS.md); no hardware, firmware or requirement changed. The reviewer verified D-081 at BOM
+level (12 / 16 / 24 / 32 BYG23T-M3/TR on PCS-PWR / PCS-PWR-4W / PV-PWR / PV-PWR-4, two per channel) and by his own
+arithmetic (the 6.415–9.365 V DESAT window; 150 V of margin at the 1,150 V design envelope), confirmed the cable-aware bus
+window (790.9 V permissive, 1.70 V harness drop, 752.4 V → 755 V), the −10 °C inverter grade, the AC-04 wording and the
+two-grade policy, and recorded that the 1,300 V diode closure must not be carried to the earlier platform's 1,200 V class
+(C12). His bottom line, accepted: the next useful milestone is a controlled prototype and a representative
+switching-cell qualification, not another script pass.
+
+What the round changes is one document: [QUALIFICATION-PLAN.md](../requirements/QUALIFICATION-PLAN.md) consolidates every
+open gate of the five rounds as Q-01 … Q-44 — the acceptance number our records give, the test asset, the product or claim
+it blocks and the stage (representative switching cell → controlled prototype → DVT → production controls) — and says
+what a paper waiver cannot replace. R5-01 to R5-04 name Q-01 … Q-12 (the DESAT string's dynamic qualification, the
+battery-less bus and harness, the cold rating with managed-island loads and grid code, the SiC switching cell); R5-06's
+standing gates are Q-13 onward. The "what closes it" cells of the risk rows below are unchanged; the plan is where they
+become a programme.
 
 ## ⚠️ Risk matrix
 

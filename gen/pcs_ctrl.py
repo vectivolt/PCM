@@ -484,14 +484,21 @@ def ctrl_spec(key):
 
 
 def clamp_rule():
-    """the control study's per-sample current clamp (ride_through limiter: window low edge - L1 ripple / 2 - iclamp_margin_A) with
-    the ripple it took (pcs_spec L1 ripple_pp_max_A); fail closed"""
+    """the control study's per-sample current clamp (ride_through_rule clamp_A: the lower edge of the two hardware layers - L1
+    ripple / 2 - iclamp_margin_A, review R3-02) with its stated basis; its ripple must be pcs_spec's L1 ripple_pp_max_A / 2; fail
+    closed"""
     try:
-        lim, mg = ctrl_spec("ride_through")["limiter"], ctrl_spec("assumptions")["iclamp_margin_A"][0]
-        return dict(clamp=float(lim["clamp_A"]), lo=float(lim["window_low_A"]), margin=float(mg),
-                    ripple_half=float(PS["inductors"]["L1"]["current"]["ripple_pp_max_A"]) / 2)
-    except (KeyError, TypeError, ValueError, IndexError) as e:
-        raise SystemExit("pcs_control_spec.json: the per-sample clamp record is malformed (%r) - run sim/pcs_control.py" % e)
+        r = ctrl_spec("ride_through_rule")
+        x = dict(clamp=float(r["clamp_A"]), basis=str(r["clamp_basis"]), margin=float(r["clamp_margin_A"]),
+                 ripple_half=float(PS["inductors"]["L1"]["current"]["ripple_pp_max_A"]) / 2)
+        rh = float(r["clamp_ripple_half_A"])
+    except (KeyError, TypeError, ValueError) as e:
+        raise SystemExit("pcs_control_spec.json: the per-sample clamp record (ride_through_rule clamp_A / clamp_basis) is malformed "
+                         "(%r) - run sim/pcs_control.py" % e)
+    if abs(rh - x["ripple_half"]) > 0.05:
+        raise SystemExit("pcs_control_spec.json ride_through_rule: the clamp's ripple/2 %.1f A is not pcs_spec's L1 ripple/2 %.1f A - "
+                         "re-run sim/pcs_control.py" % (rh, x["ripple_half"]))
+    return x
 
 
 def backup_order(lo_l, hi_l, lo_b):
@@ -503,8 +510,7 @@ def backup_order(lo_l, hi_l, lo_b):
     return (hi_l <= PC["top_max"] and left >= c["margin"] - 0.05,              # 0.05 A: the 0.1 A the study reads the band to
             "top <= %.1f A (pcs_spec protection_chain window_top_max; the CMPSS backup overlaps the window by design, review R2-03), "
             "bottom - ripple/2 %.1f A - the firmware clamp %.1f A = %.1f A >= its %.0f A prediction margin (pcs_control_spec "
-            "ride_through limiter, set from a %.1f A window low edge)" % (PC["top_max"], c["ripple_half"], c["clamp"], left, c["margin"],
-                                                                        c["lo"]))
+            "ride_through_rule: %s)" % (PC["top_max"], c["ripple_half"], c["clamp"], left, c["margin"], c["basis"]))
 
 
 C.backup_order = backup_order

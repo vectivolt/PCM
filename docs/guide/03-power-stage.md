@@ -252,13 +252,55 @@ near 520 A / 1,050 V, risk C10), Sichain publishes no turn-off data above 70 A p
 value. Source: [pcs_design report (e)](../../sim/out/pcs_design/report.md), [pcs_spec.json](../../sim/out/pcs_design/pcs_spec.json)
 `protection_chain`; the trip chain itself is on [04 · Protection](04-protection-and-safety.md#-what-differs-on-the-inverter-pcs-p125).</sub>
 
-**Device acceptance on the inverter** (review finding R2-07, the SG2M040170HJ line of the PCS-PWR BOM): besides the
-±5 % matching of the six devices of a switch, each device must measure **R<sub>DS(on)</sub> ≤ 40.0 mΩ** at 25 °C
-(V<sub>GS</sub> 18 V, 38 A pulsed) in the same incoming test — the data-sheet typical, because a switch of six
-data-sheet-maximum parts (52 mΩ) would reach 9.68 V at 198 °C in the 200 ms overload tier, far above the 6.39 V DESAT
-floor (calculated). A switch with a device above the limit is not scrapped: its module runs the 200 ms and 2-minute
-tiers at 209 A, a firmware parameter per lot. Sichain's distribution, or a ≤ 40 mΩ bin, is a request-for-quotation item
-(risk F4). The PV module's outputs did not change with D-078.
+<a id="inverter-module-grades"></a>
+
+**Device acceptance and module grades on the inverter** (review findings R2-07 and R3-04,
+[D-078](../requirements/DECISIONS.md), [D-080](../requirements/DECISIONS.md); the SG2M040170HJ line of the PCS-PWR BOM;
+calculated). Besides the ±5 % matching of the six devices of a switch, each device is measured for
+**R<sub>DS(on)</sub> ≤ 40.0 mΩ** at 25 °C (V<sub>GS</sub> 18 V, 38 A pulsed) in the same incoming test — the data-sheet
+typical, because a switch of six data-sheet-maximum parts (52 mΩ) would reach 9.68 V at 198 °C in the 200 ms overload
+tier, far above the 6.39 V DESAT floor. No part is scrapped: the result is a **grade of the assembled module** (all 36
+devices three-wire, 48 four-wire) — **grade A** if every device passed, **grade B** if any did not (evaluated as six
+52 mΩ devices per switch). Each grade has a tier table computed over inlet 25 / 35 / 45 / 60 °C, DC link 600 / 750 /
+950 V, PF 1 and 0 and a cold or steady start, against T<sub>j</sub> 150 / 165 / 175 °C and the DESAT minimum at that
+inlet (6.31–6.45 V). Per inlet the lowest over the DC voltages and power factors, steady start:
+
+| Inlet | Grade A continuous (A) | Grade A 2 min (A) | Grade A 200 ms (A) | Grade B continuous (A) | Grade B 2 min (A) | Grade B 200 ms (A) |
+|---|---:|---:|---:|---:|---:|---:|
+| 25 °C | 198.0 | 216.0 | 259.2 | 198.0 | 216.0 | 216.0 |
+| 35 °C | 198.0 | 216.0 | 259.2 | 198.0 | 215.1 | 215.1 |
+| 45 °C | 198.0 | 216.0 | 259.2 | 196.8 | 207.5 | 207.5 |
+| 60 °C | 198.0 | 216.0 | **242.9** | **179.8** | 192.6 | 192.6 |
+
+<sub>Grade A keeps the product's full tiers (198 / 216 / 259.2 A) to 45 °C inlet; its 60 °C 200 ms figure, 242.9 A, is
+the lowest over 600–950 V — the 246 A printed before was the 900 V point, and the lower value applies. Grade B does not
+hold the 110 % tier at 60 °C (179.8–192.2 A by DC voltage), and its 200 ms tier is held at its 2-minute tier (the start
+state alone would allow 207.5–229.8 A from steady). From a cold start — idle at no load in thermal equilibrium, which the
+firmware may assume only after 12 min (4 × the heatsink time constant of 179 s) — grade A keeps 259.2 A at 60 °C and
+grade B reaches 204.3 A for 2 min. The four-wire build's neutral leg runs 0.3 K cooler at the same current and takes the
+same table. R<sub>DS(on)</sub> above 25 °C follows the data sheet's typical curve (no hot maximum is published,
+ASSUMED). Source: [pcs_spec.json](../../sim/out/pcs_design/pcs_spec.json)
+`commutation_and_gate_drive.desat.rds_acceptance.grade_tier_tables` (the full map in its `rows`),
+[pcs_design report (e)](../../sim/out/pcs_design/report.md), [PCS-PWR design check](../../hardware/PCS-PWR/outputs/PCS-PWR_design_check.txt)
+"MODULE GRADES".</sub>
+
+**One 200 ms rule for both grades.** A 200 ms excursion is admitted only from the continuous state or from cold; once
+the current has been above the continuous tier for more than 0.22 s (the 200 ms excursion plus one grid period), the
+200 ms limit equals the 2-minute tier until the current has been at or below the continuous tier for 12 min. Calculated:
+a full 2 minutes at the 2-minute tier leaves the heatsink up to 4.43 K above the continuous state, decaying with the
+179 s time constant to a residual of 0.10 K (ASSUMED, about the tables' resolution) in 679 s; up to 0.02 s spent in the
+2-minute band inside the 0.22 s window adds up to 0.16 K to a junction — of the order of that residual and taken as
+negligible (ASSUMED; the self-check fails if it exceeds twice the residual).
+
+**Binding.** The end-of-line test writes the grade's tier table into the controller's parameter set (with a CRC shared
+with the calibration set) from the lot's incoming R<sub>DS(on)</sub> record; the controller reports the grade with the
+module serial and the integrator records it ([INSTALLATION.md](../requirements/INSTALLATION.md)); a module without a
+grade record runs grade B, and replacing a device re-grades the module from the replacement's record. The controller
+indexes the table by the inlet NTC — the next higher inlet row between points, none above 60 °C — and may refine it by
+the measured DC voltage and power factor. Sichain's R<sub>DS(on)</sub> distribution, or a ≤ 40 mΩ bin, is a
+request-for-quotation item (risk F4): the record estimates that a population centred on the typical value puts about
+half the switches above the limit. Short-circuit survival is a separate statement and stays a hardware release gate
+(risk C2). The PV module's outputs did not change with D-078 or D-080.
 
 ## 🔬 Losses, efficiency and temperature
 

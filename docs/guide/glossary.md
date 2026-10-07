@@ -36,7 +36,7 @@
 | **Earlier platform** | The roadmap's full-featured implementation (eight boards for PV-P75, modules ending in `-FULL`), kept as reference and not developed further. |
 | **ePWM** | Enhanced PWM module of the TI C2000 controller. |
 | **ERC** | Electrical rules check of the schematic (`kicad-cli`). |
-| **Fault level** | The short-circuit power of the grid at the connection point, in MVA; with the module rating it sets the SCR. Under the inverter's ride-through fallback, rated-power ride-through needs a fault level below 8.07 MVA per 125 kW module ([D-079](../requirements/DECISIONS.md)). |
+| **Fault level** | The short-circuit power of the grid at the connection point, in MVA; with the module rating it sets the SCR. Under the inverter's ride-through fallback, rated-power ride-through needs a fault level below 7.71 MVA per 125 kW module ([D-080](../requirements/DECISIONS.md); 8.07 MVA in [D-079](../requirements/DECISIONS.md)). |
 | **FIT** | Failures in time: failures per 10⁹ device-hours; used here for the cosmic-ray failure rate of high-voltage devices. |
 | **FSBB** | Four-switch buck-boost: a non-inverting converter that steps up or down, with a half bridge on each port. |
 | **Gate 0** | The roadmap's first development gate, architecture closure: specifications, topology trade-off, source review. |
@@ -46,12 +46,13 @@
 | **IGBT / SiC MOSFET** | Silicon insulated-gate bipolar transistor / silicon-carbide MOSFET, the two power-switch technologies compared in this project. |
 | **IMD** | Insulation monitoring device: measures the insulation resistance of the floating DC system to earth. |
 | **Interleaving** | Running parallel phases with shifted switching instants (120° for three, 90° for four) so their ripple currents partly cancel. |
-| **ITIC curve** | A voltage-tolerance class (originally CBEMA) for how far and how long a supply may leave its nominal value; the inverter's off-grid transient envelope is compared with an ITIC-style class recalled from memory, not with the standard text. |
+| **ITIC curve** | A voltage-tolerance class (originally CBEMA) for how far and how long a supply may leave its nominal value; since [D-080](../requirements/DECISIONS.md) the inverter's declared off-grid transient envelope (REQUIREMENTS AC-04) *is* the ITIC curve's points as recalled from memory, not read from the standard text. |
 | **LCL filter** | Inverter-side inductor, capacitor, grid-side inductor: the grid filter of PCS-P125. |
 | **LCSC** | Chinese electronic-component distributor, the first price source of the cost model. |
 | **LUT** | Look-up table; here the DAB's offline table of phase shifts per operating point. |
 | **Miller clamp / false turn-on** | A fast voltage rise on a switch's drain couples charge into the gate of the off device through its Miller capacitance; a clamp holds the gate low. |
 | **Module** | In this documentation, a product such as PV-P75. A *power module* is a semiconductor package with several switches inside. |
+| **Module grade (A / B)** | The inverter's SiC acceptance result for the assembled module ([D-080](../requirements/DECISIONS.md)): grade A if every device measured R<sub>DS(on)</sub> ≤ 40.0 mΩ at 25 °C, grade B otherwise; each grade has its own overload and continuous tier table, written into the controller's parameter set and reported with the module serial. |
 | **MOV / varistor** | Metal-oxide varistor: the surge-protection element of the port network. |
 | **MPPT** | Maximum power point tracking: the algorithm that keeps a PV array at its highest-power operating point. |
 | **NPC / T-type / two-level** | Inverter leg topologies: neutral-point clamped and T-type are three-level; two-level is the plain half bridge. PCS-P125 is two-level ([D-053](../requirements/DECISIONS.md)). |

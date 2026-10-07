@@ -70,10 +70,10 @@ flowchart LR
 | 12 | [Risks and open items](guide/12-risks-and-open-items.md) | every open risk, ranked, with its consequence and what would close it |
 | 13 | [Repository guide](guide/13-repository-guide.md) | build a board, run a simulation, re-roll the cost; conventions for parts and boards |
 | | [Glossary](guide/glossary.md) | abbreviations and project terms |
-| | [Decisions](guide/decisions.md) | the decision register D-001…D-079, grouped by theme, with today's status |
+| | [Decisions](guide/decisions.md) | the decision register D-001…D-080, grouped by theme, with today's status |
 
 > [!NOTE]
-> **Status on 2026-10-07: the independent re-check R2 is answered.** A second independent review re-checked commit
+> **Status on 2026-10-07: the independent re-checks R2 and R3 are answered.** A second independent review re-checked commit
 > `a427981` and raised 14 findings (8 high, 6 medium); each was reproduced on our own models first and then classified —
 > 9 *Confirmed*, 1 *Firmware Handled*, 2 *Already Fixed*, 1 *Not Applicable*, 1 *Improvement Recommended*
 > ([review_r2.csv](../gen/data/review_r2.csv), all 14 closed in the register). [D-078](requirements/DECISIONS.md) answers
@@ -82,7 +82,16 @@ flowchart LR
 > [D-079](requirements/DECISIONS.md) the control study and hand-over (the tolerance regression, bounded off-grid
 > transients, ride-through without derating, the AC start as an executed state machine). Everything stays calculated or
 > simulated; the hardware gates are in [Risks](guide/12-risks-and-open-items.md#-the-re-check-r2-of-commit-a427981-2026-10-07),
-> the installation conditions — now 74 rows — in [INSTALLATION.md](requirements/INSTALLATION.md).
+> the installation conditions in [INSTALLATION.md](requirements/INSTALLATION.md).
+>
+> **The re-check R3 is answered too.** A third review re-checked the R2 response, commit `615e4b5`, and raised five
+> findings (4 high, 1 low): 4 *Confirmed*, 1 *Improvement Recommended* ([review_r3.csv](../gen/data/review_r3.csv), all
+> five closed in the register). [D-080](requirements/DECISIONS.md) answers them with firmware and acceptance rules and one
+> requirement row: the synchronised close one AC coil at a time, the four-wire short replayed through both trip layers
+> (a 5 ms onset clamp, 13.3 A margin), the coupled PCS / PV trajectory instead of an assumed 50 µs DC/DC stop (an island
+> rides through to a 909 V set point), two SiC module grades with full tier tables bound to the module serial, and the
+> off-grid envelope as the ITIC-style points adopted by delegation as REQUIREMENTS AC-04 — nothing added to the BOM, all
+> simulated or calculated ([Risks](guide/12-risks-and-open-items.md#-the-re-check-r3-of-commit-615e4b5-2026-10-07)).
 
 ---
 
@@ -98,9 +107,9 @@ The pages explain; these files decide. Where a page and a record differ, the rec
 | [requirements/COST-REVIEW.md](requirements/COST-REVIEW.md) | why the PV module was re-architected for cost | — |
 | [requirements/ARCHITECTURE-COSTFIRST.md](requirements/ARCHITECTURE-COSTFIRST.md) | the cost-first PV module specification (and the DAB outline, §16) | — |
 | [requirements/ARCHITECTURE-PCS.md](requirements/ARCHITECTURE-PCS.md) | the PCS-P125 architecture specification; its power stage is revised by D-053 | — |
-| [requirements/INSTALLATION.md](requirements/INSTALLATION.md) | the installation conditions the modules depend on: 74 rows (INST-01…74), each with the generated line it comes from (review finding R2-12); re-verified after the rebuild of 2026-10-07 | by hand from the design checks; its quoted lines are re-verified after a rebuild |
+| [requirements/INSTALLATION.md](requirements/INSTALLATION.md) | the installation conditions the modules depend on: 75 rows (INST-01…75), each with the generated line it comes from (review finding R2-12); re-verified after the rebuild for the re-check R3 (D-080) on 2026-10-07 | by hand from the design checks; its quoted lines are re-verified after a rebuild |
 | [requirements/GDRV-ALTERNATES.md](requirements/GDRV-ALTERNATES.md) · [REFERENCE-LESSONS.md](requirements/REFERENCE-LESSONS.md) | gate-driver alternates from datasheets · what recent TI reference designs change, and (§6) the cross-check against Wolfspeed's firmware packages | — |
-| `../gen/data/review_*.csv`, [integration_findings.csv](../gen/data/integration_findings.csv) | findings of the independent design reviews; [review_pcm.csv](../gen/data/review_pcm.csv) holds the 27 findings of the review of commit `033d8d8` and [review_r2.csv](../gen/data/review_r2.csv) the 14 of the re-check of `a427981`, each with its status, class and closure | appended per review round |
+| `../gen/data/review_*.csv`, [integration_findings.csv](../gen/data/integration_findings.csv) | findings of the independent design reviews; [review_pcm.csv](../gen/data/review_pcm.csv) holds the 27 findings of the review of commit `033d8d8`, [review_r2.csv](../gen/data/review_r2.csv) the 14 of the re-check of `a427981` and [review_r3.csv](../gen/data/review_r3.csv) the 5 of the re-check of `615e4b5`, each with its status, class and closure | appended per review round |
 | [../bom/COST.md](../bom/COST.md) | the cost model, line by line | generated by `gen/cost.py` |
 | [../gen/data/megarevo_2026_parity.csv](../gen/data/megarevo_2026_parity.csv) | the module-parity register against Megarevo (D-073): item, their published statement, ours, verdict, the decision behind it | its `ours` / `verdict` / `action` cells per decision |
 | `../sim/out/compare_megarevo/` · [`../sim/out/compare_megarevo_pcs/`](../sim/out/compare_megarevo_pcs/report.md) | the row-by-row comparisons with the PMD-75-G3 and the PMA0125 (`comparison.csv`, `report.md`) | generated by `sim/compare_megarevo.py` and `sim/compare_megarevo_pcs.py` |

@@ -845,12 +845,16 @@ def design_check(B, st):
     pops = list(sh["populations"].values())
     ds_, rule_ = pops[0], pops[1]
     assert sh["bounded_by_rule"] and DEV_RULE == sh["acceptance_rule"], "acceptance rule vs pcs_spec sharing analysis"
+    a60 = CG["desat"]["rds_acceptance"]["grade_tier_tables"]["A"]["tiers"]["60C"]["steady"]   # review R3-04 decision 1 (fail closed)
+    assert sh["derated_60C_A"] == {"120 % 2 min": a60["I_2min_A"], "200 ms": a60["I_200ms_A"]} and sh["ok_60C_at_table_tiers"], \
+        "pcs_spec sharing analysis not on the grade-A tier table's 60 C tiers: re-run sim/pcs_design.py"
     share_txt = ("with it the hottest device carries k <= %.3f (thermal model %.2f): every 45 C tier at its nominal current; at 60 C "
-                 "inlet the firmware's overload tiers are %s; the data-sheet population (one 40 among five 52 mOhm) would take k %.2f and "
+                 "inlet the firmware's overload tiers are the grade-A tier table's %s (the lowest over 600-950 V; this population holds "
+                 "them at its %.0f V corner); the data-sheet population (one 40 among five 52 mOhm) would take k %.2f and "
                  "%.0f C in the 45 C 200 ms tier (175 C rating)" % (
                      max(v["k"] for v in rule_["tiers"].values()), sh["model_k"],
-                     ", ".join("%s %.0f A" % kv for kv in sh["derated_60C_A"].items()), max(v["k"] for v in ds_["tiers"].values()),
-                     ds_["tiers"]["45C 200 ms"]["tj_hot_at_nominal_C"]))
+                     ", ".join("%s %.1f A" % kv for kv in sh["derated_60C_A"].items()), sh["corners"]["overload"]["vdc"],
+                     max(v["k"] for v in ds_["tiers"].values()), ds_["tiers"]["45C 200 ms"]["tj_hot_at_nominal_C"]))
     say("Power stage (as drawn, %d of %d legs): %d x SG2M040170HJ (%d per switch) on Al2O3 pads; per device 10 k + 1 nF "
         "gate-source at the pins; per leg %d x FCSA3DS225 (%.1f uF, pcs_spec %.1f uF) and %d dampers (%.2f ohm / %.2f nF "
         "per leg, pcs_spec %.2f ohm / %.2f nF); worst turn-off peak %.0f V at 1050 V / 450 A (pcs_spec commutation deck) "
@@ -939,6 +943,14 @@ def design_check(B, st):
     assert abs(ra["DESAT_lowest_trip_V_string_ge_45C"] - tr_45) < 0.006 and ra["margin_stated"] == M_DESAT[0] \
         and ra["absolute_limit"]["V_DS_at_limit_V"] <= tr_45 / M_DESAT[0] + 1e-6 and "REQUIRES HARDWARE TEST" in ra["sc_survival"], \
         "R_DS(on) acceptance (pcs_spec) derived from another DESAT band than this board's: re-run sim/pcs_design.py"
+    gt = ra["grade_tier_tables"]                                        # review R3-04: the tier table per module grade
+    c2 = gt["after_2min_overload"]                                      # R3-04 decision 2: the window as pcs_spec's constant states it
+    assert ("%g s" % c2["window_s"]) in c2["rule"] and "OPEN" not in c2["window"], \
+        "pcs_spec 200 ms cap rule without its window, or still OPEN: re-run sim/pcs_design.py"
+    gin = sorted({r["inlet_C"]: r["V_DS_min_V"] for r in gt["B"]["rows"]}.items())
+    assert all(abs(v - (tr_lo + (tr_45 - tr_lo) * (t - ds["vf_t"][0]) / (T_IN_AIR - ds["vf_t"][0])) / M_DESAT[0]) < 0.01 for t, v in gin) \
+        and "serial" in gt["binding"] and "grade B" in DEV_ABS, \
+        "grade tier tables (pcs_spec) built on another DESAT minimum than this board's, or without the module binding: re-run sim/pcs_design.py"
     # short-circuit acceptance: the DAB study's DR-05 rule as gdrv prints it for this preset (release block, risk C2) - no
     # comparison with the assumed withstand at 25 C any more (rev A0 accepted 1 x the assumed 2 us)
     sc_rb = "SC ACCEPTANCE " + g_out["boost" + gk].split("SC ACCEPTANCE ", 1)[1].strip()
@@ -969,8 +981,10 @@ def design_check(B, st):
         "rating %.2f V -> %.2f (string >= %.0f C; >= %.2f); from a %.0f C inlet (junction about %.0f C) %.2f V against the lowest trip "
         "%.2f V -> %.2f (>= %.2f). ABSOLUTE R_DS(on) ACCEPTANCE (review R2-07, pcs_spec desat rds_acceptance): %s - at the limit "
         "%.2f V at %.0f C <= %.2f V (the lowest trip / the stated margin); a switch of six 52 mOhm parts would reach %.2f V at its own "
-        "%.0f C junction, so such a switch (not screened, or any device above the limit) runs the derated firmware tiers: 200 ms %.0f A "
-        "(%.2f V), 2 min %.0f A. "
+        "%.0f C junction in the full 200 ms tier. MODULE GRADES (review R3-04, pcs_spec rds_acceptance grade_tier_tables; calculated over "
+        "%s C inlet, %s V DC, PF 1 / 0, AC 340-460 V, cold / steady start, against Tj 150 / 165 / 175 C and the DESAT minimum at each "
+        "inlet, %s V = this board's lowest trip with the string at >= the inlet / %.2f): %s. Binding: %s. 200 ms TIER DURING / AFTER A "
+        "2-MIN OVERLOAD (review R3-04 decision 2, firmware row, window %g s): %s; %s. "
         "V_DS at the +/-450 A trip %.2f V (pcs_spec) < %.2f V: DESAT stays the "
         "layer above the comparator window. Short circuit: a hard short is detected after <= %.0f ns blanking and the gates are off "
         "%.2f us later (booster; DESAT-to-OUT max 360 ns of the -Q1 grade, the deglitch inside it) = %.2f us from its start - %s; "
@@ -987,7 +1001,9 @@ def design_check(B, st):
         m_cold, M_DESAT[2],
         ra["absolute_limit"]["rule"], ra["absolute_limit"]["V_DS_at_limit_V"], ra["absolute_limit"]["tj_at_limit_C"], ra["V_DS_max_V"],
         ra["unscreened_derating"]["V_DS_at_full_tier_V"], ra["unscreened_derating"]["tj_at_full_tier_C"],
-        ra["unscreened_derating"]["I_200ms_A"], ra["unscreened_derating"]["V_DS_V"], ra["unscreened_derating"]["I_2min_A"], v_trip,
+        " / ".join("%.0f" % t for t, _ in gin),
+        " / ".join("%.0f" % r["vdc_V"] for r in gt["B"]["rows"] if r["inlet_C"] == gin[0][0] and r["pf"] == "PF 1"),
+        " / ".join("%.2f" % v for _, v in gin), M_DESAT[0], gt["summary"], gt["binding"], c2["window_s"], c2["rule"], c2["window"], v_trip,
         tr_lo, bl_hi * 1e9, t_bst * 1e6,
         (bl_hi + t_bst) * 1e6,
         sc_rb, i_det, pvcell.DEV["idm"], GD["i_sc"], v_os, CG["chosen"]["v_limit_V"], ds["n_dhv"], gdrv.US1M_VRRM,
@@ -1330,7 +1346,9 @@ def study_lines(st):
             + f"; half the module power on one phase = {u['single_phase_full_module_power_A']:.0f} A, above every tier (the 100 % unbalanced "
               f"load is one phase at its own tier); N leg (mode A, own section) against a phase leg at the same current: " + "; ".join(
                   f"{k}: {x['leg_W']:.0f} W, Tj {x['tj_max_C']:.0f} C (phase {u['phase_leg_same_current_tj_C'][k]:.0f} C)"
-                  for k, x in u["n_leg"].items()) + f" (limits {u['tj_limits_C'][0]:.0f} C continuous / {u['tj_limits_C'][1]:.0f} C 2 min)")
+                  for k, x in u["n_leg"].items()) + f" (limits {u['tj_limits_C'][0]:.0f} C continuous / {u['tj_limits_C'][1]:.0f} C 2 min); "
+                 + "module grade B (review R3-04): " + SPEC["commutation_and_gate_drive"]["desat"]["rds_acceptance"]["grade_tier_tables"][
+                     "n_leg_check"]["note"])
         dl = fw["dc_link"]
         assert dl["per_cap_max_A"] <= dl["per_cap_limit_A"], "four-wire DC-link ripple per capacitor"
         o.append(f"FOUR-WIRE DC LINK (four-leg switching model; LF to the battery): per capacitor <= {dl['per_cap_max_A']:.1f} A against "

@@ -12,7 +12,9 @@ In:   read at run time, never copied: sim/out/pcs_design/pcs_spec.json (LCL, sam
 Out:  sim/out/pcs_control/{report.md, pcs_control_spec.json, bode_scr.png, steps.png, faults.png, pll_weak_grid.png, gfm.png,
       vf_and_ride_through.png}
 Sections added for D-074's open items: 4b ride-through limiter, 7b VF secondary restoration and accuracy, 8b THDu, 8c output
-imbalance, 9b four-wire neutral leg and per-phase loops.
+imbalance, 9b four-wire neutral leg and per-phase loops.  Review R3 (615e4b5): 9e the DC-start synchronised close (one coil at a time,
+executed with faults), 9c-2 the four-wire short against both hardware layers (the onset clamp), 7d the coupled PCS / PV DC bus (the
+ASSUMED 50 us stop replaced), 7c the standard-style VF envelope, 4c the onset noise term.
 
 CALCULATED / SIMULATED, not measured.  One plant, two views:
   * per phase (alpha-beta; three-wire, so the C_f star on the DC midpoint carries common mode only): L1 + R_dc, C_f with the
@@ -38,7 +40,7 @@ import time
 
 import numpy as np
 from scipy.linalg import expm
-from scipy.signal import cont2discrete, tf2ss
+from scipy.signal import cont2discrete, lfilter, tf2ss
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -51,6 +53,10 @@ BOM = os.path.join(ROOT, "bom", "%s.csv")                   # drawn BOMs: oscill
 PVCTL = os.path.join(ROOT, "gen", "pv_ctrl.py")             # the control board's ADC charge bucket (PCS-CTL re-uses it)
 DAB = os.path.join(HERE, "dab_control.py")
 AUX = os.path.join(HERE, "out", "aux_hv_design", "aux75_spec.json")      # the 75 W aux block (start-up, brown-out, OV lock-out)
+PV_CS = os.path.join(HERE, "out", "pv_control", "control_spec.json")      # the PV module's own protections (review R3-03)
+PV_CELL = os.path.join(HERE, "out", "pv_design", "cell_spec.json")
+PV_CHK = os.path.join(ROOT, "hardware", "PV-CTL", "outputs", "PV-CTL_design_check.txt")
+REQ = os.path.join(ROOT, "docs", "requirements", "REQUIREMENTS.md")
 V_LL, P_N, F0 = 400.0, 125e3, 50.0          # REQUIREMENTS AC-02
 RULE_PM, RULE_GM = 40.0, 6.0               # margin rule of the study brief (every admitted SCR, every corner)
 R_OPEN = 1e4                               # ohm: an open contactor / open terminal in the linear plant
@@ -118,7 +124,8 @@ ASSUME = {
     "sec_reseed_pu": (0.02, "VF secondary voltage layer: re-seeded downwards when its state exceeds the virtual-impedance drop of the "
                             "present output current by more than this (load rejection); never upwards (the slow integrator restores)"),
     "sec_T_scan_s": ((0.5, 1.0, 2.0), "secondary time constants compared on the linearised island at rated load"),
-    "iclamp_margin_A": (15.0, "per-sample current clamp level = window low edge - ripple/2 - this (prediction error of the sensed "
+    "iclamp_margin_A": (15.0, "per-sample current clamp level = the lower edge of the two hardware current layers (window, CMPSS backup; "
+                              "coordinator decision on review R3) - ripple/2 - this (prediction error of the sensed "
                               "C_f voltage and of L1)"),
     "lvrt_pu": ((0.85, 0.90), "ride-through state: entered when the sensed C_f voltage magnitude falls below the first, its hold "
                               "timer runs down only above the second (EN 50549-1 class thresholds, FROM MEMORY)"),
@@ -137,19 +144,42 @@ ASSUME = {
     "vf_vclamp_pu": (1.2, "VF over-voltage deadbeat (review R2-04): above this |v_C| (divider-inverted sample) the inner loop's command "
                           "is the one that ends the next period with i_1 at the unfiltered load-current estimate; the voltage PR does "
                           "not integrate meanwhile (inactive in normal operation)"),
-    "vf_envelope": (({"over": ((0.5, 1.9), (3.0, 1.3), (5.0, 1.2), (20.0, 1.1), (50.0, 1.05), (float("inf"), 1.03)),
-                       "under": ((0.5, 0.35), (3.0, 0.75), (20.0, 0.88), (50.0, 0.95), (float("inf"), 0.97))},
-                      {"over": ((1.0, 2.0), (3.0, 1.4), (500.0, 1.2), (float("inf"), 1.1)),
-                       "under": ((20.0, 0.0), (500.0, 0.7), (10000.0, 0.8), (float("inf"), 0.9))}),
-                     "VF transient envelope for a 100 % linear (resistive) load step, |v_C| in pu against the time after the step, "
-                     "piecewise constant (each limit valid up to its time in ms): first = the envelope DECLARED here (single module, "
-                     "set to contain the worst corner with margin); second = an ITIC (CBEMA) curve style class FROM MEMORY (2.0 / 1.4 / "
-                     "1.2 / 1.1 pu over to 1 ms / 3 ms / 0.5 s / steady, 0 / 0.7 / 0.8 / 0.9 pu under to 20 ms / 0.5 s / 10 s / steady) - "
-                     "not verified, the standard text (ITIC, IEC 62040-3 classes) is not on file; IEC 62040-3 class 1 is not claimed"),
+    "vf_envelope": (({"over": ((1.0, 2.0), (3.0, 1.4), (500.0, 1.2), (float("inf"), 1.1)),
+                      "under": ((20.0, 0.0), (500.0, 0.7), (10000.0, 0.8), (float("inf"), 0.9))},
+                     {"over": ((1.0, 2.0), (3.0, 1.4), (500.0, 1.2), (float("inf"), 1.1)),
+                      "under": ((20.0, 0.0), (500.0, 0.7), (10000.0, 0.8), (float("inf"), 0.9))}),
+                    "VF transient envelope for a 100 % linear (resistive) load step, |v_C| in pu against the time after the step, "
+                    "piecewise constant (each limit valid up to its time in ms): first = the envelope DECLARED (review R3-05: standard-style "
+                    "points, not set to the simulation) = second = the ITIC (CBEMA) curve as remembered (2.0 / 1.4 / 1.2 / 1.1 pu over to "
+                    "1 ms / 3 ms / 0.5 s / steady, 0 / 0.7 / 0.8 / 0.9 pu under to 20 ms / 0.5 s / 10 s / steady) - FROM MEMORY, not "
+                    "verified: the standard texts (ITIC, IEC 62040-3) are not on file and are the gate; adopting it as a requirement is the "
+                    "adopted as REQUIREMENTS AC-04 under the delegation of D-051 (D-080)"),
+    "vf_classes_iec62040_3": ({"class 1": {"over": ((5.0, 1.3), (100.0, 1.2), (float("inf"), 1.1)),
+                                           "under": ((5.0, 0.7), (100.0, 0.8), (float("inf"), 0.9))},
+                               "class 2": {"over": ((5.0, 1.3), (100.0, 1.2), (float("inf"), 1.1)),
+                                           "under": ((1.0, 0.0), (5.0, 0.7), (100.0, 0.8), (float("inf"), 0.9))},
+                               "class 3": {"over": ((5.0, 1.3), (100.0, 1.2), (float("inf"), 1.1)),
+                                           "under": ((10.0, 0.0), (100.0, 0.8), (float("inf"), 0.9))}},
+                              "IEC 62040-3 output dynamic performance classifications 1 / 2 / 3 as remembered (FROM MEMORY, uncertain in "
+                              "the intermediate step): +/-30 % to 5 ms, +/-20 % to 100 ms, +/-10 % after; class 2 tolerates 1 ms and class 3 "
+                              "10 ms at zero voltage; not verified - the standard text is the gate, no class is claimed"),
     "dc_reg_T_s": (0.02, "four-wire DC-component regulators (one-cycle mean -> integrator -> offset on the reference): time constant, "
                          "a firmware parameter (review R2-13 compares 0.2 s: the half-wave DC transient then lasts 0.8 s)"),
-    "dcdc_stop_us": (50.0, "a DC/DC feeding the link stops this long after the PCS's DC over-voltage trip (a shared trip line or its own "
-                           "comparator at the same level: ASSUMED - the DC/DC firmware is not modelled here)"),
+    "sync_close": ({"tau_sync_s": 0.3, "dtheta0_deg": 30.0, "dv0": 0.04, "df0_Hz": 0.3, "df_max_Hz": 0.1, "t_sync_max_s": 60.0,
+                    "slow_pull_s": 0.35, "foreign_deg": 120.0, "jump_deg": 30.0, "t_run_s": 1.0},
+                   "DC-start synchronised close, executed model (review R3-01): the module's synchronisation to the grid converges "
+                   "exponentially with tau_sync from the initial phase / amplitude / frequency errors (ASSUMED: the PLL / GFM sync loop "
+                   "is not part of this slow-task model); |df| <= 0.1 Hz part of the permissive (ASSUMED, as section 7); SYNC gives up "
+                   "after t_sync_max (ASSUMED) with a report; a 'slow' contactor pulls in after slow_pull (beyond the settle window); a "
+                   "foreign source on a dead bus appears foreign_deg out of phase; the path check after K1 in the grid start = a small "
+                   "active-power step in grid-connected GFM, the measured P follows only if the path formed (ASSUMED method; read as the "
+                   "physical state); a running module is stopped after t_run to exercise the opening (a welded contact)"),
+    "rt4_onset_s": (0.005, "four-wire grid forming (review R3-02): the ride-through clamp of section 4c applied per phase for this long "
+                           "after the phase-to-N voltage collapses (the onset window: the first peak forms within about 1 ms), then the "
+                           "normal per-sample clamp - a firmware parameter; held for the whole ride-through state it would hold a fault at "
+                           "the clamp for the whole 200 ms ride and clip half-wave loads (section 9c-2)"),
+    "adc_noise_lsb": (1.0, "F280039C ADC noise per conversion, as a peak on top of the +/-1/2 LSB quantisation (ASSUMED: no figure on "
+                           "file) - review R3-02: the onset prediction's noise term"),
     "osc_ageing_ppm": (10.0, "controller oscillator ageing over the module life (Epson SG-210STF data sheet: +/-3 ppm in the first year "
                              "at 25 C, lifetime not guaranteed by the maker; its +/-50 ppm tolerance covers initial, temperature, "
                              "supply and load)"),
@@ -168,6 +198,14 @@ REVIEW_R2 = {   # the independent reviewer's re-check of commit a427981 (gen/dat
                   basis="his inner-current-loop reproduction, mixed tolerances incl. C_f +/-10 %; all linearly stable"),
     "R2-04": dict(sag_pu=0.380, overshoot_pu=2.170, dc_rejection_peak_V=1098.0, ov_band_V=(978.0, 1048.0)),
     "R2-05": dict(onset_A=(484.0, 465.0, 445.0), residual_pu=(0.0, 0.1, 0.2), trip_edge_A=426.0, prefault_kW=(95.5, 105.5, 115.0)),
+}
+REVIEW_R3 = {   # the reviewer's re-check R3 of commit 615e4b5 (gen/data/review_r3.csv): HIS figures, quoted, not recomputed here
+    "corroboration": dict(cases=1944, stable=1944, rho_max=0.999518, pm_deg={"stiff": 71.15, "SCR 20": 61.38, "SCR 10": 61.68, "SCR 5": 49.04},
+                          basis="his inner-loop reruns on the mixed-corner factorial: all stable"),
+    "R3-01": dict(peak_W={"three-wire": 54.9, "four-wire": 58.2}, live_peak_W=48.0, pairs=561, counterexamples=2),
+    "R3-02": dict(first_peak_A=425.0, window_lo_A=426.0, cmpss_lo_A=423.9),
+    "R3-03": dict(dcdc_stop_us=50.0, ext_stop_ms=1.47, coord_ms=0.51),
+    "R3-05": dict(sag_pu=0.43, overshoot_pu=1.77, superseded_pu=2.17),
 }
 
 
@@ -281,6 +319,36 @@ def load():
                     brown_out=list(_ax["startup"]["brown_out_V"]), start_s=list(_ax["startup"]["vdd_charge_s"]),
                     holdup_ms=_ax["holdup"]["t_ms"])
     P["cmpss_req"] = grab(ctl, r"IL1-4 CMPSS backup.*?requirement ([\d.]+)-([\d.]+) A", "CMPSS requirement text")
+    ab = sp["ports_and_common_mode"]["aux_budget"]                  # the live 24 V budget and the coil contract (review R3-01)
+    cc, bl = ab["coil_contract"], ("three-wire", "four-wire")
+
+    def step_w(b, prefix):
+        hit = [w for s_, w in ab["builds"][b]["steps"] if s_.startswith(prefix)]
+        assert len(hit) == 1, f"pcs_spec aux_budget {b}: {len(hit)} steps '{prefix}...' (one expected) - the budget changed, re-read it"
+        return float(hit[0])
+    pcs_, cell = read_json(PV_CS, need=("firmware_second_layer", "hardware_trips")), read_json(PV_CELL, need=("inductor", "ov_trip_costfirst"))
+    row = next((x for x in pcs_["firmware_second_layer"].get("system", []) if x["item"].startswith("DC-bus coordination")), None)
+    assert row, "PV control_spec: no 'DC-bus coordination' system row - re-run sim/pv_control.py"
+    th_, pe_ = row["threshold / band"], row["peripheral and setting"]
+    p_r, p_m = grab(open(REQ).read(), r"\| PV-01 \| Rated / maximum power \| ([\d.]+) kW / ([\d.]+) kW", "REQUIREMENTS PV-01")
+    n_c = next(int(k.split()[0]) for k, v in pcs_["limits"]["p_module_kW"].items() if abs(v - p_m) < 1e-6)
+    P["pv"] = dict(dv=grab(th_, r"V_B\* \+ (\d+) V", "PV coordination threshold")[0], rel=grab(pe_, r"released below V_B\* \+ (\d+) V",
+                   "PV coordination release")[0], valid=grab(th_, r"holds to V_B\* = (\d+) V", "PV coordination validity")[0],
+                   chain_us=grab(th_, r"this chain (\d+) us", "PV coordination chain")[0], n_mean=grab(pe_, r"(\d+)-sample mean", "PV mean")[0],
+                   f_div=pcs_["measurement_requirements"]["port_voltage_VA_VB"]["filter_pole_kHz_as_designed"] * 1e3,
+                   T_out=1e-3 / pcs_["sampling"]["outer_loop_kHz"], fc_i=pcs_["current_loop"]["design_crossover_Hz"],
+                   ov_fw=pcs_["hardware_trips"]["firmware_overvoltage_V"], ov_hw=tuple(cell["ov_trip_costfirst"]["band_V"]),
+                   ov_hw_us=cell["ov_trip_costfirst"]["response_us"], C_B=pcs_["hardware_trips"]["port_overvoltage"]["port_B_bank_drawn_uF"] * 1e-6,
+                   L=cell["inductor"]["L_at_45A_uH"] * 1e-6, L_tol=cell["inductor"]["L_tolerance_pct"] / 100,
+                   I_pk=cell["inductor"]["I_peak_normal_max_A"], n_cells=n_c, P_rated=p_r * 1e3, P_max=p_m * 1e3,
+                   t_ext=grab(open(PV_CHK).read(), r"external stop ENABLE.*?response ([\d.]+) ms", "PV-CTL external stop")[0] * 1e-3)
+    P["coil"] = dict(pull=cc["pull_W"], t_pull=cc["t_pull_s"], hold=cc["hold_W"], live_peak=ab["rating"]["live_peak_W"],
+                     base_pwm={b: step_w(b, "running, every coil") - 3 * cc["hold_W"] for b in bl},           # DC + AC1 + AC2 held
+                     base_idle={b: step_w(b, "relay test, AC contactor 1 alone") - cc["hold_W"] - cc["pull_W"] for b in bl},
+                     peak={b: float(ab["builds"][b]["peak_W"]) for b in bl})
+    for b in bl:                                                      # the budget's own peak step = PWM base + DC and AC2 held + AC1 pulling
+        assert abs(P["coil"]["base_pwm"][b] + 2 * cc["hold_W"] + cc["pull_W"] - step_w(b, "synchronised close")) < 0.06, \
+            f"pcs_spec aux_budget {b}: the synchronised-close step is not base + 2 holds + 1 pull-in - re-read it"
     # ratings, ripple, DC link, sequencing
     cur = sp["inductors"]["L1"]["current"]
     P["tiers"] = {k: v for k, v in cur["fundamental_rms_A"].items()}
@@ -350,8 +418,14 @@ def load():
                   r"k = ([\d.]+) \(dI_q / dU\) up to ([\d.]+) Ir", "LVRT profile (hand-over)")
     P["lvrt_profile"] = [(lv[0], lv[1] / 1e3), (lv[2], lv[3] / 1e3), (lv[4], lv[5])]
     P["lvrt_ilim"] = lv[7] * P["I_rated"]                  # dip-time limit = the profile's reactive-current cap (1.0 I_r, peak)
-    P["iclamp"] = P["win"]["lo"] - P["ripple_pp"] / 2 - A("iclamp_margin_A")
-    assert P["iclamp"] > P["I_lim"], "per-sample clamp below the 200 ms tier: the window leaves no room for it"
+    P["trip_lo"] = min(P["win"]["lo"], P["cmpss"]["lo"])   # review R3-02: every 'may a hardware layer trip' screen takes the lower edge of
+    #                                                        the two current layers (D-078 put the CMPSS backup's band below the window's)
+    P["iclamp"] = P["trip_lo"] - P["ripple_pp"] / 2 - A("iclamp_margin_A")   # the per-sample clamp from the same lower edge (coordinator)
+    P["iclamp_basis"] = (f"min(window low edge {P['win']['lo']:.1f} A, CMPSS backup low edge {P['cmpss']['lo']:.1f} A) = {P['trip_lo']:.1f} A "
+                         f"- ripple/2 {P['ripple_pp'] / 2:.1f} A - iclamp_margin_A {A('iclamp_margin_A'):.1f} A = {P['iclamp']:.1f} A "
+                         "(sampled, ripple-midpoint current; the window-referenced value was "
+                         f"{P['win']['lo'] - P['ripple_pp'] / 2 - A('iclamp_margin_A'):.1f} A)")
+    assert P["iclamp"] > P["I_lim"], "per-sample clamp below the 200 ms tier: the lower trip edge leaves no room for it"
     fw4 = sp.get("four_wire")
     assert fw4, "pcs_spec has no four_wire block: re-run sim/pcs_design.py"
     P["fw4"] = dict(fw4["filter"], half_wave=fw4["half_wave"], modeA_from=fw4["window"]["windows_at_400_230V"][
@@ -361,6 +435,20 @@ def load():
     ow = sp["declarations"]["operating_windows"]["3W+PE"]
     P["vf_vdc"] = (ow["full_load_from"], 750.0, ow["operating_to"])     # VF DC voltages for THDu (window ends + nominal)
     P["pc"] = protection_chain(sp, P, ctl)
+    assert "protection_chain" in sp, "pcs_spec has no protection_chain: the two-layer replay (review R3-02) needs its delay chain"
+    dcu, ps = sp["protection_chain"]["delay_chain_us"]["local window"], sp["phase_current_sensor"]
+    pick = lambda pre: float(next(v for k, v in dcu.items() if k.startswith(pre)))       # noqa: E731
+    ilrc = grab(open(PVCTL).read(), r'IL_RC = \("(\d+)R", "(\d+)n"\)', "gen/pv_ctrl.py IL_RC")
+    nq = grab(ctl, r"digital filter (\d+) of (\d+) SYSCLK", "CMPSS digital filter")
+    P["chain"] = dict(sensor=pick("sensor"), board=pick("PV-PWR RC"), node=pick("comparator node RC"), cmp=pick("comparator ("),
+                      logic=pick("logic"), drv=pick("AHCT1G08"), off=pick("six-gate"), total=float(dcu["total"]),
+                      cmpss_total=grab(ctl, r"Protection chain, CMPSS backup DAC.*?this board ([\d.]+) us", "CMPSS chain")[0],
+                      il_rc=ilrc[0] * ilrc[1] * 1e-3, qual=nq[0] / 120.0, qual_txt=f"{nq[0]:.0f} of {nq[1]:.0f} SYSCLK at 120 MHz",
+                      sens_typ=ps["step_response_typ_s"] * 1e6, sens_max=ps["step_response_s"] * 1e6, sens_bw_Hz=ps["bandwidth_Hz"])
+    assert abs(P["chain"]["sensor"] - P["chain"]["sens_max"]) < 1e-9 and abs(sum(P["chain"][k] for k in ("sensor", "board", "node", "cmp",
+        "logic", "drv", "off")) - P["chain"]["total"]) < 1e-6, "pcs_spec protection_chain: the window chain terms do not add up"
+    P["adc"] = dict(i_lsb=grab(ctl, r"ADC IL1-4 .*? ([\d.]+) A/LSB", "IL ADC LSB")[0], sens_pp_A=ps["noise_mVpp"] / ps["gain_mV_per_A"],
+                    v_lsb=P["v_lsb"][1], noise_lsb=A("adc_noise_lsb"))
     acs = sp["ac_start"]                                            # the grid-start sequence (review R2-14), read from its own text
     seq = " ".join(acs["sequence"] + acs["interlocks"])
     P["acs"] = dict(R=min(acs["precharge"]["R_tot_ohm"]), t10=acs["precharge"]["by_build"]["3W"]["400"]["t_to_10V_s"],
@@ -1325,7 +1413,7 @@ def study_faults(P, G):
         r, _ = run(P, Gx, S, X, t1 + 0.1, ev)
         k0, k1 = int(t0 / P["T"]), int(t1 / P["T"])
         pk = [ripple_peak(P, r, slice(k0, k1)), ripple_peak(P, r, slice(k1, None))]
-        win = [P["win"]["lo"], P["win"]["nom"]]
+        win = [P["trip_lo"], P["win"]["nom"]]
         out.append(dict(case=name, scr=scr, ff=ff, ilim=S["ilim"], pk_dip=pk[0], pk_rec=pk[1],
                         lim_ms=1e3 * P["T"] * float(np.sum(r["lim"])), usat_ms=1e3 * P["T"] * float(np.sum(r["usat"])),
                         over_lo=max(pk) > win[0], over_nom=max(pk) > win[1],
@@ -1614,7 +1702,7 @@ def rt_dip(P, G, depth, scr, Pop=P_N, layers="all", ts=0.01, dur=None, tail=0.1,
                  settle_ms=1e3 * settle(r["t"][k0:k1], ia, fin, 0.05 * fin, ts), clamp_ms=1e3 * T * float(np.sum(r["clamp"])),
                  usat_ms=1e3 * T * float(np.sum(r["usat"])))
         d["pk"] = max(d["pk_on"], d["pk_dip"], d["pk_rec"])
-        d["trip"] = d["pk"] > P["win"]["lo"]
+        d["trip"] = d["pk"] > P["trip_lo"]
     return d
 
 
@@ -1639,10 +1727,10 @@ def study_ride_through(P, G):
     """the firmware current limiter in ride-through (D-074 open item: a 0.1 pu dip at 125 kW reached 465 A against the 426 A low
     edge of the hardware window).  Layers: the circular reference limiter of section 4; the ride-through state (sensed |v_C|
     below lvrt_pu arms a hold timer: reference limit = the hand-over profile's dip-time cap, PLL free-running below
-    pll_freeze_pu); the per-sample predictive clamp in the PWM update at the window low edge - ripple/2 - margin.  Dips at
+    pll_freeze_pu); the per-sample predictive clamp in the PWM update at the lower trip edge - ripple/2 - margin.  Dips at
     125 kW export, power reference held, 150 ms: five depths x five grids with every layer; the clamp alone at stiff and SCR 5;
     the stiff-grid onset against the pre-dip power (derating); the study's dip instant against a 60 deg scan"""
-    T, lo, t0 = P["T"], P["win"]["lo"], 0.01
+    T, lo, t0 = P["T"], P["trip_lo"], 0.01
     dip = lambda *a, **k: rt_dip(P, G, *a, **k)
     grids, depths = (None, 50.0) + tuple(s for s in A("scr") if s), (0.0, 0.1, 0.2, 0.3, 0.5)
     rows = [dip(d, s) for s in grids for d in depths]
@@ -1666,6 +1754,7 @@ def study_rt_rule(P, G, R):
     deterministic error; the background-voltage error ASSUMED) with the engage threshold, and the installation declaration"""
     pc, rt = P["pc"], R["rt"]
     thr, crt = pc["I_trip_lo"], P["lvrt_ilim"] + A("iclamp_margin_A")
+    ths = P["trip_lo"]                                            # the screens: the lower edge of the two layers (review R3-02)
     M = dict(iclamp_rt=crt, vc_comp=True)                         # the adopted measure
     on = lambda depth, scr, Pq=None, **kw: rt_dip(Pq or P, G, depth, scr, dur=0.003, tail=0.0, **kw)["pk_on"]
     meas = [("D-077 limiter (section 4b)", on(0.0, None)),
@@ -1687,18 +1776,18 @@ def study_rt_rule(P, G, R):
     # (2) the fallback rule for the D-077 limiter
     stiff = {d["depth"]: d["pk_on"] for d in rt["rows"] if d["scr"] is None}
     bnd = []
-    for depth in (d for d in rt["depths"] if stiff[d] > thr):
-        a, b, ob = 0.0, 1 / 50.0, on(depth, 50.0)                # x = 1/SCR: a fails (onset > thr), b passes
-        assert ob <= thr, ("ride-through: SCR 50 no longer passes at rated current", depth, ob)
-        m50 = thr - ob
+    for depth in (d for d in rt["depths"] if stiff[d] > ths):
+        a, b, ob = 0.0, 1 / 50.0, on(depth, 50.0)                # x = 1/SCR: a fails (onset > ths), b passes
+        assert ob <= ths, ("ride-through: SCR 50 no longer passes at rated current", depth, ob)
+        m50 = ths - ob
         for _ in range(12):
             m = (a + b) / 2
             om = on(depth, 1 / m)
-            a, b, ob = (m, b, ob) if om > thr else (a, m, om)
+            a, b, ob = (m, b, ob) if om > ths else (a, m, om)
         bnd.append(dict(depth=depth, scr_b=1 / b, onset_b=ob, onset_stiff=stiff[depth], margin_scr50_A=m50))
     scr_b = min(d["scr_b"] for d in bnd)
     rows_scr = [s for s in A("rt_rule")["table_scr"] if s > scr_b] + [None]
-    table = [rt_derate(P, G, d, s, thr) for s in rows_scr for d in (0.0, 0.1, 0.2, 0.3)]
+    table = [rt_derate(P, G, d, s, ths) for s in rows_scr for d in (0.0, 0.1, 0.2, 0.3)]
     dq, acc = A("rt_rule")["dq_pu"], A("rt_rule")["acc"]
     est = []
     for scr in (5.0, 20.0, 50.0, round(scr_b, 1), 200.0):
@@ -1713,8 +1802,17 @@ def study_rt_rule(P, G, R):
                         dI_A=abs(pts[1][1] - pts[0][1])))
     lsb = P["v_lsb"]
     eng = scr_b / (1 + acc)
-    return dict(thr=thr, thr_src=pc["src"], clamp_rt_A=crt, measures=meas, robust=rob, robust_div=rob_div, div_tol=dvt, instant_scan=scan, rows=rows,
-                worst_onset=worst, margin_A=thr - worst, adopted=worst <= thr - A("rt_rule")["margin_A"],
+    ad, a_ = P["adc"], math.exp(-P["T"] / P["tv"])               # review R3-02: noise and quantisation through the clamp's prediction
+    nl_ = 0.5 + ad["noise_lsb"]                                  # LSB per conversion, peak: quantisation + the ADC's own noise (ASSUMED)
+    dv_inv = (1 + a_) / (1 - a_) * nl_ * ad["v_lsb"]              # the divider-inverted C_f sample (two conversions, worst signs), V
+    di = ad["sens_pp_A"] / 2 + nl_ * ad["i_lsb"]                 # the sensed current: the sensor's noise (half its pp) + the ADC, A
+    dpred = 2 * P["T"] / P["L1_lo"] * dv_inv                     # v_C enters both steps of the prediction (committed and new command)
+    noise = dict(i_lsb_A=ad["i_lsb"], v_lsb_V=ad["v_lsb"], adc_noise_lsb=ad["noise_lsb"], sensor_pp_A=ad["sens_pp_A"], a_div=a_,
+                 dv_inv_V=dv_inv, di_A=di, dpred_A=dpred, total_A=di + dpred, rss_A=math.hypot(di, dpred))
+    return dict(noise=noise, noise_A=noise["total_A"], margin_net_A=thr - worst - noise["total_A"], thr_cmpss=P["cmpss"]["lo"],
+                margin_cmpss_A=P["cmpss"]["lo"] - worst, margin_cmpss_net_A=P["cmpss"]["lo"] - worst - noise["total_A"],
+                thr=thr, thr_screen=ths, thr_src=pc["src"], clamp_rt_A=crt, measures=meas, robust=rob, robust_div=rob_div, div_tol=dvt,
+                instant_scan=scan, rows=rows, worst_onset=worst, margin_A=thr - worst, adopted=worst <= ths - A("rt_rule")["margin_A"],
                 boundary=bnd, scr_b=scr_b, table=table, table_scr=rows_scr, estimator=est, dq_pu=dq, acc=acc, engage_scr=eng,
                 lsb_V=lsb[1], div=lsb[0], dV_engage_V=P["zb"] / eng * est[0]["dI_A"], S_sc_engage_MVA=eng * P_N / 1e6,
                 S_sc_b_MVA=scr_b * P_N / 1e6, I_off_max=max(d["onset_stiff"] for d in bnd), I_screen=pc["I_screen"])
@@ -1728,7 +1826,8 @@ def gates_off_tail(P, X, k, pl, vgp=0j, isrc=lambda tau: 0.0, t_max=0.03, dt=1e-
     sequence) through L2 + DM leakage + the plant's grid / island impedance to the grid source (kind grid), a resistive island load
     (rl) or open (nl); the DC link as its two halves (C_half each) with the leg films C_loc across the pair and a DC-side current
     isrc(tau) into DC+.  Initial state: the synchronous-frame state X at sample k, halves at V_dc/2.  RK4 at dt; a leg current that
-    crosses zero is set to zero (its diode blocks).  Runs until every leg current has been zero for 1 ms, or t_max"""
+    crosses zero is set to zero (its diode blocks).  Runs until every leg current has been zero for 1 ms, or t_max.  A stateful
+    source (review R3-03: the PV modules' own protections) has advance(tau, v_bus), called once per step, and busy (keep running)"""
     T, w0, a3 = P["T"], P["w0"], cx(2 * math.pi / 3)
     xab = X["xp"] * cx(w0 * k * T)
     rot = [cx(-2 * math.pi * p / 3) for p in range(3)]
@@ -1766,7 +1865,8 @@ def gates_off_tail(P, X, k, pl, vgp=0j, isrc=lambda tau: 0.0, t_max=0.03, dt=1e-
         return d1 + dC + dD + [di2.real, di2.imag, (ca * it - cc * ib) / det, (ca * ib - cc * it) / det]
     ts, vdc, vcm, im = [], [], [], []
     tau, quiet, hmax = 0.0, 0.0, 0.0
-    while tau < t_max and quiet < 1e-3:
+    adv = getattr(isrc, "advance", None)
+    while tau < t_max and (quiet < 1e-3 or (adv is not None and isrc.busy)):
         k1 = f(tau, y)
         k2 = f(tau + dt / 2, [a + dt / 2 * b for a, b in zip(y, k1)])
         k3 = f(tau + dt / 2, [a + dt / 2 * b for a, b in zip(y, k2)])
@@ -1776,6 +1876,8 @@ def gates_off_tail(P, X, k, pl, vgp=0j, isrc=lambda tau: 0.0, t_max=0.03, dt=1e-
             if y[p] * yn[p] < 0:
                 yn[p] = 0.0
         y, tau, hmax = yn, tau + dt, max(hmax, yn[11], yn[12])
+        if adv is not None:
+            adv(tau, y[11] + y[12])
         quiet = quiet + dt if all(v == 0.0 for v in y[0:3]) else 0.0
         if int(round(tau / dt)) % 10 == 0:
             ts.append(tau)
@@ -1865,6 +1967,30 @@ def study_dc_trip(P, G):
 
 
 VFD = lambda: dict(ioff=1.0, vclamp=A("vf_vclamp_pu"))      # the VF firmware measures of section 7c (the clamp goes in setup)
+VF_ENV_D079 = {"over": ((0.5, 1.9), (3.0, 1.3), (5.0, 1.2), (20.0, 1.1), (50.0, 1.05), (float("inf"), 1.03)),   # D-079's declared
+               "under": ((0.5, 0.35), (3.0, 0.75), (20.0, 0.88), (50.0, 0.95), (float("inf"), 0.97))}        # envelope: set to contain the
+#                                                             simulated worst corner - SUPERSEDED by the standard-style points (review R3-05)
+
+
+def env_margins(recs, env):
+    """review R3-05: the margin of the simulated worst corner to each point of an envelope - per piecewise-constant segment the limit and
+    the worst value over every record (t_ms, v_pu) inside it (pu; negative = outside); a segment no record reaches is marked"""
+    out = {}
+    for side, sgn in (("over", 1.0), ("under", -1.0)):
+        rows, t_lo = [], 0.0
+        for t_hi, lim in env[side]:
+            vals = [v[(t >= t_lo) & (t <= t_hi)] for t, v in recs]
+            vals = np.concatenate(vals) if vals else np.zeros(0)
+            if len(vals):
+                w = float(vals.max() if sgn > 0 else vals.min())
+                rows.append(dict(t_from_ms=t_lo, t_to_ms=t_hi, limit_pu=lim, worst_pu=w, margin_pu=sgn * (lim - w)))
+            else:
+                rows.append(dict(t_from_ms=t_lo, t_to_ms=t_hi, limit_pu=lim, worst_pu=None, margin_pu=None))
+            t_lo = t_hi
+        out[side] = rows
+    m = [r["margin_pu"] for s in out.values() for r in s if r["margin_pu"] is not None]
+    out["min_margin_pu"], out["met"] = min(m), min(m) >= 0
+    return out
 
 
 def env_check(t_ms, vm, env):
@@ -1887,12 +2013,14 @@ def study_vf_bounded(P, G, R):
     D-077 configuration (no clamp, no measures: the unbounded averaged figures, superseded), the design at every corner (single
     module) and paralleled; (b) capacitance only with an ideally coordinated, unidirectional source (it follows the bridge's draw
     and absorbs nothing): rated -> 0, the V_dc rise from the returned LCL energy; (c) capacitance only, the source holding its
-    pre-step current for t_c: the largest t_c that stays below the soft limit, and the uncoordinated case (held until the PCS trips,
-    the DC/DC stops dcdc_stop_us later) with its gates-off trajectory; (d) the declared envelope and the ITIC-style class"""
+    pre-step current for t_c: the largest t_c that stays below the soft limit (the uncoordinated case - review R3-03 - is the coupled
+    PCS / PV trajectory of section 7d, study_dc_coupled); (d) the declared envelope (the ITIC-style points FROM MEMORY, review R3-05)
+    with the margins of the simulated worst corner to it, to the IEC 62040-3 class points FROM MEMORY and to the superseded D-079
+    envelope"""
     Ts, t0, T = R["sec"]["T_s"], 0.01, P["T"]
     k0s = int(round(t0 / T))
 
-    def stp(ka, kb, design=True, zv=0j, cn="nom", tend=0.3, src=None, hw=None, i_hold=0.0):
+    def stp(ka, kb, design=True, zv=0j, cn="nom", tend=0.3, src=None):
         Gx = dict(G, Zv=zv)
         S, X = setup(P, Gx, "gfm", kind=ka, cn=cn, sec="reseed", sec_T=Ts, iclamp=P["iclamp"] if design else None)
         if design:
@@ -1901,27 +2029,20 @@ def study_vf_bounded(P, G, R):
             S.update(cdc=True, src=src)
         X, _ = equil(P, Gx, S, X)
         ev0 = lambda t, S_, X_: S_.update(pl=plant(P, cn, kb)) if t >= t0 and S_["pl"]["kind"] != kb else None
-        if hw:
-            r, Xe, tr = prot_run(P, Gx, S, X, tend, ev0, hw)
-        else:
-            (r, Xe), tr = run(P, Gx, S, X, tend, ev0), None
+        r, _ = run(P, Gx, S, X, tend, ev0)
         vm, tt = np.abs(r["vc"][k0s:]) / P["V0"], r["t"][k0s:]
         fv = np.gradient(np.unwrap(r["thv"]), T)[k0s:] / (2 * math.pi)
         d = dict(v_min=float(vm.min()), v_max=float(vm.max()), t_v10_ms=1e3 * settle(tt, vm, 1.0, 0.10, t0), t_v1_ms=1e3 * settle(tt, vm, 1.0, 0.01, t0),
                  f_min=float(fv.min()), f_max=float(fv.max()), v_end=float(vm[-1]), pk=ripple_peak(P, r), vdc_max=float(r["vdc"].max()),
                  vcl_ms=None, env=env_check(1e3 * (tt - t0), vm, A("vf_envelope")[0]), itic=env_check(1e3 * (tt - t0), vm, A("vf_envelope")[1]),
                  t_end_s=tend)
-        if tr:
-            ih = src.last[0] if i_hold is None else i_hold
-            tail = gates_off_tail(P, Xe, len(r["t"]), S["pl"], 0j, isrc=lambda tau: ih if tau < A("dcdc_stop_us") * 1e-6 else 0.0)
-            d.update(trip=True, t_off_ms=1e3 * (tr["t_off"] - t0), by=tr["by"], v_off=tr["v_off"], vdc_pk=tail["vdc_pk"], vdc_end=tail["vdc_end"],
-                     half_pk=tail["half_pk"], **trip_check(P, tail))
         return d, r
-    out, recs = {}, {}
+    out, recs, wc = {}, {}, []
     for name, a in (("0 -> rated", ("nl", "rl")), ("rated -> 0", ("rl", "nl"))):
         out[f"D-077 configuration (unbounded averaged), {name}"], recs["D-077 " + name] = stp(*a, design=False, zv=G["Zv"])
         for cn in CORNERS:
             out[f"design, single module, {cn}, {name}"], r = stp(*a, cn=cn, tend=2.0 if cn == "nom" else 0.3)
+            wc.append((1e3 * (r["t"][k0s:] - t0), np.abs(r["vc"][k0s:]) / P["V0"]))
             if cn == "nom":
                 recs[name] = r
         out[f"design, paralleled (Z_v {A('zv_pu')[0]:g} + j{A('zv_pu')[1]:g} pu), {name}"] = R["sec"]["steps"][name]
@@ -1944,14 +2065,229 @@ def study_vf_bounded(P, G, R):
     t_c = (0.5 * P["Cdc"] * (v_soft ** 2 - 750.0 ** 2) - e_ret) / p_pre
     dc_, _ = stp("rl", "nl", tend=0.05, src=held(int(0.95 * t_c / T)))
     dc2, _ = stp("rl", "nl", tend=0.05, src=held(int(1.05 * t_c / T)))
+    marg = {"declared (ITIC-style, FROM MEMORY)": env_margins(wc, A("vf_envelope")[0])}          # review R3-05: the worst corner's margins
+    marg.update({f"IEC 62040-3 {k} (FROM MEMORY)": env_margins(wc, v) for k, v in A("vf_classes_iec62040_3").items()})
+    marg["D-079 envelope (set to contain the simulation; SUPERSEDED)"] = env_margins(wc, VF_ENV_D079)
+    return dict(steps=out, battery_rec=recs, cap_follow=db, e_ret_J=e_ret, t_c_max_ms=1e3 * t_c, cap_tc=dc_, cap_tc_over=dc2, p_pre_W=p_pre,
+                uncoordinated={}, envelope=A("vf_envelope")[0], itic=A("vf_envelope")[1], f_io=G["f_io"], vclamp_pu=A("vf_vclamp_pu"),
+                envelope_basis=dict(declared="the ITIC (CBEMA) curve style points FROM MEMORY - a standard-style curve, not set to the "
+                                             "simulation (review R3-05); the standard texts (ITIC, IEC 62040-3) are not on file and are the gate",
+                                    margins_worst_corner=marg, horizon_s=dict(nom=2.0, corners=0.3),
+                                    classes_iec62040_3=A("vf_classes_iec62040_3"), superseded_d079=VF_ENV_D079,
+                                    superseded_d077_pu=dict(sag=REVIEW_R2["R2-04"]["sag_pu"], overshoot=REVIEW_R2["R2-04"]["overshoot_pu"],
+                                                            basis="the unbounded averaged model without the VF measures (D-077) - SUPERSEDED"),
+                                    adoption="adopting a dynamic output-voltage envelope as a requirement is adopted as REQUIREMENTS AC-04 (D-080) (a "
+                                             "REQUIREMENTS.md entry); bench validation of the first milliseconds at every corner is the gate"))
+
+
+class PVBus:
+    """review R3-03: n PV-P75 modules on the PCS link (port B, bus forming / CV at v_set) with their own protections as read from the
+    PV specs (P['pv']): 'coord' the DC-bus coordination row - the outer-loop period mean of V_B behind the PV-PWR divider pole above
+    v_set + dv at an evaluation -> every cell's current reference to 0, the inductor current decaying with the current loop (tau =
+    1/(2 pi f_c)); 'fw' the firmware over-voltage limit (the same mean >= ov_fw -> the same cut); 'hw' the hardware comparator - the
+    true bus crossing its band corner hw_v -> gates off ov_hw_us later; 'ext' the external stop - the PCS trip opens the PV ENABLE
+    contact -> gates off t_ext later.  Before the step the modules supply the bridge's draw; after it they hold that current until a
+    cut (the V_B loop's proportional action not credited: conservative, as the PV row); a cut releases the inductors' energy
+    (n_cells x 1/2 L I^2 per module, I at the corner 'res': 'max' = the cell's normal peak on the +tol part, 'nom' = the operating
+    current) with the decay; at gates off what is left dumps through the diodes (tau = L I / V_bus).  The PV evaluation instants sit
+    'phase' after a PCS sampling instant.  Called as the PCS study's DC-side source (src(k, X, p_bridge)); tail(t) adapts it to the
+    gates-off tail (advance / busy)"""
+
+    def __init__(self, P, n, v_set, k0, layers, res="max", hw_v=None, phase=0.0, t_line=None):
+        pv = P["pv"]
+        self.t_line = None if t_line is None else k0 * P["T"] + t_line   # 'line': a hardwired trip, PV gates off t_line after the step
+        self.pv, self.n, self.v_set, self.k0, self.T, self.layers, self.res = pv, n, v_set, k0, P["T"], set(layers), res
+        self.hw_v = pv["ov_hw"][1] if hw_v is None else hw_v
+        self.tau_d, self.tau_i = 1 / (2 * math.pi * pv["f_div"]), 1 / (2 * math.pi * pv["fc_i"])
+        self.I0, self.E_L, self.vm, self.acc, self.v_last = 0.0, 0.0, v_set, 0.0, v_set
+        self.t_last = self.t_acc = k0 * P["T"]
+        self.t_next = k0 * P["T"] + phase + pv["T_out"]
+        self.t_cut = self.t_hwx = self.t_pcs = None
+        self.why = None
+
+    def energy(self):
+        pv = self.pv
+        i = pv["I_pk"] if self.res == "max" else self.I0 / (self.n * pv["n_cells"])
+        return self.n * pv["n_cells"] * 0.5 * pv["L"] * (1 + (pv["L_tol"] if self.res == "max" else 0.0)) * i * i
+
+    def off(self):
+        c = ([self.t_hwx + self.pv["ov_hw_us"] * 1e-6] if self.t_hwx is not None and "hw" in self.layers else []) + \
+            ([self.t_pcs + self.pv["t_ext"]] if self.t_pcs is not None and "ext" in self.layers else []) + \
+            ([self.t_line] if self.t_line is not None and "line" in self.layers else [])
+        return min(c) if c else None
+
+    def cut(self, t, why):
+        if self.t_cut is None and (self.off() is None or t < self.off()):
+            self.t_cut, self.why = t, why
+
+    def update(self, t, v):
+        dt = t - self.t_last
+        if dt <= 0:
+            return
+        e = math.exp(-dt / self.tau_d)
+        self.acc += v * dt + (self.vm - v) * self.tau_d * (1 - e)          # integral of the lagged measurement (exact, v held)
+        self.vm, self.t_last, self.v_last = v + (self.vm - v) * e, t, v
+        if self.t_hwx is None and v >= self.hw_v:
+            self.t_hwx = t
+        while t >= self.t_next - 1e-12:                                    # outer-loop evaluations of the period mean
+            mean = self.acc / max(t - self.t_acc, 1e-9)
+            self.acc, self.t_acc, self.t_next = 0.0, t, self.t_next + self.pv["T_out"]
+            if "coord" in self.layers and mean > self.v_set + self.pv["dv"]:
+                self.cut(t, "coordination row (V_B > V_B* + %.0f V)" % self.pv["dv"])
+            if "fw" in self.layers and mean >= self.pv["ov_fw"]:
+                self.cut(t, "firmware over-voltage limit %.0f V" % self.pv["ov_fw"])
+
+    def i(self, t):
+        off, v = self.off(), max(self.v_last, 1.0)
+        fr = lambda x: math.exp(-(x - self.t_cut) / self.tau_i) if self.t_cut is not None and x >= self.t_cut else 1.0  # noqa: E731
+        if off is not None and t >= off:
+            e_left, i_l = self.E_L * fr(off) ** 2, self.pv["I_pk"] * fr(off)
+            td = max(self.pv["L"] * i_l / v, 1e-7)
+            return e_left / td * math.exp(-(t - off) / td) / v
+        if self.t_cut is None:
+            return self.I0
+        return self.I0 * fr(t) + 2 * self.E_L / self.tau_i * fr(t) ** 2 / v
+
+    def __call__(self, k, X, pc):
+        if k < self.k0:
+            self.I0 = pc / X["vdc"]
+            return self.I0
+        if "ideal" in self.layers:                                         # an ideal stop at the rejection (no detection, no energy)
+            self.t_last, self.v_last = k * self.T, X["vdc"]
+            return 0.0
+        if self.E_L == 0.0:
+            self.E_L = self.energy()
+        self.update(k * self.T, X["vdc"])
+        return self.i(k * self.T)
+
+    def tail(self, t_off):
+        pv = self
+
+        class Tail:
+            def __call__(self, tau):
+                return pv.i(t_off + tau)
+
+            def advance(self, tau, v):
+                pv.update(t_off + tau, v)
+
+            @property
+            def busy(self):
+                return "ideal" not in pv.layers and pv.i(pv.t_last) > 0.05
+        return Tail()
+
+
+def dc_coupled(P, G, R, n, P_each, v_set, kC=1.0, layers=("coord", "fw", "hw", "ext"), res="max", hw=None, hw_pv=None, phase=0.0,
+               tend=0.012, t_line=None):
+    """review R3-03: one coupled PCS / PV trajectory - the PCS forming the island (VF, single module: Z_v 0, the section 7c firmware)
+    on a battery-less link fed by n PV modules (PVBus) at the CV set point v_set, an AC full-load rejection (n x P_each -> 0) at t0;
+    the link = the PCS's C_dc + the modules' port-B banks, both x kC; the PCS's DC over-voltage comparator at hw (default its band's low
+    edge: the earliest PCS trip) with the PPB, the soft limit as an outcome (a controlled stop: the island goes dark, no latch); after a
+    PCS trip the diode tail with the modules still feeding.  Returns the outcome, the times, the bus peak / end, the device and film
+    checks and the aux lock-out"""
+    pv_, t0, T = P["pv"], 0.01, P["T"]
+    Px = dict(P, Cdc=kC * (P["Cdc"] + n * pv_["C_B"]), C_half=kC * P["C_half"], C_loc=kC * (P["C_loc"] + n * pv_["C_B"]))
+    hw = P["ov_dc"][1] if hw is None else hw
+    k0 = int(round(t0 / T))
+    pv = PVBus(Px, n, v_set, k0, layers, res, hw_pv, phase, t_line)
+    Gx = dict(G, Zv=0j)
+    S, X = setup(Px, Gx, "gfm", kind="rl", RL=1.5 * P["V0"] ** 2 / (n * P_each), vdc=v_set, sec="reseed", sec_T=R["sec"]["T_s"],
+                 iclamp=P["iclamp"])
+    S.update(VFD())
+    S.update(cdc=True, src=pv)
+    X, _ = equil(Px, Gx, S, X)
+    r, Xe, tr = prot_run(Px, Gx, S, X, tend, lambda t, S_, X_: S_.update(pl=plant(Px, "nom", "nl")) if t >= t0 and S_["pl"]["kind"] != "nl"
+                         else None, hw)
+    d = dict(n=n, P_each_kW=P_each / 1e3, P_dc_kW=pv.I0 * v_set / 1e3, v_set=v_set, kC=kC, C_bus_uF=1e6 * Px["Cdc"], layers=sorted(layers),
+             res=res, hw_pcs=hw, hw_pv=pv.hw_v, phase_us=1e6 * phase, E_L_J=pv.E_L, trip=tr is not None, vmax_loop=float(r["vdc"].max()))
+    if tr:
+        pv.t_pcs = tr["t_off"]
+        tail = gates_off_tail(Px, Xe, len(r["t"]), S["pl"], 0j, isrc=pv.tail(tr["t_off"]))
+        d.update(t_pcs_ms=1e3 * (tr["t_off"] - t0), t_off_ms=1e3 * (tr["t_off"] - t0), by=tr["by"], v_off=tr["v_off"], vdc_pk=max(d["vmax_loop"], tail["vdc_pk"]),
+                 vdc_end=tail["vdc_end"], half_pk=tail["half_pk"], **trip_check(Px, tail))
+    else:
+        d.update(t_pcs_ms=None, vdc_pk=d["vmax_loop"], vdc_end=float(r["vdc"][-1]), half_pk=d["vmax_loop"] / 2, V_dev=d["vmax_loop"],
+                 dev_ok=d["vmax_loop"] <= P["pc"]["V_limit"], half_ok=d["vmax_loop"] / 2 <= 1.5 * P["U_N_half"],
+                 half_rated=d["vmax_loop"] / 2 <= P["U_N_half"], aux_lockout=float(r["vdc"][-1]) >= P["aux"]["ov"])
+    off = pv.off()
+    d.update(t_cut_ms=1e3 * (pv.t_cut - t0) if pv.t_cut is not None else None, cut_by=pv.why,
+             t_pv_off_ms=1e3 * (off - t0) if off is not None else None,
+             outcome="latched PCS trip (%s): the island goes dark" % d.get("by") if tr else
+             ("controlled stop at the PCS soft limit (%.0f V): the island goes dark, no latch" % P["ov_soft"][0]
+              if d["vdc_pk"] >= P["ov_soft"][0] else "the island rides through"))
+    d["rides"] = d["outcome"].startswith("the island rides")
+    return d
+
+
+def study_dc_coupled(P, G, R):
+    """review R3-03: the coupled PCS / PV trajectory of an AC full-load rejection on a battery-less DC bus (section 7d) - replaces the
+    ASSUMED 50 us DC/DC stop.  (a) the design (every PV protection, the external stop wired): set points 750 V, the PV row's validity
+    limit and 950 V; one module at its rated and maximum power, two modules sharing the PCS's rated and 2-min powers; the link -10 /
+    +10 %; the residual inductor energy at the cells' normal peak; both PV evaluation phases (the worse kept); the PCS comparator at its
+    band's low edge.  (b) the residual energy at the operating current (sensitivity).  (c) the largest set point the worst corner rides
+    through (bisection).  (d) an ideal PV cut at the rejection (the floor set by the PCS's own LCL energy: what a hardwired trip line
+    could at best achieve).  (e) the backstops: the coordination row absent (the PV firmware limit, its comparator, the external stop
+    wired or not) and the PV firmware dead (its comparator, the external stop), the PCS and PV comparators at their band tops.  (f) the
+    legacy 'uncoordinated' key of vf_bounded: two modules at the PCS's rated power, 750 V, nominal link, the row absent, not wired"""
+    pv = P["pv"]
+    cases = [(1, pv["P_rated"]), (1, pv["P_max"]), (2, P_N / 2), (2, pv["P_rated"])]
+    worst = lambda **kw: max((dc_coupled(P, G, R, phase=ph * P["T"], **kw) for ph in (0, 1)), key=lambda d: d["vdc_pk"])   # noqa: E731
+    main = [worst(n=n, P_each=p, v_set=v, kC=k) for v in (750.0, pv["valid"], 950.0) for n, p in cases for k in (0.9, 1.1)]
+    sens = [worst(n=n, P_each=p, v_set=750.0, kC=0.9, res="nom") for n, p in (cases[1], cases[3])]
+
+    def v_max(n, p):                                                       # the largest set point whose worst corner rides through
+        a, b = 750.0, 950.0
+        if not worst(n=n, P_each=p, v_set=a, kC=0.9)["rides"]:
+            return None
+        for _ in range(6):
+            m = (a + b) / 2
+            a, b = (m, b) if worst(n=n, P_each=p, v_set=m, kC=0.9)["rides"] else (a, m)
+        return math.floor(a)
+    vlim = {f"{n} x {p / 1e3:g} kW": v_max(n, p) for n, p in (cases[1], cases[3])}
+    ideal = [dc_coupled(P, G, R, n=n, P_each=p, v_set=v, kC=0.9, layers=("ideal",)) for v in (750.0, 950.0) for n, p in (cases[1], cases[3])]
+    line = {}                                                              # a hardwired trip line: the latest PV gates-off after the
+    for n, p in (cases[1], cases[3]):                                      # rejection that keeps the worst corner at 950 V riding through
+        a, b = 0.0, 400e-6
+        if dc_coupled(P, G, R, n=n, P_each=p, v_set=950.0, kC=0.9, layers=("line", "coord", "fw", "hw"), t_line=a)["rides"]:
+            for _ in range(7):
+                m = (a + b) / 2
+                a, b = (m, b) if dc_coupled(P, G, R, n=n, P_each=p, v_set=950.0, kC=0.9, layers=("line", "coord", "fw", "hw"),
+                                            t_line=m)["rides"] else (a, m)
+            line[f"{n} x {p / 1e3:g} kW"] = 1e6 * a
+        else:
+            line[f"{n} x {p / 1e3:g} kW"] = None
+    back = []
+    for lay, lab in ((("fw", "hw", "ext"), "coordination row absent, external stop wired"), (("fw", "hw"), "coordination row absent, not wired"),
+                     (("hw", "ext"), "PV firmware dead, external stop wired"), (("hw",), "PV firmware dead, not wired")):
+        for v in (750.0, 950.0):
+            for n, p in (cases[1], cases[3]):
+                d = dc_coupled(P, G, R, n=n, P_each=p, v_set=v, kC=0.9, layers=lay, hw=P["ov_dc"][2], hw_pv=pv["ov_hw"][1])
+                back.append(dict(d, scenario=lab))
     unc = {}
     for hw in (P["ov_dc"][1], P["ov_dc"][2]):
-        f = held(10 ** 9)
-        unc[hw], _ = stp("rl", "nl", tend=0.05, src=f, hw=hw, i_hold=None)
-        unc[hw]["i_hold_A"] = f.last[0]
-    return dict(steps=out, battery_rec=recs, cap_follow=db, e_ret_J=e_ret, t_c_max_ms=1e3 * t_c, cap_tc=dc_, cap_tc_over=dc2, p_pre_W=p_pre,
-                uncoordinated=unc,
-                envelope=A("vf_envelope")[0], itic=A("vf_envelope")[1], f_io=G["f_io"], vclamp_pu=A("vf_vclamp_pu"))
+        d = dc_coupled(P, G, R, n=2, P_each=P_N / 2, v_set=750.0, kC=1.0, layers=("fw", "hw"), hw=hw)
+        unc[hw] = dict(d, i_hold_A=d["P_dc_kW"] * 1e3 / 750.0)
+    R["vfb"]["uncoordinated"] = unc
+    v_ok = min(v for v in vlim.values() if v is not None)
+    req = ["the PV modules' coordination row (V_B > V_B* + %.0f V -> every cell's current reference to zero) is required for VF on a "
+           "battery-less bus: without it every full-load rejection trips the PCS (bus %.0f-%.0f V)" % (pv["dv"], min(d["vdc_end"] for d in back
+           if d["scenario"].startswith("coordination")), max(d["vdc_end"] for d in back if d["scenario"].startswith("coordination"))),
+           "the CV set point in VF on a battery-less bus <= %.0f V (the coupled worst corner; the PV row keeps its %.0f V as the firmware "
+           "limit with its own margin rule)" % (v_ok, pv["valid"]),
+           "the PV power on one link <= the PCS's DC power tier (one module at %.1f kW and two at the 2-min tier studied)" % (pv["P_max"] / 1e3),
+           "the external stop wiring (%.2f ms) is not needed for this event - it acts after the PV module's own limit and comparator; it "
+           "stays a general interlock" % (1e3 * pv["t_ext"]),
+           "a hardwired trip line (cost class low: an isolated digital line, a connector and a latch input, a few USD per module) is needed "
+           "only for set points above %.0f V; it must stop the modules within %s of the rejection at 950 V; not added" % (
+               v_ok, ", ".join("%s %.0f us" % (k, v) for k, v in line.items() if v)),
+           "with the PV firmware dead the bus ends at %.0f-%.0f V, above the aux's %.0f V input lock-out: dark until it bleeds down" % (
+               min(d["vdc_end"] for d in back if d["scenario"].startswith("PV firmware")),
+               max(d["vdc_end"] for d in back if d["scenario"].startswith("PV firmware")), P["aux"]["ov"])]
+    return dict(main=main, sens=sens, v_set_max=vlim, ideal=ideal, line_us_max_at_950V=line, backstop=back, uncoordinated=unc, requirements=req,
+                limits=dict(soft_V=P["ov_soft"][0], ov_band_V=list(P["ov_dc"][1:]), aux_lockout_V=P["aux"]["ov"], U_N_half_V=P["U_N_half"],
+                            film_100ms_V=1.5 * P["U_N_half"], V_limit_device=P["pc"]["V_limit"]),
+                pv=dict(pv, source="sim/out/pv_control/control_spec.json (firmware_second_layer system row, sampling, current_loop, "
+                                   "hardware_trips), sim/out/pv_design/cell_spec.json (inductor, ov_trip_costfirst), hardware/PV-CTL "
+                                   "design check (external stop), REQUIREMENTS PV-01"))
 
 
 def design_vf_ff(P, K, Kv):
@@ -2405,17 +2741,18 @@ N4, IN4, VCN4, VDN4, YIN4, YVN4 = 26, 21, 22, 23, 24, 25    # per phase p: 7p + 
 _P4 = {}
 
 
-def ph4_plant(P, loads, scr=None):
+def ph4_plant(P, loads, scr=None, cn="nom"):
     """four-wire per-phase plant, stationary frame (review R2-13): three phase legs (L1 + R_dc into C_f with the R_d-C_d branch to M,
     L2 + DM leakage to the terminal) and the N leg (L_N = the L1 part into N_F, C_fN + its branch to M); every load returns to N_F (the
     N terminal); grid-connected (scr not None): each terminal also through L_g, R_g to its source, the grid's star solid at N_F
     (ASSUMED); loads per phase: ('R', ohm) | ('open',) | ('short',) (r_sc + l_sc to N).  Discretised at T: ZOH on the four leg voltages
-    (vs M), the exact integral of the rotating grid sources"""
-    key = (loads, scr)
+    (vs M), the exact integral of the rotating grid sources; cn = a corner of corner() (the N leg the same parts: L_N = L1, C_fN = C_f)"""
+    key = (loads, scr, cn)
     if key in _P4:
         return _P4[key]
     Ac, Bu, Bg = np.zeros((N4, N4)), np.zeros((N4, 4)), np.zeros((N4, 3))
-    L1, R1, Cf, Cd, Rd, ti, tv = P["L1"], P["R1"], P["Cf"], P["Cd"], P["Rd"], P["ti"], P["tv"]
+    L1, L2c, Cf, ti, Rd, Cd = corner(P, cn)
+    R1, tv = P["R1"], P["tv"]
     if scr:
         x = P["zb"] / scr / math.hypot(1.0, A("grid_rx"))
         Rg, Lg = A("grid_rx") * x, x / P["w0"]
@@ -2423,7 +2760,7 @@ def ph4_plant(P, loads, scr=None):
         i1, vC, vD, i2, ig, yi, yv = (7 * p + j for j in range(7))
         ld = loads[p]
         Rp = ld[1] if ld[0] == "R" else A("r_sc_ohm") if ld[0] == "short" else R_OPEN
-        L2e = P["L2"] + P["Ldm"] + (A("l_sc_H") if ld[0] == "short" else 0.0)
+        L2e = L2c + (A("l_sc_H") if ld[0] == "short" else 0.0)
         Ac[i1, i1], Ac[i1, vC], Bu[i1, p] = -R1 / L1, -1 / L1, 1 / L1
         Ac[vC, i1], Ac[vC, i2], Ac[vC, vC], Ac[vC, vD] = 1 / Cf, -1 / Cf, -1 / (Rd * Cf), 1 / (Rd * Cf)
         Ac[vD, vC], Ac[vD, vD] = 1 / (Rd * Cd), -1 / (Rd * Cd)
@@ -2451,7 +2788,8 @@ def ph4_plant(P, loads, scr=None):
     return _P4[key]
 
 
-def ph4_run(P, G, t_end, loads_of, mode_of, grid_of=lambda t: None, I_ref=(0j, 0j, 0j), t_lim=None, n_ff=False, vg=None, T_dc=None):
+def ph4_run(P, G, t_end, loads_of, mode_of, grid_of=lambda t: None, I_ref=(0j, 0j, 0j), t_lim=None, n_ff=False, vg=None, T_dc=None,
+            cn="nom", rt=None):
     """four-wire per-phase simulation (review R2-13): the plant of ph4_plant switched by loads_of(t) / grid_of(t) (a half-wave load
     ('hw', ohm) resolved each sample by the sign of its phase-to-N voltage); controllers per phase, stationary frame, the blocks of
     the three-wire design applied per phase: grid forming (mode 'gfm') = the C_f-voltage PR on the phase-to-N voltage with the C_f
@@ -2463,7 +2801,11 @@ def ph4_run(P, G, t_end, loads_of, mode_of, grid_of=lambda t: None, I_ref=(0j, 0
     three phase-to-N voltages and on N_F; the per-sample clamp on all four legs; each leg within m_A V_dc/2 (mode A).  The DC link a
     battery (750 V stiff).  t_lim: the 200 ms limit timer trips (gates off, the run ends).  Bumpless GFL -> GFM: voltage PR states zero
     (the feed-forward carries the load); GFM -> GFL: the references and the h1 states from one-cycle DFTs of the present currents and
-    commands"""
+    commands.  cn: plant corner (ph4_plant).  rt (review R3-02, an option): the ride-through clamp of section 4c in grid forming, per
+    phase - entered when the phase-to-N voltage error exceeds (1 - lvrt_pu[0]) V0 (the D-079 entry depth; the four-wire counterpart of
+    |v_C| < 0.85 pu, no per-phase magnitude within one sample), held lvrt_hold_s after it is back below (1 - lvrt_pu[1]) V0; meanwhile
+    that phase's per-sample clamp sits at rt['clamp'] (the N leg's too while any phase is in the state) - for the whole state, or with
+    rt['t_on'] only for that long after the entry (the onset window), then the normal clamp"""
     T, w0, V0, Ceq, Kp = P["T"], P["w0"], P["V0"], P["Ceq"], G["K"]["Kp"]
     Ar, Br, Cr, Dr = G["K"]["res"]
     Af, Bf, Cfb, Df = G["K"]["yv"]
@@ -2477,7 +2819,8 @@ def ph4_run(P, G, t_end, loads_of, mode_of, grid_of=lambda t: None, I_ref=(0j, 0
     io, yvp, xdc = np.zeros(4), np.zeros(4), np.zeros(4)
     buf, bsum = np.zeros((4, ncyc)), np.zeros(4)
     Iref, mode, tl, k_lim = list(I_ref), None, 0.0, -10 ** 9
-    rec = {k: np.zeros(n) for k in ("t", "va", "vb", "vc", "vn", "ia", "ib", "ic", "iN", "da", "dn", "lim", "vcl")}
+    rec = {k: np.zeros(n) for k in ("t", "va", "vb", "vc", "vn", "ia", "ib", "ic", "iN", "da", "db", "dc", "dn", "lim", "vcl", "rt")}
+    lvt, t_in = np.zeros(3), np.full(3, -1.0)
     hist_u, hist_i, hist_f = np.zeros((4, ncyc)), np.zeros((4, ncyc)), np.zeros((4, ncyc))
     trip = None
     for k in range(n):
@@ -2485,7 +2828,7 @@ def ph4_run(P, G, t_end, loads_of, mode_of, grid_of=lambda t: None, I_ref=(0j, 0
         ld = loads_of(t)
         yv_all = np.array([x[7 * p + 6] for p in range(3)] + [x[YVN4]])
         hw = tuple(("R", l[1]) if l[0] == "hw" and yv_all[p] - yv_all[3] > 0 else ("open",) if l[0] == "hw" else l for p, l in enumerate(ld))
-        pl = ph4_plant(P, hw, grid_of(t))
+        pl = ph4_plant(P, hw, grid_of(t), cn)
         yi_all = np.array([x[7 * p + 5] for p in range(3)] + [x[YIN4]])
         m_new = mode_of(t)
         if m_new != mode and mode is not None:
@@ -2519,6 +2862,11 @@ def ph4_run(P, G, t_end, loads_of, mode_of, grid_of=lambda t: None, I_ref=(0j, 0
             if q == 3 or mode == "gfm":                         # voltage cascade (the N leg always; the phases when grid forming)
                 vr = (V0 * math.cos(th) if q < 3 else 0.0) - xdc[q]
                 e = vr - (y_v - (yv_all[3] if q < 3 else 0.0))
+                if rt and q < 3:                               # ride-through state per phase (option, review R3-02)
+                    was = lvt[q] > 0
+                    lvt[q] = (A("lvrt_hold_s") if abs(e) > (1 - A("lvrt_pu")[0]) * V0 else lvt[q] if abs(e) > (1 - A("lvrt_pu")[1]) * V0
+                              else max(0.0, lvt[q] - T))
+                    t_in[q] = t if lvt[q] > 0 and not was else t_in[q]
                 iu = Kpv * e + Cv @ xv[q] + Dv * e + ((io[q] - Ceq * V0 * w0 * math.sin(th)) if q < 3 else   # N leg: the 9b cascade
                                                       (-io[0] - io[1] - io[2] if n_ff else 0.0))       # + the phases' load currents
                 ir = max(-ilim, min(ilim, iu))
@@ -2538,7 +2886,9 @@ def ph4_run(P, G, t_end, loads_of, mode_of, grid_of=lambda t: None, I_ref=(0j, 0
                 uu = Kp * e + Cr @ xr[q] + Dr * e + ff
             ip = y_i + (d[q] - vq) * T / L                     # per-sample clamp (section 4b), each leg, on the divider-inverted
             i2 = ip + (uu - vq) * T / L                        # C_f voltage (the section 4c firmware)
-            uc = uu + (math.copysign(Ic, i2) - i2) * L / T if abs(i2) > Ic else uu
+            on = (lvt > 0) & (t - t_in < rt.get("t_on", math.inf)) if rt else None     # the clamp level for the onset window only (option)
+            Iq = rt["clamp"] if rt and (on[q] if q < 3 else on.any()) else Ic
+            uc = uu + (math.copysign(Iq, i2) - i2) * L / T if abs(i2) > Iq else uu
             u[q] = max(-umax, min(umax, uc))
             if q < 3 and mode == "gfl":
                 xr[q] = Ar @ xr[q] + Br * (e + (u[q] - uu) / Kp)
@@ -2552,7 +2902,7 @@ def ph4_run(P, G, t_end, loads_of, mode_of, grid_of=lambda t: None, I_ref=(0j, 0
         rec["t"][k], rec["vn"][k], rec["iN"][k], rec["dn"][k], rec["lim"][k], rec["vcl"][k] = t, vn, x[IN4], d[3], lim_any, vcl_any
         for p, (kv, ki) in enumerate((("va", "ia"), ("vb", "ib"), ("vc", "ic"))):
             rec[kv][k], rec[ki][k] = x[7 * p + 1] - vn, x[7 * p]
-        rec["da"][k] = d[0]
+        rec["da"][k], rec["db"][k], rec["dc"][k], rec["rt"][k] = d[0], d[1], d[2], lvt.max() > 0
         if t_lim and tl > t_lim:
             trip = t
             rec = {key: v[:k + 1] for key, v in rec.items()}
@@ -2570,6 +2920,66 @@ def cyc_amp(P, t, v):
     return out
 
 
+def trip_replay(P, r, t0, dt=0.25e-6):
+    """review R3-02: the two hardware current layers replayed on their own signals for a four-wire record of ph4_run (phases a, b, c
+    and the N leg; the DC link a battery at 750 V), from t0 to the end of the record.  The true leg current = the averaged current
+    (linear between the period ends) + the PWM ripple, a triangle at f_sw that is zero at the sampling instants (the regular-sampled
+    average), peak-to-peak from the leg command at 750 V on the -10 % L1 part ('run') or the largest of the operating window, V_dc
+    at its top on the -10 % part ('max').  The sensor = a pure delay plus its bandwidth's lag making up its step response (typical or
+    maximum), then the PV-PWR RC and the comparator-node RC (pcs_spec protection_chain).  Window: TLV9024 on the node, both
+    directions, threshold at its band corner, then the comparator, logic, driver and turn-off as pure delays.  CMPSS: the node through
+    the TLV9064 / IL_RC lag, threshold at the DAC band corner, the qualification (digital filter) and the trip path in the rest of the
+    board's chain (PCS-CTL check).  Per corner the earliest qualified trip over the four legs and both layers decides; the gates-off
+    current is the true current then"""
+    ch, T, fsw, V = P["chain"], P["T"], P["fsw"], 750.0
+    ts = r["t"] + T                                                   # the recorded states are the ends of the control periods
+    k0 = max(int(np.searchsorted(ts, t0 - 50e-6)) - 1, 0)
+    tf = np.arange(ts[k0], ts[-1], dt)
+    lag = lambda x, tau: lfilter([1 - math.exp(-dt / tau)], [1, -math.exp(-dt / tau)], x, zi=[x[0] * math.exp(-dt / tau)])[0]  # noqa: E731
+    delay = lambda x, td: np.concatenate([np.full(int(round(td / dt)), x[0]), x])[:len(x)]                                  # noqa: E731
+    tau_bw = 1e6 / (2 * math.pi * ch["sens_bw_Hz"])                   # us
+    legs = {"a": ("ia", "da"), "b": ("ib", "db"), "c": ("ic", "dc"), "N": ("iN", "dn")}
+    tri = 2 / math.pi * np.arcsin(np.sin(math.pi * tf / T))           # period 2 T = 1 / f_sw, zero at every sampling instant
+    thr = dict(window=(P["win"]["lo"], P["win"]["nom"], P["win"]["hi"]), cmpss=(P["cmpss"]["lo"], P["cmpss"]["nom"], P["cmpss"]["hi"]))
+    pure = dict(window=ch["total"] - ch["sensor"] - ch["board"] - ch["node"],
+                cmpss=ch["cmpss_total"] - ch["sensor"] - ch["board"] - ch["node"] - ch["il_rc"])
+    v_top, pp_max = P["vf_vdc"][2], P["vf_vdc"][2] / (4 * P["L1_lo"] * fsw)
+    first, peak = {}, {}                                              # first crossing time per (variant, leg, layer, threshold); peaks
+    for leg, (ki, kd) in legs.items():
+        i_avg = np.interp(tf, ts, r[ki])
+        d = np.interp(tf, ts, r[kd])
+        for rp in ("run", "max"):
+            pp = np.clip((V * V / 4 - d * d) / (V * P["L1_lo"] * fsw), 0.0, None) if rp == "run" else pp_max
+            i = i_avg + pp / 2 * tri
+            for sn in ("typ", "max"):
+                x = lag(delay(i, (ch["sens_" + sn] - tau_bw) * 1e-6), tau_bw * 1e-6)
+                node = lag(lag(x, ch["board"] * 1e-6), ch["node"] * 1e-6)
+                for layer, y in (("window", np.abs(node)), ("cmpss", np.abs(lag(node, ch["il_rc"] * 1e-6)))):
+                    peak[rp, sn, leg, layer] = float(y.max())
+                    for j, th in enumerate(thr[layer]):
+                        hit = np.argmax(y >= th)
+                        if y[hit] >= th:
+                            t_off = tf[hit] + pure[layer] * 1e-6
+                            first[rp, sn, leg, layer, j] = (t_off, float(abs(np.interp(t_off, tf, i))))
+    rows = []
+    for rp in ("run", "max"):
+        for sn in ("typ", "max"):
+            for jw, jc, lab in ((0, 0, "both low"), (0, 2, "window low, CMPSS high"), (2, 0, "window high, CMPSS low"), (2, 2, "both high"),
+                                (1, 1, "both nominal")):
+                hits = [(v[0], v[1], layer, leg) for (rp_, sn_, leg, layer, j), v in first.items()
+                        if rp_ == rp and sn_ == sn and j == (jw if layer == "window" else jc)]
+                b = min(hits) if hits else None
+                rows.append(dict(ripple=rp, sensor=sn, thresholds=lab, window_A=thr["window"][jw], cmpss_A=thr["cmpss"][jc],
+                                 trip=b is not None, layer=b[2] if b else None, leg=b[3] if b else None, t_us=1e6 * (b[0] - t0) if b else None,
+                                 I_off=b[1] if b else None, sensed_pk=max(v for (rp_, sn_, _, _), v in peak.items() if rp_ == rp and sn_ == sn),
+                                 margin_A=min(thr[layer][jw if layer == "window" else jc] - v for (rp_, sn_, _, layer), v in peak.items()
+                                              if rp_ == rp and sn_ == sn)))
+    trips = [x for x in rows if x["trip"]]
+    return dict(rows=rows, pure_us=pure, tau_bw_us=tau_bw, pp_max_A=pp_max, v_top=v_top, any_trip=bool(trips), min_margin_A=min(x["margin_A"] for x in rows),
+                trip_corners=[f"{x['thresholds']}, sensor {x['sensor']}, ripple {x['ripple']}" for x in trips],
+                I_off_max=max((x["I_off"] for x in trips), default=None), t_first_us=min((x["t_us"] for x in trips), default=None))
+
+
 def study_four_wire(P, G):
     """review R2-13: the coupled four-wire cases the per-phase averaged model can carry (ph4_run; the DC link a battery at 750 V,
     mode A): (1) a 100 % unbalanced step in grid forming (rated resistive load phase a to N, b and c open), with and without the
@@ -2579,7 +2989,7 @@ def study_four_wire(P, G):
     (each phase's current = its local load: no exchange) and with balanced 125 kW export (phases b and c rejected); (5) GFM -> GFL:
     the island with the phase-a load closed onto the SCR 10 grid at the permissive edge, then grid following"""
     T, V0, zb, w0 = P["T"], P["V0"], P["zb"], P["w0"]
-    rp, lo = P["ripple_pp"] / 2, P["win"]["lo"]
+    rp, lo = P["ripple_pp"] / 2, P["trip_lo"]
     R_hw = V0 / P["fw4"]["hw_pk_A"]
 
     def summ(rec, t0, extra=None):
@@ -2601,12 +3011,13 @@ def study_four_wire(P, G):
         return d
     out, t0 = {}, 0.1
     open3, bal = (("open",),) * 3, (("R", zb),) * 3
+    rto = dict(clamp=P["lvrt_ilim"] + A("iclamp_margin_A"), t_on=A("rt4_onset_s"))      # the onset clamp (review R3-02), in every case
     for nff in (False, True):
-        r, _ = ph4_run(P, G, 0.3, lambda t: (("R", zb) if t >= t0 else ("open",), ("open",), ("open",)), lambda t: "gfm", n_ff=nff)
+        r, _ = ph4_run(P, G, 0.3, lambda t: (("R", zb) if t >= t0 else ("open",), ("open",), ("open",)), lambda t: "gfm", n_ff=nff, rt=rto)
         out["100 % unbalanced step (phase a rated, b / c open)" + (", N-leg feed-forward option" if nff else "")] = summ(r, t0)
     ncy = int(round(P["fs"] / F0))
     for Tdc in (A("dc_reg_T_s"), 0.2):
-        r, _ = ph4_run(P, G, 0.8, lambda t: (("hw", R_hw) if t >= t0 else ("open",), ("open",), ("open",)), lambda t: "gfm", T_dc=Tdc)
+        r, _ = ph4_run(P, G, 0.8, lambda t: (("hw", R_hw) if t >= t0 else ("open",), ("open",), ("open",)), lambda t: "gfm", T_dc=Tdc, rt=rto)
         hw = summ(r, t0)
         k0, k1 = int(round(t0 / T)), int(round(0.6 / T))
         ma = np.convolve(r["va"], np.ones(ncy) / ncy, "valid")
@@ -2615,24 +3026,62 @@ def study_four_wire(P, G):
                   dc_limit_V=P["fw4"]["half_wave"]["dc_component_limit_V"], t_dc_ms=1e3 * T * (bad[-1] + 1) if len(bad) else 0.0,
                   vn_dc_end_V=float(np.mean(r["vn"][k1:])), I_dc=float(-np.mean(r["iN"][k1:])))
         out["half-wave load step (phase a, %.0f A peak declared), DC regulators T %g s" % (P["fw4"]["hw_pk_A"], Tdc)] = hw
-    r, trip = ph4_run(P, G, t0 + 0.3, lambda t: (("short",) if t >= t0 else ("R", zb), ("R", zb), ("R", zb)), lambda t: "gfm", t_lim=A("t_lim_s"))
-    sh = summ(r, t0)
+    short = lambda t: (("short",) if t >= t0 else ("R", zb), ("R", zb), ("R", zb))       # noqa: E731
     kh = int(round((t0 + 0.05) / T))
-    sh.update(trip_ms=1e3 * (trip - t0) if trip else None, ia_hold=float(np.max(np.abs(r["ia"][kh:]))), iN_hold=float(np.max(np.abs(r["iN"][kh:]))),
-              vb_amp=float(np.nanmin(cyc_amp(P, r["t"], r["vb"])[kh:])), vc_amp=float(np.nanmin(cyc_amp(P, r["t"], r["vc"])[kh:])))
+    sp4 = []                                                     # review R3-02: both hardware layers replayed on three firmware variants
+    for mech, rtx in ((f"D-079 firmware (per-sample clamp {P['iclamp']:.0f} A on every leg)", None),
+                      (f"ride-through clamp {rto['clamp']:.0f} A held for the whole ride-through state (rejected)", dict(clamp=rto["clamp"])),
+                      (f"ride-through clamp {rto['clamp']:.0f} A for the {1e3 * rto['t_on']:.0f} ms onset window (ADOPTED)", rto)):
+        for cn in ("nom", "low"):
+            r, trip = ph4_run(P, G, t0 + 0.3, short, lambda t: "gfm", t_lim=A("t_lim_s"), cn=cn, rt=rtx)
+            rep = trip_replay(P, r, t0)
+            k0 = int(round(t0 / T))
+            sp4.append(dict(firmware=mech, corner=cn, adopted=rtx is rto, replay=rep, fw_trip_ms=1e3 * (trip - t0) if trip else None,
+                            first_ms_A={k: float(np.max(np.abs(r[k][k0:k0 + int(round(1e-3 / T))]))) + rp for k in ("ia", "ib", "ic", "iN")},
+                            hold_A={k: float(np.max(np.abs(r[k][kh:]))) for k in ("ia", "ib", "ic", "iN")},
+                            healthy_pu=min(float(np.nanmin(cyc_amp(P, r["t"], r[k])[kh:])) for k in ("vb", "vc")),
+                            healthy_max_pu=max(float(np.nanmax(cyc_amp(P, r["t"], r[k])[kh:])) for k in ("vb", "vc"))))
+            if rtx is rto and cn == "nom":
+                sh = summ(r, t0)
+                sh.update(trip_ms=1e3 * (trip - t0) if trip else None, ia_hold=float(np.max(np.abs(r["ia"][kh:]))),
+                          iN_hold=float(np.max(np.abs(r["iN"][kh:]))), vb_amp=float(np.nanmin(cyc_amp(P, r["t"], r["vb"])[kh:])),
+                          vc_amp=float(np.nanmin(cyc_amp(P, r["t"], r["vc"])[kh:])))
     out["line-to-neutral short phase a from rated balanced load"] = sh
+    side = {}                                                    # the adopted onset clamp's effect on the other four-wire steps
+    for name, lo_, te in (("100 % unbalanced step", lambda t: (("R", zb) if t >= t0 else ("open",), ("open",), ("open",)), 0.3),
+                          ("half-wave load step", lambda t: (("hw", R_hw) if t >= t0 else ("open",), ("open",), ("open",)), 0.5)):
+        for lab, rtx in (("D-079 firmware", None), ("clamp held for the state (rejected)", dict(clamp=rto["clamp"])), ("adopted", rto)):
+            r, _ = ph4_run(P, G, te, lo_, lambda t: "gfm", rt=rtx)
+            s_ = summ(r, t0)
+            side[f"{name}, {lab}"] = dict(i_pk=s_["i_pk"], amp_min=min(s_[x]["amp_min"] for x in ("va", "vb", "vc")),
+                                          amp_max=max(s_[x]["amp_max"] for x in ("va", "vb", "vc")), vn_pk=s_["vn_pk"])
     t1 = t0 + 0.05
     for name, Ir in (("planned (phase a supplies its load, no exchange)", (V0 / zb, 0j, 0j)), ("125 kW balanced export (b, c rejected)",
                      (P["I_rated"] + 0j,) * 3)):
         r, _ = ph4_run(P, G, t1 + 0.15, lambda t: (("R", zb), ("open",), ("open",)), lambda t: "gfl" if t < t1 - 0.01 else "gfm",
-                       grid_of=lambda t: 10.0 if t < t1 else None, I_ref=Ir)
+                       grid_of=lambda t: 10.0 if t < t1 else None, I_ref=Ir, rt=rto)
         out["GFL -> GFM islanding at SCR 10, local load phase a, " + name] = summ(r, t1 - 0.01)
     dV, dth = P["sync"][0] / 100, math.radians(P["sync"][1])
     t2 = t0 + 0.05
     r, _ = ph4_run(P, G, t2 + 0.2, lambda t: (("R", zb), ("open",), ("open",)), lambda t: "gfm" if t < t2 + 0.02 else "gfl",
-                   grid_of=lambda t: 10.0 if t >= t2 else None, vg=V0 * (1 + dV) * cx(dth))
+                   grid_of=lambda t: 10.0 if t >= t2 else None, vg=V0 * (1 + dV) * cx(dth), rt=rto)
     out["GFM -> GFL: close onto SCR 10 at the permissive edge, phase-a load, then grid following"] = summ(r, t2)
-    return dict(cases=out, R_hw=R_hw, m_A=P["fw4"]["m_A"], dc_reg_T_s=A("dc_reg_T_s"), t_lim_s=A("t_lim_s"))
+    lowest = min(P["win"]["lo"], P["cmpss"]["lo"])
+    ad = [d for d in sp4 if d["adopted"]]
+    return dict(cases=out, R_hw=R_hw, m_A=P["fw4"]["m_A"], dc_reg_T_s=A("dc_reg_T_s"), t_lim_s=A("t_lim_s"),
+                short_protection=dict(variants=sp4, side_effects=side, onset_clamp=rto, lowest_edge_A=lowest,
+                                      declared_outcome="a bolted output short in four-wire grid forming: ridden for the firmware's 200 ms at "
+                                                       "the 200 ms tier (the onset clamp keeps every studied corner off both hardware layers), "
+                                                       "then the firmware trip -> FAULT",
+                                      on_hardware_trip="a unit whose layers sit outside the modelled bands trips in hardware instead: gates "
+                                                       "off within the protection chain (far below the ceiling), the latch holds, FAULT; no "
+                                                       "automatic clear after an over-current trip (the latch-clear row); a restart by command "
+                                                       "into a persisting short trips again; the third hazard trip of a class within 10 min -> "
+                                                       "LOCKOUT (ASSUMED, the firmware-practice row)",
+                                      chain=dict(P["chain"], pure_us=sp4[0]["replay"]["pure_us"], tau_bw_us=sp4[0]["replay"]["tau_bw_us"]),
+                                      d079_trips=[f"{d['corner']}: {c}" for d in sp4 if d["firmware"].startswith("D-079") for c in d["replay"]["trip_corners"]],
+                                      adopted_any_trip=any(d["replay"]["any_trip"] for d in ad),
+                                      adopted_margin_A=min(d["replay"]["min_margin_A"] for d in ad)))
 
 
 # ---------------------------------------------------------------------------------------------------------- 7. firmware
@@ -2684,17 +3133,23 @@ def isr_budget(P, K):
     return tasks, out
 
 
-SM_STATES = ("IDLE", "PRECHARGE", "SYNC", "GFL", "GFM", "STOP", "FAULT", "SERVICE",
-             "AC_TEST", "AC_PRECHARGE", "AC_CLOSE_K2", "AC_CLOSE_K1", "RECTIFY", "DC_MATCH", "AC_STOP", "RETRY_WAIT", "LOCKOUT")  # R2-14
+SM_STATES = ("IDLE", "PRECHARGE", "SYNC", "SYNC_CLOSE_K2", "SYNC_CLOSE_K1", "GFL", "GFM", "STOP", "FAULT", "SERVICE",    # R3-01: the
+             "AC_TEST", "AC_PRECHARGE", "AC_CLOSE_K2", "AC_CLOSE_K1", "RECTIFY", "DC_MATCH", "AC_STOP", "RETRY_WAIT", "LOCKOUT")  # sync close
 SM_OUT6 = {"IDLE": (0, 0, 0, 0, 0, 0), "PRECHARGE": (0, 0, 1, 0, 0, 0), "SYNC": (1, 0, 0, 1, 0, 0), "GFL": (1, 0, 0, 1, 1, 1),
+           "SYNC_CLOSE_K2": (1, 0, 0, 1, 1, 0), "SYNC_CLOSE_K1": (1, 0, 0, 1, 1, 1),        # review R3-01: one coil at a time, SYNC's PWM / K_DC
            "GFM": (1, 0, 0, 1, 1, 1), "STOP": (1, 0, 0, 1, 1, 1), "FAULT": (0, 0, 0, 0, 0, 0), "SERVICE": (0, 0, 0, 0, 0, 0),
            "AC_TEST": (0, 0, 0, 0, 0, 0), "AC_PRECHARGE": (0, 1, 0, 0, 0, 0), "AC_CLOSE_K2": (0, 0, 0, 0, 1, 0),
            "AC_CLOSE_K1": (0, 0, 0, 0, 1, 1), "RECTIFY": (1, 0, 0, 0, 1, 1), "DC_MATCH": (1, 0, 1, 0, 1, 1), "AC_STOP": (1, 0, 0, 0, 1, 1),
            "RETRY_WAIT": (0, 0, 0, 0, 0, 0), "LOCKOUT": (0, 0, 0, 0, 0, 0)}         # PWM, K_ACPRE, K_PRE, K_DC, K_AC2, K_AC1
 SM_OUT = {k: (v[0], v[2], v[3], int(v[4] and v[5])) for k, v in SM_OUT6.items()}   # PWM, K_PRE, K_DC, K_AC1+2 (the earlier key)
 SM_T = {("IDLE", "start"): "PRECHARGE", ("IDLE", "service"): "SERVICE", ("PRECHARGE", "precharged"): "SYNC",
-        ("PRECHARGE", "timeout"): "FAULT", ("PRECHARGE", "stop"): "IDLE", ("SYNC", "synced_grid"): "GFL",
-        ("SYNC", "dead_bus"): "GFM", ("SYNC", "relay_fail"): "FAULT", ("SYNC", "stop"): "IDLE",
+        ("PRECHARGE", "timeout"): "FAULT", ("PRECHARGE", "stop"): "IDLE", ("SYNC", "synced_grid"): "SYNC_CLOSE_K2",
+        ("SYNC", "dead_bus"): "SYNC_CLOSE_K2", ("SYNC", "relay_fail"): "FAULT", ("SYNC", "stop"): "IDLE",
+        # review R3-01: the synchronised close, K2 then K1 (as first specified SYNC commanded both coils at once: 54.9 / 58.2 W live peak)
+        ("SYNC_CLOSE_K2", "k2_settled"): "SYNC_CLOSE_K1", ("SYNC_CLOSE_K2", "no_permissive"): "SYNC", ("SYNC_CLOSE_K2", "welded"): "LOCKOUT",
+        ("SYNC_CLOSE_K2", "stop"): "IDLE", ("SYNC_CLOSE_K1", "k1_settled"): "GFL", ("SYNC_CLOSE_K1", "k1_settled_dead_bus"): "GFM",
+        ("SYNC_CLOSE_K1", "no_permissive"): "SYNC", ("SYNC_CLOSE_K1", "stuck_open"): "SYNC", ("SYNC_CLOSE_K1", "stop"): "STOP",
+        ("SYNC", "attempts_out"): "LOCKOUT",
         ("GFL", "island_cmd"): "GFM", ("GFM", "gfl_cmd"): "GFL", ("GFL", "grid_out"): "STOP", ("GFM", "grid_out"): "GFM",
         ("GFL", "stop"): "STOP", ("GFM", "stop"): "STOP", ("GFL", "limit_timeout"): "STOP", ("GFM", "limit_timeout"): "STOP",
         ("STOP", "stopped"): "IDLE", ("FAULT", "clear"): "IDLE", ("SERVICE", "exit"): "IDLE",
@@ -2727,14 +3182,15 @@ def verify_sm():
     inv = {"I1 hw_trip and fw_trip lead to FAULT from every state but LOCKOUT (which they leave in place)": all(
                nxt(s, "hw_trip") == nxt(s, "fw_trip") == ("LOCKOUT" if s == "LOCKOUT" else "FAULT") for s in SM_STATES),
            "I2 FAULT, LOCKOUT, RETRY_WAIT, IDLE: everything off": all(not any(O[s]) for s in ("FAULT", "LOCKOUT", "RETRY_WAIT", "IDLE")),
-           "I3 the AC power path (K_AC1 and K_AC2) forms only out of SYNC on a permissive or out of AC_CLOSE_K2 on 'k2_settled'": all(
+           "I3 the AC power path (K_AC1 and K_AC2) forms only out of SYNC_CLOSE_K2 or AC_CLOSE_K2 on 'k2_settled' (K2 held, K1 added)": all(
                not (O[nxt(s, e)][4] and O[nxt(s, e)][5] and not (O[s][4] and O[s][5])) or (s, e) in
-               (("SYNC", "synced_grid"), ("SYNC", "dead_bus"), ("AC_CLOSE_K2", "k2_settled")) for s, e in pairs),
+               (("SYNC_CLOSE_K2", "k2_settled"), ("AC_CLOSE_K2", "k2_settled")) for s, e in pairs),
            "I4 the DC contactor closes only out of PRECHARGE / DC_MATCH on 'precharged' or RECTIFY on 'dc_matched'": all(
                not closes(s, e, 3) or (s, e) in (("PRECHARGE", "precharged"), ("DC_MATCH", "precharged"), ("RECTIFY", "dc_matched"))
                for s, e in pairs),
-           "I5 PWM only in SYNC, GFL, GFM, STOP, RECTIFY, DC_MATCH, AC_STOP": all(
-               O[s][0] == (s in ("SYNC", "GFL", "GFM", "STOP", "RECTIFY", "DC_MATCH", "AC_STOP")) for s in SM_STATES),
+           "I5 PWM only in SYNC, SYNC_CLOSE_K2 / K1, GFL, GFM, STOP, RECTIFY, DC_MATCH, AC_STOP": all(
+               O[s][0] == (s in ("SYNC", "SYNC_CLOSE_K2", "SYNC_CLOSE_K1", "GFL", "GFM", "STOP", "RECTIFY", "DC_MATCH", "AC_STOP"))
+               for s in SM_STATES),
            "I6 FAULT is left only by 'clear' (or a brown-out reset), to IDLE": all(
                nxt("FAULT", e) == "FAULT" or (e in ("clear", "brownout") and nxt("FAULT", e) == "IDLE") for e in SM_EVENTS),
            "I9 K_ACPRE only in AC_PRECHARGE, with K_PRE, K_DC, K_AC1 and K_AC2 open": all(
@@ -2742,10 +3198,14 @@ def verify_sm():
            "I10 K_ACPRE and K_DC never commanded together": all(not (O[s][1] and O[s][3]) for s in SM_STATES),
            "I11 LOCKOUT is left only by 'reset', to IDLE (trips and brown-outs leave it)": all(
                nxt("LOCKOUT", e) == "LOCKOUT" or (e == "reset" and nxt("LOCKOUT", e) == "IDLE") for e in SM_EVENTS),
-           "I12 no transition closes both AC contactors at once (one coil at a time: K2, then K1)": all(
-               not (closes(s, e, 4) and closes(s, e, 5)) for s, e in pairs if s not in ("SYNC",)),
+           "I12 no transition closes both AC contactors at once (one coil at a time: K2, then K1; unconditional, review R3-01)": all(
+               not (closes(s, e, 4) and closes(s, e, 5)) for s, e in pairs),
            "I13 the AC precharge relay opens before any AC contactor closes": all(
-               not ((closes(s, e, 4) or closes(s, e, 5)) and O[nxt(s, e)][1]) for s, e in pairs)}
+               not ((closes(s, e, 4) or closes(s, e, 5)) and O[nxt(s, e)][1]) for s, e in pairs),
+           "I14 the synchronised-close substates keep SYNC's PWM and DC contactor (PWM and K_DC on, K_ACPRE and K_PRE off)": all(
+               (O[s][0], O[s][3]) == (O["SYNC"][0], O["SYNC"][3]) and not O[s][1] and not O[s][2] for s in ("SYNC_CLOSE_K2", "SYNC_CLOSE_K1")),
+           "I15 a lost closing permissive releases both AC coils": all(
+               not O[nxt(s, "no_permissive")][4] and not O[nxt(s, "no_permissive")][5] for s in SM_STATES if (s, "no_permissive") in SM_T)}
 
     def reach(a):
         seen, todo = {a}, [a]
@@ -2762,6 +3222,8 @@ def verify_sm():
 
 
 SM_RELAY_T = {"K_ACPRE": (0.02, 0.01), "K_PRE": (0.02, 0.01), "K_B": (0.05, 0.01), "K2": (0.10, 0.05), "K1": (0.10, 0.05)}
+SM_SETTLE_S = SM_RELAY_T["K1"][0] + 0.1      # 'settled' = the AC coil's pull-in window (ASSUMED 100 ms) + 100 ms (PCS-CTL coil sequencing
+#                                              row); the AC start and the DC-start synchronised close (review R3-01) use the same criterion
 
 
 SM_FIXES = {"H1": "the relay test of K1 / K2 after the AC precharge, onto the precharged link (as first specified (D-074, before the H1-H5 repairs of D-079) it runs on the dead link: a "
@@ -2986,7 +3448,7 @@ def sm_exec(P, fault=None, at="start", fixes=frozenset(SM_FIXES), vbat=750.0, vl
                         fw.update(k=2, t=0.0)
                     else:
                         go("RETRY_WAIT", "no closing permissive")
-                elif k == 2 and ti >= 0.2:
+                elif k == 2 and ti >= SM_SETTLE_S:
                     go("AC_CLOSE_K1")
             elif st == "AC_CLOSE_K1":
                 if fw["k"] == 0:
@@ -2996,7 +3458,7 @@ def sm_exec(P, fault=None, at="start", fixes=frozenset(SM_FIXES), vbat=750.0, vl
                     else:
                         cmd(K2=0)
                         go("RETRY_WAIT", "no closing permissive")
-                elif ti >= 0.2:
+                elif ti >= SM_SETTLE_S:
                     if VC >= 0.85 * vg and vg > 0:
                         pwm = True
                         go("RECTIFY")
@@ -3072,6 +3534,274 @@ def study_sm(P):
                 residual=sorted({b for r in rows for b in r["breach_fixed"]}))
 
 
+SYNC_D079 = {("SYNC", "synced_grid"): "GFL", ("SYNC", "dead_bus"): "GFM"}      # the transitions as first specified (D-079 table)
+
+
+def sync_exec(P, start="grid", fault=None, at="start", seq="repaired", t_end=200.0, dt=5e-3):
+    """review R3-01: the DC-start synchronised close executed at the slow-task rate against a plant, with fault injection.  start: 'grid'
+    (SYNC -> GFL) or 'dead_bus' (SYNC -> GFM, black start).  seq: 'as first specified' (SYNC commands both AC coils at once on the
+    permissive: the D-079 table, SYNC_D079) or 'repaired' (SYNC_CLOSE_K2 -> settled -> SYNC_CLOSE_K1 -> GFL / GFM, the permissive
+    re-checked at each coil command and at every tick of the settle wait, a stuck or slow contactor released and retried within the
+    attempt rule of pcs_spec ac_start, counted across resets as H5).  Before SYNC: the relay test, K2 alone then K1 alone (grid start:
+    gates idle, VC must stay dead; dead bus: v_C formed, VG must stay dead).  Plant: K_DC held on the battery (the DC start after
+    PRECHARGE, V_dc 750 V above the DC closing permissive), the module synchronising its v_C to the grid (sync_close ASSUMED), the grid
+    (present, lost, back after 5 s, a phase jump) or for the dead bus no source (or a foreign one appearing), K1 / K2 with SM_RELAY_T
+    and injected weld / stuck / slow pull-in, the live 24 V draw from the coil contract on the build's base (pcs_spec aux_budget: gates
+    idle or switching, K_DC held, each AC coil at pull-in for t_pull after its energisation, then hold).  Safety checks every tick: S5
+    live draw above the live peak allocation, S6 the AC path formed outside the closing permissive (grid start: grid absent or |dV|,
+    |dtheta|, |df| outside; dead bus: a source on the bus), S7 the path still formed after the sequence released both coils.  A
+    module that reaches GFL / GFM is stopped after t_run (the opening exercises a welded contact); S8 running with the path not formed.
+    Faults strike at the entry of state
+    `at` ('start' = before the relay test)."""
+    sc, cl, a = A("sync_close"), P["coil"], P["acs"]
+    dv_max, dth_max, n_try, t_sp = P["sync"][0] / 100, P["sync"][1], int(a["retry"][0]), a["retry"][1]
+    rt = {"K1": [*SM_RELAY_T["K1"]], "K2": [*SM_RELAY_T["K2"]]}
+    rl = {k: dict(cmd=0, act=0, tc=-1.0, ton=-1e9, f=None) for k in rt}
+    grid = start == "grid"
+    pl = dict(g=1.0 if grid else 0.0, back_at=None, src=False, jump=0.0, t_sync=0.0)
+    fw = dict(s="OFF", t=0.0, k=0, att=0, last=-1e9, why="")
+    trace, breach, injected, pwm, kdc = [], set(), set(), False, True
+    pk = {b: 0.0 for b in cl["base_pwm"]}
+    if fault == "weld:K1" and at == "start":
+        rl["K1"].update(act=1, f="weld")
+    t, out, joined_was, formed = 0.0, None, False, False
+
+    def cmd(**kw):
+        for k, v in kw.items():
+            if rl[k]["cmd"] != v:
+                rl[k].update(cmd=v, tc=t)
+                if v:
+                    rl[k]["ton"] = t
+
+    def go(s_, why=""):
+        fw.update(s=s_, t=0.0, k=0)
+        trace.append((round(t, 3), s_, why))
+        if why:
+            fw["why"] = why
+        if fault and at == s_ and s_ not in injected:
+            injected.add(s_)
+            if fault == "weld:K1":                                 # closes and welds now (after the relay test)
+                rl["K1"].update(act=1, f="weld")
+            elif fault == "weld:K2":                               # welds at its next opening
+                rl["K2"]["f"] = "weld"
+            elif fault.startswith("stuck:"):
+                rl[fault[6:]]["f"] = "stuck"
+            elif fault == "slow:K1":
+                rt["K1"][0] = sc["slow_pull_s"]
+            elif fault == "lost":
+                if grid:
+                    pl["g"] = 0.0
+                else:
+                    pl["src"] = True
+            elif fault == "lost_5s":
+                pl["g"], pl["back_at"] = 0.0, t + 5.0
+            elif fault == "jump":
+                pl["jump"] = sc["jump_deg"]
+            elif fault == "stop":
+                fw["stop"] = True
+
+    def errs():                                                    # the module's synchronisation errors (grid start)
+        e = math.exp(-(t - pl["t_sync"]) / sc["tau_sync_s"])
+        return sc["dv0"] * e, sc["dtheta0_deg"] * e + pl["jump"] * math.exp(-(t - pl.get("t_jump", t)) / sc["tau_sync_s"]), sc["df0_Hz"] * e
+
+    def permissive():                                              # the closing permissive at a coil command / every settle tick
+        if grid:
+            dv, dth, df = errs()
+            return VG >= 0.9 and abs(dv) <= dv_max and abs(dth) <= dth_max and abs(df) <= sc["df_max_Hz"]
+        return VG < 0.1
+    while t < t_end and out is None:
+        if pl["back_at"] is not None and t >= pl["back_at"]:
+            pl.update(g=1.0, back_at=None, t_sync=t)               # the grid returns: the module re-synchronises from scratch
+        if pl["jump"] and "t_jump" not in pl:
+            pl["t_jump"] = t
+        for k, r in rl.items():                                    # contactors: pull-in / release times, weld, stuck
+            if r["f"] == "stuck":
+                r["act"] = 0
+            elif not (r["f"] == "weld" and r["act"]) and r["act"] != r["cmd"] and t - r["tc"] >= rt[k][0 if r["cmd"] else 1]:
+                r["act"] = r["cmd"]
+        joined = bool(rl["K1"]["act"] and rl["K2"]["act"])
+        if joined and not joined_was:                              # S6: the path forms - inside the permissive?
+            formed = True
+            if grid:                                               # gates idle (the relay test): the grid charges C_f onto the
+                dv, dth, df = errs()                               # precharged link - no out-of-phase close
+                ok = not pwm or (pl["g"] >= 0.9 and abs(dv) <= dv_max and abs(dth) <= dth_max and abs(df) <= sc["df_max_Hz"])
+            else:
+                ok = not pl["src"]
+            if not ok:
+                breach.add("S6 the AC path formed outside the closing permissive (grid start: absent / out-of-phase grid; dead bus: a "
+                           "source on the bus)")
+        joined_was = joined
+        VG = (pl["g"] if grid else (1.0 if pl["src"] else 0.0)) or (1.0 if joined and pwm else 0.0)
+        VC = 1.0 if pwm else (VG if joined else 0.0)
+        in_phase = not pl["src"]                                   # VG against VC: the module's own voltage or a foreign source
+        coils = sum((cl["pull"] if t - r["ton"] < cl["t_pull"] else cl["hold"]) for r in rl.values() if r["cmd"])
+        for b in pk:
+            w = (cl["base_pwm"][b] if pwm else cl["base_idle"][b]) + (cl["hold"] if kdc else 0.0) + coils
+            pk[b] = max(pk[b], w)
+            if w > cl["live_peak"] + 1e-9:
+                breach.add("S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)")
+        st, ti = fw["s"], fw["t"]
+        if st == "OFF":                                            # PRECHARGE done, K_DC held: the relay test first
+            pwm = not grid
+            go("TEST")
+        elif st == "TEST":                                         # K2 alone, then K1 alone; the other side must stay dead
+            k = fw["k"]
+            side = VC if grid else VG
+            if k == 0:
+                cmd(K2=1)
+                fw.update(k=1, t=0.0)
+            elif k in (1, 3) and ti >= 0.25:
+                if side > 0.1:
+                    go("LOCKOUT", "relay test: K%d welded" % (1 if k == 1 else 2))
+                else:
+                    cmd(K2=0, K1=0)
+                    fw.update(k=k + 1, t=0.0)
+            elif k == 2 and ti >= 0.1:
+                cmd(K1=1)
+                fw.update(k=3, t=0.0)
+            elif k == 4 and ti >= 0.1:
+                pwm, pl["t_sync"] = True, t
+                go("SYNC")
+        elif st == "SYNC":
+            cmd(K1=0, K2=0)
+            if fw.get("stop"):
+                pwm, kdc = False, False
+                go("IDLE", "stop")
+            elif fw["att"] >= n_try:
+                pwm, kdc = False, False
+                go("LOCKOUT", fw["why"] + f" ({n_try} close attempts)")
+            elif ti > sc["t_sync_max_s"]:
+                pwm, kdc = False, False
+                go("IDLE", "synchronisation timeout: the start condition did not return (report)")
+            elif permissive() and t - fw["last"] >= t_sp:
+                fw["att"], fw["last"] = fw["att"] + 1, t
+                if seq == "repaired":
+                    cmd(K2=1)
+                    go("SYNC_CLOSE_K2")
+                else:
+                    cmd(K1=1, K2=1)
+                    go("CLOSE_BOTH")
+        elif st == "SYNC_CLOSE_K2":
+            if fw.get("stop"):
+                cmd(K2=0)
+                pwm, kdc = False, False
+                go("IDLE", "stop")
+            elif not grid and VG > 0.1 and in_phase:               # the bus carries the module's own voltage with K2 alone
+                cmd(K2=0)
+                pwm, kdc = False, False
+                go("LOCKOUT", "K1 welded: the bus energised with K2 alone")
+            elif not permissive():
+                cmd(K2=0)
+                go("SYNC", "no closing permissive at the K2 settle")
+            elif ti >= SM_SETTLE_S:
+                cmd(K1=1)
+                go("SYNC_CLOSE_K1")
+        elif st == "SYNC_CLOSE_K1":
+            lost = (not joined and not permissive()) if grid else (VG > 0.1 and not in_phase)
+            if fw.get("stop"):
+                go("STOP", "stop")
+            elif ti < SM_SETTLE_S and lost:
+                cmd(K1=0, K2=0)
+                go("SYNC", "no closing permissive during the K1 settle")
+            elif ti >= SM_SETTLE_S:
+                if (joined if grid else (VG >= 0.85 and in_phase)):
+                    go("RUN", "path formed")
+                else:
+                    cmd(K1=0, K2=0)
+                    go("SYNC", "contactor stuck open or not settled within %.0f ms" % (1e3 * SM_SETTLE_S))
+        elif st == "CLOSE_BOTH":                                   # as first specified: SYNC -> GFL / GFM, both coils at once
+            if ti >= SM_SETTLE_S:
+                go("RUN", "both closed")
+        elif st == "RUN":
+            if fw["k"] == 0:
+                fw["k"] = 1
+                if not joined:
+                    breach.add("S8 running (GFL / GFM) with the AC path not formed: a stuck contactor not detected")
+            if ti >= sc["t_run_s"]:
+                fw["ran"] = "GFL" if grid else "GFM"
+                go("STOP", "the plan's stop")
+        elif st == "STOP":                                         # controlled stop: exchange to zero in one grid period, then open
+            if ti >= 0.02:
+                cmd(K1=0, K2=0)
+            if ti >= 0.02 + SM_SETTLE_S:
+                pwm, kdc = False, False
+                go("IDLE")
+        elif st == "IDLE":
+            if joined:
+                breach.add("S7 the AC path still formed after the sequence released both coils")
+            ran = fw.get("ran")
+            out = (f"ran ({ran}), stopped" if ran else "stopped (IDLE): " + fw["why"]) + \
+                  ("" if not any(r["act"] for r in rl.values()) else "; " + ", ".join(k for k, r in rl.items() if r["act"]) +
+                   " welded closed, the path opened by the other (found by the next relay test)")
+        elif st == "LOCKOUT":
+            cmd(K1=0, K2=0)
+            pwm, kdc = False, False
+            if ti >= 0.2:
+                if joined:
+                    breach.add("S7 the AC path still formed after the sequence released both coils")
+                out = "LOCKOUT: " + fw["why"]
+        fw["t"] += dt
+        t += dt
+    return dict(outcome=out or f"no end within {t_end:g} s (state {fw['s']})", trace=trace, breach=sorted(breach), peak_W=pk,
+                attempts=fw["att"], path_formed=formed, fault=fault, at=at, start=start, seq=seq)
+
+
+def study_sync(P):
+    """review R3-01: both DC starts (grid -> GFL, dead bus -> GFM) executed with every fault at the new states, for the sequence as first
+    specified (D-079: both coils at once) and repaired (SYNC_CLOSE_K2 -> SYNC_CLOSE_K1); the published block (sync_close_state_machine)"""
+    cases = [("none", None, ("start",)), ("K1 welded before the start (the relay test)", "weld:K1", ("start",)),
+             ("K1 welds closed after the relay test", "weld:K1", ("SYNC_CLOSE_K2",)),
+             ("K2 welds (open command at the stop)", "weld:K2", ("SYNC_CLOSE_K1",)), ("K1 stuck open", "stuck:K1", ("SYNC_CLOSE_K2",)),
+             ("K2 stuck open", "stuck:K2", ("SYNC_CLOSE_K2",)), ("K1 pull-in beyond the settle window", "slow:K1", ("SYNC_CLOSE_K2",)),
+             ("grid lost (grid start) / foreign source on the bus (dead bus)", "lost", ("SYNC_CLOSE_K2", "SYNC_CLOSE_K1")),
+             ("grid lost for 5 s", "lost_5s", ("SYNC_CLOSE_K2",)), ("grid phase jump", "jump", ("SYNC_CLOSE_K1",)),
+             ("stop command", "stop", ("SYNC_CLOSE_K2", "SYNC_CLOSE_K1"))]
+    rows = []
+    for start in ("grid", "dead_bus"):
+        for name, f, ats in cases:
+            if start == "dead_bus" and f in ("lost_5s", "jump"):
+                continue
+            for at_ in ats:
+                r = {s: sync_exec(P, start, f, at_ if (s == "repaired" or at_ == "start") else "CLOSE_BOTH", seq=s)
+                     for s in ("as first specified", "repaired")}
+                rows.append(dict(start=start, fault=name, at=at_, spec=r["as first specified"]["outcome"], fixed=r["repaired"]["outcome"],
+                                 breach_spec=r["as first specified"]["breach"], breach_fixed=r["repaired"]["breach"],
+                                 peak_spec_W=r["as first specified"]["peak_W"], peak_fixed_W=r["repaired"]["peak_W"],
+                                 att_fixed=r["repaired"]["attempts"]))
+    O, nxt = SM_OUT6, lambda s, e: SM_T.get((s, e), s)
+    both = [f"{s} --{e}--> {SYNC_D079[(s, e)]}" for s, e in SYNC_D079 if O[SYNC_D079[(s, e)]][4] and O[SYNC_D079[(s, e)]][5]
+            and not (O[s][4] or O[s][5])]
+    cl = P["coil"]
+    return dict(states=["SYNC", "SYNC_CLOSE_K2", "SYNC_CLOSE_K1"], targets={"grid start": "GFL", "dead-bus start": "GFM"},
+                outputs_PWM_KACPRE_KPRE_KDC_KAC2_KAC1={s: SM_OUT6[s] for s in ("SYNC", "SYNC_CLOSE_K2", "SYNC_CLOSE_K1", "GFL", "GFM",
+                                                                                  "STOP", "IDLE", "LOCKOUT")},
+                transitions={f"{s} --{e}-->": SM_T[(s, e)] for (s, e) in SM_T if s.startswith("SYNC") and e not in ("hw_trip", "fw_trip",
+                                                                                                                   "brownout")},
+                as_first_specified=dict(transitions={f"{s} --{e}-->": v for (s, e), v in SYNC_D079.items()}, closes_both_coils_at_once=both,
+                                        I12="held only with the SYNC exception (both coils commanded together on the permissive)"),
+                settled_s=SM_SETTLE_S, relay_times_s={k: SM_RELAY_T[k] for k in ("K2", "K1")},
+                permissive=dict(grid=f"VG inside +/-10 %, |dV| <= {P['sync'][0]:g} %, |dtheta| <= {P['sync'][1]:g} deg, |df| <= "
+                                     f"{A('sync_close')['df_max_Hz']:g} Hz (ASSUMED), V_dc above the DC closing permissive - at the K2 and the "
+                                     "K1 command and every tick of the settle wait until the path forms",
+                                dead_bus="VG < 10 % at each coil command and every settle tick; VG live with K2 alone and in phase with v_C "
+                                         "= K1 welded -> LOCKOUT; a foreign source -> SYNC"),
+                attempts=dict(n=int(P["acs"]["retry"][0]), spacing_s=P["acs"]["retry"][1], basis="pcs_spec ac_start retry rule, counted "
+                              "across resets in the recorder flash (as H5)"),
+                coil=dict(contract=dict(pull_W=cl["pull"], t_pull_s=cl["t_pull"], hold_W=cl["hold"]), live_peak_W=cl["live_peak"],
+                          base_W_switching=cl["base_pwm"], budget_peak_W=cl["peak"],
+                          peak_W={s: {b: max(r[k][b] for r in rows) for b in cl["peak"]} for s, k in
+                                  (("as first specified", "peak_spec_W"), ("repaired", "peak_fixed_W"))}),
+                rows=rows, holes=sorted({b for r in rows for b in r["breach_spec"]} - {b for r in rows for b in r["breach_fixed"]}),
+                residual=sorted({b for r in rows for b in r["breach_fixed"]}),
+                invariants={k: v for k, v in verify_sm().items() if k.split()[0] in ("I3", "I5", "I12", "I14", "I15")},
+                rules=["the start mode is fixed at the start command: a grid lost during a grid start never becomes a dead-bus close "
+                       "(SYNC waits for the grid, then gives up with a report); a source appearing on a dead bus is never closed onto",
+                       "in the grid start a welded K1 after the relay test is not observable during the close (v_C is synchronised to VG): "
+                       "the close then happens on K2's pull-in, inside the permissive checked at K2's command; the next relay test finds it",
+                       "a stop in SYNC_CLOSE_K2 goes to IDLE (K1 open, no AC current); in SYNC_CLOSE_K1 to CONTROLLED STOP (both coils "
+                       "commanded, the permissive valid: the exchange to zero, then both open)"])
+
+
 def sm_table(P, G):
     """state | entry condition | exit | outputs | measured quantities | hardware trips behind it (from the drawn boards)"""
     w, c, ov, sy = P["win"], P["cmpss"], P["ov_dc"], P["sync"]
@@ -3084,11 +3814,24 @@ def sm_table(P, G):
              "K_PRE", "V_link (VB), V_terminal (VBX), I_DC", "hardware precharge-dV and polarity interlocks, port OC, DC OV"),
             ("AC SYNCHRONISATION", "precharged", f"grid: |dV| <= {sy[0]:.0f} %, |dtheta| <= {sy[1]:.0f} deg, |df| <= 0.1 Hz, "
              "relay test (each contactor alone) passed" + (f", {P['map_close']}" if P["map_close"] else "") +
-             " -> K_AC1+K_AC2 close -> GFL; dead bus (VG < 10 %) -> GFM",
+             " -> SYNC_CLOSE_K2 (grid start); dead-bus start (VG < 10 %) -> SYNC_CLOSE_K2; the start mode is fixed at the start command "
+             f"(a grid lost during a grid start never becomes a dead-bus close); <= {P['acs']['retry'][0]:.0f} close attempts "
+             f">= {P['acs']['retry'][1]:.0f} s apart, counted in the recorder flash -> LOCKOUT; no start condition within "
+             f"{A('sync_close')['t_sync_max_s']:.0f} s (ASSUMED) -> IDLE with a report",
              "PWM (GFM on C_f, contactors open), K_DC", "VC1-3, VG1-3 (both sides of the contactors), PLL on VG", hw_run),
-            ("GFL RUN", "synced_grid / gfl_cmd (bumpless)", "stop, grid out of window or islanding -> STOP; limit > 200 ms -> STOP; "
+            ("SYNC_CLOSE_K2 (review R3-01)", "synced_grid / dead_bus: the permissive holds at the K2 command",
+             f"K2 pulls in alone; the permissive re-checked every tick; after the settle ({SM_SETTLE_S * 1e3:.0f} ms = the coil's pull-in "
+             "window + 100 ms, the AC start's criterion) and the permissive at the K1 command -> SYNC_CLOSE_K1; permissive lost -> SYNC "
+             "(K2 released); dead bus: VG live with K2 alone and in phase with v_C = K1 welded -> LOCKOUT; stop -> IDLE",
+             "PWM, K_DC, K_AC2", "VG1-3, VC1-3, V_link", hw_run),
+            ("SYNC_CLOSE_K1 (review R3-01)", "k2_settled: the permissive holds at the K1 command",
+             "K1 pulls in, K2 held; until the path forms the permissive re-checked every tick (lost -> SYNC, both coils released); after "
+             "the settle the path check (grid start: a small active-power step in grid-connected GFM, the measured P follows - ASSUMED "
+             "method; dead bus: VG follows v_C) -> GFL / GFM; path not formed (stuck or slow contactor) -> SYNC, a counted attempt; "
+             "stop -> CONTROLLED STOP", "PWM, K_DC, K_AC2, K_AC1", "VG1-3, VC1-3, P from v_C and i_1", hw_run),
+            ("GFL RUN", "k1_settled / gfl_cmd (bumpless)", "stop, grid out of window or islanding -> STOP; limit > 200 ms -> STOP; "
              "island_cmd -> GFM", "PWM, K_DC, K_AC", "IL1-3, VC1-3, VG1-3, V_link, I_DC, RCM", hw_run + ", port OC/hold-off"),
-            ("GFM RUN", "dead_bus / island_cmd (bumpless)", "gfl_cmd when grid connected; stop; limit > 200 ms -> STOP",
+            ("GFM RUN", "k1_settled_dead_bus / island_cmd (bumpless)", "gfl_cmd when grid connected; stop; limit > 200 ms -> STOP",
              "PWM, K_DC, K_AC", "same + P/Q from v_C and i_1 - j w C v_C", hw_run + ", port OC/hold-off"),
             ("CONTROLLED STOP", "stop / grid_out / limit_timeout", "current ramped to 0, K_AC open at zero current, PWM off, "
              "K_DC open below its breaking current -> IDLE", "PWM until zero current", "IL1-3, I_DC", hw_run),
@@ -3146,14 +3889,14 @@ def hardware(P, R):
     peaks = [(f"{d['depth']:g} pu dip at 125 kW ({scr_name(d['scr'])}) onset", d["pk_on"]) for d in R["rt"]["rows"]]
     peaks += [(nm(d), d["pk"]) for d in R["steps"] if d["vdc"] == 750.0]
     peaks += [("GFM terminal short from rated load", R["gfm"]["short"]["pk"])]
-    over = sorted(((n, p) for n, p in peaks if p > w["lo"]), key=lambda x: -x[1])
-    below = max(((n, p) for n, p in peaks if p <= w["lo"]), key=lambda x: x[1])
+    over = sorted(((n, p) for n, p in peaks if p > P["trip_lo"]), key=lambda x: -x[1])
+    below = max(((n, p) for n, p in peaks if p <= P["trip_lo"]), key=lambda x: x[1])
     after = max(max(d["pk_dip"], d["pk_rec"]) for d in R["rt"]["rows"])
     old = max((d for d in R["faults"] if d["ff"] == "sogi"), key=lambda d: max(d["pk_dip"], d["pk_rec"]))
     hw.append(("PCS-CTL phase window", f"+/-{w['nom']:.0f} A nominal, worst band {w['lo']:.0f}-{w['hi']:.0f} A (basis "
                f"{P['win_basis'][1]:.3f} x the normal peak {P['win_basis'][2]:.1f} A)",
                "with the firmware limiter of section 4b (ride-through state, PLL freeze, per-sample clamp) every in-dip and recovery "
-               f"peak is <= {after:.0f} A; " + (("peaks above the band's low edge (averaged + ripple/2): " + "; ".join(
+               f"peak is <= {after:.0f} A; " + ((f"peaks above the lower edge of the two layers, {P['trip_lo']:.1f} A (averaged + ripple/2): " + "; ".join(
                    f"{n} {p:.0f} A ({'above the nominal threshold: trips' if p > w['nom'] else 'may trip'})" for n, p in over) +
                 f"; highest peak below the band: {below[0]} {below[1]:.0f} A") if over else
                f"every studied peak below the low edge (highest: {below[0]} {below[1]:.0f} A)") +
@@ -3488,8 +4231,8 @@ def write_spec(P, G, R):
             "dc_link": {"f_c_Hz": G["f_dc"], "kp_A_per_V": G["kp_dc"], "ki": G["ki_dc"], **R["dc"]},
             "steps": R["steps"], "faults": R["faults"], "divider_whatif": R["divider"], "gfm": R["gfm"], "thd": R["thd"],
             "vdc_min_V": R["vdc_min"],
-            "ride_through": {"limiter": {"clamp_A": P["iclamp"], "clamp_basis": "window low edge - ripple/2 - iclamp_margin_A (sampled, "
-                                         "ripple-midpoint current)", "dip_limit_A_pk": P["lvrt_ilim"], "lvrt_pu": A("lvrt_pu"),
+            "ride_through": {"limiter": {"clamp_A": P["iclamp"], "clamp_basis": P["iclamp_basis"], "clamp_edge_A": P["trip_lo"],
+                                         "dip_limit_A_pk": P["lvrt_ilim"], "lvrt_pu": A("lvrt_pu"),
                                          "hold_s": A("lvrt_hold_s"), "pll_freeze_pu": A("pll_freeze_pu"), "window_low_A": P["win"]["lo"],
                                          "profile_pu_s": P["lvrt_profile"]},
                              **{k: R["rt"][k] for k in ("rows", "clamp_only", "derating", "instant_scan", "scr50")}},
@@ -3509,14 +4252,19 @@ def write_spec(P, G, R):
             # review R2 (a427981): new keys only - nothing gen/pcs_ctrl.py or sim/compare_megarevo_pcs.py reads is renamed or removed
             "tolerance_regression": R["tol"],
             "protection_chain_used": P["pc"],
-            "ride_through_rule": {k: v for k, v in R["rtr"].items()},
+            "ride_through_rule": dict(R["rtr"], clamp_A=P["iclamp"], clamp_basis=P["iclamp_basis"], clamp_edge_A=P["trip_lo"],
+                                      clamp_ripple_half_A=P["ripple_pp"] / 2, clamp_margin_A=A("iclamp_margin_A")),
             "vf_feedforward": {"chosen": R["vff"], "scan": R["vff_rows"], "vclamp_pu": A("vf_vclamp_pu")},
             "vf_secondary_basis": "computed with the VF firmware of section 7c (load-current feed-forward, over-voltage deadbeat, per-sample "
                                   "clamp) and the paralleling virtual impedance; the D-077 figures (0.380 / 2.170 pu) were the unbounded "
                                   "averaged model without them and are superseded (vf_bounded)",
-            "vf_bounded": R["vfb"], "dc_rejection_bounded": R["dct"], "four_wire_coupled": R["n4"],
+            "vf_bounded": R["vfb"], "dc_rejection_bounded": R["dct"],
+            "four_wire_coupled": {k: v for k, v in R["n4"].items() if k != "short_protection"},
             "ac_start_state_machine": {"outputs_PWM_KACPRE_KPRE_KDC_KAC2_KAC1": SM_OUT6, "exec": R["smx"]},
-            "review_r2": review_r2(P, G, R)}
+            "review_r2": review_r2(P, G, R),
+            # review R3 (615e4b5): new keys only
+            "sync_close_state_machine": R["sync"], "four_wire_short_protection": R["n4"]["short_protection"],
+            "dc_bus_coupled_pv": R["dcc"], "vf_envelope_basis": R["vfb"]["envelope_basis"], "review_r3": review_r3(P, G, R)}
     spec = clean(spec)
     json.dump(spec, open(os.path.join(OUT, "pcs_control_spec.json"), "w"), indent=1)
     return spec
@@ -3585,8 +4333,9 @@ def review_r2(P, G, R):
         dict(id="R2-13", classification="Confirmed - the coupled four-wire cases the averaged per-phase model can carry are added",
              reviewer="full nonlinear unbalanced behaviour open",
              ours=f"100 % unbalanced step: phase-to-N amplitudes {ub['va']['amp_min']:.3f}-{ub['va']['amp_max']:.3f} pu, N_F {ub['vn_pk']:.2f} pu "
-                  f"instantaneous; L-N short: first peak {sh['i_pk']['ia']:.0f} A (phase) / {sh['i_pk']['iN']:.0f} A (N leg) against "
-                  f"{P['win']['lo']:.0f} A, firmware trip at {sh['trip_ms']:.0f} ms, the healthy phases >= {min(sh['vb_amp'], sh['vc_amp']):.3f} pu; "
+                  f"instantaneous; L-N short (with the R3-02 onset clamp, section 9c-2): largest peak {sh['i_pk']['ia']:.0f} A (phase) / "
+                  f"{sh['i_pk']['iN']:.0f} A (N leg) in the hold against {P['trip_lo']:.1f} A (the lower edge of the two layers), firmware trip at "
+                  f"{sh['trip_ms']:.0f} ms, the healthy phases >= {min(sh['vb_amp'], sh['vc_amp']):.3f} pu; "
                   "the half-wave step, the GFL <-> GFM transitions with unbalance: section 9c",
              change="section 9c (ph4_run); firmware: DC regulators 0.02 s, N-leg feed-forward option", keys=["four_wire_coupled"]),
         dict(id="R2-14", classification="Confirmed - the AC start is a state of the checked machine and executed with fault injection",
@@ -3639,8 +4388,9 @@ def fw_rows_new(P, R):
          f"{P['lvrt_ilim'] / P['I_rated']:.1f} I_r reactive-current cap) instead of the 200 ms tier; PLL integrator and angle held below "
          f"{A('pll_freeze_pu')} pu (free-running at the pre-dip frequency)"),
         ("per-sample current clamp", f"in the PWM update, per phase: the current one period after the new command, predicted from the "
-         f"sensed current and the committed command over the -10 % L1, limited to {P['iclamp']:.0f} A (sampled) = window low edge "
-         f"{lo:.0f} A - ripple/2 {P['ripple_pp'] / 2:.1f} A - {A('iclamp_margin_A'):.0f} A; deadbeat correction with unit gain on that "
+         f"sensed current and the committed command over the -10 % L1, limited to {P['iclamp']:.1f} A (sampled) = the lower edge of the "
+         f"two hardware layers {P['trip_lo']:.1f} A (window {lo:.1f} A, CMPSS backup {P['cmpss']['lo']:.1f} A) - ripple/2 "
+         f"{P['ripple_pp'] / 2:.1f} A - {A('iclamp_margin_A'):.0f} A; deadbeat correction with unit gain on that "
          f"phase, anti-windup through the PR back-calculation; backstop only - the ride-through state keeps the reference below it"),
         ("stiff-grid deep-dip derating (FALLBACK, section 4c)", ("needed only if the onset measure below is not taken or not confirmed: with "
          f"the D-077 limiter rated current reaches the window at a stiff connection for residual voltages of {max(r['depth'] for r in tr):g} pu "
@@ -3709,7 +4459,126 @@ def fw_rows_r2(P, R):
          "component returns below 0.5 % Un within the time printed there; 0.2 s takes about twice as long)"),
         ("four-wire N-leg feed-forward (option, not adopted)", "the N leg's current reference + the sum of the phases' load-current estimates: "
          "halves the N-node swing of a 100 % unbalanced step (section 9c); stability shown only in the averaged simulation")] + \
-        [(f"AC start repair {h} (review R2-14)", txt) for h, txt in SM_FIXES.items()]
+        [(f"AC start repair {h} (review R2-14)", txt) for h, txt in SM_FIXES.items()] + fw_rows_r3(P, R)
+
+
+def fw_rows_r3(P, R):
+    """firmware rows of review R3 (sections 4c, 7d, 9c, 9e)"""
+    sy, sp, dc, rr = R["sync"], R["n4"]["short_protection"], R["dcc"], R["rtr"]
+    ad = [d for d in sp["variants"] if d["adopted"]]
+    vm = dc["v_set_max"]
+    return [
+        ("DC-start synchronised close, one coil at a time (review R3-01)", f"SYNC -> SYNC_CLOSE_K2 -> SYNC_CLOSE_K1 -> GFL (grid start) / GFM "
+         f"(dead-bus start): K2 alone, settled ({SM_SETTLE_S * 1e3:.0f} ms: the coil's pull-in window + 100 ms, the AC start's criterion), then "
+         "K1; PWM and K_DC as in SYNC; the closing permissive re-checked at each coil command and at every tick until the path forms (lost -> "
+         "SYNC, both coils released); after K1 settles the path check (grid start: a small active-power step in grid-connected GFM, the "
+         "measured P follows - ASSUMED method; dead bus: VG follows v_C), not formed -> SYNC, a counted attempt (<= "
+         f"{sy['attempts']['n']:.0f} per start, >= {sy['attempts']['spacing_s']:.0f} s apart, in the recorder flash) -> LOCKOUT; dead bus: VG live "
+         "with K2 alone and in phase with v_C = K1 welded -> LOCKOUT; the start mode fixed at the start command (a lost grid never becomes a "
+         f"dead-bus close); live 24 V peak {sy['coil']['peak_W']['repaired']['three-wire']:.1f} / {sy['coil']['peak_W']['repaired']['four-wire']:.1f} "
+         f"W (three- / four-wire) against {sy['coil']['live_peak_W']:.0f} W"),
+        ("four-wire grid forming: ride-through clamp for the onset (review R3-02; adopted)", f"per phase, when the phase-to-N voltage error "
+         f"exceeds {1 - A('lvrt_pu')[0]:.2f} V0 (the D-079 entry depth), the per-sample clamp of that phase and of the N leg sits at "
+         f"{sp['onset_clamp']['clamp']:.0f} A for {1e3 * sp['onset_clamp']['t_on']:.0f} ms (prediction on the divider-inverted C_f voltage), then "
+         f"the normal {P['iclamp']:.0f} A clamp; a bolted L-N short: first-ms peaks <= {max(max(d['first_ms_A'].values()) for d in ad):.0f} A, no "
+         f"hardware layer trips at any studied corner (smallest margin {sp['adopted_margin_A']:.1f} A to the lower edge of the two bands, the "
+         f"hold), the firmware limit timer trips at {max(d['fw_trip_ms'] or 0 for d in ad):.0f} ms; held for the whole state it would hold the fault "
+         "at the clamp for the whole ride and clip half-wave loads (rejected)"),
+        ("four-wire bolted output short: the declared outcome (review R3-02)", "the firmware-timed 200 ms ride at the 200 ms tier applies "
+         "where no hardware layer trips; if a layer trips (a unit outside the modelled tolerances; with the D-079 firmware the CMPSS backup "
+         f"trips at the low corner: {'; '.join(sp['d079_trips'][:2]) or 'none'}): the gates off within the protection chain, the latch holds, "
+         "FAULT; no automatic clear after an over-current trip (the latch-clear row); a restart by command into a short that persists trips "
+         "again; the third hazard trip of a class within 10 min -> LOCKOUT (ASSUMED, the firmware-practice row)"),
+        ("ride-through onset: noise term (review R3-02)", f"ADC quantisation and noise (+/-{0.5 + rr['noise']['adc_noise_lsb']:.1f} LSB, the ADC's "
+         f"own ASSUMED) and the sensor's noise through the clamp's prediction: {rr['noise_A']:.1f} A worst case ({rr['noise']['rss_A']:.1f} A RSS); "
+         f"the margin {rr['margin_A']:.1f} A to the window edge is {rr['margin_net_A']:.1f} A net of it, to the CMPSS backup's low edge "
+         f"{rr['margin_cmpss_A']:.1f} / {rr['margin_cmpss_net_A']:.1f} A"),
+        ("VF on a battery-less DC bus with PV-P75 (review R3-03; installation / system rule)", "the PV modules' coordination row "
+         f"(V_B > V_B* + {P['pv']['dv']:.0f} V -> current references to zero) is required: with it the island rides through a full-load "
+         f"rejection up to a CV set point of {min(v for v in vm.values() if v):.0f} V (worst corner: link -10 %, residual energy at the cells' "
+         f"peak, two modules at the PCS's 2-min power; one module {max(v for v in vm.values() if v):.0f} V), the PV row's "
+         f"{P['pv']['valid']:.0f} V validity is conservative; without it the PCS trips (the bus ends at "
+         f"{min(d['vdc_end'] for d in dc['backstop'] if d['scenario'].startswith('coordination')):.0f}-"
+         f"{max(d['vdc_end'] for d in dc['backstop'] if d['scenario'].startswith('coordination')):.0f} V); the external stop path "
+         f"({1e3 * P['pv']['t_ext']:.2f} ms) changes nothing on this event; a hardwired trip line is needed only above the validity (the PV "
+         f"stopped within {min(v for v in dc['line_us_max_at_950V'].values() if v):.0f} us of the rejection at 950 V; cost class low, not added)")]
+
+
+def review_r3(P, G, R):
+    """review R3 of commit 615e4b5 (gen/data/review_r3.csv): classification and evidence, the reviewer's figures (REVIEW_R3, quoted) beside
+    ours (computed in this run)"""
+    rv, sy, sp, dc, rr, vb = REVIEW_R3, R["sync"], R["n4"]["short_protection"], R["dcc"], R["rtr"], R["vfb"]
+    d79 = [d for d in sp["variants"] if d["firmware"].startswith("D-079")]
+    ad = [d for d in sp["variants"] if d["adopted"]]
+    held = [d for d in sp["variants"] if not d["adopted"] and not d["firmware"].startswith("D-079")]
+    m750 = [d for d in dc["main"] if d["v_set"] <= P["pv"]["valid"]]
+    m950 = [d for d in dc["main"] if d["v_set"] > P["pv"]["valid"]]
+    eb = vb["envelope_basis"]["margins_worst_corner"]
+    dec = next(v for k, v in eb.items() if k.startswith("declared"))
+    iec = {k: v for k, v in eb.items() if k.startswith("IEC")}
+    n_pairs = len(SM_STATES) * len(SM_EVENTS)
+    return [
+        dict(id="R3-01", classification="Confirmed (a command-table / checker gap)",
+             reviewer=f"{rv['R3-01']['pairs']} state-event pairs, {rv['R3-01']['counterexamples']} counterexamples (SYNC -> GFL / GFM close both coils); "
+                      f"{rv['R3-01']['peak_W']['three-wire']} / {rv['R3-01']['peak_W']['four-wire']} W against {rv['R3-01']['live_peak_W']:.0f} W",
+             ours=f"the same two transitions in the D-079 table ({'; '.join(sy['as_first_specified']['closes_both_coils_at_once'])}); executed as first "
+                  f"specified: peak {sy['coil']['peak_W']['as first specified']['three-wire']:.1f} / {sy['coil']['peak_W']['as first specified']['four-wire']:.1f} W, "
+                  f"breaches {'; '.join(h.split(' ', 1)[0] for h in sy['holes'])}; repaired (SYNC_CLOSE_K2 -> SYNC_CLOSE_K1): {n_pairs} pairs, every "
+                  f"invariant incl. the unconditional I12 holds, {len(sy['rows'])} fault cases on both starts, "
+                  + ("no breach" if not sy["residual"] else "residual " + "; ".join(sy["residual"])) +
+                  f", peak {sy['coil']['peak_W']['repaired']['three-wire']:.1f} / {sy['coil']['peak_W']['repaired']['four-wire']:.1f} W (the budget's "
+                  f"{sy['coil']['budget_peak_W']['three-wire']:.1f} / {sy['coil']['budget_peak_W']['four-wire']:.1f} W)",
+             change="SM_STATES / SM_OUT6 / SM_T: SYNC_CLOSE_K2, SYNC_CLOSE_K1; I3, I5 updated, I12 unconditional, I14, I15 added; sync_exec / "
+                    "study_sync (section 9e); firmware row", keys=["sync_close_state_machine", "firmware.state_machine"]),
+        dict(id="R3-02", classification="Confirmed (a coverage gap) - closed by a firmware measure; the hardware-trip outcome declared",
+             reviewer=f"first peak {rv['R3-02']['first_peak_A']:.0f} A screened against {rv['R3-02']['window_lo_A']:.1f} A only, the backup's low edge "
+                      f"{rv['R3-02']['cmpss_lo_A']:.1f} A",
+             ours=f"both layers replayed on their own signals: with the D-079 firmware the smallest margin is "
+                  f"{min(d['replay']['min_margin_A'] for d in d79):.1f} A and the CMPSS backup trips at the low plant / threshold corner with the "
+                  f"window-top ripple ({'; '.join(sp['d079_trips'][:1]) or 'none'}), gates off at "
+                  f"{max((d['replay']['I_off_max'] or 0) for d in d79):.0f} A (<= the {P['pc']['I_screen']:.0f} A ceiling); the D-079 ride-through clamp "
+                  f"held for the whole state: first peak well under (margin {min(d['replay']['min_margin_A'] for d in held):.0f} A) but the fault is "
+                  f"held at the clamp for the whole ride ({max(d['hold_A']['ia'] for d in held):.0f} A instead of "
+                  f"{max(d['hold_A']['ia'] for d in d79):.0f} A for a downstream protection) and half-wave loads are clipped (peak "
+                  f"{sp['side_effects']['half-wave load step, clamp held for the state (rejected)']['i_pk']['ia']:.0f} A against "
+                  f"{sp['side_effects']['half-wave load step, D-079 firmware']['i_pk']['ia']:.0f} A) - rejected; "
+                  f"adopted: the clamp for a {1e3 * sp['onset_clamp']['t_on']:.0f} ms onset window - first-ms peaks <= "
+                  f"{max(max(d['first_ms_A'].values()) for d in ad):.0f} A, no layer trips at any studied corner (smallest margin "
+                  f"{sp['adopted_margin_A']:.1f} A, the hold), firmware trip at {max(d['fw_trip_ms'] or 0 for d in ad):.0f} ms, healthy phases >= "
+                  f"{min(d['healthy_pu'] for d in ad):.3f} pu; ride-through onset margin net of the noise term {rr['margin_net_A']:.1f} A (window) / "
+                  f"{rr['margin_cmpss_net_A']:.1f} A (CMPSS low edge)",
+             change="trip_replay (both layers, threshold / sensor / ripple / plant corners); ph4_run: the onset clamp option, recorded leg "
+                    "commands; rt4_onset_s; the noise term in section 4c; every 'may a layer trip' screen and the per-sample clamp on the "
+                    f"lower edge of the two layers ({P['trip_lo']:.1f} A: clamp {P['iclamp']:.1f} A, coordinator decision); the backup band "
+                    "unchanged", keys=["four_wire_short_protection", "ride_through_rule.noise", "ride_through_rule.clamp_A",
+                                       "ride_through_rule.clamp_basis"]),
+        dict(id="R3-03", classification="Confirmed (an untied interface) - replaced by the coupled PCS / PV trajectory; firmware / installation "
+                                        "rules, no hardware",
+             reviewer=f"ASSUMED {rv['R3-03']['dcdc_stop_us']:.0f} us stop after the PCS trip vs the PV external stop {rv['R3-03']['ext_stop_ms']} ms; "
+                      f"the {rv['R3-03']['coord_ms']} ms figure has a different reference",
+             ours=f"the PV module's own protections read from its specs: at {', '.join(f'{v:g}' for v in sorted({d['v_set'] for d in m750}))} V every "
+                  f"corner rides through (bus <= {max(d['vdc_pk'] for d in m750):.0f} V against the {P['ov_soft'][0]:.0f} V soft limit; PV cut "
+                  f"{min(d['t_cut_ms'] for d in m750):.2f}-{max(d['t_cut_ms'] for d in m750):.2f} ms after the rejection); at 950 V the PCS trips "
+                  f"(bus {min(d['vdc_pk'] for d in m950):.0f}-{max(d['vdc_pk'] for d in m950):.0f} V, dark); set-point limit "
+                  + ", ".join(f"{k} {v} V" for k, v in dc["v_set_max"].items()) + "; without the coordination row the bus ends at "
+                  f"{min(d['vdc_end'] for d in dc['backstop'] if d['scenario'].startswith('coordination')):.0f}-"
+                  f"{max(d['vdc_end'] for d in dc['backstop'] if d['scenario'].startswith('coordination')):.0f} V (aux running), with the PV "
+                  f"firmware dead {min(d['vdc_end'] for d in dc['backstop'] if d['scenario'].startswith('PV firmware')):.0f}-"
+                  f"{max(d['vdc_end'] for d in dc['backstop'] if d['scenario'].startswith('PV firmware')):.0f} V (aux locked out); halves <= "
+                  f"{max(d['half_pk'] for d in dc['backstop']):.0f} V against U_N {P['U_N_half']:.0f} V, device <= {P['pc']['V_limit']:.0f} V; the "
+                  f"external stop never acts first; a hardwired line only above the validity "
+                  f"({', '.join(f'{k} {v:.0f} us' for k, v in dc['line_us_max_at_950V'].items() if v)} at 950 V)",
+             change="ASSUME dcdc_stop_us removed; PVBus / dc_coupled / study_dc_coupled (section 7d); gates_off_tail takes a stateful source; "
+                    "vf_bounded 'uncoordinated' recomputed on the coupled model", keys=["dc_bus_coupled_pv", "vf_bounded.uncoordinated"]),
+        dict(id="R3-05", classification="Improvement Recommended (an acceptance decision) - reframed",
+             reviewer=f"the envelope chosen to contain the simulated {rv['R3-05']['sag_pu']} / {rv['R3-05']['overshoot_pu']} pu",
+             ours=f"declared envelope = the ITIC-style points FROM MEMORY; the simulated worst corner meets it with a smallest margin of "
+                  f"{dec['min_margin_pu']:+.3f} pu; the IEC 62040-3 class points FROM MEMORY: "
+                  + ", ".join(f"{k.split(' (')[0].replace('IEC 62040-3 ', '')} {v['min_margin_pu']:+.3f} pu" for k, v in iec.items())
+                  + f" (not met: the first-millisecond over-voltage); adopting it is adopted as REQUIREMENTS AC-04 (D-080) (REQUIREMENTS.md), the bench is the gate; "
+                    f"the {rv['R3-05']['superseded_pu']} pu figure stays superseded",
+             change="ASSUME vf_envelope (declared = ITIC-style), vf_classes_iec62040_3, VF_ENV_D079 (superseded), env_margins",
+             keys=["vf_envelope_basis", "vf_bounded.envelope_basis"])]
 
 
 def tab(head, rows):
@@ -3719,6 +4588,11 @@ def tab(head, rows):
 
 def g1(x, n=1):
     return "inf" if x is None or (isinstance(x, float) and not math.isfinite(x)) else f"{x:.{n}f}"
+
+
+def gd(x, n=1):
+    """a figure, or '-' where there is none (an event that did not happen)"""
+    return "-" if x is None else f"{x:.{n}f}"
 
 
 def rep_r2(P, R, spec):
@@ -3770,7 +4644,7 @@ def rep_2b(P, R):
 
 def rep_4b(P, R):
     """report section 4b: the firmware limiter in ride-through"""
-    rt, lo, L = R["rt"], P["win"]["lo"], []
+    rt, lo, L = R["rt"], P["trip_lo"], []
     a = L.append
     a("## 4b. Cycle-by-cycle limiting in ride-through (firmware limiter; D-074 open item)\n")
     a(f"**The limiter (firmware, three layers).** (1) The circular reference limiter of section 4 ({P['I_lim']:.0f} A pk for <= 200 ms). "
@@ -3779,8 +4653,9 @@ def rep_4b(P, R):
       f"profile's {P['lvrt_ilim'] / P['I_rated']:.1f} I_r reactive-current cap (parsed from pcs_spec), not the 200 ms tier - and below "
       f"{A('pll_freeze_pu')} pu the PLL free-runs at its pre-dip frequency (otherwise it locks onto the module's own current through the "
       "grid impedance and the voltage comes back out of phase: without the freeze the 0 pu dip at SCR 50 recovered at 462 A). (3) A "
-      f"per-sample predictive clamp in the PWM update at {P['iclamp']:.0f} A (sampled, ripple-midpoint current) = the window's low edge "
-      f"{lo:.0f} A - ripple/2 {P['ripple_pp'] / 2:.1f} A - {A('iclamp_margin_A'):.0f} A for the prediction error (sensed C_f voltage "
+      f"per-sample predictive clamp in the PWM update at {P['iclamp']:.1f} A (sampled, ripple-midpoint current) = the lower edge of the two "
+      f"hardware layers {P['trip_lo']:.1f} A (the CMPSS backup's; the window's {P['win']['lo']:.1f} A) - ripple/2 {P['ripple_pp'] / 2:.1f} A - "
+      f"{A('iclamp_margin_A'):.0f} A for the prediction error (sensed C_f voltage "
       "behind its divider, L1 tolerance): per phase, the current one period after the new command is predicted from the sensed current "
       f"and the command already committed; a phase that would leave +/-{P['iclamp']:.0f} A gets the deadbeat command that ends that "
       "period on the clamp (unit gain on that phase; the PR integrators are back-calculated). Dips at 125 kW export with the power "
@@ -3800,7 +4675,7 @@ def rep_4b(P, R):
     on = {d["depth"]: d["pk_on"] for d in rt["rows"] if d["scr"] is None}
     a(f"**What this limiter cannot do (D-077 - corrected in section 4c).** The onset peak forms within the first ms, before the C_f divider's lag "
       f"({P['tv'] * 1e6:.0f} us) and the 1.5 T_s delay ({1.5 * P['T'] * 1e6:.1f} us) let any firmware act: on a stiff grid it reaches "
-      + ", ".join(f"{v:.0f} A at {k:g} pu" for k, v in on.items()) + f" against the {lo:.0f} A low edge"
+      + ", ".join(f"{v:.0f} A at {k:g} pu" for k, v in on.items()) + f" against {lo:.1f} A, the lower edge of the two layers (window {P['win']['lo']:.1f} A, CMPSS backup {P['cmpss']['lo']:.1f} A)"
       + (f" - rated current trips the window for residual voltages of {max(d['depth'] for d in tr):g} pu and below at "
          + ", ".join(sorted({scr_name(d['scr']) for d in tr})) if tr else "") +
       f"; from SCR 50 down every onset stays inside (SCR 50 current-loop margins: PM {rt['scr50']['pm']:.0f} deg, GM "
@@ -3853,6 +4728,16 @@ def rep_4c(P, R):
       + ("adopted." if rr["adopted"] else "NOT adopted.") + " With it the whole ride-through table (five grids x five depths, 150 ms, then "
       "recovery) stays inside: largest onset " + f"{max(d['pk_on'] for d in rr['rows']):.0f} A, largest in-dip / recovery peak "
       f"{max(max(d['pk_dip'], d['pk_rec']) for d in rr['rows']):.0f} A; no derating is needed at any SCR in the averaged model.\n")
+    nz = rr["noise"]
+    a(f"**Noise and quantisation through the prediction (review R3-02, CALCULATED, worst signs):** the clamp predicts from one current "
+      f"sample and two C_f-voltage samples (the divider inversion v = (y[k] - a y[k-1]) / (1 - a), a = {nz['a_div']:.3f}). Per conversion "
+      f"+/-{0.5 + nz['adc_noise_lsb']:.1f} LSB (quantisation + the ADC's own noise, ASSUMED +/-{nz['adc_noise_lsb']:g} LSB): the current "
+      f"+/-{nz['di_A']:.2f} A ({nz['i_lsb_A']:.4f} A/LSB, the sensor's own {nz['sensor_pp_A']:.2f} A pp noise included), the inverted C_f voltage "
+      f"+/-{nz['dv_inv_V']:.2f} V ({nz['v_lsb_V']:.3f} V/LSB x (1 + a) / (1 - a)), which enters both prediction steps: +/-{nz['dpred_A']:.2f} A. "
+      f"Together {nz['total_A']:.2f} A worst case ({nz['rss_A']:.2f} A RSS) on the predicted current, i.e. on the onset. The margin "
+      f"{rr['margin_A']:.1f} A to the window's low edge is **{rr['margin_net_A']:.1f} A net of it**; against the CMPSS backup's low edge "
+      f"{rr['thr_cmpss']:.1f} A (D-078 placed it below the window's) {rr['margin_cmpss_A']:.1f} A, **{rr['margin_cmpss_net_A']:.1f} A net** - "
+      f"both above the {A('rt_rule')['margin_A']:.0f} A rule.\n")
     a("**The enforceable fallback rule** (if the measure is not taken, or the switched model / the bench shows less margin) - for the "
       "D-077 limiter:\n")
     a(tab(("residual voltage", "boundary SCR (rated current passes at or below it)", "onset at the boundary A", "margin at SCR 50 A"),
@@ -3945,26 +4830,39 @@ def rep_7c(P, R):
     env, itic = vb["envelope"], vb["itic"]
     fmt = lambda e: "over " + ", ".join(f"{v:g} pu to {t_:g} ms" if math.isfinite(t_) else f"{v:g} pu after" for t_, v in e["over"]) + \
         "; under " + ", ".join(f"{v:g} pu to {t_:g} ms" if math.isfinite(t_) else f"{v:g} pu after" for t_, v in e["under"])
+    eb = vb["envelope_basis"]
     a(f"|v_C| is the alpha-beta magnitude (for a three-wire load an upper bound of every instantaneous line-to-neutral value). "
-      f"**Declared envelope (single module, 100 % linear step, our commitment):** {fmt(env)}. **ITIC (CBEMA) curve style class, FROM "
-      f"MEMORY:** {fmt(itic)} - the standard texts are not on file; IEC 62040-3 classification 1 is not claimed (as remembered it is "
-      "tighter in the first milliseconds than a 2 % C_f filter allows at a 100 % step). Paralleled modules (virtual impedance on): the same "
-      "first milliseconds, then the plateau the secondary layer restores (section 7b) - ITIC style "
-      + ("inside" if all(st[k]["itic"]["ok"] for k in st if k.startswith("design, paralleled")) else "OUTSIDE") + ", declared single-module "
-      "envelope " + ("inside" if all(st[k]["env"]["ok"] for k in st if k.startswith("design, paralleled")) else "outside (it is not "
-      "declared for them)") + ". **The D-077 figures 0.380 / 2.170 pu were the unbounded averaged model without these measures; they "
-      "are superseded** (2.17 pu is outside even the ITIC-style 2.0 pu).\n")
+      f"**Declared envelope (review R3-05): standard-style points, not set to the simulation** - the ITIC (CBEMA) curve as remembered "
+      f"(FROM MEMORY, not verified; the standard texts ITIC and IEC 62040-3 are not on file and are the gate): {fmt(env)}. Adopting a "
+      "dynamic output-voltage envelope as a requirement was adopted as REQUIREMENTS AC-04 under the delegation of D-051 (D-080); bench validation of the first "
+      "milliseconds at every corner of the drawn parts is the gate. The D-079 envelope (set to contain the simulated worst corner with "
+      f"margin: {fmt(eb['superseded_d079'])}) is superseded, as are the D-077 {eb['superseded_d077_pu']['sag']:.2f} / "
+      f"{eb['superseded_d077_pu']['overshoot']:.2f} pu (the unbounded averaged model). Paralleled modules (virtual impedance on): the same "
+      "first milliseconds, then the plateau the secondary layer restores (section 7b) - "
+      + ("inside" if all(st[k]["itic"]["ok"] for k in st if k.startswith("design, paralleled")) else "OUTSIDE") + " the ITIC-style points.\n")
+    seg = lambda m: "; ".join(f"{s_} {r_['t_from_ms']:g}-{r_['t_to_ms']:g} ms: limit {r_['limit_pu']:g}, worst {r_['worst_pu']:.3f}, margin "   # noqa: E731
+                              f"{r_['margin_pu']:+.3f} pu" if math.isfinite(r_["t_to_ms"]) else
+                              f"{s_} after {r_['t_from_ms']:g} ms: limit {r_['limit_pu']:g}, worst {r_['worst_pu']:.3f}, margin {r_['margin_pu']:+.3f} pu"
+                              for s_ in ("over", "under") for r_ in m[s_] if r_["margin_pu"] is not None)
+    a(tab(("points (single module, every corner, both 100 % steps; SIMULATED worst corner)", "met", "smallest margin pu", "per point"),
+          [(k, "yes" if m["met"] else "NO", f"{m['min_margin_pu']:+.3f}", seg(m)) for k, m in eb["margins_worst_corner"].items()]))
+    a(f"The records run {eb['horizon_s']['nom']:g} s (nominal corner) / {eb['horizon_s']['corners']:g} s (the other corners): the later points "
+      "are covered by the nominal corner only. The IEC 62040-3 class points are as remembered, with the intermediate step uncertain: no "
+      "class is claimed - on the over side the first-millisecond excursion of a 2 % C_f filter at a 100 % step exceeds the +30 % they allow.\n")
     fo, tc, unc = vb["cap_follow"], vb["cap_tc"], vb["uncoordinated"]
     a(f"**DC bus without a battery** (a DC/DC holds it; the module forms the island): with an ideally coordinated, unidirectional source "
       f"(it follows the bridge's draw and absorbs nothing) a full-load rejection returns {vb['e_ret_J']:.1f} J to the link, which rises to "
       f"{fo['vdc_max']:.0f} V; if the source keeps its pre-step current the link reaches the {P['ov_soft'][0]:.0f} V soft limit after "
       f"{vb['t_c_max_ms']:.2f} ms ({tc['vdc_max']:.0f} V at 0.95 x that, {vb['cap_tc_over']['vdc_max']:.0f} V at 1.05 x): **a DC/DC on such a "
       f"bus must cut its current within {vb['t_c_max_ms']:.2f} ms** (its own bus-voltage limiter or a shared trip line - a system rule). "
-      "Uncoordinated (it stops only " + f"{A('dcdc_stop_us'):.0f} us after the PCS trips, ASSUMED): " + "; ".join(
-          f"comparator at {hw:.0f} V: gates off {u['t_off_ms']:.2f} ms after the step at {u['v_off']:.0f} V, {u['I_off']:.0f} A (device "
-          f"{u['V_dev']:.0f} V), the bus ends at {u['vdc_end']:.0f} V (halves <= {u['half_pk']:.0f} V), aux "
-          f"{'LOCKED OUT' if u['aux_lockout'] else 'running'}" for hw, u in unc.items()) + " - the island goes dark, the module latches. "
-      "The PCS cannot do better alone: in VF there is no grid to export to and no chopper; the energy is the DC/DC's to withhold.\n")
+      "Uncoordinated (review R3-03: the coupled PCS / PV trajectory of section 7d replaces the ASSUMED 50 us stop - two PV-P75 at the "
+      "PCS's rated power, 750 V, the PV modules without the coordination row, their own firmware limit and comparator acting, the "
+      "external stop not wired): " + "; ".join(
+          f"PCS comparator at {hw:.0f} V: gates off {u['t_off_ms']:.2f} ms after the step at {u['v_off']:.0f} V, {u['I_off']:.0f} A (device "
+          f"{u['V_dev']:.0f} V), the PV modules cut by their {u['cut_by'] or 'comparator'} at {gd(u['t_cut_ms'], 2)} ms, the bus ends at "
+          f"{u['vdc_end']:.0f} V (halves <= {u['half_pk']:.0f} V), aux {'LOCKED OUT' if u['aux_lockout'] else 'running'}"
+          for hw, u in unc.items()) + " - the island goes dark, the module latches. The PCS cannot do better alone: in VF there is no grid "
+      "to export to and no chopper; the energy is the DC/DC's to withhold.\n")
     a("What a switched simulation would add: the PWM ripple on the deadbeat's prediction, the dead-time error at the rejection, the "
       "modulator's minimum pulses at the limit, the C_f zero sequence on M during the transient. The bench: the measured first-millisecond "
       "excursion against the declared envelope at every corner of the drawn parts.\n")
@@ -4161,7 +5059,8 @@ def rep_9c(P, R):
       "every load returning to N_F, the grid (where connected) through L_g with its star solid at N_F (ASSUMED); the three-wire design's "
       "blocks applied per phase - the C_f-voltage PR on each phase-to-N voltage with the load-current feed-forward and the over-voltage "
       "deadbeat (section 7c), the reference limiter at the 200 ms tier, the P-only inner loop with the SOGI feed-forward, the per-sample "
-      "clamp on the divider-inverted voltage (section 4c) on all four legs; the N leg's cascade of section 9b; DC regulators on the three "
+      "clamp on the divider-inverted voltage (section 4c) on all four legs with the onset clamp of section 9c-2 (review R3-02, adopted); "
+      "the N leg's cascade of section 9b; DC regulators on the three "
       f"phase-to-N means and on N_F (T {n4['dc_reg_T_s']:g} s); each leg within m_A V_dc/2 (mode A, m_A {n4['m_A']:.4f}); the DC link a battery "
       f"at 750 V; the limit timer trips at {n4['t_lim_s'] * 1e3:.0f} ms. SIMULATED, averaged (+ripple/2 on the current peaks).\n")
     rows = []
@@ -4184,10 +5083,12 @@ def rep_9c(P, R):
       "stays within it, worst ") + f"{abs(max(v['LN_pk'] for v in hw.values()) - P['fw4']['LN_pk_A']):.0f} A for the regulator's settling time"
       + (f", far below L1's saturation knee ({P['pc']['I_knee']:.0f} A hot, pcs_spec protection_chain)" if P["pc"].get("I_knee") else "")
       + " - a trade-off between the DC component's duration and the L_N peak, firmware parameter.\n")
-    a(f"**Line-to-neutral short** (phase a, {A('r_sc_ohm') * 1e3:.0f} mOhm + {A('l_sc_H') * 1e6:.0f} uH to N, from a balanced rated load): the "
-      f"first peaks {sh['i_pk']['ia']:.0f} A (phase) / {sh['i_pk']['iN']:.0f} A (N leg) against the window's {P['win']['lo']:.0f} A low "
-      "edge - " + ("inside, thin" if not sh["window"] else "AT it: a unit at the band's low edge may trip on the first peak (a hardware trip, "
-                   "then the module stops)") + f"; the limiter then holds {sh['ia_hold']:.0f} A (phase) / {sh['iN_hold']:.0f} A (N), the "
+    sp4 = next(d for d in R["n4"]["short_protection"]["variants"] if d["adopted"] and d["corner"] == "nom")
+    a(f"**Line-to-neutral short** (phase a, {A('r_sc_ohm') * 1e3:.0f} mOhm + {A('l_sc_H') * 1e6:.0f} uH to N, from a balanced rated load; the "
+      f"onset clamp of section 9c-2 in the loop): first-ms peaks {sp4['first_ms_A']['ia']:.0f} A (phase) / {sp4['first_ms_A']['iN']:.0f} A "
+      f"(N leg), the largest peaks {sh['i_pk']['ia']:.0f} / {sh['i_pk']['iN']:.0f} A in the hold, against {P['trip_lo']:.1f} A, the lower edge "
+      "of the two layers - " + ("inside" if not sh["window"] else "AT it (section 9c-2)") + f"; the limiter then holds {sh['ia_hold']:.0f} A "
+      f"(phase) / {sh['iN_hold']:.0f} A (N), the "
       f"healthy phases' phase-to-N amplitudes stay >= {min(sh['vb_amp'], sh['vc_amp']):.3f} pu, and the limit timer trips at "
       + (f"{sh['trip_ms']:.0f} ms" if sh["trip_ms"] else "NOT reached") + " (firmware, gates off; the battery takes the inductors' energy).\n")
     a("The GFM -> GFL row ends 2 % high on phase a by design: the grid sits 5 % high at the permissive edge and grid following "
@@ -4233,6 +5134,155 @@ def rep_9d(P, R):
     return L
 
 
+def rep_r3(P, R, spec):
+    """report section: the re-check R3 of commit 615e4b5 (this study's findings)"""
+    L, rv = ["## Review R3 (re-check of commit 615e4b5): findings of this study\n"], REVIEW_R3["corroboration"]
+    a = L.append
+    a("Verified first, then classified; changes only where required, at the root; the reviewer's figures are his, quoted; ours are this run's "
+      "(SIMULATED on the sampled averaged models, executed slow-task models, or CALCULATED - nothing measured).\n")
+    a(tab(("finding", "classification", "reviewer (his figures)", "this study (computed in this run)", "change", "new keys"),
+          [(d["id"], d["classification"], d["reviewer"], d["ours"], d["change"], ", ".join(d["keys"])) for d in spec["review_r3"]]))
+    t = R["tol"]
+    a(f"**Independent corroboration (his figures, positive evidence):** his inner-loop reruns again: {rv['cases']:,} mixed-corner cases stable, "
+      f"worst spectral radius {rv['rho_max']}, nominal PM " + " / ".join(f"{v:.2f}" for v in rv["pm_deg"].values()) + " deg at stiff / SCR 20 / "
+      f"10 / 5; this run: largest |pole| {max(t['factorial']['rho'], t['random']['rho']):.6f} over the factorial and the random sample, nominal PM "
+      + " / ".join(f"{d['nom_pm']:.2f}" for d in t["per_scr"]) + " deg. An independent check of the plant, the delay model and the "
+      "discretisation; not a measurement.\n")
+    return L
+
+
+def rep_9c_r3(P, R):
+    """report section 9c, review R3-02: the line-to-neutral short with both hardware layers replayed"""
+    sp, L = R["n4"]["short_protection"], []
+    a = L.append
+    ch = sp["chain"]
+    a("### 9c-2. The line-to-neutral short against both hardware layers (review R3-02)\n")
+    a(f"Each leg's current (phases a, b, c and the N leg) is rebuilt at {0.25:g} us from the averaged record plus the {P['fsw'] / 1e3:.0f} kHz "
+      "ripple (a triangle zero at the sampling instants; peak-to-peak from the leg command at 750 V on the -10 % L1 part, 'run', or the "
+      f"operating window's largest - {sp['variants'][0]['replay']['v_top']:.0f} V on the -10 % part, {sp['variants'][0]['replay']['pp_max_A']:.1f} "
+      f"A pp, 'max') and replayed through each layer's own chain (pcs_spec protection_chain and the PCS-CTL check): the sensor as a pure delay "
+      f"plus its {ch['sens_bw_Hz'] / 1e3:.0f} kHz lag ({sp['variants'][0]['replay']['tau_bw_us']:.2f} us) making up its step response "
+      f"({ch['sens_typ']:.1f} us typical / {ch['sens_max']:.1f} us maximum), the PV-PWR RC {ch['board']:.2f} us, the comparator node "
+      f"{ch['node']:.2f} us; the window (TLV9024) at its band corner {P['win']['lo']:.1f} / {P['win']['hi']:.1f} A, then "
+      f"{ch['pure_us']['window']:.3f} us to the gates (comparator, logic, driver, turn-off); the CMPSS backup through the IL_RC lag "
+      f"{ch['il_rc'] * 1e3:.0f} ns at its DAC band corner {P['cmpss']['lo']:.1f} / {P['cmpss']['hi']:.1f} A, then {ch['pure_us']['cmpss']:.3f} us "
+      f"(buffer, CMPSS, digital filter {ch['qual_txt']}, trip zone, driver, turn-off; {ch['cmpss_total']:.3f} us in all). Per corner the earliest "
+      "qualified trip over the four legs and both layers decides the trajectory (SIMULATED, averaged + reconstructed ripple):\n")
+    rows = []
+    for d in sp["variants"]:
+        rp = d["replay"]
+        trips = [x for x in rp["rows"] if x["trip"]]
+        rows.append((d["firmware"], d["corner"], " / ".join(f"{d['first_ms_A'][k]:.0f}" for k in ("ia", "ib", "ic", "iN")),
+                     f"{max(x['sensed_pk'] for x in rp['rows']):.1f}", f"{rp['min_margin_A']:+.1f}",
+                     ("TRIP at " + "; ".join(f"{x['thresholds']}, sensor {x['sensor']}, ripple {x['ripple']}: {x['layer']} on {x['leg']} "
+                                            f"{x['t_us']:.0f} us, gates off at {x['I_off']:.0f} A" for x in trips[:2]) +
+                      (f" (+{len(trips) - 2} corners)" if len(trips) > 2 else "")) if trips else "no layer trips at any corner",
+                     "no (a hardware trip ends it)" if trips else f"{gd(d['fw_trip_ms'], 0)} ms",
+                     " / ".join(f"{d['hold_A'][k]:.0f}" for k in ("ia", "ib", "ic", "iN")), f"{d['healthy_pu']:.3f}-{d['healthy_max_pu']:.3f}"))
+    a(tab(("firmware", "plant corner", "first-ms peaks a / b / c / N A (avg + ripple/2)", "largest sensed A", "smallest margin to the edge A",
+           "earliest qualified trip (20 corners: 2 ripple x 2 sensor x 5 threshold pairs)", "firmware 200 ms ride: limit timer",
+           "hold after 50 ms a / b / c / N A (averaged)", "healthy phases pu (after 50 ms)"), rows))
+    se = sp["side_effects"]
+    a("**The ride-through clamp on the other four-wire steps:** " + "; ".join(
+        f"{k}: peaks {' / '.join(f'{v:.0f}' for v in d['i_pk'].values())} A, phase-to-N {d['amp_min']:.3f}-{d['amp_max']:.3f} pu, N_F "
+        f"{d['vn_pk']:.2f} pu" for k, d in se.items()) + ".\n")
+    a(f"**Reading.** With the D-079 firmware the first peak of a bolted L-N short sits within a few amperes of the CMPSS backup's low edge "
+      f"({P['cmpss']['lo']:.1f} A, which D-078 placed below the window's {P['win']['lo']:.1f} A): at the low plant corner with the window-top "
+      "ripple the backup trips - a hardware trip, latched, the island dark; elsewhere the firmware 200 ms ride. The D-079 ride-through clamp "
+      "held for the whole ride-through state takes the first peak far below both edges, but it holds the fault at the clamp for the whole "
+      f"200 ms ride ({max(d['hold_A']['ia'] for d in sp['variants'] if not d['adopted'] and not d['firmware'].startswith('D-079')):.0f} A instead "
+      f"of {max(d['hold_A']['ia'] for d in sp['variants'] if d['firmware'].startswith('D-079')):.0f} A: less current for a downstream protection to "
+      f"clear a branch short) and clips a half-wave load (peak {se['half-wave load step, clamp held for the state (rejected)']['i_pk']['ia']:.0f} A "
+      f"against {se['half-wave load step, D-079 firmware']['i_pk']['ia']:.0f} A: below the declared {P['fw4']['hw_pk_A']:.0f} A sampled peak) - "
+      "rejected. Limited to an onset window it keeps the first peak far below both edges, "
+      "leaves the hold at the normal clamp (the same hold as D-079, the smallest margin of the adopted rows), the half-wave and the "
+      "unbalanced steps unchanged: adopted (firmware only). **Declared outcome:** a bolted output short in four-wire grid forming is "
+      "ridden for the firmware's 200 ms at the 200 ms tier, then the firmware trip (FAULT); a unit whose layers sit outside the modelled "
+      "bands trips in hardware instead - the gates off within the protection chain far below the ceiling, the latch holds, FAULT, no "
+      "automatic clear after an over-current trip; a restart by command into a persisting short trips again; the third hazard trip of a "
+      "class within 10 min locks out (ASSUMED, the firmware-practice row). The backup band is not raised (D-078). Not modelled: the "
+      "switched ripple's exact shape and phase, the comparator's input noise, the N leg's own switching, the DC voltage above 750 V for the "
+      "averaged current (only its ripple is scaled).\n")
+    return L
+
+
+def rep_9e(P, R):
+    """report section 9e: the DC-start synchronised close (review R3-01)"""
+    sy, L = R["sync"], []
+    a = L.append
+    a("## 9e. DC-start synchronised close, one coil at a time (review R3-01)\n")
+    a("As drawn in D-079 the transition table closed both AC contactors at once out of SYNC (" + "; ".join(sy["as_first_specified"]
+      ["closes_both_coils_at_once"]) + f"), and I12 excluded SYNC. Repaired: SYNC -> SYNC_CLOSE_K2 -> SYNC_CLOSE_K1 -> GFL / GFM with "
+      "SYNC's PWM and DC contactor (I14), K2 alone, settled after the AC start's criterion (" + f"{sy['settled_s'] * 1e3:.0f} ms), then K1; the "
+      "closing permissive at each coil command and at every tick until the path forms; I12 now unconditional, I15 (a lost permissive "
+      "releases both coils). Outputs (PWM, K_ACPRE, K_PRE, K_DC, K_AC2, K_AC1): " + ", ".join(f"{s} {v}" for s, v in
+      sy["outputs_PWM_KACPRE_KPRE_KDC_KAC2_KAC1"].items()) + ". Transitions: " + ", ".join(f"{k} {v}" for k, v in sy["transitions"].items())
+      + f". Permissive: grid start - {sy['permissive']['grid']}; dead bus - {sy['permissive']['dead_bus']}.\n")
+    a("**Executed** (sync_exec, the slow task at 5 ms, both starts, the relay test first; relay times ASSUMED "
+      + ", ".join(f"{k} {v[0] * 1e3:.0f} / {v[1] * 1e3:.0f} ms" for k, v in sy["relay_times_s"].items()) + "; the module's synchronisation, the "
+      "path check and the timeouts ASSUMED - assumptions 'sync_close'); checks every tick: S5 live 24 V draw above the "
+      f"{sy['coil']['live_peak_W']:.0f} W live peak allocation, S6 the path formed outside the permissive, S7 the path still formed after "
+      "both coils were released, S8 running with the path not formed:\n")
+    a(tab(("start", "fault", "at", "as first specified (D-079): outcome", "breaches", "live peak W 3W / 4W", "repaired: outcome", "breaches",
+           "live peak W 3W / 4W", "close attempts"),
+          [(r["start"], r["fault"], r["at"], r["spec"], "; ".join(b.split(" ", 1)[0] for b in r["breach_spec"]) or "-",
+            " / ".join(f"{v:.1f}" for v in r["peak_spec_W"].values()), r["fixed"], "; ".join(b.split(" ", 1)[0] for b in r["breach_fixed"]) or "-",
+            " / ".join(f"{v:.1f}" for v in r["peak_fixed_W"].values()), r["att_fixed"]) for r in sy["rows"]]))
+    pk = sy["coil"]["peak_W"]
+    a(f"**Coil budget (the contract {sy['coil']['contract']['pull_W']:.0f} W pull-in for {sy['coil']['contract']['t_pull_s'] * 1e3:.0f} ms / "
+      f"{sy['coil']['contract']['hold_W']:.0f} W hold on pcs_spec aux_budget's switching base "
+      + " / ".join(f"{v:.1f}" for v in sy["coil"]["base_W_switching"].values()) + " W):** as first specified "
+      + " / ".join(f"{v:.1f}" for v in pk["as first specified"].values()) + " W (three- / four-wire), repaired "
+      + " / ".join(f"{v:.1f}" for v in pk["repaired"].values()) + f" W against {sy['coil']['live_peak_W']:.0f} W - one coil at a time, the "
+      "budget's own synchronised-close step. As first specified the machine breaches " + "; ".join(sy["holes"]) + "; repaired: "
+      + ("none." if not sy["residual"] else "; ".join(sy["residual"])) + " Rules: " + " ".join(f"({i + 1}) {x}." for i, x in enumerate(sy["rules"]))
+      + "\n")
+    return L
+
+
+def rep_7d(P, R):
+    """report section 7d: the coupled PCS / PV trajectory on a battery-less DC bus (review R3-03)"""
+    dc, L = R["dcc"], []
+    a = L.append
+    pv, lim = dc["pv"], dc["limits"]
+    a("## 7d. Battery-less DC bus: the coupled PCS / PV trajectory of an AC full-load rejection (review R3-03)\n")
+    a(f"Replaces the ASSUMED 50 us DC/DC stop. The PCS forms the island (VF, single module, the section 7c firmware) on a link held by n "
+      f"PV-P75 modules (bus forming at the CV set point V_B*), and the island's full load drops out. The link = the PCS's "
+      f"{P['Cdc'] * 1e6:.1f} uF + {pv['C_B'] * 1e6:.1f} uF port-B bank per module, both at the corner factor. The PV modules' own protections, read "
+      f"from their specs (P['pv']): the coordination row - the {pv['n_mean']:.0f}-sample mean of V_B over the {pv['T_out'] * 1e6:.2f} us outer period "
+      f"behind the {pv['f_div'] / 1e3:.1f} kHz divider above V_B* + {pv['dv']:.0f} V -> every cell's current reference to zero, the inductor "
+      f"current decaying with the {pv['fc_i']:.0f} Hz current loop; the firmware limit {pv['ov_fw']:.0f} V (the same cut); the comparator "
+      f"{pv['ov_hw'][0]:.0f}-{pv['ov_hw'][1]:.0f} V, gates off {pv['ov_hw_us']:.0f} us after the crossing; the external stop (the PCS's trip "
+      f"opening the PV ENABLE contact) {pv['t_ext'] * 1e3:.2f} ms; before the cut each module holds its pre-step current (its V_B loop not "
+      f"credited, as the PV row); the residual inductor energy {pv['n_cells']:.0f} x 1/2 L I^2 per module ({pv['L'] * 1e6:.0f} uH +{100 * pv['L_tol']:.0f} "
+      f"%, I = the cell's normal peak {pv['I_pk']:.1f} A) released with the decay. The PCS: the over-voltage comparator at its band's low edge "
+      f"{lim['ov_band_V'][0]:.0f} V (its earliest trip), the soft limit {lim['soft_V']:.0f} V (VF: a controlled stop - the island goes dark), "
+      "the diode tail after a trip with the modules still feeding. Both PV evaluation phases; the worse kept. SIMULATED (averaged) + the "
+      "executed PV detection.\n")
+    rows = [(f"{d['v_set']:.0f}", f"{d['n']} x {d['P_each_kW']:g}", f"{d['kC']:.1f}", f"{d['C_bus_uF']:.0f}", gd(d["t_cut_ms"], 2),
+             gd(d["t_pcs_ms"], 2), f"{d['vdc_pk']:.0f}", f"{d['vdc_end']:.0f}", f"{d['half_pk']:.0f}", d["outcome"]) for d in dc["main"]]
+    a(tab(("V_B* V", "modules x kW", "link factor", "link uF", "PV cut ms", "PCS trip ms", "bus peak V", "bus end V", "half peak V",
+           "outcome"), rows))
+    a("Residual energy at the operating current instead of the cells' peak (750 V, link -10 %): " + "; ".join(
+        f"{d['n']} x {d['P_each_kW']:g} kW {d['vdc_pk']:.0f} V" for d in dc["sens"]) + ". **Set-point validity** (the largest V_B* whose worst "
+      "corner - link -10 %, peak residual energy, the worse phase - rides through): " + ", ".join(f"{k} {v} V" for k, v in dc["v_set_max"].items())
+      + f"; the PV row's {pv['valid']:.0f} V (its x2 time-margin rule, ASSUMED) is conservative against it. **What a hardwired trip line could do** "
+      "(the PV gates off a fixed time after the rejection): an ideal one at the rejection leaves " + "; ".join(
+          f"{d['n']} x {d['P_each_kW']:g} kW at {d['v_set']:.0f} V -> {d['vdc_pk']:.0f} V" for d in dc["ideal"]) + " (the PCS's own returned "
+      "LCL energy); at 950 V it must stop the modules within " + ", ".join(f"{k} {v:.0f} us" if v else f"{k} (not possible)"
+                                                                          for k, v in dc["line_us_max_at_950V"].items()) + " of the rejection.\n")
+    rows = [(d["scenario"], f"{d['v_set']:.0f}", f"{d['n']} x {d['P_each_kW']:g}", d["cut_by"] or "-", gd(d["t_cut_ms"], 2), gd(d["t_pcs_ms"], 2),
+             gd(d["t_pv_off_ms"], 2), f"{d['vdc_pk']:.0f}", f"{d['vdc_end']:.0f}", f"{d['half_pk']:.0f}", f"{d['V_dev']:.0f}",
+             "LOCKED OUT" if d["aux_lockout"] else "running") for d in dc["backstop"]]
+    a(tab(("backstop (link -10 %, PCS and PV comparators at their band tops)", "V_B* V", "modules x kW", "PV cut by", "PV cut ms", "PCS trip ms",
+           "PV gates off ms", "bus peak V", "bus end V", "half peak V", "device V at the PCS turn-off", "aux"), rows))
+    a(f"Limits (pcs_spec / aux75_spec): the film halves {lim['U_N_half_V']:.0f} V rated, {lim['film_100ms_V']:.0f} V for 100 ms; the device "
+      f"{lim['V_limit_device']:.0f} V (0.85 V_DSS; the turn-off at the over-voltage corner is the protection chain's deck result); the aux's input "
+      f"lock-out {lim['aux_lockout_V']:.0f} V. **Requirements that follow** (firmware / installation; no hardware added): "
+      + " ".join(f"({i + 1}) {x};" for i, x in enumerate(dc["requirements"])).rstrip(";") + ".\n")
+    return L
+
+
 def write_report(P, G, R, spec, t_run):
     K, L = G["K"], []
     a = L.append
@@ -4274,7 +5324,8 @@ def write_report(P, G, R, spec, t_run):
       f"{bwv['nl']:.0f} Hz at no load, {bwv['rl']:.0f} Hz at rated load; grid-connected stable from stiff to SCR 5 (least "
       f"damping ratio {min(d['zeta'] for d in R['gfm']['lin']):.2f}); under a terminal short the limiter holds "
       f"{sh['i_hold']:.0f} A pk (limit {P['I_lim']:.0f} A), first peak {sh['pk']:.0f} A "
-      f"{'below' if sh['pk'] < P['win']['lo'] else 'INSIDE'} the window band ({P['win']['lo']:.0f}-{P['win']['hi']:.0f} A); "
+      f"{'below' if sh['pk'] < P['trip_lo'] else 'INSIDE'} both hardware bands (window {P['win']['lo']:.0f}-{P['win']['hi']:.0f} A, CMPSS "
+      f"backup {P['cmpss']['lo']:.0f}-{P['cmpss']['hi']:.0f} A); "
       "transfer sequence and permissives in section 7.")
     a("- **Firmware:** sampling plan, ISR budget, limits, anti-islanding methods and a protection state machine whose "
       "transition table passes an exhaustive invariant check (section 9).")
@@ -4314,6 +5365,19 @@ def write_report(P, G, R, spec, t_run):
       f"a DC/DC on a battery-less bus must cut within {vb_['t_c_max_ms']:.2f} ms of an AC load rejection.")
     a(f"- **AC start (9d):** in the checked machine and executed with fault injection: {len(sm_['rows'])} cases, {len(SM_FIXES)} sequence holes "
       "found and repaired (firmware rows H1-H5), " + ("no breach left." if not sm_["residual"] else "residual breaches listed."))
+    sy_, sp_, dcc_ = R["sync"], R["n4"]["short_protection"], R["dcc"]
+    a(f"- **DC-start synchronised close (9e, review R3-01):** SYNC_CLOSE_K2 -> SYNC_CLOSE_K1, one coil at a time: live peak "
+      + " / ".join(f"{v:.1f}" for v in sy_["coil"]["peak_W"]["repaired"].values()) + " W (was " + " / ".join(
+          f"{v:.1f}" for v in sy_["coil"]["peak_W"]["as first specified"].values()) + f" W) against {sy_['coil']['live_peak_W']:.0f} W; "
+      f"{len(sy_['rows'])} fault cases on both starts, " + ("no breach." if not sy_["residual"] else "residual breaches listed."))
+    a(f"- **Four-wire bolted L-N short (9c-2, review R3-02):** both hardware layers replayed; with the D-079 firmware the CMPSS backup can "
+      f"trip at a tolerance corner; the adopted onset clamp keeps every corner off both layers (smallest margin {sp_['adopted_margin_A']:.1f} A), "
+      "then the 200 ms firmware ride; a hardware trip, if one occurs, is declared (FAULT, no automatic clear).")
+    a(f"- **Battery-less DC bus with PV-P75 (7d, review R3-03):** the coupled trajectory with the PV modules' own protections: the island "
+      f"rides a full-load rejection up to V_B* = {min(v for v in dcc_['v_set_max'].values() if v):.0f} V at the worst corner; without the PV "
+      "coordination row the PCS trips; no hardware added.")
+    a("- **VF envelope (7c, review R3-05):** declared = the ITIC-style points FROM MEMORY with the simulated worst corner's margins; IEC "
+      "62040-3 class points FROM MEMORY not met; adoption is adopted as REQUIREMENTS AC-04 (D-080), the bench the gate.")
     mm = [h[0] for h in R["hw"] if h[3].startswith("MISMATCH")]
     a(f"- **Drawn hardware:** {len(mm)} mismatches (section 10): " + "; ".join(mm) + ".\n")
     a("## What it does not establish\n")
@@ -4326,9 +5390,10 @@ def write_report(P, G, R, spec, t_run):
       "restoration consensus over the module CAN is stated, not modelled), LVRT reactive-current injection profiles (the "
       "ride-through study holds the power reference), the AC start's electrical transients (9d executes the sequence against a "
       "plant at the slow-task rate; the rectifier stage after it is this study's DC-link loop), common-mode/leakage control (the "
-      "C_f star on the DC midpoint is common mode only), switching-frequency interactions, ADC noise and quantisation, sensor "
-      "offsets.\n")
+      "C_f star on the DC midpoint is common mode only), switching-frequency interactions, ADC noise and quantisation (only through "
+      "the ride-through onset prediction, section 4c), sensor offsets.\n")
     L.extend(rep_r2(P, R, spec))
+    L.extend(rep_r3(P, R, spec))
     a("## 1. Inputs and assumptions\n")
     a(f"Read at run time: `{os.path.relpath(SPEC, ROOT)}` (L1 {P['L1'] * 1e6:.0f} uH, C_f {P['Cf'] * 1e6:.0f} uF, L2 "
       f"{P['L2'] * 1e6:.1f} uH, R_d {P['Rd']:.1f} ohm + C_d {P['Cd'] * 1e6:.0f} uF; f_sw {P['fsw'] / 1e3:.0f} kHz, sampling "
@@ -4407,12 +5472,13 @@ def write_report(P, G, R, spec, t_run):
            "rated, ms", "overshoot % / deviation A", "modulation limit, ms"),
           [(d["case"], scr_name(d["scr"]), f"{d['vdc']:.0f}", f"{d['pk_avg']:.0f}" if not d["runaway"] else "runaway",
             d["tier"] if not d["runaway"] else "-", f"{d['pk']:.0f}" if not d["runaway"] else f"> {win['hi']:.0f}",
-            "TRIP" if d["runaway"] else ("trip possible" if d["pk"] > win["lo"] else "inside"),
+            "TRIP" if d["runaway"] else ("trip possible" if d["pk"] > P["trip_lo"] else "inside"),
             f"{d['settle_ms']:.1f}" if not d["runaway"] else "-",
             (f"{d['overshoot_pct']:.1f} %" if "overshoot_pct" in d else f"{d['dev_A']:.0f} A") if not d["runaway"] else "-",
             f"{d['usat_ms']:.1f}") for d in R["steps"]]))
     a("Tiers as peaks: " + ", ".join(f"{k} {v:g} A rms = {v * math.sqrt(2):.0f} A" for k, v in P["tiers"].items()) +
-      f"; window band {win['lo']:.0f}-{win['hi']:.0f} A ('trip possible' = above the band's low edge). 'Deviation' = largest "
+      f"; window band {win['lo']:.0f}-{win['hi']:.0f} A, CMPSS backup {P['cmpss']['lo']:.1f}-{P['cmpss']['hi']:.1f} A ('trip possible' = above "
+      f"{P['trip_lo']:.1f} A, the lower edge of the two). 'Deviation' = largest "
       "departure of the PLL-frame current from its final value. At 600 V the +10 % grid is outside the modulation range "
       f"(rated current at any PF needs {R['vdc_min'][None]:.0f} V stiff / {R['vdc_min'][5.0]:.0f} V at SCR 5): the current is "
       "not controlled and the averaged model runs away - in hardware the window trips; firmware must refuse that operating "
@@ -4420,14 +5486,14 @@ def write_report(P, G, R, spec, t_run):
     a("![steps](steps.png)\n")
     a("## 4. Grid faults and current limiting (power reference held, so the reference saturates)\n")
     a(tab(("case", "grid", "limit A pk", "peak during dip", "peak on recovery", "in limit ms", "modulation limit ms",
-           "above window low edge"),
+           "above the lower layer edge"),
           [(d["case"], scr_name(d["scr"]), f"{d['ilim']:.0f}", f"{d['pk_dip']:.0f}", f"{d['pk_rec']:.0f}", f"{d['lim_ms']:.0f}",
             f"{d['usat_ms']:.1f}", "YES" if d["over_lo"] else "no") for d in R["faults"]]))
     d5 = [d for d in R["faults"] if d["case"] == "0.5 pu dip" and d["ff"] == "sogi"]
     a(f"Peaks include +ripple/2 = {P['ripple_pp'] / 2:.1f} A. **0.5 pu dip at 125 kW export:** the limiter holds the reference "
       f"at {P['I_lim']:.0f} A pk and the converter " + ("stays inside" if all(not d["over_lo"] for d in d5) else "does NOT stay "
       "inside") + f" the window: peaks " + ", ".join(f"{max(d['pk_dip'], d['pk_rec']):.0f} A ({scr_name(d['scr'])})" for d in d5) +
-      f" against the {P['win']['lo']:.0f} A low edge of the band. What-if: the stiff 0.1 pu dip with a 30 kHz C_f divider "
+      f" against {P['trip_lo']:.1f} A, the lower edge of the two layers. What-if: the stiff 0.1 pu dip with a 30 kHz C_f divider "
       f"{R['divider'][30e3]:.0f} A against {R['divider'][P['f_vdiv']]:.0f} A as drawn.\n")
     a("![faults](faults.png)\n")
     L.extend(rep_4b(P, R))
@@ -4495,8 +5561,8 @@ def write_report(P, G, R, spec, t_run):
       f"after {ls['t5_ms']:.0f} ms, ends at {ls['v_end']:.3f} pu (virtual-resistance drop: a slow secondary restoration is a "
       f"firmware item), frequency {ls['df_end']:+.1f} Hz (droop).")
     a(f"- Off-grid terminal short for 150 ms from rated load: the limiter holds {sh['i_hold']:.0f} A pk; first peak "
-      f"{sh['pk']:.0f} A incl. ripple ({'above' if sh['pk'] > P['win']['lo'] else 'below'} the window's low edge "
-      f"{P['win']['lo']:.0f} A); L2 carries the C_f discharge, {sh['i2_pk']:.0f} A pk, which no sensor sees; in limit "
+      f"{sh['pk']:.0f} A incl. ripple ({'above' if sh['pk'] > P['trip_lo'] else 'below'} the lower edge of the two layers "
+      f"{P['trip_lo']:.1f} A); L2 carries the C_f discharge, {sh['i2_pk']:.0f} A pk, which no sensor sees; in limit "
       f"{sh['lim_ms']:.0f} ms (firmware trips at {sh['t_fw_trip_ms']:.0f} ms); after clearing v_C overshoots to "
       f"{sh['vmax_rec']:.2f} pu and is within 5 % after {sh['t_rec5_ms']:.0f} ms.")
     for d in gf["sync"]:
@@ -4517,6 +5583,7 @@ def write_report(P, G, R, spec, t_run):
     a("![gfm](gfm.png)\n")
     L.extend(rep_7b(P, R))
     L.extend(rep_7c(P, R))
+    L.extend(rep_7d(P, R))
     a("![bounded](bounded.png)\n")
     a("![vf](vf_and_ride_through.png)\n")
     a("## 8. THDi estimate and dead time (CALCULATED, assumed background distortion)\n")
@@ -4567,7 +5634,9 @@ def write_report(P, G, R, spec, t_run):
       "contactors; the transition now goes to IDLE.) Verified = the table, not firmware code.\n")
     L.extend(rep_9b(P, R))
     L.extend(rep_9c(P, R))
+    L.extend(rep_9c_r3(P, R))
     L.extend(rep_9d(P, R))
+    L.extend(rep_9e(P, R))
     a("## 10. The drawn hardware against the loop\n")
     a(tab(("item", "as drawn / stated", "study result", "verdict"), R["hw"]))
     a("## 11. Open items\n")
@@ -4576,10 +5645,12 @@ def write_report(P, G, R, spec, t_run):
       f"ladder re-valued (drawn for {P['G_chk']:.1f} mV/A); its 2 us step response is in the loop here; the residual-current "
       "sensor is still a quotation part.")
     a(f"- Ride-through: the onset measure of section 4c holds the stiff onset {R['rtr']['margin_A']:.0f} A below the window in the "
-      "averaged model; a switched model and the bench must confirm that margin (the prediction error of the deadbeat clamp), else the "
+      f"averaged model ({R['rtr']['margin_net_A']:.1f} A net of the noise term; {R['rtr']['margin_cmpss_net_A']:.1f} A net below the CMPSS "
+      "backup's low edge); a switched model and the bench must confirm that margin (the prediction error of the deadbeat clamp), else the "
       "fallback rule (the grid-stiffness estimate, ASSUMED +/-30 %, and the derating table) applies; the ride-through thresholds and the "
       "dip-time cap follow grid-code values quoted from memory.")
-    a(f"- DC/DC coordination: power ramp and a shared trip signal; the DAB study's {P['c_pcs_dab'] * 1e3:.0f} mF assumption.")
+    a(f"- DC/DC coordination: power ramp; on a battery-less bus the PV modules' coordination row (section 7d: no shared trip line needed up "
+      f"to the set-point validity); the DAB study's {P['c_pcs_dab'] * 1e3:.0f} mF assumption.")
     a("- Grid forming: the declared envelope (7c) rests on the averaged model with the load-current feed-forward and the "
       "over-voltage deadbeat - a switched simulation and the bench are open; the DC/DC coordination time on a battery-less bus is a "
       "system requirement for the DC/DC firmware; the virtual impedance (0.15 + j0.30 pu) was not re-scanned with the new voltage-loop "
@@ -4587,10 +5658,18 @@ def write_report(P, G, R, spec, t_run):
     a("- PLL: plain SRF on v_C; a positive-sequence (DSOGI) front end for unbalanced grids is a firmware option, not studied.")
     a("- Standards (EN 50549-1, IEC 62116, GB/T 34120) to buy and check against the assumed limits.")
     a("- Four-wire: the per-phase virtual reactance (quadrature generator), a switched model of the coupled cases (9c is averaged), "
-      "mode B and the mode A / B hand-over, the L-N short's first peak at the window's low edge (9c); the AC-start relay timings and the "
+      "mode B and the mode A / B hand-over, the L-N short's onset clamp and hold (9c-2: averaged + reconstructed ripple); the AC-start relay timings and the "
       "aux draw are ASSUMED until the RFQ coil data exist (9d).")
     a("- VF THDu: the min-max zero sequence near the L1-C_f resonance through the filters' tolerance mismatch is the largest term "
-      "at low DC voltage; the third-harmonic zero sequence (firmware option) is not adopted or simulated.\n")
+      "at low DC voltage; the third-harmonic zero sequence (firmware option) is not adopted or simulated.")
+    a("- Review R3: the DC-start close's relay timings, synchronisation model and path-check method are ASSUMED (9e); the four-wire short's "
+      "hold sits " + f"{R['n4']['short_protection']['adopted_margin_A']:.0f} A under the CMPSS backup's low edge with the window-top ripple - a "
+      "switched model and the bench confirm it (9c-2); the coupled DC bus does not credit the PV V_B loop, credits the PV port-B banks, ignores "
+      "the cable between the boards, and its set-point validity is a simulation figure - the PV row's own limit stays the firmware limit until "
+      "the bench (7d); the declared VF points and the IEC 62040-3 class figures are FROM MEMORY (7c).")
+    a(f"- The per-sample clamp is referenced to the lower edge of the two layers (coordinator decision on the review R3-02 side finding): "
+      f"{P['iclamp_basis']}; the generator's window rule (bottom - ripple/2 - clamp >= {A('iclamp_margin_A'):.0f} A) now leaves "
+      f"{P['win']['lo'] - P['ripple_pp'] / 2 - P['iclamp']:.1f} A and its text should read ride_through_rule.clamp_basis.\n")
     a("## Files\n")
     a("`sim/pcs_control.py`; `sim/out/pcs_control/`: report.md, pcs_control_spec.json, bode_scr.png, steps.png, faults.png, "
       "pll_weak_grid.png, gfm.png, vf_and_ride_through.png, bounded.png.")
@@ -4654,7 +5733,7 @@ def self_check(P, G, R):
     assert R["plan"]["all_simultaneous"] and R["plan"]["busy_pct"] < 50, "ADC plan"
     assert max(v["pct"] for v in R["isr"][1].values()) < 50, "ISR budget"
     # sections 4b, 7b, 8b-c, 9b
-    rt, lo = R["rt"], P["win"]["lo"]
+    rt, lo = R["rt"], P["trip_lo"]
     assert all(max(d["pk_dip"], d["pk_rec"]) <= lo for d in rt["rows"]), "ride-through: an in-dip / recovery peak above the window"
     assert all(d["onset"] <= lo for d in rt["derating"]), ("derated pre-dip power does not hold the onset", rt["derating"])
     assert rt["instant_scan"][0] >= max(rt["instant_scan"]) - 1.0, ("the study's dip instant is not the worst of the scan", rt["instant_scan"])
@@ -4700,6 +5779,21 @@ def self_check(P, G, R):
         if not k.startswith("line-to-neutral"):
             assert all(abs(v[x]["amp_end"] - 1) < 0.03 for x in ("va", "vb", "vc")), ("four-wire case does not recover", k)
     assert not R["smx"]["residual"], ("AC start: a safety breach remains with the repairs", R["smx"]["residual"])
+    # review R3 (sections 4c, 7c, 7d, 9c-2, 9e)
+    sy = R["sync"]
+    assert not sy["residual"] and sy["holes"], ("sync close: a breach remains with the repair, or the D-079 holes are not reproduced", sy["residual"])
+    assert all(abs(sy["coil"]["peak_W"]["repaired"][b] - P["coil"]["peak"][b]) < 0.06 and sy["coil"]["peak_W"]["repaired"][b] <= P["coil"]["live_peak"]
+               for b in P["coil"]["peak"]), ("sync close: not one coil at a time / not the budget's peak", sy["coil"]["peak_W"])
+    assert sy["coil"]["peak_W"]["as first specified"]["three-wire"] > P["coil"]["live_peak"], "the D-079 simultaneous pickup is not reproduced"
+    sp = R["n4"]["short_protection"]
+    assert not sp["adopted_any_trip"] and sp["adopted_margin_A"] > 0, ("four-wire short: a hardware layer trips with the adopted firmware", sp)
+    assert all((d["replay"]["I_off_max"] or 0) <= P["pc"]["I_screen"] for d in sp["variants"]), "four-wire short: gates off above the ceiling"
+    assert rr["margin_net_A"] >= A("rt_rule")["margin_A"] and rr["margin_cmpss_net_A"] >= A("rt_rule")["margin_A"], ("onset margin net of noise", rr)
+    dcc = R["dcc"]
+    assert all(d["rides"] for d in dcc["main"] if d["v_set"] <= P["pv"]["valid"]), "coupled bus: a case inside the PV row's validity trips"
+    assert all(d["dev_ok"] and d["half_ok"] for d in dcc["main"] + dcc["backstop"] + list(dcc["uncoordinated"].values())), "coupled bus: device / film"
+    eb = R["vfb"]["envelope_basis"]["margins_worst_corner"]
+    assert next(v for k, v in eb.items() if k.startswith("declared"))["met"], "VF: the simulated worst corner outside the declared points"
 
 
 def main():
@@ -4726,10 +5820,12 @@ def main():
     R["rt"], R["sec"] = study_ride_through(P, G), study_secondary(P, G)
     R["rtr"] = study_rt_rule(P, G, R)
     R["vfb"], R["dct"] = study_vf_bounded(P, G, R), study_dc_trip(P, G)
+    R["dcc"] = study_dc_coupled(P, G, R)                  # review R3-03 (also fills vf_bounded 'uncoordinated')
     R["acc"], R["gfm_harm"] = vf_accuracy(P, R["sec"]), design_gfm_harm(P, K, G["Kv"])
     R["thdu"] = study_thdu(P, G, R)
     R["imb"], R["nleg"] = study_imbalance(P, R), study_neutral(P, G, R)
     R["n4"], R["smx"] = study_four_wire(P, G), study_sm(P)
+    R["sync"] = study_sync(P)                             # review R3-01
     R["hw"] = hardware(P, R)
     plots(P, G, R)
     plots_r2(P, R)

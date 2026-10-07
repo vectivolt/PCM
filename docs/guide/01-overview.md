@@ -77,13 +77,13 @@ hardware and a bench. PCB layout, mechanics, firmware and certification are out 
 
 ## 🗺️ How the design got here
 
-Seventy-seven decisions in four days, each a row of the [decision register](../requirements/DECISIONS.md)
+Eighty decisions in five days, each a row of the [decision register](../requirements/DECISIONS.md)
 (digest: [Decisions](decisions.md)):
 
 ```mermaid
 %%{init: {"theme": "base", "themeVariables": {"primaryColor": "#EEF3F7", "primaryBorderColor": "#0B1F33", "primaryTextColor": "#0B1F33", "lineColor": "#5B6B7A", "secondaryColor": "#D9F2EF", "tertiaryColor": "#FFF4D6", "fontFamily": "Inter, Helvetica, Arial, sans-serif"}}}%%
 timeline
-    title Main decisions, 2026-10-03 to 2026-10-06
+    title Main decisions, 2026-10-03 to 2026-10-07
     section 3 October
         Scope and tools : D-001 DC/DC scope, schematic + BOM + simulation : D-002 Python, KiCad 10, ngspice
     section 4 October
@@ -102,6 +102,7 @@ timeline
         Parity work : D-074 four-wire build, start-up from the grid, firmware specification : D-075 Ethernet, recorder flash, discrete I/O : D-076 auxiliary supply re-rated : D-077 off-grid accuracy, ride-through, neutral leg
     section 7 October
         Re-check R2 : D-078 trip chain, backup band, SiC acceptance, coil and RCM contracts : D-079 tolerance regression, bounded transients, ride-through, AC-start machine
+        Re-check R3 : D-080 one-coil close, both trip layers, PCS-PV bus, SiC grades, AC-04 envelope
 ```
 
 ---

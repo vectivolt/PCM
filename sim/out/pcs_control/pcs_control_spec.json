@@ -220,7 +220,7 @@
   ],
   "iclamp_margin_A": [
    15.0,
-   "per-sample current clamp level = window low edge - ripple/2 - this (prediction error of the sensed C_f voltage and of L1)"
+   "per-sample current clamp level = the lower edge of the two hardware current layers (window, CMPSS backup; coordinator decision on review R3) - ripple/2 - this (prediction error of the sensed C_f voltage and of L1)"
   ],
   "lvrt_pu": [
    [
@@ -271,50 +271,38 @@
     {
      "over": [
       [
-       0.5,
-       1.9
+       1.0,
+       2.0
       ],
       [
        3.0,
-       1.3
+       1.4
       ],
       [
-       5.0,
+       500.0,
        1.2
       ],
       [
-       20.0,
-       1.1
-      ],
-      [
-       50.0,
-       1.05
-      ],
-      [
        null,
-       1.03
+       1.1
       ]
      ],
      "under": [
       [
-       0.5,
-       0.35
-      ],
-      [
-       3.0,
-       0.75
-      ],
-      [
        20.0,
-       0.88
+       0.0
       ],
       [
-       50.0,
-       0.95
+       500.0,
+       0.7
+      ],
+      [
+       10000.0,
+       0.8
       ],
       [
        null,
-       0.97
+       0.9
       ]
      ]
     },
@@ -357,15 +345,133 @@
      ]
     }
    ],
-   "VF transient envelope for a 100 % linear (resistive) load step, |v_C| in pu against the time after the step, piecewise constant (each limit valid up to its time in ms): first = the envelope DECLARED here (single module, set to contain the worst corner with margin); second = an ITIC (CBEMA) curve style class FROM MEMORY (2.0 / 1.4 / 1.2 / 1.1 pu over to 1 ms / 3 ms / 0.5 s / steady, 0 / 0.7 / 0.8 / 0.9 pu under to 20 ms / 0.5 s / 10 s / steady) - not verified, the standard text (ITIC, IEC 62040-3 classes) is not on file; IEC 62040-3 class 1 is not claimed"
+   "VF transient envelope for a 100 % linear (resistive) load step, |v_C| in pu against the time after the step, piecewise constant (each limit valid up to its time in ms): first = the envelope DECLARED (review R3-05: standard-style points, not set to the simulation) = second = the ITIC (CBEMA) curve as remembered (2.0 / 1.4 / 1.2 / 1.1 pu over to 1 ms / 3 ms / 0.5 s / steady, 0 / 0.7 / 0.8 / 0.9 pu under to 20 ms / 0.5 s / 10 s / steady) - FROM MEMORY, not verified: the standard texts (ITIC, IEC 62040-3) are not on file and are the gate; adopting it as a requirement is the adopted as REQUIREMENTS AC-04 under the delegation of D-051 (D-080)"
+  ],
+  "vf_classes_iec62040_3": [
+   {
+    "class 1": {
+     "over": [
+      [
+       5.0,
+       1.3
+      ],
+      [
+       100.0,
+       1.2
+      ],
+      [
+       null,
+       1.1
+      ]
+     ],
+     "under": [
+      [
+       5.0,
+       0.7
+      ],
+      [
+       100.0,
+       0.8
+      ],
+      [
+       null,
+       0.9
+      ]
+     ]
+    },
+    "class 2": {
+     "over": [
+      [
+       5.0,
+       1.3
+      ],
+      [
+       100.0,
+       1.2
+      ],
+      [
+       null,
+       1.1
+      ]
+     ],
+     "under": [
+      [
+       1.0,
+       0.0
+      ],
+      [
+       5.0,
+       0.7
+      ],
+      [
+       100.0,
+       0.8
+      ],
+      [
+       null,
+       0.9
+      ]
+     ]
+    },
+    "class 3": {
+     "over": [
+      [
+       5.0,
+       1.3
+      ],
+      [
+       100.0,
+       1.2
+      ],
+      [
+       null,
+       1.1
+      ]
+     ],
+     "under": [
+      [
+       10.0,
+       0.0
+      ],
+      [
+       100.0,
+       0.8
+      ],
+      [
+       null,
+       0.9
+      ]
+     ]
+    }
+   },
+   "IEC 62040-3 output dynamic performance classifications 1 / 2 / 3 as remembered (FROM MEMORY, uncertain in the intermediate step): +/-30 % to 5 ms, +/-20 % to 100 ms, +/-10 % after; class 2 tolerates 1 ms and class 3 10 ms at zero voltage; not verified - the standard text is the gate, no class is claimed"
   ],
   "dc_reg_T_s": [
    0.02,
    "four-wire DC-component regulators (one-cycle mean -> integrator -> offset on the reference): time constant, a firmware parameter (review R2-13 compares 0.2 s: the half-wave DC transient then lasts 0.8 s)"
   ],
-  "dcdc_stop_us": [
-   50.0,
-   "a DC/DC feeding the link stops this long after the PCS's DC over-voltage trip (a shared trip line or its own comparator at the same level: ASSUMED - the DC/DC firmware is not modelled here)"
+  "sync_close": [
+   {
+    "tau_sync_s": 0.3,
+    "dtheta0_deg": 30.0,
+    "dv0": 0.04,
+    "df0_Hz": 0.3,
+    "df_max_Hz": 0.1,
+    "t_sync_max_s": 60.0,
+    "slow_pull_s": 0.35,
+    "foreign_deg": 120.0,
+    "jump_deg": 30.0,
+    "t_run_s": 1.0
+   },
+   "DC-start synchronised close, executed model (review R3-01): the module's synchronisation to the grid converges exponentially with tau_sync from the initial phase / amplitude / frequency errors (ASSUMED: the PLL / GFM sync loop is not part of this slow-task model); |df| <= 0.1 Hz part of the permissive (ASSUMED, as section 7); SYNC gives up after t_sync_max (ASSUMED) with a report; a 'slow' contactor pulls in after slow_pull (beyond the settle window); a foreign source on a dead bus appears foreign_deg out of phase; the path check after K1 in the grid start = a small active-power step in grid-connected GFM, the measured P follows only if the path formed (ASSUMED method; read as the physical state); a running module is stopped after t_run to exercise the opening (a welded contact)"
+  ],
+  "rt4_onset_s": [
+   0.005,
+   "four-wire grid forming (review R3-02): the ride-through clamp of section 4c applied per phase for this long after the phase-to-N voltage collapses (the onset window: the first peak forms within about 1 ms), then the normal per-sample clamp - a firmware parameter; held for the whole ride-through state it would hold a fault at the clamp for the whole 200 ms ride and clip half-wave loads (section 9c-2)"
+  ],
+  "adc_noise_lsb": [
+   1.0,
+   "F280039C ADC noise per conversion, as a peak on top of the +/-1/2 LSB quantisation (ASSUMED: no figure on file) - review R3-02: the onset prediction's noise term"
   ],
   "osc_ageing_ppm": [
    10.0,
@@ -6656,8 +6762,9 @@
  },
  "ride_through": {
   "limiter": {
-   "clamp_A": 380.1,
-   "clamp_basis": "window low edge - ripple/2 - iclamp_margin_A (sampled, ripple-midpoint current)",
+   "clamp_A": 378.0,
+   "clamp_basis": "min(window low edge 426.0 A, CMPSS backup low edge 423.9 A) = 423.9 A - ripple/2 30.9 A - iclamp_margin_A 15.0 A = 378.0 A (sampled, ripple-midpoint current; the window-referenced value was 380.1 A)",
+   "clamp_edge_A": 423.9,
    "dip_limit_A_pk": 254.558,
    "lvrt_pu": [
     0.85,
@@ -6687,14 +6794,14 @@
     "depth": 0.0,
     "P_kW": 125.0,
     "layers": "all",
-    "pk_on": 483.991,
-    "pk_dip": 287.428,
+    "pk_on": 482.124,
+    "pk_dip": 287.414,
     "pk_rec": 301.282,
     "i_dip": 254.56,
     "settle_ms": 0.71875,
     "clamp_ms": 0.03125,
     "usat_ms": 0.28125,
-    "pk": 483.991,
+    "pk": 482.124,
     "trip": true
    },
    {
@@ -6703,7 +6810,7 @@
     "P_kW": 125.0,
     "layers": "all",
     "pk_on": 465.289,
-    "pk_dip": 285.527,
+    "pk_dip": 286.879,
     "pk_rec": 307.341,
     "i_dip": 254.557,
     "settle_ms": 0.71875,
@@ -6718,7 +6825,7 @@
     "P_kW": 125.0,
     "layers": "all",
     "pk_on": 445.336,
-    "pk_dip": 286.61,
+    "pk_dip": 286.6,
     "pk_rec": 306.18,
     "i_dip": 254.559,
     "settle_ms": 0.71875,
@@ -6740,7 +6847,7 @@
     "clamp_ms": 0.0,
     "usat_ms": 0.140625,
     "pk": 425.383,
-    "trip": false
+    "trip": true
    },
    {
     "scr": null,
@@ -7065,8 +7172,8 @@
     "P_kW": 125.0,
     "layers": "clamp",
     "pk_on": 465.436,
-    "pk_dip": 399.606,
-    "pk_rec": 415.955,
+    "pk_dip": 399.597,
+    "pk_rec": 414.822,
     "i_dip": 366.565,
     "settle_ms": 2.84375,
     "clamp_ms": 0.09375,
@@ -7081,13 +7188,13 @@
     "layers": "clamp",
     "pk_on": 425.521,
     "pk_dip": 397.528,
-    "pk_rec": 412.648,
+    "pk_rec": 411.86,
     "i_dip": 366.565,
     "settle_ms": 3.9375,
-    "clamp_ms": 0.03125,
+    "clamp_ms": 0.046875,
     "usat_ms": 0.140625,
     "pk": 425.521,
-    "trip": false
+    "trip": true
    },
    {
     "scr": null,
@@ -7096,12 +7203,12 @@
     "layers": "clamp",
     "pk_on": 385.607,
     "pk_dip": 397.511,
-    "pk_rec": 409.139,
+    "pk_rec": 408.418,
     "i_dip": 366.565,
     "settle_ms": 6.03125,
-    "clamp_ms": 0.03125,
+    "clamp_ms": 0.046875,
     "usat_ms": 0.109375,
-    "pk": 409.139,
+    "pk": 408.418,
     "trip": false
    },
    {
@@ -7110,13 +7217,13 @@
     "P_kW": 125.0,
     "layers": "clamp",
     "pk_on": 316.58,
-    "pk_dip": 413.451,
-    "pk_rec": 431.617,
-    "i_dip": 378.484,
-    "settle_ms": 31.7031,
-    "clamp_ms": 17.0625,
-    "usat_ms": 17.8594,
-    "pk": 431.617,
+    "pk_dip": 411.745,
+    "pk_rec": 433.707,
+    "i_dip": 376.825,
+    "settle_ms": 9.17188,
+    "clamp_ms": 19.25,
+    "usat_ms": 17.9375,
+    "pk": 433.707,
     "trip": true
    },
    {
@@ -7125,13 +7232,13 @@
     "P_kW": 125.0,
     "layers": "clamp",
     "pk_on": 309.24,
-    "pk_dip": 413.204,
-    "pk_rec": 412.459,
-    "i_dip": 378.585,
-    "settle_ms": 75.3594,
-    "clamp_ms": 13.9375,
-    "usat_ms": 0.375,
-    "pk": 413.204,
+    "pk_dip": 411.278,
+    "pk_rec": 410.931,
+    "i_dip": 376.949,
+    "settle_ms": 9.60938,
+    "clamp_ms": 17.625,
+    "usat_ms": 0.359375,
+    "pk": 411.278,
     "trip": false
    },
    {
@@ -7140,13 +7247,13 @@
     "P_kW": 125.0,
     "layers": "clamp",
     "pk_on": 300.44,
-    "pk_dip": 411.382,
-    "pk_rec": 411.577,
+    "pk_dip": 409.446,
+    "pk_rec": 410.549,
     "i_dip": 366.565,
     "settle_ms": 6.75,
-    "clamp_ms": 0.640625,
+    "clamp_ms": 0.828125,
     "usat_ms": 0.28125,
-    "pk": 411.577,
+    "pk": 410.549,
     "trip": false
    }
   ],
@@ -7154,30 +7261,30 @@
    {
     "depth": 0.0,
     "scr": null,
-    "P_max_kW": 95.5,
-    "frac": 0.764,
-    "onset": 425.21
+    "P_max_kW": 94.5,
+    "frac": 0.756,
+    "onset": 423.168
    },
    {
     "depth": 0.1,
     "scr": null,
-    "P_max_kW": 105.5,
-    "frac": 0.844,
-    "onset": 425.655
+    "P_max_kW": 104.5,
+    "frac": 0.836,
+    "onset": 423.616
    },
    {
     "depth": 0.2,
     "scr": null,
-    "P_max_kW": 115.0,
-    "frac": 0.92,
-    "onset": 425.08
+    "P_max_kW": 114.0,
+    "frac": 0.912,
+    "onset": 423.04
    },
    {
     "depth": 0.3,
     "scr": null,
-    "P_max_kW": 125.0,
-    "frac": 1.0,
-    "onset": 425.383
+    "P_max_kW": 124.0,
+    "frac": 0.992,
+    "onset": 423.483
    },
    {
     "depth": 0.5,
@@ -7188,12 +7295,12 @@
    }
   ],
   "instant_scan": [
-   483.991,
+   482.124,
    475.887,
    452.671,
    431.212,
    462.823,
-   480.665
+   480.652
   ],
   "scr50": {
    "pm": 54.0445,
@@ -7261,9 +7368,9 @@
     "pk": 294.092,
     "t_end_s": 2.5,
     "env": {
-     "over": 0.031916,
-     "under": -0.120779,
-     "ok": false
+     "over": 0.101916,
+     "under": 0.131392,
+     "ok": true
     },
     "itic": {
      "over": 0.101916,
@@ -7284,8 +7391,8 @@
     "pk": 286.064,
     "t_end_s": 2.5,
     "env": {
-     "over": 0.0108378,
-     "under": 0.0301203,
+     "over": 0.0927198,
+     "under": 0.20012,
      "ok": true
     },
     "itic": {
@@ -7307,8 +7414,8 @@
     "pk": 286.064,
     "t_end_s": 2.5,
     "env": {
-     "over": -0.233686,
-     "under": 0.0309265,
+     "over": -0.063686,
+     "under": 0.200926,
      "ok": false
     },
     "itic": {
@@ -7330,8 +7437,8 @@
     "pk": 245.965,
     "t_end_s": 0.3,
     "env": {
-     "over": 0.0292954,
-     "under": 0.0302106,
+     "over": 0.192557,
+     "under": 0.292065,
      "ok": true
     },
     "itic": {
@@ -9950,11 +10057,11 @@
    ],
    [
     "per-sample current clamp",
-    "in the PWM update, per phase: the current one period after the new command, predicted from the sensed current and the committed command over the -10 % L1, limited to 380 A (sampled) = window low edge 426 A - ripple/2 30.9 A - 15 A; deadbeat correction with unit gain on that phase, anti-windup through the PR back-calculation; backstop only - the ride-through state keeps the reference below it"
+    "in the PWM update, per phase: the current one period after the new command, predicted from the sensed current and the committed command over the -10 % L1, limited to 378.0 A (sampled) = the lower edge of the two hardware layers 423.9 A (window 426.0 A, CMPSS backup 423.9 A) - ripple/2 30.9 A - 15 A; deadbeat correction with unit gain on that phase, anti-windup through the PR back-calculation; backstop only - the ride-through state keeps the reference below it"
    ],
    [
     "stiff-grid deep-dip derating (FALLBACK, section 4c)",
-    "needed only if the onset measure below is not taken or not confirmed: with the D-077 limiter rated current reaches the window at a stiff connection for residual voltages of 0.2 pu and below, from SCR 83.9 stiffer; the grid-stiffness estimate engages the table of section 4c at SCR 64.5 (stiff: 0 pu 95.5 kW, 0.1 pu 105.5 kW, 0.2 pu 115.0 kW)"
+    "needed only if the onset measure below is not taken or not confirmed: with the D-077 limiter rated current reaches the window at a stiff connection for residual voltages of 0.3 pu and below, from SCR 80.2 stiffer; the grid-stiffness estimate engages the table of section 4c at SCR 61.7 (stiff: 0 pu 94.5 kW, 0.1 pu 104.5 kW, 0.2 pu 114.0 kW, 0.3 pu 124.0 kW)"
    ],
    [
     "VF secondary restoration",
@@ -9982,11 +10089,11 @@
    ],
    [
     "ride-through onset measure (review R2-05; adopted)",
-    "while the ride-through state runs the per-sample clamp sits at the dip-time limit + 15 A = 270 A (sampled) instead of 380 A, and the clamp predicts on the sensed C_f voltage with the divider's known pole inverted (v = (y[k] - a y[k-1]) / (1 - a), a = exp(-T / tau_v)); stiff 0 pu onset 382 A, worst corner / instant 403 A against the 426 A window edge"
+    "while the ride-through state runs the per-sample clamp sits at the dip-time limit + 15 A = 270 A (sampled) instead of 378 A, and the clamp predicts on the sensed C_f voltage with the divider's known pole inverted (v = (y[k] - a y[k-1]) / (1 - a), a = exp(-T / tau_v)); stiff 0 pu onset 382 A, worst corner / instant 403 A against the 426 A window edge"
    ],
    [
     "grid-stiffness estimate (fallback of the onset measure; also the CV-mode rule)",
-    "at connection a 0.2 pu reactive-current step (a PRBS of it in operation, correlated over 10 s in the 1 kHz task): the terminal-voltage phasor change (VG1-3) over the estimated grid-current change (i_1 - j w C_eq v_C), SCR = Z_base / |Z|; deterministic error of the method in the model 0.003 %; accuracy ASSUMED +/-30 % (the grid's own voltage variation); signal at the engage level 0.97 V = 1.1 LSB of the 0.881 V/LSB channel (averaging needed); no valid estimate = treated as stiff"
+    "at connection a 0.2 pu reactive-current step (a PRBS of it in operation, correlated over 10 s in the 1 kHz task): the terminal-voltage phasor change (VG1-3) over the estimated grid-current change (i_1 - j w C_eq v_C), SCR = Z_base / |Z|; deterministic error of the method in the model 0.003 %; accuracy ASSUMED +/-30 % (the grid's own voltage variation); signal at the engage level 1.02 V = 1.2 LSB of the 0.881 V/LSB channel (averaging needed); no valid estimate = treated as stiff"
    ],
    [
     "VF load-current feed-forward (review R2-04; adopted)",
@@ -10035,6 +10142,26 @@
    [
     "AC start repair H5 (review R2-14)",
     "the attempt counter, its spacing and the lock-out kept across a controller reset and checked before every attempt (as specified they live in RAM: an aux brown-out restarts the count)"
+   ],
+   [
+    "DC-start synchronised close, one coil at a time (review R3-01)",
+    "SYNC -> SYNC_CLOSE_K2 -> SYNC_CLOSE_K1 -> GFL (grid start) / GFM (dead-bus start): K2 alone, settled (200 ms: the coil's pull-in window + 100 ms, the AC start's criterion), then K1; PWM and K_DC as in SYNC; the closing permissive re-checked at each coil command and at every tick until the path forms (lost -> SYNC, both coils released); after K1 settles the path check (grid start: a small active-power step in grid-connected GFM, the measured P follows - ASSUMED method; dead bus: VG follows v_C), not formed -> SYNC, a counted attempt (<= 3 per start, >= 30 s apart, in the recorder flash) -> LOCKOUT; dead bus: VG live with K2 alone and in phase with v_C = K1 welded -> LOCKOUT; the start mode fixed at the start command (a lost grid never becomes a dead-bus close); live 24 V peak 38.9 / 42.2 W (three- / four-wire) against 48 W"
+   ],
+   [
+    "four-wire grid forming: ride-through clamp for the onset (review R3-02; adopted)",
+    "per phase, when the phase-to-N voltage error exceeds 0.15 V0 (the D-079 entry depth), the per-sample clamp of that phase and of the N leg sits at 270 A for 5 ms (prediction on the divider-inverted C_f voltage), then the normal 378 A clamp; a bolted L-N short: first-ms peaks <= 351 A, no hardware layer trips at any studied corner (smallest margin 13.3 A to the lower edge of the two bands, the hold), the firmware limit timer trips at 200 ms; held for the whole state it would hold the fault at the clamp for the whole ride and clip half-wave loads (rejected)"
+   ],
+   [
+    "four-wire bolted output short: the declared outcome (review R3-02)",
+    "the firmware-timed 200 ms ride at the 200 ms tier applies where no hardware layer trips; if a layer trips (a unit outside the modelled tolerances; with the D-079 firmware the CMPSS backup trips at the low corner: low: both low, sensor typ, ripple max; low: window high, CMPSS low, sensor typ, ripple max): the gates off within the protection chain, the latch holds, FAULT; no automatic clear after an over-current trip (the latch-clear row); a restart by command into a short that persists trips again; the third hazard trip of a class within 10 min -> LOCKOUT (ASSUMED, the firmware-practice row)"
+   ],
+   [
+    "ride-through onset: noise term (review R3-02)",
+    "ADC quantisation and noise (+/-1.5 LSB, the ADC's own ASSUMED) and the sensor's noise through the clamp's prediction: 2.5 A worst case (1.8 A RSS); the margin 23.0 A to the window edge is 20.5 A net of it, to the CMPSS backup's low edge 20.9 / 18.4 A"
+   ],
+   [
+    "VF on a battery-less DC bus with PV-P75 (review R3-03; installation / system rule)",
+    "the PV modules' coordination row (V_B > V_B* + 30 V -> current references to zero) is required: with it the island rides through a full-load rejection up to a CV set point of 909 V (worst corner: link -10 %, residual energy at the cells' peak, two modules at the PCS's 2-min power; one module 921 V), the PV row's 782 V validity is conservative; without it the PCS trips (the bus ends at 1063-1069 V); the external stop path (1.47 ms) changes nothing on this event; a hardwired trip line is needed only above the validity (the PV stopped within 56 us of the rejection at 950 V; cost class low, not added)"
    ]
   ],
   "anti_islanding": [
@@ -10078,14 +10205,30 @@
     [
      "AC SYNCHRONISATION",
      "precharged",
-     "grid: |dV| <= 5 %, |dtheta| <= 5 deg, |df| <= 0.1 Hz, relay test (each contactor alone) passed, V_dc >= 1.02 x sqrt(2) x V_LL,rms(measured) + 10 V and >= the map's V_dc for the commanded P / Q: 624 V at 400 V, 718 V at 460 V (no load) -> K_AC1+K_AC2 close -> GFL; dead bus (VG < 10 %) -> GFM",
+     "grid: |dV| <= 5 %, |dtheta| <= 5 deg, |df| <= 0.1 Hz, relay test (each contactor alone) passed, V_dc >= 1.02 x sqrt(2) x V_LL,rms(measured) + 10 V and >= the map's V_dc for the commanded P / Q: 624 V at 400 V, 718 V at 460 V (no load) -> SYNC_CLOSE_K2 (grid start); dead-bus start (VG < 10 %) -> SYNC_CLOSE_K2; the start mode is fixed at the start command (a grid lost during a grid start never becomes a dead-bus close); <= 3 close attempts >= 30 s apart, counted in the recorder flash -> LOCKOUT; no start condition within 60 s (ASSUMED) -> IDLE with a report",
      "PWM (GFM on C_f, contactors open), K_DC",
      "VC1-3, VG1-3 (both sides of the contactors), PLL on VG",
      "phase window +/-455 A (426-486 A, 3.5 us) + CMPSS 424-498 A, DESAT per channel, DC OV 978-1048 V, OT, heartbeat, ENABLE, RDY"
     ],
     [
+     "SYNC_CLOSE_K2 (review R3-01)",
+     "synced_grid / dead_bus: the permissive holds at the K2 command",
+     "K2 pulls in alone; the permissive re-checked every tick; after the settle (200 ms = the coil's pull-in window + 100 ms, the AC start's criterion) and the permissive at the K1 command -> SYNC_CLOSE_K1; permissive lost -> SYNC (K2 released); dead bus: VG live with K2 alone and in phase with v_C = K1 welded -> LOCKOUT; stop -> IDLE",
+     "PWM, K_DC, K_AC2",
+     "VG1-3, VC1-3, V_link",
+     "phase window +/-455 A (426-486 A, 3.5 us) + CMPSS 424-498 A, DESAT per channel, DC OV 978-1048 V, OT, heartbeat, ENABLE, RDY"
+    ],
+    [
+     "SYNC_CLOSE_K1 (review R3-01)",
+     "k2_settled: the permissive holds at the K1 command",
+     "K1 pulls in, K2 held; until the path forms the permissive re-checked every tick (lost -> SYNC, both coils released); after the settle the path check (grid start: a small active-power step in grid-connected GFM, the measured P follows - ASSUMED method; dead bus: VG follows v_C) -> GFL / GFM; path not formed (stuck or slow contactor) -> SYNC, a counted attempt; stop -> CONTROLLED STOP",
+     "PWM, K_DC, K_AC2, K_AC1",
+     "VG1-3, VC1-3, P from v_C and i_1",
+     "phase window +/-455 A (426-486 A, 3.5 us) + CMPSS 424-498 A, DESAT per channel, DC OV 978-1048 V, OT, heartbeat, ENABLE, RDY"
+    ],
+    [
      "GFL RUN",
-     "synced_grid / gfl_cmd (bumpless)",
+     "k1_settled / gfl_cmd (bumpless)",
      "stop, grid out of window or islanding -> STOP; limit > 200 ms -> STOP; island_cmd -> GFM",
      "PWM, K_DC, K_AC",
      "IL1-3, VC1-3, VG1-3, V_link, I_DC, RCM",
@@ -10093,7 +10236,7 @@
     ],
     [
      "GFM RUN",
-     "dead_bus / island_cmd (bumpless)",
+     "k1_settled_dead_bus / island_cmd (bumpless)",
      "gfl_cmd when grid connected; stop; limit > 200 ms -> STOP",
      "PWM, K_DC, K_AC",
      "same + P/Q from v_C and i_1 - j w C v_C",
@@ -10170,10 +10313,20 @@
     "PRECHARGE --precharged-->": "SYNC",
     "PRECHARGE --timeout-->": "FAULT",
     "PRECHARGE --stop-->": "IDLE",
-    "SYNC --synced_grid-->": "GFL",
-    "SYNC --dead_bus-->": "GFM",
+    "SYNC --synced_grid-->": "SYNC_CLOSE_K2",
+    "SYNC --dead_bus-->": "SYNC_CLOSE_K2",
     "SYNC --relay_fail-->": "FAULT",
     "SYNC --stop-->": "IDLE",
+    "SYNC_CLOSE_K2 --k2_settled-->": "SYNC_CLOSE_K1",
+    "SYNC_CLOSE_K2 --no_permissive-->": "SYNC",
+    "SYNC_CLOSE_K2 --welded-->": "LOCKOUT",
+    "SYNC_CLOSE_K2 --stop-->": "IDLE",
+    "SYNC_CLOSE_K1 --k1_settled-->": "GFL",
+    "SYNC_CLOSE_K1 --k1_settled_dead_bus-->": "GFM",
+    "SYNC_CLOSE_K1 --no_permissive-->": "SYNC",
+    "SYNC_CLOSE_K1 --stuck_open-->": "SYNC",
+    "SYNC_CLOSE_K1 --stop-->": "STOP",
+    "SYNC --attempts_out-->": "LOCKOUT",
     "GFL --island_cmd-->": "GFM",
     "GFM --gfl_cmd-->": "GFL",
     "GFL --grid_out-->": "STOP",
@@ -10227,6 +10380,12 @@
     "SYNC --hw_trip-->": "FAULT",
     "SYNC --fw_trip-->": "FAULT",
     "SYNC --brownout-->": "IDLE",
+    "SYNC_CLOSE_K2 --hw_trip-->": "FAULT",
+    "SYNC_CLOSE_K2 --fw_trip-->": "FAULT",
+    "SYNC_CLOSE_K2 --brownout-->": "IDLE",
+    "SYNC_CLOSE_K1 --hw_trip-->": "FAULT",
+    "SYNC_CLOSE_K1 --fw_trip-->": "FAULT",
+    "SYNC_CLOSE_K1 --brownout-->": "IDLE",
     "GFL --hw_trip-->": "FAULT",
     "GFL --fw_trip-->": "FAULT",
     "GFL --brownout-->": "IDLE",
@@ -10287,6 +10446,18 @@
      0
     ],
     "GFL": [
+     1,
+     0,
+     1,
+     1
+    ],
+    "SYNC_CLOSE_K2": [
+     1,
+     0,
+     1,
+     0
+    ],
+    "SYNC_CLOSE_K1": [
      1,
      0,
      1,
@@ -10374,15 +10545,17 @@
    "verified": {
     "I1 hw_trip and fw_trip lead to FAULT from every state but LOCKOUT (which they leave in place)": true,
     "I2 FAULT, LOCKOUT, RETRY_WAIT, IDLE: everything off": true,
-    "I3 the AC power path (K_AC1 and K_AC2) forms only out of SYNC on a permissive or out of AC_CLOSE_K2 on 'k2_settled'": true,
+    "I3 the AC power path (K_AC1 and K_AC2) forms only out of SYNC_CLOSE_K2 or AC_CLOSE_K2 on 'k2_settled' (K2 held, K1 added)": true,
     "I4 the DC contactor closes only out of PRECHARGE / DC_MATCH on 'precharged' or RECTIFY on 'dc_matched'": true,
-    "I5 PWM only in SYNC, GFL, GFM, STOP, RECTIFY, DC_MATCH, AC_STOP": true,
+    "I5 PWM only in SYNC, SYNC_CLOSE_K2 / K1, GFL, GFM, STOP, RECTIFY, DC_MATCH, AC_STOP": true,
     "I6 FAULT is left only by 'clear' (or a brown-out reset), to IDLE": true,
     "I9 K_ACPRE only in AC_PRECHARGE, with K_PRE, K_DC, K_AC1 and K_AC2 open": true,
     "I10 K_ACPRE and K_DC never commanded together": true,
     "I11 LOCKOUT is left only by 'reset', to IDLE (trips and brown-outs leave it)": true,
-    "I12 no transition closes both AC contactors at once (one coil at a time: K2, then K1)": true,
+    "I12 no transition closes both AC contactors at once (one coil at a time: K2, then K1; unconditional, review R3-01)": true,
     "I13 the AC precharge relay opens before any AC contactor closes": true,
+    "I14 the synchronised-close substates keep SYNC's PWM and DC contactor (PWM and K_DC on, K_ACPRE and K_PRE off)": true,
+    "I15 a lost closing permissive releases both AC coils": true,
     "I7 every state reachable from IDLE": true,
     "I8 IDLE reachable from every state": true
    }
@@ -10392,7 +10565,7 @@
   [
    "PCS-CTL phase window",
    "+/-455 A nominal, worst band 426-486 A (basis 1.072 x the normal peak 397.5 A)",
-   "with the firmware limiter of section 4b (ride-through state, PLL freeze, per-sample clamp) every in-dip and recovery peak is <= 382 A; peaks above the band's low edge (averaged + ripple/2): 0 pu dip at 125 kW (stiff) onset 484 A (above the nominal threshold: trips); 0.1 pu dip at 125 kW (stiff) onset 465 A (above the nominal threshold: trips); 0.2 pu dip at 125 kW (stiff) onset 445 A (may trip); highest peak below the band: 0.3 pu dip at 125 kW (stiff) onset 425 A; without the ride-through state (section 4): 0.1 pu dip (stiff) 465 A",
+   "with the firmware limiter of section 4b (ride-through state, PLL freeze, per-sample clamp) every in-dip and recovery peak is <= 382 A; peaks above the lower edge of the two layers, 423.9 A (averaged + ripple/2): 0 pu dip at 125 kW (stiff) onset 482 A (above the nominal threshold: trips); 0.1 pu dip at 125 kW (stiff) onset 465 A (above the nominal threshold: trips); 0.2 pu dip at 125 kW (stiff) onset 445 A (may trip); 0.3 pu dip at 125 kW (stiff) onset 425 A (may trip); highest peak below the band: 0 pu dip at 125 kW (SCR 50) onset 402 A; without the ride-through state (section 4): 0.1 pu dip (stiff) 465 A",
    "OK (the onset measure of section 4c holds every onset at <= 403 A; the D-077 limiter alone would trip at a stiff connection - the fallback derating)"
   ],
   [
@@ -10433,7 +10606,7 @@
   ],
   [
    "PCS-CTL trip table, CMPSS row",
-   "'requirement 417.3-504.2 A'",
+   "'requirement 417.3-504.1 A'",
    "a PV cell-current band left in the inverter's table (the CMPSS backup sits at 424-498 A)",
    "OK"
   ],
@@ -10635,13 +10808,31 @@
   "status": "local window closes; CMPSS backup closes as drawn"
  },
  "ride_through_rule": {
+  "noise": {
+   "i_lsb_A": 0.4285,
+   "v_lsb_V": 0.881,
+   "adc_noise_lsb": 1.0,
+   "sensor_pp_A": 1.375,
+   "a_div": 0.512944,
+   "dv_inv_V": 4.10498,
+   "di_A": 1.33025,
+   "dpred_A": 1.19499,
+   "total_A": 2.52524,
+   "rss_A": 1.78817
+  },
+  "noise_A": 2.52524,
+  "margin_net_A": 20.481,
+  "thr_cmpss": 423.9,
+  "margin_cmpss_A": 20.9062,
+  "margin_cmpss_net_A": 18.381,
   "thr": 426.0,
+  "thr_screen": 423.9,
   "thr_src": "pcs_spec protection_chain (sim/pcs_design.py, read at run time)",
   "clamp_rt_A": 269.558,
   "measures": [
    [
     "D-077 limiter (section 4b)",
-    483.991
+    482.124
    ],
    [
     "dip-time limit 0.5 I_r instead of 1.0 I_r",
@@ -10649,7 +10840,7 @@
    ],
    [
     "ride-through state entered below 0.95 pu instead of 0.85 pu",
-    483.995
+    482.128
    ],
    [
     "clamp at 270 A (the dip-time limit + 15 A) while the ride-through state runs",
@@ -11112,34 +11303,41 @@
   "boundary": [
    {
     "depth": 0.0,
-    "scr_b": 83.9,
-    "onset_b": 425.986,
-    "onset_stiff": 483.991,
-    "margin_scr50_A": 23.8287
+    "scr_b": 80.1566,
+    "onset_b": 423.892,
+    "onset_stiff": 482.124,
+    "margin_scr50_A": 21.7287
    },
    {
     "depth": 0.1,
-    "scr_b": 119.906,
-    "onset_b": 425.981,
+    "scr_b": 113.841,
+    "onset_b": 423.883,
     "onset_stiff": 465.289,
-    "margin_scr50_A": 35.6173
+    "margin_scr50_A": 33.5173
    },
    {
     "depth": 0.2,
-    "scr_b": 198.258,
-    "onset_b": 425.985,
+    "scr_b": 184.338,
+    "onset_b": 423.874,
     "onset_stiff": 445.336,
-    "margin_scr50_A": 45.6912
+    "margin_scr50_A": 43.5912
+   },
+   {
+    "depth": 0.3,
+    "scr_b": 793.798,
+    "onset_b": 423.872,
+    "onset_stiff": 425.383,
+    "margin_scr50_A": 55.0126
    }
   ],
-  "scr_b": 83.9,
+  "scr_b": 80.1566,
   "table": [
    {
     "depth": 0.0,
     "scr": 100.0,
-    "P_max_kW": 121.0,
-    "frac": 0.968,
-    "onset": 425.099
+    "P_max_kW": 120.0,
+    "frac": 0.96,
+    "onset": 423.062
    },
    {
     "depth": 0.1,
@@ -11165,16 +11363,16 @@
    {
     "depth": 0.0,
     "scr": 150.0,
-    "P_max_kW": 113.0,
-    "frac": 0.904,
-    "onset": 425.246
+    "P_max_kW": 112.0,
+    "frac": 0.896,
+    "onset": 423.208
    },
    {
     "depth": 0.1,
     "scr": 150.0,
-    "P_max_kW": 121.0,
-    "frac": 0.968,
-    "onset": 425.108
+    "P_max_kW": 120.0,
+    "frac": 0.96,
+    "onset": 423.071
    },
    {
     "depth": 0.2,
@@ -11193,23 +11391,23 @@
    {
     "depth": 0.0,
     "scr": 200.0,
-    "P_max_kW": 108.0,
-    "frac": 0.864,
-    "onset": 425.071
+    "P_max_kW": 107.0,
+    "frac": 0.856,
+    "onset": 423.035
    },
    {
     "depth": 0.1,
     "scr": 200.0,
-    "P_max_kW": 116.0,
-    "frac": 0.928,
-    "onset": 425.984
+    "P_max_kW": 114.5,
+    "frac": 0.916,
+    "onset": 422.925
    },
    {
     "depth": 0.2,
     "scr": 200.0,
-    "P_max_kW": 124.5,
-    "frac": 0.996,
-    "onset": 425.616
+    "P_max_kW": 123.5,
+    "frac": 0.988,
+    "onset": 423.613
    },
    {
     "depth": 0.3,
@@ -11221,23 +11419,23 @@
    {
     "depth": 0.0,
     "scr": 300.0,
-    "P_max_kW": 103.5,
-    "frac": 0.828,
-    "onset": 425.586
+    "P_max_kW": 102.5,
+    "frac": 0.82,
+    "onset": 423.548
    },
    {
     "depth": 0.1,
     "scr": 300.0,
-    "P_max_kW": 112.5,
-    "frac": 0.9,
-    "onset": 425.556
+    "P_max_kW": 111.5,
+    "frac": 0.892,
+    "onset": 423.515
    },
    {
     "depth": 0.2,
     "scr": 300.0,
-    "P_max_kW": 121.5,
-    "frac": 0.972,
-    "onset": 425.518
+    "P_max_kW": 120.5,
+    "frac": 0.964,
+    "onset": 423.479
    },
    {
     "depth": 0.3,
@@ -11249,23 +11447,23 @@
    {
     "depth": 0.0,
     "scr": 500.0,
-    "P_max_kW": 99.5,
-    "frac": 0.796,
-    "onset": 425.156
+    "P_max_kW": 98.5,
+    "frac": 0.788,
+    "onset": 423.116
    },
    {
     "depth": 0.1,
     "scr": 500.0,
-    "P_max_kW": 109.0,
-    "frac": 0.872,
-    "onset": 425.387
+    "P_max_kW": 108.0,
+    "frac": 0.864,
+    "onset": 423.347
    },
    {
     "depth": 0.2,
     "scr": 500.0,
-    "P_max_kW": 118.5,
-    "frac": 0.948,
-    "onset": 425.607
+    "P_max_kW": 117.5,
+    "frac": 0.94,
+    "onset": 423.571
    },
    {
     "depth": 0.3,
@@ -11277,30 +11475,30 @@
    {
     "depth": 0.0,
     "scr": null,
-    "P_max_kW": 95.5,
-    "frac": 0.764,
-    "onset": 425.21
+    "P_max_kW": 94.5,
+    "frac": 0.756,
+    "onset": 423.168
    },
    {
     "depth": 0.1,
     "scr": null,
-    "P_max_kW": 105.5,
-    "frac": 0.844,
-    "onset": 425.655
+    "P_max_kW": 104.5,
+    "frac": 0.836,
+    "onset": 423.616
    },
    {
     "depth": 0.2,
     "scr": null,
-    "P_max_kW": 115.0,
-    "frac": 0.92,
-    "onset": 425.08
+    "P_max_kW": 114.0,
+    "frac": 0.912,
+    "onset": 423.04
    },
    {
     "depth": 0.3,
     "scr": null,
-    "P_max_kW": 125.0,
-    "frac": 1.0,
-    "onset": 425.383
+    "P_max_kW": 124.0,
+    "frac": 0.992,
+    "onset": 423.483
    }
   ],
   "table_scr": [
@@ -11334,11 +11532,11 @@
     "dI_A": 50.8148
    },
    {
-    "scr": 83.9,
-    "scr_est": 83.9023,
-    "err_pct": 0.00275653,
-    "dV_V": 0.776457,
-    "dI_A": 50.8957
+    "scr": 80.2,
+    "scr_est": 80.2022,
+    "err_pct": 0.00275539,
+    "dV_V": 0.81219,
+    "dI_A": 50.8902
    },
    {
     "scr": 200.0,
@@ -11350,14 +11548,19 @@
   ],
   "dq_pu": 0.2,
   "acc": 0.3,
-  "engage_scr": 64.5385,
+  "engage_scr": 61.6589,
   "lsb_V": 0.881,
   "div": 1203.0,
-  "dV_engage_V": 0.974517,
-  "S_sc_engage_MVA": 8.06731,
-  "S_sc_b_MVA": 10.4875,
-  "I_off_max": 483.991,
-  "I_screen": 533.594
+  "dV_engage_V": 1.02003,
+  "S_sc_engage_MVA": 7.70736,
+  "S_sc_b_MVA": 10.0196,
+  "I_off_max": 482.124,
+  "I_screen": 533.594,
+  "clamp_A": 378.0,
+  "clamp_basis": "min(window low edge 426.0 A, CMPSS backup low edge 423.9 A) = 423.9 A - ripple/2 30.9 A - iclamp_margin_A 15.0 A = 378.0 A (sampled, ripple-midpoint current; the window-referenced value was 380.1 A)",
+  "clamp_edge_A": 423.9,
+  "clamp_ripple_half_A": 30.9,
+  "clamp_margin_A": 15.0
  },
  "vf_feedforward": {
   "chosen": {
@@ -11414,9 +11617,9 @@
     "vdc_max": 750.0,
     "vcl_ms": null,
     "env": {
-     "over": 0.128814,
-     "under": -0.275642,
-     "ok": false
+     "over": 0.298814,
+     "under": 0.136017,
+     "ok": true
     },
     "itic": {
      "over": 0.298814,
@@ -11437,8 +11640,8 @@
     "vdc_max": 750.0,
     "vcl_ms": null,
     "env": {
-     "over": 0.029964,
-     "under": 0.0295898,
+     "over": 0.0740644,
+     "under": 0.199877,
      "ok": true
     },
     "itic": {
@@ -11460,8 +11663,8 @@
     "vdc_max": 750.0,
     "vcl_ms": null,
     "env": {
-     "over": 0.0300709,
-     "under": 0.0297562,
+     "over": 0.126048,
+     "under": 0.29499,
      "ok": true
     },
     "itic": {
@@ -11483,8 +11686,8 @@
     "vdc_max": 750.0,
     "vcl_ms": null,
     "env": {
-     "over": 0.0299809,
-     "under": 0.029522,
+     "over": 0.053891,
+     "under": 0.288254,
      "ok": true
     },
     "itic": {
@@ -11506,8 +11709,8 @@
     "vdc_max": 750.0,
     "vcl_ms": null,
     "env": {
-     "over": 0.0301119,
-     "under": 0.0297284,
+     "over": 0.123778,
+     "under": 0.295266,
      "ok": true
     },
     "itic": {
@@ -11530,9 +11733,9 @@
     "pk": 294.092,
     "t_end_s": 2.5,
     "env": {
-     "over": 0.031916,
-     "under": -0.120779,
-     "ok": false
+     "over": 0.101916,
+     "under": 0.131392,
+     "ok": true
     },
     "itic": {
      "over": 0.101916,
@@ -11552,8 +11755,8 @@
     "vdc_max": 750.0,
     "vcl_ms": null,
     "env": {
-     "over": -0.476549,
-     "under": -0.0330399,
+     "over": -0.219415,
+     "under": 0.294819,
      "ok": false
     },
     "itic": {
@@ -11575,8 +11778,8 @@
     "vdc_max": 750.0,
     "vcl_ms": null,
     "env": {
-     "over": 0.0299507,
-     "under": 0.0297392,
+     "over": 0.0999891,
+     "under": 0.199851,
      "ok": true
     },
     "itic": {
@@ -11598,8 +11801,8 @@
     "vdc_max": 750.0,
     "vcl_ms": null,
     "env": {
-     "over": 0.0299568,
-     "under": 0.0297373,
+     "over": 0.19438,
+     "under": 0.294308,
      "ok": true
     },
     "itic": {
@@ -11621,8 +11824,8 @@
     "vdc_max": 750.0,
     "vcl_ms": null,
     "env": {
-     "over": 0.0300433,
-     "under": 0.0297812,
+     "over": 0.194439,
+     "under": 0.295959,
      "ok": true
     },
     "itic": {
@@ -11644,8 +11847,8 @@
     "vdc_max": 750.0,
     "vcl_ms": null,
     "env": {
-     "over": 0.0299263,
-     "under": 0.0297646,
+     "over": 0.194404,
+     "under": 0.294317,
      "ok": true
     },
     "itic": {
@@ -11668,8 +11871,8 @@
     "pk": 286.064,
     "t_end_s": 2.5,
     "env": {
-     "over": 0.0108378,
-     "under": 0.0301203,
+     "over": 0.0927198,
+     "under": 0.20012,
      "ok": true
     },
     "itic": {
@@ -11691,8 +11894,8 @@
    "vdc_max": 800.822,
    "vcl_ms": null,
    "env": {
-    "over": 0.0467489,
-    "under": 0.0439371,
+    "over": 0.193958,
+    "under": 0.293937,
     "ok": true
    },
    "itic": {
@@ -11716,8 +11919,8 @@
    "vdc_max": 961.335,
    "vcl_ms": null,
    "env": {
-    "over": 0.0444052,
-    "under": 0.0433644,
+    "over": 0.193584,
+    "under": 0.293364,
     "ok": true
    },
    "itic": {
@@ -11739,8 +11942,8 @@
    "vdc_max": 986.375,
    "vcl_ms": null,
    "env": {
-    "over": 0.0443997,
-    "under": 0.0433756,
+    "over": 0.193597,
+    "under": 0.293376,
     "ok": true
    },
    "itic": {
@@ -11753,129 +11956,119 @@
   "p_pre_W": 125000.0,
   "uncoordinated": {
    "978.0": {
-    "v_min": 0.778582,
-    "v_max": 1.75097,
-    "t_v10_ms": 0.578125,
-    "t_v1_ms": 0.578125,
-    "f_min": -0.000107177,
-    "f_max": 0.0173573,
-    "v_end": 1.11304,
-    "pk": 286.057,
-    "vdc_max": 1002.35,
-    "vcl_ms": null,
-    "env": {
-     "over": 0.149033,
-     "under": 0.36304,
-     "ok": true
-    },
-    "itic": {
-     "over": 0.249033,
-     "under": 0.778582,
-     "ok": true
-    },
-    "t_end_s": 0.05,
+    "n": 2,
+    "P_each_kW": 62.5,
+    "P_dc_kW": 125.185,
+    "v_set": 750.0,
+    "kC": 1.0,
+    "C_bus_uF": 1079.0,
+    "layers": [
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 2.83999,
     "trip": true,
-    "t_off_ms": 0.59375,
+    "vmax_loop": 987.374,
+    "t_pcs_ms": 1.5,
+    "t_off_ms": 1.5,
     "by": "comparator",
-    "v_off": 1008.84,
-    "vdc_pk": 1047.75,
-    "vdc_end": 1047.75,
-    "half_pk": 531.254,
-    "I_off": 41.0279,
+    "v_off": 989.796,
+    "vdc_pk": 1060.48,
+    "vdc_end": 1060.48,
+    "half_pk": 535.139,
+    "I_off": 37.0223,
     "V_dev": 1438.02,
     "dev_ok": true,
     "screen_ok": true,
     "half_ok": true,
     "half_rated": true,
     "aux_lockout": false,
+    "t_cut_ms": 1.844,
+    "cut_by": "firmware over-voltage limit 1034 V",
+    "t_pv_off_ms": null,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false,
     "i_hold_A": 166.914
    },
    "1048.0": {
-    "v_min": 0.778582,
-    "v_max": 1.75097,
-    "t_v10_ms": 0.734375,
-    "t_v1_ms": 0.734375,
-    "f_min": -0.000107177,
-    "f_max": 0.0222177,
-    "v_end": 1.10081,
-    "pk": 286.057,
-    "vdc_max": 1066.43,
-    "vcl_ms": null,
-    "env": {
-     "over": 0.149033,
-     "under": 0.350808,
-     "ok": true
-    },
-    "itic": {
-     "over": 0.249033,
-     "under": 0.778582,
-     "ok": true
-    },
-    "t_end_s": 0.05,
+    "n": 2,
+    "P_each_kW": 62.5,
+    "P_dc_kW": 125.185,
+    "v_set": 750.0,
+    "kC": 1.0,
+    "C_bus_uF": 1079.0,
+    "layers": [
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 1048.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 2.83999,
     "trip": true,
-    "t_off_ms": 0.75,
-    "by": "ADC PPB backup",
-    "v_off": 1072.84,
-    "vdc_pk": 1110.46,
-    "vdc_end": 1110.46,
-    "half_pk": 561.908,
-    "I_off": 36.186,
-    "V_dev": 1099.76,
+    "vmax_loop": 1053.85,
+    "t_pcs_ms": 1.9375,
+    "t_off_ms": 1.9375,
+    "by": "comparator",
+    "v_off": 1054.67,
+    "vdc_pk": 1061.22,
+    "vdc_end": 1061.22,
+    "half_pk": 534.306,
+    "I_off": 36.956,
+    "V_dev": 1438.02,
     "dev_ok": true,
     "screen_ok": true,
     "half_ok": true,
     "half_rated": true,
-    "aux_lockout": true,
+    "aux_lockout": false,
+    "t_cut_ms": 1.84375,
+    "cut_by": "firmware over-voltage limit 1034 V",
+    "t_pv_off_ms": null,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false,
     "i_hold_A": 166.914
    }
   },
   "envelope": {
    "over": [
     [
-     0.5,
-     1.9
+     1.0,
+     2.0
     ],
     [
      3.0,
-     1.3
+     1.4
     ],
     [
-     5.0,
+     500.0,
      1.2
     ],
     [
-     20.0,
-     1.1
-    ],
-    [
-     50.0,
-     1.05
-    ],
-    [
      null,
-     1.03
+     1.1
     ]
    ],
    "under": [
     [
-     0.5,
-     0.35
-    ],
-    [
-     3.0,
-     0.75
-    ],
-    [
      20.0,
-     0.88
+     0.0
     ],
     [
-     50.0,
-     0.95
+     500.0,
+     0.7
+    ],
+    [
+     10000.0,
+     0.8
     ],
     [
      null,
-     0.97
+     0.9
     ]
    ]
   },
@@ -11918,7 +12111,474 @@
    ]
   },
   "f_io": 1000.0,
-  "vclamp_pu": 1.2
+  "vclamp_pu": 1.2,
+  "envelope_basis": {
+   "declared": "the ITIC (CBEMA) curve style points FROM MEMORY - a standard-style curve, not set to the simulation (review R3-05); the standard texts (ITIC, IEC 62040-3) are not on file and are the gate",
+   "margins_worst_corner": {
+    "declared (ITIC-style, FROM MEMORY)": {
+     "over": [
+      {
+       "t_from_ms": 0.0,
+       "t_to_ms": 1.0,
+       "limit_pu": 2.0,
+       "worst_pu": 1.77154,
+       "margin_pu": 0.228464
+      },
+      {
+       "t_from_ms": 1.0,
+       "t_to_ms": 3.0,
+       "limit_pu": 1.4,
+       "worst_pu": 1.21622,
+       "margin_pu": 0.18378
+      },
+      {
+       "t_from_ms": 3.0,
+       "t_to_ms": 500.0,
+       "limit_pu": 1.2,
+       "worst_pu": 1.14611,
+       "margin_pu": 0.053891
+      },
+      {
+       "t_from_ms": 500.0,
+       "t_to_ms": null,
+       "limit_pu": 1.1,
+       "worst_pu": 1.00004,
+       "margin_pu": 0.099964
+      }
+     ],
+     "under": [
+      {
+       "t_from_ms": 0.0,
+       "t_to_ms": 20.0,
+       "limit_pu": 0.0,
+       "worst_pu": 0.430436,
+       "margin_pu": 0.430436
+      },
+      {
+       "t_from_ms": 20.0,
+       "t_to_ms": 500.0,
+       "limit_pu": 0.7,
+       "worst_pu": 0.988254,
+       "margin_pu": 0.288254
+      },
+      {
+       "t_from_ms": 500.0,
+       "t_to_ms": 10000.0,
+       "limit_pu": 0.8,
+       "worst_pu": 0.999851,
+       "margin_pu": 0.199851
+      },
+      {
+       "t_from_ms": 10000.0,
+       "t_to_ms": null,
+       "limit_pu": 0.9,
+       "worst_pu": null,
+       "margin_pu": null
+      }
+     ],
+     "min_margin_pu": 0.053891,
+     "met": true
+    },
+    "IEC 62040-3 class 1 (FROM MEMORY)": {
+     "over": [
+      {
+       "t_from_ms": 0.0,
+       "t_to_ms": 5.0,
+       "limit_pu": 1.3,
+       "worst_pu": 1.77154,
+       "margin_pu": -0.471536
+      },
+      {
+       "t_from_ms": 5.0,
+       "t_to_ms": 100.0,
+       "limit_pu": 1.2,
+       "worst_pu": 1.02102,
+       "margin_pu": 0.178979
+      },
+      {
+       "t_from_ms": 100.0,
+       "t_to_ms": null,
+       "limit_pu": 1.1,
+       "worst_pu": 1.00004,
+       "margin_pu": 0.099964
+      }
+     ],
+     "under": [
+      {
+       "t_from_ms": 0.0,
+       "t_to_ms": 5.0,
+       "limit_pu": 0.7,
+       "worst_pu": 0.430436,
+       "margin_pu": -0.269564
+      },
+      {
+       "t_from_ms": 5.0,
+       "t_to_ms": 100.0,
+       "limit_pu": 0.8,
+       "worst_pu": 0.927854,
+       "margin_pu": 0.127854
+      },
+      {
+       "t_from_ms": 100.0,
+       "t_to_ms": null,
+       "limit_pu": 0.9,
+       "worst_pu": 0.999604,
+       "margin_pu": 0.0996038
+      }
+     ],
+     "min_margin_pu": -0.471536,
+     "met": false
+    },
+    "IEC 62040-3 class 2 (FROM MEMORY)": {
+     "over": [
+      {
+       "t_from_ms": 0.0,
+       "t_to_ms": 5.0,
+       "limit_pu": 1.3,
+       "worst_pu": 1.77154,
+       "margin_pu": -0.471536
+      },
+      {
+       "t_from_ms": 5.0,
+       "t_to_ms": 100.0,
+       "limit_pu": 1.2,
+       "worst_pu": 1.02102,
+       "margin_pu": 0.178979
+      },
+      {
+       "t_from_ms": 100.0,
+       "t_to_ms": null,
+       "limit_pu": 1.1,
+       "worst_pu": 1.00004,
+       "margin_pu": 0.099964
+      }
+     ],
+     "under": [
+      {
+       "t_from_ms": 0.0,
+       "t_to_ms": 1.0,
+       "limit_pu": 0.0,
+       "worst_pu": 0.430436,
+       "margin_pu": 0.430436
+      },
+      {
+       "t_from_ms": 1.0,
+       "t_to_ms": 5.0,
+       "limit_pu": 0.7,
+       "worst_pu": 0.924641,
+       "margin_pu": 0.224641
+      },
+      {
+       "t_from_ms": 5.0,
+       "t_to_ms": 100.0,
+       "limit_pu": 0.8,
+       "worst_pu": 0.927854,
+       "margin_pu": 0.127854
+      },
+      {
+       "t_from_ms": 100.0,
+       "t_to_ms": null,
+       "limit_pu": 0.9,
+       "worst_pu": 0.999604,
+       "margin_pu": 0.0996038
+      }
+     ],
+     "min_margin_pu": -0.471536,
+     "met": false
+    },
+    "IEC 62040-3 class 3 (FROM MEMORY)": {
+     "over": [
+      {
+       "t_from_ms": 0.0,
+       "t_to_ms": 5.0,
+       "limit_pu": 1.3,
+       "worst_pu": 1.77154,
+       "margin_pu": -0.471536
+      },
+      {
+       "t_from_ms": 5.0,
+       "t_to_ms": 100.0,
+       "limit_pu": 1.2,
+       "worst_pu": 1.02102,
+       "margin_pu": 0.178979
+      },
+      {
+       "t_from_ms": 100.0,
+       "t_to_ms": null,
+       "limit_pu": 1.1,
+       "worst_pu": 1.00004,
+       "margin_pu": 0.099964
+      }
+     ],
+     "under": [
+      {
+       "t_from_ms": 0.0,
+       "t_to_ms": 10.0,
+       "limit_pu": 0.0,
+       "worst_pu": 0.430436,
+       "margin_pu": 0.430436
+      },
+      {
+       "t_from_ms": 10.0,
+       "t_to_ms": 100.0,
+       "limit_pu": 0.8,
+       "worst_pu": 0.988254,
+       "margin_pu": 0.188254
+      },
+      {
+       "t_from_ms": 100.0,
+       "t_to_ms": null,
+       "limit_pu": 0.9,
+       "worst_pu": 0.999604,
+       "margin_pu": 0.0996038
+      }
+     ],
+     "min_margin_pu": -0.471536,
+     "met": false
+    },
+    "D-079 envelope (set to contain the simulation; SUPERSEDED)": {
+     "over": [
+      {
+       "t_from_ms": 0.0,
+       "t_to_ms": 0.5,
+       "limit_pu": 1.9,
+       "worst_pu": 1.77154,
+       "margin_pu": 0.128464
+      },
+      {
+       "t_from_ms": 0.5,
+       "t_to_ms": 3.0,
+       "limit_pu": 1.3,
+       "worst_pu": 1.21897,
+       "margin_pu": 0.0810334
+      },
+      {
+       "t_from_ms": 3.0,
+       "t_to_ms": 5.0,
+       "limit_pu": 1.2,
+       "worst_pu": 1.14611,
+       "margin_pu": 0.053891
+      },
+      {
+       "t_from_ms": 5.0,
+       "t_to_ms": 20.0,
+       "limit_pu": 1.1,
+       "worst_pu": 1.02102,
+       "margin_pu": 0.0789787
+      },
+      {
+       "t_from_ms": 20.0,
+       "t_to_ms": 50.0,
+       "limit_pu": 1.05,
+       "worst_pu": 1.00389,
+       "margin_pu": 0.0461069
+      },
+      {
+       "t_from_ms": 50.0,
+       "t_to_ms": null,
+       "limit_pu": 1.03,
+       "worst_pu": 1.00007,
+       "margin_pu": 0.0299263
+      }
+     ],
+     "under": [
+      {
+       "t_from_ms": 0.0,
+       "t_to_ms": 0.5,
+       "limit_pu": 0.35,
+       "worst_pu": 0.430436,
+       "margin_pu": 0.0804361
+      },
+      {
+       "t_from_ms": 0.5,
+       "t_to_ms": 3.0,
+       "limit_pu": 0.75,
+       "worst_pu": 0.816039,
+       "margin_pu": 0.0660392
+      },
+      {
+       "t_from_ms": 3.0,
+       "t_to_ms": 20.0,
+       "limit_pu": 0.88,
+       "worst_pu": 0.924641,
+       "margin_pu": 0.0446408
+      },
+      {
+       "t_from_ms": 20.0,
+       "t_to_ms": 50.0,
+       "limit_pu": 0.95,
+       "worst_pu": 0.988254,
+       "margin_pu": 0.0382545
+      },
+      {
+       "t_from_ms": 50.0,
+       "t_to_ms": null,
+       "limit_pu": 0.97,
+       "worst_pu": 0.999522,
+       "margin_pu": 0.029522
+      }
+     ],
+     "min_margin_pu": 0.029522,
+     "met": true
+    }
+   },
+   "horizon_s": {
+    "nom": 2.0,
+    "corners": 0.3
+   },
+   "classes_iec62040_3": {
+    "class 1": {
+     "over": [
+      [
+       5.0,
+       1.3
+      ],
+      [
+       100.0,
+       1.2
+      ],
+      [
+       null,
+       1.1
+      ]
+     ],
+     "under": [
+      [
+       5.0,
+       0.7
+      ],
+      [
+       100.0,
+       0.8
+      ],
+      [
+       null,
+       0.9
+      ]
+     ]
+    },
+    "class 2": {
+     "over": [
+      [
+       5.0,
+       1.3
+      ],
+      [
+       100.0,
+       1.2
+      ],
+      [
+       null,
+       1.1
+      ]
+     ],
+     "under": [
+      [
+       1.0,
+       0.0
+      ],
+      [
+       5.0,
+       0.7
+      ],
+      [
+       100.0,
+       0.8
+      ],
+      [
+       null,
+       0.9
+      ]
+     ]
+    },
+    "class 3": {
+     "over": [
+      [
+       5.0,
+       1.3
+      ],
+      [
+       100.0,
+       1.2
+      ],
+      [
+       null,
+       1.1
+      ]
+     ],
+     "under": [
+      [
+       10.0,
+       0.0
+      ],
+      [
+       100.0,
+       0.8
+      ],
+      [
+       null,
+       0.9
+      ]
+     ]
+    }
+   },
+   "superseded_d079": {
+    "over": [
+     [
+      0.5,
+      1.9
+     ],
+     [
+      3.0,
+      1.3
+     ],
+     [
+      5.0,
+      1.2
+     ],
+     [
+      20.0,
+      1.1
+     ],
+     [
+      50.0,
+      1.05
+     ],
+     [
+      null,
+      1.03
+     ]
+    ],
+    "under": [
+     [
+      0.5,
+      0.35
+     ],
+     [
+      3.0,
+      0.75
+     ],
+     [
+      20.0,
+      0.88
+     ],
+     [
+      50.0,
+      0.95
+     ],
+     [
+      null,
+      0.97
+     ]
+    ]
+   },
+   "superseded_d077_pu": {
+    "sag": 0.38,
+    "overshoot": 2.17,
+    "basis": "the unbounded averaged model without the VF measures (D-077) - SUPERSEDED"
+   },
+   "adoption": "adopting a dynamic output-voltage envelope as a requirement is adopted as REQUIREMENTS AC-04 (D-080) (a REQUIREMENTS.md entry); bench validation of the first milliseconds at every corner is the gate"
+  }
  },
  "dc_rejection_bounded": {
   "rows": [
@@ -12117,38 +12777,38 @@
     "t0": 0.1,
     "va": {
      "dev_pk": 0.746529,
-     "dev10_ms": 1.5,
+     "dev10_ms": 1.625,
      "amp_min": 0.982653,
-     "amp_max": 1.01733,
-     "amp1_ms": 21.125,
+     "amp_max": 1.01739,
+     "amp1_ms": 21.3438,
      "amp_end": 1.00003,
-     "dc_pk": 2.45434
+     "dc_pk": 1.94145
     },
     "vb": {
      "dev_pk": 0.353236,
-     "dev10_ms": 0.84375,
-     "amp_min": 0.99778,
+     "dev10_ms": 0.484375,
+     "amp_min": 0.998031,
      "amp_max": 1.00237,
      "amp1_ms": 0.0,
      "amp_end": 1.00006,
-     "dc_pk": 2.13231
+     "dc_pk": 1.86891
     },
     "vc": {
      "dev_pk": 0.382715,
-     "dev10_ms": 0.34375,
-     "amp_min": 0.9953,
-     "amp_max": 1.00478,
+     "dev10_ms": 0.28125,
+     "amp_min": 0.994827,
+     "amp_max": 1.00505,
      "amp1_ms": 0.0,
-     "amp_end": 1.00006,
-     "dc_pk": 1.66338
+     "amp_end": 1.00005,
+     "dc_pk": 1.97403
     },
     "vn_pk": 0.373434,
-    "vn_dc": 2.03185,
+    "vn_dc": 1.26626,
     "i_pk": {
-     "ia": 321.784,
+     "ia": 300.284,
      "ib": 66.9142,
      "ic": 75.9102,
-     "iN": 327.472
+     "iN": 300.281
     },
     "lim_ms": 0.0,
     "vcl_ms": 0.0,
@@ -12162,28 +12822,28 @@
      "dev_pk": 0.775491,
      "dev10_ms": 12.9219,
      "amp_min": 0.962283,
-     "amp_max": 1.02136,
+     "amp_max": 1.02135,
      "amp1_ms": 56.1406,
      "amp_end": 1.00003,
-     "dc_pk": 18.0258
+     "dc_pk": 18.026
     },
     "vb": {
      "dev_pk": 0.370173,
      "dev10_ms": 3.89062,
-     "amp_min": 0.983808,
+     "amp_min": 0.983802,
      "amp_max": 1.01546,
      "amp1_ms": 64.1875,
      "amp_end": 1.00006,
-     "dc_pk": 21.1939
+     "dc_pk": 21.1933
     },
     "vc": {
      "dev_pk": 0.399652,
      "dev10_ms": 2.65625,
      "amp_min": 0.982181,
-     "amp_max": 1.01911,
+     "amp_max": 1.01913,
      "amp1_ms": 60.4219,
      "amp_end": 0.999994,
-     "dc_pk": 19.5423
+     "dc_pk": 19.5431
     },
     "vn_pk": 0.475118,
     "vn_dc": 47.7827,
@@ -12202,10 +12862,10 @@
     "R_hw": 1.16601,
     "LN_pk": 319.411,
     "LN_lim": 311,
-    "dc_end_V": 0.221601,
+    "dc_end_V": 0.221598,
     "dc_limit_V": 1.1547,
-    "t_dc_ms": 469.062,
-    "vn_dc_end_V": 0.0751523,
+    "t_dc_ms": 469.047,
+    "vn_dc_end_V": 0.0751492,
     "I_dc": 89.316
    },
    "half-wave load step (phase a, 280 A peak declared), DC regulators T 0.2 s": {
@@ -12217,25 +12877,25 @@
      "amp_max": 1.02111,
      "amp1_ms": 47.6875,
      "amp_end": 1.0001,
-     "dc_pk": 43.5272
+     "dc_pk": 43.5271
     },
     "vb": {
      "dev_pk": 0.373083,
      "dev10_ms": 192.266,
-     "amp_min": 0.968623,
+     "amp_min": 0.968625,
      "amp_max": 1.02411,
      "amp1_ms": 48.5781,
      "amp_end": 0.999448,
-     "dc_pk": 46.272
+     "dc_pk": 46.2721
     },
     "vc": {
      "dev_pk": 0.397527,
-     "dev10_ms": 132.188,
+     "dev10_ms": 132.203,
      "amp_min": 0.97728,
-     "amp_max": 1.02441,
+     "amp_max": 1.02442,
      "amp1_ms": 50.7656,
      "amp_end": 1.00055,
-     "dc_pk": 42.6967
+     "dc_pk": 42.6968
     },
     "vn_pk": 0.475357,
     "vn_dc": 68.2325,
@@ -12254,59 +12914,59 @@
     "R_hw": 1.16601,
     "LN_pk": 308.601,
     "LN_lim": 311,
-    "dc_end_V": -4.58076,
+    "dc_end_V": -4.58073,
     "dc_limit_V": 1.1547,
     "t_dc_ms": 680.016,
     "vn_dc_end_V": 37.8159,
-    "I_dc": 85.7576
+    "I_dc": 85.7577
    },
    "line-to-neutral short phase a from rated balanced load": {
     "t0": 0.1,
     "va": {
-     "dev_pk": 1.55435,
+     "dev_pk": 1.5716,
      "dev10_ms": 187.234,
-     "amp_min": 0.00784582,
+     "amp_min": 0.00694932,
      "amp_max": 0.999612,
      "amp1_ms": 200.062,
-     "amp_end": 0.00880522,
-     "dc_pk": 0.276775
+     "amp_end": 0.00878172,
+     "dc_pk": 0.417359
     },
     "vb": {
      "dev_pk": 0.461722,
-     "dev10_ms": 67.5469,
-     "amp_min": 0.983872,
-     "amp_max": 1.01709,
-     "amp1_ms": 47.0469,
-     "amp_end": 0.999941,
-     "dc_pk": 5.39972
+     "dev10_ms": 68.75,
+     "amp_min": 0.977961,
+     "amp_max": 1.0184,
+     "amp1_ms": 56.6875,
+     "amp_end": 0.999777,
+     "dc_pk": 9.06599
     },
     "vc": {
      "dev_pk": 0.491014,
-     "dev10_ms": 78.7188,
-     "amp_min": 0.981041,
+     "dev10_ms": 80.3125,
+     "amp_min": 0.986795,
      "amp_max": 1.01312,
-     "amp1_ms": 43.3438,
-     "amp_end": 1.00005,
-     "dc_pk": 5.72526
+     "amp1_ms": 49.9062,
+     "amp_end": 1.0002,
+     "dc_pk": 6.52239
     },
     "vn_pk": 0.624073,
-    "vn_dc": 12.0923,
+    "vn_dc": 15.022,
     "i_pk": {
-     "ia": 424.687,
-     "ib": 377.853,
-     "ic": 318.539,
-     "iN": 406.445
+     "ia": 409.577,
+     "ib": 378.207,
+     "ic": 317.664,
+     "iN": 399.034
     },
-    "lim_ms": 165.609,
+    "lim_ms": 165.0,
     "vcl_ms": 0.0,
-    "u_pk": 355.26,
-    "uN_pk": 126.586,
+    "u_pk": 340.03,
+    "uN_pk": 132.336,
     "window": false,
     "trip_ms": 200.047,
-    "ia_hold": 380.731,
-    "iN_hold": 359.779,
-    "vb_amp": 0.990381,
-    "vc_amp": 0.991534
+    "ia_hold": 378.651,
+    "iN_hold": 365.372,
+    "vb_amp": 0.986215,
+    "vc_amp": 0.992188
    },
    "GFL -> GFM islanding at SCR 10, local load phase a, planned (phase a supplies its load, no exchange)": {
     "t0": 0.14,
@@ -12470,6 +13130,22 @@
     0
    ],
    "GFL": [
+    1,
+    0,
+    0,
+    1,
+    1,
+    1
+   ],
+   "SYNC_CLOSE_K2": [
+    1,
+    0,
+    0,
+    1,
+    1,
+    0
+   ],
+   "SYNC_CLOSE_K1": [
     1,
     0,
     0,
@@ -13005,7 +13681,7 @@
    "id": "R2-04",
    "classification": "Confirmed (a model-boundary gap) - closed in the averaged model with the firmware of section 7c and the trip-aware tail; the bench and a switched model remain",
    "reviewer": "0.380 pu sag, 2.170 pu overshoot; 1098 V weak-grid DC-load rejection against the 978-1048 V OV band",
-   "ours": "D-077 configuration reproduced: 0.380 / 2.170 pu (unbounded averaged - superseded); bounded design, single module, every corner: dip >= 0.430 pu, overshoot <= 1.772 pu, within 10 % after <= 3.4 ms and 1 % after <= 25.0 ms, inside the declared envelope and the ITIC-style class; capacitive DC bus: the returned LCL energy 16.1 J lifts it to 801 V, a DC/DC must cut within 0.51 ms, uncoordinated it trips at 0.59-0.75 ms and the bus ends at 1048-1110 V; weak-grid DC-load rejection: the loop alone 1098 V (= the reviewer's), with the protection the gates go off at 1001-1068 V and the diode-bridge dump leaves 1094-1106 V (stopped, latched)",
+   "ours": "D-077 configuration reproduced: 0.380 / 2.170 pu (unbounded averaged - superseded); bounded design, single module, every corner: dip >= 0.430 pu, overshoot <= 1.772 pu, within 10 % after <= 3.4 ms and 1 % after <= 25.0 ms, inside the declared envelope and the ITIC-style class; capacitive DC bus: the returned LCL energy 16.1 J lifts it to 801 V, a DC/DC must cut within 0.51 ms, uncoordinated it trips at 1.50-1.94 ms and the bus ends at 1060-1061 V; weak-grid DC-load rejection: the loop alone 1098 V (= the reviewer's), with the protection the gates go off at 1001-1068 V and the diode-bridge dump leaves 1094-1106 V (stopped, latched)",
    "change": "sections 6b and 7c: DC link and DC-side source in the grid-forming loop, the OV comparator / PPB and the gates-off diode tail; firmware: load-current feed-forward, over-voltage deadbeat, single-module Z_v 0, DC/DC coordination, CV-mode derating at weak grids, the soft limit holding the DC loop",
    "keys": [
     "vf_bounded",
@@ -13018,7 +13694,7 @@
    "id": "R2-05",
    "classification": "Firmware Handled - by a firmware measure that removes the restriction in the averaged model; the enforceable derating rule is specified as the fallback",
    "reviewer": "onset 484 / 465 / 445 A at 0 / 0.1 / 0.2 pu against 426 A; pre-fault limits 95.5 / 105.5 / 115 kW are restrictions, not ride-through",
-   "ours": "the same onsets (section 4b); boundary at rated current SCR 83.9 / 119.9 / 198.3 for 0 / 0.1 / 0.2 pu (SCR 50 passes with 23.8 A); the ride-through clamp at 270 A with the divider pole inverted holds the stiff onset at 382 A, 403 A at the worst corner / instant (23 A margin); fallback: grid-stiffness estimate engaging at SCR 64.5 (8.07 MVA per 125 kW module), the derating table above it",
+   "ours": "the same onsets (section 4b); boundary at rated current SCR 80.2 / 113.8 / 184.3 / 793.8 for 0 / 0.1 / 0.2 / 0.3 pu (SCR 50 passes with 21.7 A); the ride-through clamp at 270 A with the divider pole inverted holds the stiff onset at 382 A, 403 A at the worst corner / instant (23 A margin); fallback: grid-stiffness estimate engaging at SCR 61.7 (7.71 MVA per 125 kW module), the derating table above it",
    "change": "section 4c: the measure (firmware rows), the boundary, the estimator, the table and the declaration; the trip edge from pcs_spec protection_chain",
    "keys": [
     "ride_through_rule",
@@ -13029,7 +13705,7 @@
    "id": "R2-13",
    "classification": "Confirmed - the coupled four-wire cases the averaged per-phase model can carry are added",
    "reviewer": "full nonlinear unbalanced behaviour open",
-   "ours": "100 % unbalanced step: phase-to-N amplitudes 0.966-1.036 pu, N_F 0.45 pu instantaneous; L-N short: first peak 425 A (phase) / 406 A (N leg) against 426 A, firmware trip at 200 ms, the healthy phases >= 0.990 pu; the half-wave step, the GFL <-> GFM transitions with unbalance: section 9c",
+   "ours": "100 % unbalanced step: phase-to-N amplitudes 0.966-1.036 pu, N_F 0.45 pu instantaneous; L-N short (with the R3-02 onset clamp, section 9c-2): largest peak 410 A (phase) / 399 A (N leg) in the hold against 423.9 A (the lower edge of the two layers), firmware trip at 200 ms, the healthy phases >= 0.986 pu; the half-wave step, the GFL <-> GFM transitions with unbalance: section 9c",
    "change": "section 9c (ph4_run); firmware: DC regulators 0.02 s, N-leg feed-forward option",
    "keys": [
     "four_wire_coupled"
@@ -13039,11 +13715,5037 @@
    "id": "R2-14",
    "classification": "Confirmed - the AC start is a state of the checked machine and executed with fault injection",
    "reviewer": "AC start excluded from the checked machine",
-   "ours": "17 states, invariants all hold; 35 fault cases; as specified the sequence breaches 3 safety checks (S2; S3; S4) and false-locks after a stuck contactor; with the repairs H1-H5 no breach remains",
+   "ours": "19 states, invariants all hold; 35 fault cases; as specified the sequence breaches 3 safety checks (S2; S3; S4) and false-locks after a stuck contactor; with the repairs H1-H5 no breach remains",
    "change": "section 9d; SM_T / SM_OUT6 / verify_sm extended, sm_exec, firmware rows H1-H5",
    "keys": [
     "ac_start_state_machine",
     "firmware.state_machine"
+   ]
+  }
+ ],
+ "sync_close_state_machine": {
+  "states": [
+   "SYNC",
+   "SYNC_CLOSE_K2",
+   "SYNC_CLOSE_K1"
+  ],
+  "targets": {
+   "grid start": "GFL",
+   "dead-bus start": "GFM"
+  },
+  "outputs_PWM_KACPRE_KPRE_KDC_KAC2_KAC1": {
+   "SYNC": [
+    1,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   "SYNC_CLOSE_K2": [
+    1,
+    0,
+    0,
+    1,
+    1,
+    0
+   ],
+   "SYNC_CLOSE_K1": [
+    1,
+    0,
+    0,
+    1,
+    1,
+    1
+   ],
+   "GFL": [
+    1,
+    0,
+    0,
+    1,
+    1,
+    1
+   ],
+   "GFM": [
+    1,
+    0,
+    0,
+    1,
+    1,
+    1
+   ],
+   "STOP": [
+    1,
+    0,
+    0,
+    1,
+    1,
+    1
+   ],
+   "IDLE": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "LOCKOUT": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "transitions": {
+   "SYNC --synced_grid-->": "SYNC_CLOSE_K2",
+   "SYNC --dead_bus-->": "SYNC_CLOSE_K2",
+   "SYNC --relay_fail-->": "FAULT",
+   "SYNC --stop-->": "IDLE",
+   "SYNC_CLOSE_K2 --k2_settled-->": "SYNC_CLOSE_K1",
+   "SYNC_CLOSE_K2 --no_permissive-->": "SYNC",
+   "SYNC_CLOSE_K2 --welded-->": "LOCKOUT",
+   "SYNC_CLOSE_K2 --stop-->": "IDLE",
+   "SYNC_CLOSE_K1 --k1_settled-->": "GFL",
+   "SYNC_CLOSE_K1 --k1_settled_dead_bus-->": "GFM",
+   "SYNC_CLOSE_K1 --no_permissive-->": "SYNC",
+   "SYNC_CLOSE_K1 --stuck_open-->": "SYNC",
+   "SYNC_CLOSE_K1 --stop-->": "STOP",
+   "SYNC --attempts_out-->": "LOCKOUT"
+  },
+  "as_first_specified": {
+   "transitions": {
+    "SYNC --synced_grid-->": "GFL",
+    "SYNC --dead_bus-->": "GFM"
+   },
+   "closes_both_coils_at_once": [
+    "SYNC --synced_grid--> GFL",
+    "SYNC --dead_bus--> GFM"
+   ],
+   "I12": "held only with the SYNC exception (both coils commanded together on the permissive)"
+  },
+  "settled_s": 0.2,
+  "relay_times_s": {
+   "K2": [
+    0.1,
+    0.05
+   ],
+   "K1": [
+    0.1,
+    0.05
+   ]
+  },
+  "permissive": {
+   "grid": "VG inside +/-10 %, |dV| <= 5 %, |dtheta| <= 5 deg, |df| <= 0.1 Hz (ASSUMED), V_dc above the DC closing permissive - at the K2 and the K1 command and every tick of the settle wait until the path forms",
+   "dead_bus": "VG < 10 % at each coil command and every settle tick; VG live with K2 alone and in phase with v_C = K1 welded -> LOCKOUT; a foreign source -> SYNC"
+  },
+  "attempts": {
+   "n": 3,
+   "spacing_s": 30.0,
+   "basis": "pcs_spec ac_start retry rule, counted across resets in the recorder flash (as H5)"
+  },
+  "coil": {
+   "contract": {
+    "pull_W": 20.0,
+    "t_pull_s": 0.1,
+    "hold_W": 4.0
+   },
+   "live_peak_W": 48.0,
+   "base_W_switching": {
+    "three-wire": 10.9,
+    "four-wire": 14.2
+   },
+   "budget_peak_W": {
+    "three-wire": 38.9,
+    "four-wire": 42.2
+   },
+   "peak_W": {
+    "as first specified": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "repaired": {
+     "three-wire": 38.9,
+     "four-wire": 42.2
+    }
+   }
+  },
+  "rows": [
+   {
+    "start": "grid",
+    "fault": "none",
+    "at": "start",
+    "spec": "ran (GFL), stopped",
+    "fixed": "ran (GFL), stopped",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 38.9,
+     "four-wire": 42.2
+    },
+    "att_fixed": 1
+   },
+   {
+    "start": "grid",
+    "fault": "K1 welded before the start (the relay test)",
+    "at": "start",
+    "spec": "LOCKOUT: relay test: K1 welded",
+    "fixed": "LOCKOUT: relay test: K1 welded",
+    "breach_spec": [],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 31.4,
+     "four-wire": 33.5
+    },
+    "peak_fixed_W": {
+     "three-wire": 31.4,
+     "four-wire": 33.5
+    },
+    "att_fixed": 0
+   },
+   {
+    "start": "grid",
+    "fault": "K1 welds closed after the relay test",
+    "at": "SYNC_CLOSE_K2",
+    "spec": "ran (GFL), stopped; K1 welded closed, the path opened by the other (found by the next relay test)",
+    "fixed": "ran (GFL), stopped; K1 welded closed, the path opened by the other (found by the next relay test)",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 38.9,
+     "four-wire": 42.2
+    },
+    "att_fixed": 1
+   },
+   {
+    "start": "grid",
+    "fault": "K2 welds (open command at the stop)",
+    "at": "SYNC_CLOSE_K1",
+    "spec": "ran (GFL), stopped; K2 welded closed, the path opened by the other (found by the next relay test)",
+    "fixed": "ran (GFL), stopped; K2 welded closed, the path opened by the other (found by the next relay test)",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 38.9,
+     "four-wire": 42.2
+    },
+    "att_fixed": 1
+   },
+   {
+    "start": "grid",
+    "fault": "K1 stuck open",
+    "at": "SYNC_CLOSE_K2",
+    "spec": "ran (GFL), stopped",
+    "fixed": "LOCKOUT: contactor stuck open or not settled within 200 ms (3 close attempts)",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)",
+     "S8 running (GFL / GFM) with the AC path not formed: a stuck contactor not detected"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 38.9,
+     "four-wire": 42.2
+    },
+    "att_fixed": 3
+   },
+   {
+    "start": "grid",
+    "fault": "K2 stuck open",
+    "at": "SYNC_CLOSE_K2",
+    "spec": "ran (GFL), stopped",
+    "fixed": "LOCKOUT: contactor stuck open or not settled within 200 ms (3 close attempts)",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)",
+     "S8 running (GFL / GFM) with the AC path not formed: a stuck contactor not detected"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 38.9,
+     "four-wire": 42.2
+    },
+    "att_fixed": 3
+   },
+   {
+    "start": "grid",
+    "fault": "K1 pull-in beyond the settle window",
+    "at": "SYNC_CLOSE_K2",
+    "spec": "ran (GFL), stopped",
+    "fixed": "LOCKOUT: contactor stuck open or not settled within 200 ms (3 close attempts)",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)",
+     "S8 running (GFL / GFM) with the AC path not formed: a stuck contactor not detected"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 38.9,
+     "four-wire": 42.2
+    },
+    "att_fixed": 3
+   },
+   {
+    "start": "grid",
+    "fault": "grid lost (grid start) / foreign source on the bus (dead bus)",
+    "at": "SYNC_CLOSE_K2",
+    "spec": "ran (GFL), stopped",
+    "fixed": "stopped (IDLE): synchronisation timeout: the start condition did not return (report)",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)",
+     "S6 the AC path formed outside the closing permissive (grid start: absent / out-of-phase grid; dead bus: a source on the bus)"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 34.9,
+     "four-wire": 38.2
+    },
+    "att_fixed": 1
+   },
+   {
+    "start": "grid",
+    "fault": "grid lost (grid start) / foreign source on the bus (dead bus)",
+    "at": "SYNC_CLOSE_K1",
+    "spec": "ran (GFL), stopped",
+    "fixed": "stopped (IDLE): synchronisation timeout: the start condition did not return (report)",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)",
+     "S6 the AC path formed outside the closing permissive (grid start: absent / out-of-phase grid; dead bus: a source on the bus)"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 38.9,
+     "four-wire": 42.2
+    },
+    "att_fixed": 1
+   },
+   {
+    "start": "grid",
+    "fault": "grid lost for 5 s",
+    "at": "SYNC_CLOSE_K2",
+    "spec": "ran (GFL), stopped",
+    "fixed": "ran (GFL), stopped",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)",
+     "S6 the AC path formed outside the closing permissive (grid start: absent / out-of-phase grid; dead bus: a source on the bus)"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 38.9,
+     "four-wire": 42.2
+    },
+    "att_fixed": 2
+   },
+   {
+    "start": "grid",
+    "fault": "grid phase jump",
+    "at": "SYNC_CLOSE_K1",
+    "spec": "ran (GFL), stopped",
+    "fixed": "ran (GFL), stopped",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)",
+     "S6 the AC path formed outside the closing permissive (grid start: absent / out-of-phase grid; dead bus: a source on the bus)"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 38.9,
+     "four-wire": 42.2
+    },
+    "att_fixed": 2
+   },
+   {
+    "start": "grid",
+    "fault": "stop command",
+    "at": "SYNC_CLOSE_K2",
+    "spec": "ran (GFL), stopped",
+    "fixed": "stopped (IDLE): stop",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 34.9,
+     "four-wire": 38.2
+    },
+    "att_fixed": 1
+   },
+   {
+    "start": "grid",
+    "fault": "stop command",
+    "at": "SYNC_CLOSE_K1",
+    "spec": "ran (GFL), stopped",
+    "fixed": "stopped (IDLE): stop",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 38.9,
+     "four-wire": 42.2
+    },
+    "att_fixed": 1
+   },
+   {
+    "start": "dead_bus",
+    "fault": "none",
+    "at": "start",
+    "spec": "ran (GFM), stopped",
+    "fixed": "ran (GFM), stopped",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 38.9,
+     "four-wire": 42.2
+    },
+    "att_fixed": 1
+   },
+   {
+    "start": "dead_bus",
+    "fault": "K1 welded before the start (the relay test)",
+    "at": "start",
+    "spec": "LOCKOUT: relay test: K1 welded",
+    "fixed": "LOCKOUT: relay test: K1 welded",
+    "breach_spec": [],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 34.9,
+     "four-wire": 38.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 34.9,
+     "four-wire": 38.2
+    },
+    "att_fixed": 0
+   },
+   {
+    "start": "dead_bus",
+    "fault": "K1 welds closed after the relay test",
+    "at": "SYNC_CLOSE_K2",
+    "spec": "ran (GFM), stopped; K1 welded closed, the path opened by the other (found by the next relay test)",
+    "fixed": "LOCKOUT: K1 welded: the bus energised with K2 alone",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 34.9,
+     "four-wire": 38.2
+    },
+    "att_fixed": 1
+   },
+   {
+    "start": "dead_bus",
+    "fault": "K2 welds (open command at the stop)",
+    "at": "SYNC_CLOSE_K1",
+    "spec": "ran (GFM), stopped; K2 welded closed, the path opened by the other (found by the next relay test)",
+    "fixed": "ran (GFM), stopped; K2 welded closed, the path opened by the other (found by the next relay test)",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 38.9,
+     "four-wire": 42.2
+    },
+    "att_fixed": 1
+   },
+   {
+    "start": "dead_bus",
+    "fault": "K1 stuck open",
+    "at": "SYNC_CLOSE_K2",
+    "spec": "ran (GFM), stopped",
+    "fixed": "LOCKOUT: contactor stuck open or not settled within 200 ms (3 close attempts)",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)",
+     "S8 running (GFL / GFM) with the AC path not formed: a stuck contactor not detected"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 38.9,
+     "four-wire": 42.2
+    },
+    "att_fixed": 3
+   },
+   {
+    "start": "dead_bus",
+    "fault": "K2 stuck open",
+    "at": "SYNC_CLOSE_K2",
+    "spec": "ran (GFM), stopped",
+    "fixed": "LOCKOUT: contactor stuck open or not settled within 200 ms (3 close attempts)",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)",
+     "S8 running (GFL / GFM) with the AC path not formed: a stuck contactor not detected"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 38.9,
+     "four-wire": 42.2
+    },
+    "att_fixed": 3
+   },
+   {
+    "start": "dead_bus",
+    "fault": "K1 pull-in beyond the settle window",
+    "at": "SYNC_CLOSE_K2",
+    "spec": "ran (GFM), stopped",
+    "fixed": "LOCKOUT: contactor stuck open or not settled within 200 ms (3 close attempts)",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)",
+     "S8 running (GFL / GFM) with the AC path not formed: a stuck contactor not detected"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 38.9,
+     "four-wire": 42.2
+    },
+    "att_fixed": 3
+   },
+   {
+    "start": "dead_bus",
+    "fault": "grid lost (grid start) / foreign source on the bus (dead bus)",
+    "at": "SYNC_CLOSE_K2",
+    "spec": "ran (GFM), stopped",
+    "fixed": "stopped (IDLE): synchronisation timeout: the start condition did not return (report)",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)",
+     "S6 the AC path formed outside the closing permissive (grid start: absent / out-of-phase grid; dead bus: a source on the bus)"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 34.9,
+     "four-wire": 38.2
+    },
+    "att_fixed": 1
+   },
+   {
+    "start": "dead_bus",
+    "fault": "grid lost (grid start) / foreign source on the bus (dead bus)",
+    "at": "SYNC_CLOSE_K1",
+    "spec": "ran (GFM), stopped",
+    "fixed": "stopped (IDLE): synchronisation timeout: the start condition did not return (report)",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)",
+     "S6 the AC path formed outside the closing permissive (grid start: absent / out-of-phase grid; dead bus: a source on the bus)"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 38.9,
+     "four-wire": 42.2
+    },
+    "att_fixed": 1
+   },
+   {
+    "start": "dead_bus",
+    "fault": "stop command",
+    "at": "SYNC_CLOSE_K2",
+    "spec": "ran (GFM), stopped",
+    "fixed": "stopped (IDLE): stop",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 34.9,
+     "four-wire": 38.2
+    },
+    "att_fixed": 1
+   },
+   {
+    "start": "dead_bus",
+    "fault": "stop command",
+    "at": "SYNC_CLOSE_K1",
+    "spec": "ran (GFM), stopped",
+    "fixed": "stopped (IDLE): stop",
+    "breach_spec": [
+     "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)"
+    ],
+    "breach_fixed": [],
+    "peak_spec_W": {
+     "three-wire": 54.9,
+     "four-wire": 58.2
+    },
+    "peak_fixed_W": {
+     "three-wire": 38.9,
+     "four-wire": 42.2
+    },
+    "att_fixed": 1
+   }
+  ],
+  "holes": [
+   "S5 the live 24 V draw above the aux's live peak allocation (two AC coils pulling in at once)",
+   "S6 the AC path formed outside the closing permissive (grid start: absent / out-of-phase grid; dead bus: a source on the bus)",
+   "S8 running (GFL / GFM) with the AC path not formed: a stuck contactor not detected"
+  ],
+  "residual": [],
+  "invariants": {
+   "I3 the AC power path (K_AC1 and K_AC2) forms only out of SYNC_CLOSE_K2 or AC_CLOSE_K2 on 'k2_settled' (K2 held, K1 added)": true,
+   "I5 PWM only in SYNC, SYNC_CLOSE_K2 / K1, GFL, GFM, STOP, RECTIFY, DC_MATCH, AC_STOP": true,
+   "I12 no transition closes both AC contactors at once (one coil at a time: K2, then K1; unconditional, review R3-01)": true,
+   "I14 the synchronised-close substates keep SYNC's PWM and DC contactor (PWM and K_DC on, K_ACPRE and K_PRE off)": true,
+   "I15 a lost closing permissive releases both AC coils": true
+  },
+  "rules": [
+   "the start mode is fixed at the start command: a grid lost during a grid start never becomes a dead-bus close (SYNC waits for the grid, then gives up with a report); a source appearing on a dead bus is never closed onto",
+   "in the grid start a welded K1 after the relay test is not observable during the close (v_C is synchronised to VG): the close then happens on K2's pull-in, inside the permissive checked at K2's command; the next relay test finds it",
+   "a stop in SYNC_CLOSE_K2 goes to IDLE (K1 open, no AC current); in SYNC_CLOSE_K1 to CONTROLLED STOP (both coils commanded, the permissive valid: the exchange to zero, then both open)"
+  ]
+ },
+ "four_wire_short_protection": {
+  "variants": [
+   {
+    "firmware": "D-079 firmware (per-sample clamp 378 A on every leg)",
+    "corner": "nom",
+    "adopted": false,
+    "replay": {
+     "rows": [
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 412.782,
+       "margin_A": 11.1181
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 412.782,
+       "margin_A": 13.218
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 412.782,
+       "margin_A": 11.1181
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 412.782,
+       "margin_A": 72.718
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 412.782,
+       "margin_A": 42.118
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 412.782,
+       "margin_A": 11.1181
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 412.782,
+       "margin_A": 13.218
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 412.782,
+       "margin_A": 11.1181
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 412.782,
+       "margin_A": 72.718
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 412.782,
+       "margin_A": 42.118
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 420.403,
+       "margin_A": 3.49856
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 420.403,
+       "margin_A": 5.59727
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 420.403,
+       "margin_A": 3.49856
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 420.403,
+       "margin_A": 65.0973
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 420.403,
+       "margin_A": 34.4973
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 420.403,
+       "margin_A": 3.49856
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 420.403,
+       "margin_A": 5.59727
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 420.403,
+       "margin_A": 3.49856
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 420.403,
+       "margin_A": 65.0973
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 420.403,
+       "margin_A": 34.4973
+      }
+     ],
+     "pure_us": {
+      "window": 1.12215,
+      "cmpss": 0.502
+     },
+     "tau_bw_us": 0.795775,
+     "pp_max_A": 69.1379,
+     "v_top": 950.0,
+     "any_trip": false,
+     "min_margin_A": 3.49856,
+     "trip_corners": [],
+     "I_off_max": null,
+     "t_first_us": null
+    },
+    "fw_trip_ms": 200.047,
+    "first_ms_A": {
+     "ia": 422.561,
+     "ib": 180.098,
+     "ic": 227.781,
+     "iN": 162.276
+    },
+    "hold_A": {
+     "ia": 378.646,
+     "ib": 343.807,
+     "ic": 284.904,
+     "iN": 360.259
+    },
+    "healthy_pu": 0.990491,
+    "healthy_max_pu": 1.00691
+   },
+   {
+    "firmware": "D-079 firmware (per-sample clamp 378 A on every leg)",
+    "corner": "low",
+    "adopted": false,
+    "replay": {
+     "rows": [
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 417.542,
+       "margin_A": 6.35888
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 417.542,
+       "margin_A": 8.45844
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 417.542,
+       "margin_A": 6.35888
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 417.542,
+       "margin_A": 67.9584
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 417.542,
+       "margin_A": 37.3584
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 417.542,
+       "margin_A": 6.35888
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 417.542,
+       "margin_A": 8.45844
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 417.542,
+       "margin_A": 6.35888
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 417.542,
+       "margin_A": 67.9584
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 417.542,
+       "margin_A": 37.3584
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": true,
+       "layer": "cmpss",
+       "leg": "a",
+       "t_us": 165.752,
+       "I_off": 419.213,
+       "sensed_pk": 424.331,
+       "margin_A": -0.430166
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 424.331,
+       "margin_A": 1.66924
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": true,
+       "layer": "cmpss",
+       "leg": "a",
+       "t_us": 165.752,
+       "I_off": 419.213,
+       "sensed_pk": 424.331,
+       "margin_A": -0.430166
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 424.331,
+       "margin_A": 61.1692
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 424.331,
+       "margin_A": 30.5692
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": true,
+       "layer": "cmpss",
+       "leg": "a",
+       "t_us": 166.252,
+       "I_off": 416.911,
+       "sensed_pk": 424.331,
+       "margin_A": -0.430166
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 424.331,
+       "margin_A": 1.66924
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": true,
+       "layer": "cmpss",
+       "leg": "a",
+       "t_us": 166.252,
+       "I_off": 416.911,
+       "sensed_pk": 424.331,
+       "margin_A": -0.430166
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 424.331,
+       "margin_A": 61.1692
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 424.331,
+       "margin_A": 30.5692
+      }
+     ],
+     "pure_us": {
+      "window": 1.12215,
+      "cmpss": 0.502
+     },
+     "tau_bw_us": 0.795775,
+     "pp_max_A": 69.1379,
+     "v_top": 950.0,
+     "any_trip": true,
+     "min_margin_A": -0.430166,
+     "trip_corners": [
+      "both low, sensor typ, ripple max",
+      "window high, CMPSS low, sensor typ, ripple max",
+      "both low, sensor max, ripple max",
+      "window high, CMPSS low, sensor max, ripple max"
+     ],
+     "I_off_max": 419.213,
+     "t_first_us": 165.752
+    },
+    "fw_trip_ms": 200.047,
+    "first_ms_A": {
+     "ia": 425.259,
+     "ib": 182.642,
+     "ic": 227.656,
+     "iN": 161.84
+    },
+    "hold_A": {
+     "ia": 378.656,
+     "ib": 343.724,
+     "ic": 283.408,
+     "iN": 359.617
+    },
+    "healthy_pu": 0.990663,
+    "healthy_max_pu": 1.00678
+   },
+   {
+    "firmware": "ride-through clamp 270 A held for the whole ride-through state (rejected)",
+    "corner": "nom",
+    "adopted": false,
+    "replay": {
+     "rows": [
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 326.661,
+       "margin_A": 97.2395
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 326.661,
+       "margin_A": 99.3392
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 326.661,
+       "margin_A": 97.2395
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 326.661,
+       "margin_A": 158.839
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 326.661,
+       "margin_A": 128.239
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 326.661,
+       "margin_A": 97.2395
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 326.661,
+       "margin_A": 99.3392
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 326.661,
+       "margin_A": 97.2395
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 326.661,
+       "margin_A": 158.839
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 326.661,
+       "margin_A": 128.239
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 337.154,
+       "margin_A": 86.7475
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 337.154,
+       "margin_A": 88.8463
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 337.154,
+       "margin_A": 86.7475
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 337.154,
+       "margin_A": 148.346
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 337.154,
+       "margin_A": 117.746
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 337.154,
+       "margin_A": 86.7475
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 337.154,
+       "margin_A": 88.8463
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 337.154,
+       "margin_A": 86.7475
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 337.154,
+       "margin_A": 148.346
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 337.154,
+       "margin_A": 117.746
+      }
+     ],
+     "pure_us": {
+      "window": 1.12215,
+      "cmpss": 0.502
+     },
+     "tau_bw_us": 0.795775,
+     "pp_max_A": 69.1379,
+     "v_top": 950.0,
+     "any_trip": false,
+     "min_margin_A": 86.7475,
+     "trip_corners": [],
+     "I_off_max": null,
+     "t_first_us": null
+    },
+    "fw_trip_ms": 200.047,
+    "first_ms_A": {
+     "ia": 344.449,
+     "ib": 176.102,
+     "ic": 224.381,
+     "iN": 125.027
+    },
+    "hold_A": {
+     "ia": 270.632,
+     "ib": 299.388,
+     "ic": 267.198,
+     "iN": 269.734
+    },
+    "healthy_pu": 0.994317,
+    "healthy_max_pu": 1.00297
+   },
+   {
+    "firmware": "ride-through clamp 270 A held for the whole ride-through state (rejected)",
+    "corner": "low",
+    "adopted": false,
+    "replay": {
+     "rows": [
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 324.264,
+       "margin_A": 99.6363
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 324.264,
+       "margin_A": 101.736
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 324.264,
+       "margin_A": 99.6363
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 324.264,
+       "margin_A": 161.236
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 324.264,
+       "margin_A": 130.636
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 324.264,
+       "margin_A": 99.6363
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 324.264,
+       "margin_A": 101.736
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 324.264,
+       "margin_A": 99.6363
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 324.264,
+       "margin_A": 161.236
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 324.264,
+       "margin_A": 130.636
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 336.044,
+       "margin_A": 87.8559
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 336.044,
+       "margin_A": 89.9556
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 336.044,
+       "margin_A": 87.8559
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 336.044,
+       "margin_A": 149.456
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 336.044,
+       "margin_A": 118.856
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 336.044,
+       "margin_A": 87.8559
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 336.044,
+       "margin_A": 89.9556
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 336.044,
+       "margin_A": 87.8559
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 336.044,
+       "margin_A": 149.456
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 336.044,
+       "margin_A": 118.856
+      }
+     ],
+     "pure_us": {
+      "window": 1.12215,
+      "cmpss": 0.502
+     },
+     "tau_bw_us": 0.795775,
+     "pp_max_A": 69.1379,
+     "v_top": 950.0,
+     "any_trip": false,
+     "min_margin_A": 87.8559,
+     "trip_corners": [],
+     "I_off_max": null,
+     "t_first_us": null
+    },
+    "fw_trip_ms": 200.047,
+    "first_ms_A": {
+     "ia": 351.188,
+     "ib": 178.049,
+     "ic": 224.39,
+     "iN": 126.639
+    },
+    "hold_A": {
+     "ia": 270.629,
+     "ib": 301.792,
+     "ic": 266.713,
+     "iN": 269.758
+    },
+    "healthy_pu": 0.99441,
+    "healthy_max_pu": 1.00287
+   },
+   {
+    "firmware": "ride-through clamp 270 A for the 5 ms onset window (ADOPTED)",
+    "corner": "nom",
+    "adopted": true,
+    "replay": {
+     "rows": [
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 403.816,
+       "margin_A": 20.085
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 403.816,
+       "margin_A": 22.1843
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 403.816,
+       "margin_A": 20.085
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 403.816,
+       "margin_A": 81.6843
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 403.816,
+       "margin_A": 51.0843
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 403.816,
+       "margin_A": 20.085
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 403.816,
+       "margin_A": 22.1843
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 403.816,
+       "margin_A": 20.085
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 403.816,
+       "margin_A": 81.6843
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 403.816,
+       "margin_A": 51.0843
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 410.539,
+       "margin_A": 13.3615
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 410.539,
+       "margin_A": 15.4607
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 410.539,
+       "margin_A": 13.3615
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 410.539,
+       "margin_A": 74.9607
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 410.539,
+       "margin_A": 44.3607
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 410.539,
+       "margin_A": 13.3615
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 410.539,
+       "margin_A": 15.4607
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 410.539,
+       "margin_A": 13.3615
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 410.539,
+       "margin_A": 74.9607
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 410.539,
+       "margin_A": 44.3607
+      }
+     ],
+     "pure_us": {
+      "window": 1.12215,
+      "cmpss": 0.502
+     },
+     "tau_bw_us": 0.795775,
+     "pp_max_A": 69.1379,
+     "v_top": 950.0,
+     "any_trip": false,
+     "min_margin_A": 13.3615,
+     "trip_corners": [],
+     "I_off_max": null,
+     "t_first_us": null
+    },
+    "fw_trip_ms": 200.047,
+    "first_ms_A": {
+     "ia": 344.451,
+     "ib": 176.069,
+     "ic": 224.412,
+     "iN": 125.037
+    },
+    "hold_A": {
+     "ia": 378.651,
+     "ib": 347.307,
+     "ic": 286.764,
+     "iN": 365.372
+    },
+    "healthy_pu": 0.986215,
+    "healthy_max_pu": 1.00975
+   },
+   {
+    "firmware": "ride-through clamp 270 A for the 5 ms onset window (ADOPTED)",
+    "corner": "low",
+    "adopted": true,
+    "replay": {
+     "rows": [
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 403.815,
+       "margin_A": 20.0859
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 403.815,
+       "margin_A": 22.1853
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 403.815,
+       "margin_A": 20.0859
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 403.815,
+       "margin_A": 81.6853
+      },
+      {
+       "ripple": "run",
+       "sensor": "typ",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 403.815,
+       "margin_A": 51.0853
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 403.815,
+       "margin_A": 20.0859
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 403.815,
+       "margin_A": 22.1853
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 403.815,
+       "margin_A": 20.0859
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 403.815,
+       "margin_A": 81.6853
+      },
+      {
+       "ripple": "run",
+       "sensor": "max",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 403.815,
+       "margin_A": 51.0853
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 410.553,
+       "margin_A": 13.3483
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 410.553,
+       "margin_A": 15.4475
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 410.553,
+       "margin_A": 13.3483
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 410.553,
+       "margin_A": 74.9475
+      },
+      {
+       "ripple": "max",
+       "sensor": "typ",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 410.553,
+       "margin_A": 44.3475
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "both low",
+       "window_A": 426.0,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 410.553,
+       "margin_A": 13.3483
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "window low, CMPSS high",
+       "window_A": 426.0,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 410.553,
+       "margin_A": 15.4475
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "window high, CMPSS low",
+       "window_A": 485.5,
+       "cmpss_A": 423.9,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 410.553,
+       "margin_A": 13.3483
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "both high",
+       "window_A": 485.5,
+       "cmpss_A": 497.5,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 410.553,
+       "margin_A": 74.9475
+      },
+      {
+       "ripple": "max",
+       "sensor": "max",
+       "thresholds": "both nominal",
+       "window_A": 454.9,
+       "cmpss_A": 460.7,
+       "trip": false,
+       "layer": null,
+       "leg": null,
+       "t_us": null,
+       "I_off": null,
+       "sensed_pk": 410.553,
+       "margin_A": 44.3475
+      }
+     ],
+     "pure_us": {
+      "window": 1.12215,
+      "cmpss": 0.502
+     },
+     "tau_bw_us": 0.795775,
+     "pp_max_A": 69.1379,
+     "v_top": 950.0,
+     "any_trip": false,
+     "min_margin_A": 13.3483,
+     "trip_corners": [],
+     "I_off_max": null,
+     "t_first_us": null
+    },
+    "fw_trip_ms": 200.047,
+    "first_ms_A": {
+     "ia": 351.197,
+     "ib": 178.015,
+     "ic": 224.422,
+     "iN": 126.649
+    },
+    "hold_A": {
+     "ia": 378.661,
+     "ib": 346.131,
+     "ic": 285.476,
+     "iN": 364.574
+    },
+    "healthy_pu": 0.986427,
+    "healthy_max_pu": 1.00953
+   }
+  ],
+  "side_effects": {
+   "100 % unbalanced step, D-079 firmware": {
+    "i_pk": {
+     "ia": 290.002,
+     "ib": 66.9142,
+     "ic": 75.9102,
+     "iN": 289.722
+    },
+    "amp_min": 0.965632,
+    "amp_max": 1.0359,
+    "vn_pk": 0.448875
+   },
+   "100 % unbalanced step, clamp held for the state (rejected)": {
+    "i_pk": {
+     "ia": 290.002,
+     "ib": 66.9142,
+     "ic": 75.9102,
+     "iN": 289.722
+    },
+    "amp_min": 0.965632,
+    "amp_max": 1.0359,
+    "vn_pk": 0.448875
+   },
+   "100 % unbalanced step, adopted": {
+    "i_pk": {
+     "ia": 290.002,
+     "ib": 66.9142,
+     "ic": 75.9102,
+     "iN": 289.722
+    },
+    "amp_min": 0.965632,
+    "amp_max": 1.0359,
+    "vn_pk": 0.448875
+   },
+   "half-wave load step, D-079 firmware": {
+    "i_pk": {
+     "ia": 318.17,
+     "ib": 66.9142,
+     "ic": 75.9102,
+     "iN": 319.411
+    },
+    "amp_min": 0.962283,
+    "amp_max": 1.02136,
+    "vn_pk": 0.475118
+   },
+   "half-wave load step, clamp held for the state (rejected)": {
+    "i_pk": {
+     "ia": 300.285,
+     "ib": 66.9142,
+     "ic": 75.9102,
+     "iN": 300.281
+    },
+    "amp_min": 0.962283,
+    "amp_max": 1.02135,
+    "vn_pk": 0.475118
+   },
+   "half-wave load step, adopted": {
+    "i_pk": {
+     "ia": 318.17,
+     "ib": 66.9142,
+     "ic": 75.9102,
+     "iN": 319.411
+    },
+    "amp_min": 0.962283,
+    "amp_max": 1.02135,
+    "vn_pk": 0.475118
+   }
+  },
+  "onset_clamp": {
+   "clamp": 269.558,
+   "t_on": 0.005
+  },
+  "lowest_edge_A": 423.9,
+  "declared_outcome": "a bolted output short in four-wire grid forming: ridden for the firmware's 200 ms at the 200 ms tier (the onset clamp keeps every studied corner off both hardware layers), then the firmware trip -> FAULT",
+  "on_hardware_trip": "a unit whose layers sit outside the modelled bands trips in hardware instead: gates off within the protection chain (far below the ceiling), the latch holds, FAULT; no automatic clear after an over-current trip (the latch-clear row); a restart by command into a persisting short trips again; the third hazard trip of a class within 10 min -> LOCKOUT (ASSUMED, the firmware-practice row)",
+  "chain": {
+   "sensor": 2.0,
+   "board": 0.13,
+   "node": 0.29,
+   "cmp": 0.83,
+   "logic": 0.018,
+   "drv": 0.118,
+   "off": 0.156154,
+   "total": 3.54215,
+   "cmpss_total": 2.969,
+   "il_rc": 0.047,
+   "qual": 0.0416667,
+   "qual_txt": "5 of 5 SYSCLK at 120 MHz",
+   "sens_typ": 1.5,
+   "sens_max": 2.0,
+   "sens_bw_Hz": 200000.0,
+   "pure_us": {
+    "window": 1.12215,
+    "cmpss": 0.502
+   },
+   "tau_bw_us": 0.795775
+  },
+  "d079_trips": [
+   "low: both low, sensor typ, ripple max",
+   "low: window high, CMPSS low, sensor typ, ripple max",
+   "low: both low, sensor max, ripple max",
+   "low: window high, CMPSS low, sensor max, ripple max"
+  ],
+  "adopted_any_trip": false,
+  "adopted_margin_A": 13.3483
+ },
+ "dc_bus_coupled_pv": {
+  "main": [
+   {
+    "n": 1,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 75.0736,
+    "v_set": 750.0,
+    "kC": 0.9,
+    "C_bus_uF": 669.78,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 15.625,
+    "E_L_J": 1.42,
+    "trip": false,
+    "vmax_loop": 803.985,
+    "t_pcs_ms": null,
+    "vdc_pk": 803.985,
+    "vdc_end": 803.972,
+    "half_pk": 401.993,
+    "V_dev": 803.985,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.234375,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   },
+   {
+    "n": 1,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 75.0736,
+    "v_set": 750.0,
+    "kC": 1.1,
+    "C_bus_uF": 818.62,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 15.625,
+    "E_L_J": 1.42,
+    "trip": false,
+    "vmax_loop": 798.039,
+    "t_pcs_ms": null,
+    "vdc_pk": 798.039,
+    "vdc_end": 798.025,
+    "half_pk": 399.019,
+    "V_dev": 798.039,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.265625,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   },
+   {
+    "n": 1,
+    "P_each_kW": 82.5,
+    "P_dc_kW": 82.5868,
+    "v_set": 750.0,
+    "kC": 0.9,
+    "C_bus_uF": 669.78,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 1.42,
+    "trip": false,
+    "vmax_loop": 807.072,
+    "t_pcs_ms": null,
+    "vdc_pk": 807.072,
+    "vdc_end": 807.072,
+    "half_pk": 403.536,
+    "V_dev": 807.072,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.21875,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   },
+   {
+    "n": 1,
+    "P_each_kW": 82.5,
+    "P_dc_kW": 82.5868,
+    "v_set": 750.0,
+    "kC": 1.1,
+    "C_bus_uF": 818.62,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 1.42,
+    "trip": false,
+    "vmax_loop": 800.956,
+    "t_pcs_ms": null,
+    "vdc_pk": 800.956,
+    "vdc_end": 800.956,
+    "half_pk": 400.478,
+    "V_dev": 800.956,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.25,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   },
+   {
+    "n": 2,
+    "P_each_kW": 62.5,
+    "P_dc_kW": 125.185,
+    "v_set": 750.0,
+    "kC": 0.9,
+    "C_bus_uF": 971.1,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 2.83999,
+    "trip": false,
+    "vmax_loop": 813.385,
+    "t_pcs_ms": null,
+    "vdc_pk": 813.385,
+    "vdc_end": 813.385,
+    "half_pk": 406.692,
+    "V_dev": 813.385,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.21875,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   },
+   {
+    "n": 2,
+    "P_each_kW": 62.5,
+    "P_dc_kW": 125.185,
+    "v_set": 750.0,
+    "kC": 1.1,
+    "C_bus_uF": 1186.9,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 15.625,
+    "E_L_J": 2.83999,
+    "trip": false,
+    "vmax_loop": 804.152,
+    "t_pcs_ms": null,
+    "vdc_pk": 804.152,
+    "vdc_end": 804.152,
+    "half_pk": 402.076,
+    "V_dev": 804.152,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.234375,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   },
+   {
+    "n": 2,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 150.262,
+    "v_set": 750.0,
+    "kC": 0.9,
+    "C_bus_uF": 971.1,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 15.625,
+    "E_L_J": 2.83999,
+    "trip": false,
+    "vmax_loop": 824.519,
+    "t_pcs_ms": null,
+    "vdc_pk": 824.519,
+    "vdc_end": 823.496,
+    "half_pk": 412.259,
+    "V_dev": 824.519,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.203125,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   },
+   {
+    "n": 2,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 150.262,
+    "v_set": 750.0,
+    "kC": 1.1,
+    "C_bus_uF": 1186.9,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 2.83999,
+    "trip": false,
+    "vmax_loop": 813.477,
+    "t_pcs_ms": null,
+    "vdc_pk": 813.477,
+    "vdc_end": 812.891,
+    "half_pk": 406.739,
+    "V_dev": 813.477,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.21875,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   },
+   {
+    "n": 1,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 75.0736,
+    "v_set": 782.0,
+    "kC": 0.9,
+    "C_bus_uF": 669.78,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 1.42,
+    "trip": false,
+    "vmax_loop": 836.526,
+    "t_pcs_ms": null,
+    "vdc_pk": 836.526,
+    "vdc_end": 835.973,
+    "half_pk": 418.263,
+    "V_dev": 836.526,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.25,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   },
+   {
+    "n": 1,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 75.0736,
+    "v_set": 782.0,
+    "kC": 1.1,
+    "C_bus_uF": 818.62,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 1.42,
+    "trip": false,
+    "vmax_loop": 830.324,
+    "t_pcs_ms": null,
+    "vdc_pk": 830.324,
+    "vdc_end": 829.866,
+    "half_pk": 415.162,
+    "V_dev": 830.324,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.28125,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   },
+   {
+    "n": 1,
+    "P_each_kW": 82.5,
+    "P_dc_kW": 82.5868,
+    "v_set": 782.0,
+    "kC": 0.9,
+    "C_bus_uF": 669.78,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 15.625,
+    "E_L_J": 1.42,
+    "trip": false,
+    "vmax_loop": 839.293,
+    "t_pcs_ms": null,
+    "vdc_pk": 839.293,
+    "vdc_end": 839.292,
+    "half_pk": 419.647,
+    "V_dev": 839.293,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.234375,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   },
+   {
+    "n": 1,
+    "P_each_kW": 82.5,
+    "P_dc_kW": 82.5868,
+    "v_set": 782.0,
+    "kC": 1.1,
+    "C_bus_uF": 818.62,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 1.42,
+    "trip": false,
+    "vmax_loop": 830.952,
+    "t_pcs_ms": null,
+    "vdc_pk": 830.952,
+    "vdc_end": 830.952,
+    "half_pk": 415.476,
+    "V_dev": 830.952,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.25,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   },
+   {
+    "n": 2,
+    "P_each_kW": 62.5,
+    "P_dc_kW": 125.185,
+    "v_set": 782.0,
+    "kC": 0.9,
+    "C_bus_uF": 971.1,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 2.83999,
+    "trip": false,
+    "vmax_loop": 842.983,
+    "t_pcs_ms": null,
+    "vdc_pk": 842.983,
+    "vdc_end": 842.983,
+    "half_pk": 421.492,
+    "V_dev": 842.983,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.21875,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   },
+   {
+    "n": 2,
+    "P_each_kW": 62.5,
+    "P_dc_kW": 125.185,
+    "v_set": 782.0,
+    "kC": 1.1,
+    "C_bus_uF": 1186.9,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 2.83999,
+    "trip": false,
+    "vmax_loop": 836.183,
+    "t_pcs_ms": null,
+    "vdc_pk": 836.183,
+    "vdc_end": 836.183,
+    "half_pk": 418.092,
+    "V_dev": 836.183,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.25,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   },
+   {
+    "n": 2,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 150.262,
+    "v_set": 782.0,
+    "kC": 0.9,
+    "C_bus_uF": 971.1,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 15.625,
+    "E_L_J": 2.83999,
+    "trip": false,
+    "vmax_loop": 853.041,
+    "t_pcs_ms": null,
+    "vdc_pk": 853.041,
+    "vdc_end": 852.705,
+    "half_pk": 426.52,
+    "V_dev": 853.041,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.203125,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   },
+   {
+    "n": 2,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 150.262,
+    "v_set": 782.0,
+    "kC": 1.1,
+    "C_bus_uF": 1186.9,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 2.83999,
+    "trip": false,
+    "vmax_loop": 842.511,
+    "t_pcs_ms": null,
+    "vdc_pk": 842.511,
+    "vdc_end": 842.488,
+    "half_pk": 421.255,
+    "V_dev": 842.511,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.21875,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   },
+   {
+    "n": 1,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 75.0736,
+    "v_set": 950.0,
+    "kC": 0.9,
+    "C_bus_uF": 669.78,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 15.625,
+    "E_L_J": 1.42,
+    "trip": true,
+    "vmax_loop": 982.839,
+    "t_pcs_ms": 0.28125,
+    "t_off_ms": 0.28125,
+    "by": "comparator",
+    "v_off": 984.333,
+    "vdc_pk": 996.955,
+    "vdc_end": 996.955,
+    "half_pk": 499.0,
+    "I_off": 57.1752,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.29725,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": 1.75125,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false
+   },
+   {
+    "n": 1,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 75.0736,
+    "v_set": 950.0,
+    "kC": 1.1,
+    "C_bus_uF": 818.62,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 15.625,
+    "E_L_J": 1.42,
+    "trip": true,
+    "vmax_loop": 982.107,
+    "t_pcs_ms": 0.34375,
+    "t_off_ms": 0.34375,
+    "by": "comparator",
+    "v_off": 983.637,
+    "vdc_pk": 1009.12,
+    "vdc_end": 1009.12,
+    "half_pk": 510.707,
+    "I_off": 35.4468,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.35975,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": 1.81375,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false
+   },
+   {
+    "n": 1,
+    "P_each_kW": 82.5,
+    "P_dc_kW": 82.5868,
+    "v_set": 950.0,
+    "kC": 0.9,
+    "C_bus_uF": 669.78,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 15.625,
+    "E_L_J": 1.42,
+    "trip": true,
+    "vmax_loop": 985.499,
+    "t_pcs_ms": 0.265625,
+    "t_off_ms": 0.265625,
+    "by": "comparator",
+    "v_off": 987.125,
+    "vdc_pk": 998.717,
+    "vdc_end": 998.717,
+    "half_pk": 499.795,
+    "I_off": 61.2481,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.266625,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": 1.73562,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false
+   },
+   {
+    "n": 1,
+    "P_each_kW": 82.5,
+    "P_dc_kW": 82.5868,
+    "v_set": 950.0,
+    "kC": 1.1,
+    "C_bus_uF": 818.62,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 1.42,
+    "trip": true,
+    "vmax_loop": 983.085,
+    "t_pcs_ms": 0.3125,
+    "t_off_ms": 0.3125,
+    "by": "comparator",
+    "v_off": 984.451,
+    "vdc_pk": 993.7,
+    "vdc_end": 993.7,
+    "half_pk": 497.14,
+    "I_off": 55.4981,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.3135,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": 1.7825,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false
+   },
+   {
+    "n": 2,
+    "P_each_kW": 62.5,
+    "P_dc_kW": 125.185,
+    "v_set": 950.0,
+    "kC": 0.9,
+    "C_bus_uF": 971.1,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 15.625,
+    "E_L_J": 2.83999,
+    "trip": true,
+    "vmax_loop": 989.569,
+    "t_pcs_ms": 0.25,
+    "t_off_ms": 0.25,
+    "by": "comparator",
+    "v_off": 993.208,
+    "vdc_pk": 1001.81,
+    "vdc_end": 1001.81,
+    "half_pk": 500.906,
+    "I_off": 50.2193,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.234375,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": 1.72,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false
+   },
+   {
+    "n": 2,
+    "P_each_kW": 62.5,
+    "P_dc_kW": 125.185,
+    "v_set": 950.0,
+    "kC": 1.1,
+    "C_bus_uF": 1186.9,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 2.83999,
+    "trip": true,
+    "vmax_loop": 985.841,
+    "t_pcs_ms": 0.28125,
+    "t_off_ms": 0.28125,
+    "by": "comparator",
+    "v_off": 987.327,
+    "vdc_pk": 997.01,
+    "vdc_end": 997.01,
+    "half_pk": 498.507,
+    "I_off": 68.5455,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.28225,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": 1.75125,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false
+   },
+   {
+    "n": 2,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 150.262,
+    "v_set": 950.0,
+    "kC": 0.9,
+    "C_bus_uF": 971.1,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 2.83999,
+    "trip": true,
+    "vmax_loop": 991.329,
+    "t_pcs_ms": 0.21875,
+    "t_off_ms": 0.21875,
+    "by": "comparator",
+    "v_off": 995.122,
+    "vdc_pk": 1016.12,
+    "vdc_end": 1016.12,
+    "half_pk": 515.173,
+    "I_off": 98.6138,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.21975,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": 1.68875,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false
+   },
+   {
+    "n": 2,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 150.262,
+    "v_set": 950.0,
+    "kC": 1.1,
+    "C_bus_uF": 1186.9,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 15.625,
+    "E_L_J": 2.83999,
+    "trip": true,
+    "vmax_loop": 989.8,
+    "t_pcs_ms": 0.25,
+    "t_off_ms": 0.25,
+    "by": "comparator",
+    "v_off": 993.5,
+    "vdc_pk": 1006.94,
+    "vdc_end": 1006.94,
+    "half_pk": 508.852,
+    "I_off": 46.9945,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.234375,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": 1.72,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false
+   }
+  ],
+  "sens": [
+   {
+    "n": 1,
+    "P_each_kW": 82.5,
+    "P_dc_kW": 82.5868,
+    "v_set": 750.0,
+    "kC": 0.9,
+    "C_bus_uF": 669.78,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "nom",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 0.456506,
+    "trip": false,
+    "vmax_loop": 804.785,
+    "t_pcs_ms": null,
+    "vdc_pk": 804.785,
+    "vdc_end": 804.785,
+    "half_pk": 402.392,
+    "V_dev": 804.785,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.21875,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   },
+   {
+    "n": 2,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 150.262,
+    "v_set": 750.0,
+    "kC": 0.9,
+    "C_bus_uF": 971.1,
+    "layers": [
+     "coord",
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "nom",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 15.625,
+    "E_L_J": 0.755606,
+    "trip": false,
+    "vmax_loop": 821.252,
+    "t_pcs_ms": null,
+    "vdc_pk": 821.252,
+    "vdc_end": 820.133,
+    "half_pk": 410.626,
+    "V_dev": 821.252,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.203125,
+    "cut_by": "coordination row (V_B > V_B* + 30 V)",
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   }
+  ],
+  "v_set_max": {
+   "1 x 82.5 kW": 921,
+   "2 x 75 kW": 909
+  },
+  "ideal": [
+   {
+    "n": 1,
+    "P_each_kW": 82.5,
+    "P_dc_kW": 82.5868,
+    "v_set": 750.0,
+    "kC": 0.9,
+    "C_bus_uF": 669.78,
+    "layers": [
+     "ideal"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 0.0,
+    "trip": false,
+    "vmax_loop": 758.906,
+    "t_pcs_ms": null,
+    "vdc_pk": 758.906,
+    "vdc_end": 756.177,
+    "half_pk": 379.453,
+    "V_dev": 758.906,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": null,
+    "cut_by": null,
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   },
+   {
+    "n": 2,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 150.262,
+    "v_set": 750.0,
+    "kC": 0.9,
+    "C_bus_uF": 971.1,
+    "layers": [
+     "ideal"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 0.0,
+    "trip": false,
+    "vmax_loop": 767.399,
+    "t_pcs_ms": null,
+    "vdc_pk": 767.399,
+    "vdc_end": 763.533,
+    "half_pk": 383.7,
+    "V_dev": 767.399,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": null,
+    "cut_by": null,
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   },
+   {
+    "n": 1,
+    "P_each_kW": 82.5,
+    "P_dc_kW": 82.5868,
+    "v_set": 950.0,
+    "kC": 0.9,
+    "C_bus_uF": 669.78,
+    "layers": [
+     "ideal"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 0.0,
+    "trip": false,
+    "vmax_loop": 956.201,
+    "t_pcs_ms": null,
+    "vdc_pk": 956.201,
+    "vdc_end": 955.313,
+    "half_pk": 478.101,
+    "V_dev": 956.201,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": null,
+    "cut_by": null,
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   },
+   {
+    "n": 2,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 150.262,
+    "v_set": 950.0,
+    "kC": 0.9,
+    "C_bus_uF": 971.1,
+    "layers": [
+     "ideal"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 0.0,
+    "trip": false,
+    "vmax_loop": 961.703,
+    "t_pcs_ms": null,
+    "vdc_pk": 961.703,
+    "vdc_end": 961.086,
+    "half_pk": 480.851,
+    "V_dev": 961.703,
+    "dev_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": null,
+    "cut_by": null,
+    "t_pv_off_ms": null,
+    "outcome": "the island rides through",
+    "rides": true
+   }
+  ],
+  "line_us_max_at_950V": {
+   "1 x 82.5 kW": 115.625,
+   "2 x 75 kW": 56.25
+  },
+  "backstop": [
+   {
+    "n": 1,
+    "P_each_kW": 82.5,
+    "P_dc_kW": 82.5868,
+    "v_set": 750.0,
+    "kC": 0.9,
+    "C_bus_uF": 669.78,
+    "layers": [
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 1048.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 1.42,
+    "trip": true,
+    "vmax_loop": 1054.18,
+    "t_pcs_ms": 1.84375,
+    "t_off_ms": 1.84375,
+    "by": "comparator",
+    "v_off": 1055.02,
+    "vdc_pk": 1062.53,
+    "vdc_end": 1062.53,
+    "half_pk": 534.546,
+    "I_off": 36.979,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 1.75,
+    "cut_by": "firmware over-voltage limit 1034 V",
+    "t_pv_off_ms": 3.31375,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false,
+    "scenario": "coordination row absent, external stop wired"
+   },
+   {
+    "n": 2,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 150.262,
+    "v_set": 750.0,
+    "kC": 0.9,
+    "C_bus_uF": 971.1,
+    "layers": [
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 1048.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 2.83999,
+    "trip": true,
+    "vmax_loop": 1057.8,
+    "t_pcs_ms": 1.45312,
+    "t_off_ms": 1.45312,
+    "by": "comparator",
+    "v_off": 1059.2,
+    "vdc_pk": 1069.13,
+    "vdc_end": 1069.13,
+    "half_pk": 540.101,
+    "I_off": 37.0468,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 1.375,
+    "cut_by": "firmware over-voltage limit 1034 V",
+    "t_pv_off_ms": 2.92313,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false,
+    "scenario": "coordination row absent, external stop wired"
+   },
+   {
+    "n": 1,
+    "P_each_kW": 82.5,
+    "P_dc_kW": 82.5868,
+    "v_set": 950.0,
+    "kC": 0.9,
+    "C_bus_uF": 669.78,
+    "layers": [
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 1048.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 1.42,
+    "trip": true,
+    "vmax_loop": 1051.05,
+    "t_pcs_ms": 0.796875,
+    "t_off_ms": 0.796875,
+    "by": "comparator",
+    "v_off": 1051.44,
+    "vdc_pk": 1064.06,
+    "vdc_end": 1064.06,
+    "half_pk": 536.294,
+    "I_off": 42.2442,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.65625,
+    "cut_by": "firmware over-voltage limit 1034 V",
+    "t_pv_off_ms": 2.26687,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false,
+    "scenario": "coordination row absent, external stop wired"
+   },
+   {
+    "n": 2,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 150.262,
+    "v_set": 950.0,
+    "kC": 0.9,
+    "C_bus_uF": 971.1,
+    "layers": [
+     "ext",
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 1048.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 2.83999,
+    "trip": true,
+    "vmax_loop": 1053.28,
+    "t_pcs_ms": 0.609375,
+    "t_off_ms": 0.609375,
+    "by": "comparator",
+    "v_off": 1054.01,
+    "vdc_pk": 1063.58,
+    "vdc_end": 1063.58,
+    "half_pk": 539.594,
+    "I_off": 58.3471,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.5,
+    "cut_by": "firmware over-voltage limit 1034 V",
+    "t_pv_off_ms": 2.07937,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false,
+    "scenario": "coordination row absent, external stop wired"
+   },
+   {
+    "n": 1,
+    "P_each_kW": 82.5,
+    "P_dc_kW": 82.5868,
+    "v_set": 750.0,
+    "kC": 0.9,
+    "C_bus_uF": 669.78,
+    "layers": [
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 1048.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 1.42,
+    "trip": true,
+    "vmax_loop": 1054.18,
+    "t_pcs_ms": 1.84375,
+    "t_off_ms": 1.84375,
+    "by": "comparator",
+    "v_off": 1055.02,
+    "vdc_pk": 1062.53,
+    "vdc_end": 1062.53,
+    "half_pk": 534.546,
+    "I_off": 36.979,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 1.75,
+    "cut_by": "firmware over-voltage limit 1034 V",
+    "t_pv_off_ms": null,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false,
+    "scenario": "coordination row absent, not wired"
+   },
+   {
+    "n": 2,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 150.262,
+    "v_set": 750.0,
+    "kC": 0.9,
+    "C_bus_uF": 971.1,
+    "layers": [
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 1048.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 2.83999,
+    "trip": true,
+    "vmax_loop": 1057.8,
+    "t_pcs_ms": 1.45312,
+    "t_off_ms": 1.45312,
+    "by": "comparator",
+    "v_off": 1059.2,
+    "vdc_pk": 1069.13,
+    "vdc_end": 1069.13,
+    "half_pk": 540.101,
+    "I_off": 37.0468,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 1.375,
+    "cut_by": "firmware over-voltage limit 1034 V",
+    "t_pv_off_ms": null,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false,
+    "scenario": "coordination row absent, not wired"
+   },
+   {
+    "n": 1,
+    "P_each_kW": 82.5,
+    "P_dc_kW": 82.5868,
+    "v_set": 950.0,
+    "kC": 0.9,
+    "C_bus_uF": 669.78,
+    "layers": [
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 1048.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 1.42,
+    "trip": true,
+    "vmax_loop": 1051.05,
+    "t_pcs_ms": 0.796875,
+    "t_off_ms": 0.796875,
+    "by": "comparator",
+    "v_off": 1051.44,
+    "vdc_pk": 1064.06,
+    "vdc_end": 1064.06,
+    "half_pk": 536.294,
+    "I_off": 42.2442,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.65625,
+    "cut_by": "firmware over-voltage limit 1034 V",
+    "t_pv_off_ms": null,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false,
+    "scenario": "coordination row absent, not wired"
+   },
+   {
+    "n": 2,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 150.262,
+    "v_set": 950.0,
+    "kC": 0.9,
+    "C_bus_uF": 971.1,
+    "layers": [
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 1048.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 2.83999,
+    "trip": true,
+    "vmax_loop": 1053.28,
+    "t_pcs_ms": 0.609375,
+    "t_off_ms": 0.609375,
+    "by": "comparator",
+    "v_off": 1054.01,
+    "vdc_pk": 1063.58,
+    "vdc_end": 1063.58,
+    "half_pk": 539.594,
+    "I_off": 58.3471,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 0.5,
+    "cut_by": "firmware over-voltage limit 1034 V",
+    "t_pv_off_ms": null,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false,
+    "scenario": "coordination row absent, not wired"
+   },
+   {
+    "n": 1,
+    "P_each_kW": 82.5,
+    "P_dc_kW": 82.5868,
+    "v_set": 750.0,
+    "kC": 0.9,
+    "C_bus_uF": 669.78,
+    "layers": [
+     "ext",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 1048.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 1.42,
+    "trip": true,
+    "vmax_loop": 1056.34,
+    "t_pcs_ms": 1.84375,
+    "t_off_ms": 1.84375,
+    "by": "comparator",
+    "v_off": 1058.91,
+    "vdc_pk": 1125.85,
+    "vdc_end": 1125.85,
+    "half_pk": 566.936,
+    "I_off": 36.9876,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": true,
+    "t_cut_ms": null,
+    "cut_by": null,
+    "t_pv_off_ms": 2.19975,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false,
+    "scenario": "PV firmware dead, external stop wired"
+   },
+   {
+    "n": 2,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 150.262,
+    "v_set": 750.0,
+    "kC": 0.9,
+    "C_bus_uF": 971.1,
+    "layers": [
+     "ext",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 1048.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 2.83999,
+    "trip": true,
+    "vmax_loop": 1058.4,
+    "t_pcs_ms": 1.45312,
+    "t_off_ms": 1.45312,
+    "by": "comparator",
+    "v_off": 1061.63,
+    "vdc_pk": 1127.62,
+    "vdc_end": 1127.62,
+    "half_pk": 568.856,
+    "I_off": 37.0469,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": true,
+    "t_cut_ms": null,
+    "cut_by": null,
+    "t_pv_off_ms": 1.73412,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false,
+    "scenario": "PV firmware dead, external stop wired"
+   },
+   {
+    "n": 1,
+    "P_each_kW": 82.5,
+    "P_dc_kW": 82.5868,
+    "v_set": 950.0,
+    "kC": 0.9,
+    "C_bus_uF": 669.78,
+    "layers": [
+     "ext",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 1048.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 1.42,
+    "trip": true,
+    "vmax_loop": 1054.59,
+    "t_pcs_ms": 0.78125,
+    "t_off_ms": 0.78125,
+    "by": "comparator",
+    "v_off": 1056.74,
+    "vdc_pk": 1130.08,
+    "vdc_end": 1130.08,
+    "half_pk": 568.26,
+    "I_off": 40.2085,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": true,
+    "t_cut_ms": null,
+    "cut_by": null,
+    "t_pv_off_ms": 1.23225,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false,
+    "scenario": "PV firmware dead, external stop wired"
+   },
+   {
+    "n": 2,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 150.262,
+    "v_set": 950.0,
+    "kC": 0.9,
+    "C_bus_uF": 971.1,
+    "layers": [
+     "ext",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 1048.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 2.83999,
+    "trip": true,
+    "vmax_loop": 1056.18,
+    "t_pcs_ms": 0.609375,
+    "t_off_ms": 0.609375,
+    "by": "comparator",
+    "v_off": 1058.8,
+    "vdc_pk": 1127.35,
+    "vdc_end": 1127.35,
+    "half_pk": 571.036,
+    "I_off": 58.2743,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": true,
+    "t_cut_ms": null,
+    "cut_by": null,
+    "t_pv_off_ms": 0.969375,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false,
+    "scenario": "PV firmware dead, external stop wired"
+   },
+   {
+    "n": 1,
+    "P_each_kW": 82.5,
+    "P_dc_kW": 82.5868,
+    "v_set": 750.0,
+    "kC": 0.9,
+    "C_bus_uF": 669.78,
+    "layers": [
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 1048.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 1.42,
+    "trip": true,
+    "vmax_loop": 1056.34,
+    "t_pcs_ms": 1.84375,
+    "t_off_ms": 1.84375,
+    "by": "comparator",
+    "v_off": 1058.91,
+    "vdc_pk": 1125.85,
+    "vdc_end": 1125.85,
+    "half_pk": 566.936,
+    "I_off": 36.9876,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": true,
+    "t_cut_ms": null,
+    "cut_by": null,
+    "t_pv_off_ms": 2.19975,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false,
+    "scenario": "PV firmware dead, not wired"
+   },
+   {
+    "n": 2,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 150.262,
+    "v_set": 750.0,
+    "kC": 0.9,
+    "C_bus_uF": 971.1,
+    "layers": [
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 1048.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 2.83999,
+    "trip": true,
+    "vmax_loop": 1058.4,
+    "t_pcs_ms": 1.45312,
+    "t_off_ms": 1.45312,
+    "by": "comparator",
+    "v_off": 1061.63,
+    "vdc_pk": 1127.62,
+    "vdc_end": 1127.62,
+    "half_pk": 568.856,
+    "I_off": 37.0469,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": true,
+    "t_cut_ms": null,
+    "cut_by": null,
+    "t_pv_off_ms": 1.73412,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false,
+    "scenario": "PV firmware dead, not wired"
+   },
+   {
+    "n": 1,
+    "P_each_kW": 82.5,
+    "P_dc_kW": 82.5868,
+    "v_set": 950.0,
+    "kC": 0.9,
+    "C_bus_uF": 669.78,
+    "layers": [
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 1048.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 1.42,
+    "trip": true,
+    "vmax_loop": 1054.59,
+    "t_pcs_ms": 0.78125,
+    "t_off_ms": 0.78125,
+    "by": "comparator",
+    "v_off": 1056.74,
+    "vdc_pk": 1130.08,
+    "vdc_end": 1130.08,
+    "half_pk": 568.26,
+    "I_off": 40.2085,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": true,
+    "t_cut_ms": null,
+    "cut_by": null,
+    "t_pv_off_ms": 1.23225,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false,
+    "scenario": "PV firmware dead, not wired"
+   },
+   {
+    "n": 2,
+    "P_each_kW": 75.0,
+    "P_dc_kW": 150.262,
+    "v_set": 950.0,
+    "kC": 0.9,
+    "C_bus_uF": 971.1,
+    "layers": [
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 1048.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 2.83999,
+    "trip": true,
+    "vmax_loop": 1056.18,
+    "t_pcs_ms": 0.609375,
+    "t_off_ms": 0.609375,
+    "by": "comparator",
+    "v_off": 1058.8,
+    "vdc_pk": 1127.35,
+    "vdc_end": 1127.35,
+    "half_pk": 571.036,
+    "I_off": 58.2743,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": true,
+    "t_cut_ms": null,
+    "cut_by": null,
+    "t_pv_off_ms": 0.969375,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false,
+    "scenario": "PV firmware dead, not wired"
+   }
+  ],
+  "uncoordinated": {
+   "978.0": {
+    "n": 2,
+    "P_each_kW": 62.5,
+    "P_dc_kW": 125.185,
+    "v_set": 750.0,
+    "kC": 1.0,
+    "C_bus_uF": 1079.0,
+    "layers": [
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 978.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 2.83999,
+    "trip": true,
+    "vmax_loop": 987.374,
+    "t_pcs_ms": 1.5,
+    "t_off_ms": 1.5,
+    "by": "comparator",
+    "v_off": 989.796,
+    "vdc_pk": 1060.48,
+    "vdc_end": 1060.48,
+    "half_pk": 535.139,
+    "I_off": 37.0223,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 1.844,
+    "cut_by": "firmware over-voltage limit 1034 V",
+    "t_pv_off_ms": null,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false,
+    "i_hold_A": 166.914
+   },
+   "1048.0": {
+    "n": 2,
+    "P_each_kW": 62.5,
+    "P_dc_kW": 125.185,
+    "v_set": 750.0,
+    "kC": 1.0,
+    "C_bus_uF": 1079.0,
+    "layers": [
+     "fw",
+     "hw"
+    ],
+    "res": "max",
+    "hw_pcs": 1048.0,
+    "hw_pv": 1110.0,
+    "phase_us": 0.0,
+    "E_L_J": 2.83999,
+    "trip": true,
+    "vmax_loop": 1053.85,
+    "t_pcs_ms": 1.9375,
+    "t_off_ms": 1.9375,
+    "by": "comparator",
+    "v_off": 1054.67,
+    "vdc_pk": 1061.22,
+    "vdc_end": 1061.22,
+    "half_pk": 534.306,
+    "I_off": 36.956,
+    "V_dev": 1438.02,
+    "dev_ok": true,
+    "screen_ok": true,
+    "half_ok": true,
+    "half_rated": true,
+    "aux_lockout": false,
+    "t_cut_ms": 1.84375,
+    "cut_by": "firmware over-voltage limit 1034 V",
+    "t_pv_off_ms": null,
+    "outcome": "latched PCS trip (comparator): the island goes dark",
+    "rides": false,
+    "i_hold_A": 166.914
+   }
+  },
+  "requirements": [
+   "the PV modules' coordination row (V_B > V_B* + 30 V -> every cell's current reference to zero) is required for VF on a battery-less bus: without it every full-load rejection trips the PCS (bus 1063-1069 V)",
+   "the CV set point in VF on a battery-less bus <= 909 V (the coupled worst corner; the PV row keeps its 782 V as the firmware limit with its own margin rule)",
+   "the PV power on one link <= the PCS's DC power tier (one module at 82.5 kW and two at the 2-min tier studied)",
+   "the external stop wiring (1.47 ms) is not needed for this event - it acts after the PV module's own limit and comparator; it stays a general interlock",
+   "a hardwired trip line (cost class low: an isolated digital line, a connector and a latch input, a few USD per module) is needed only for set points above 909 V; it must stop the modules within 1 x 82.5 kW 116 us, 2 x 75 kW 56 us of the rejection at 950 V; not added",
+   "with the PV firmware dead the bus ends at 1126-1130 V, above the aux's 1107 V input lock-out: dark until it bleeds down"
+  ],
+  "limits": {
+   "soft_V": 975.0,
+   "ov_band_V": [
+    978.0,
+    1048.0
+   ],
+   "aux_lockout_V": 1106.95,
+   "U_N_half_V": 600.0,
+   "film_100ms_V": 900.0,
+   "V_limit_device": 1445.0
+  },
+  "pv": {
+   "dv": 30.0,
+   "rel": 15.0,
+   "valid": 782.0,
+   "chain_us": 209.0,
+   "n_mean": 16.0,
+   "f_div": 6800.0,
+   "T_out": 3.125e-05,
+   "fc_i": 2500.0,
+   "ov_fw": 1034.0,
+   "ov_hw": [
+    1039.0,
+    1110.0
+   ],
+   "ov_hw_us": 47.0,
+   "C_B": 0.0003348,
+   "L_tol": 0.08,
+   "I_pk": 62.2926,
+   "n_cells": 3,
+   "P_rated": 75000.0,
+   "P_max": 82500.0,
+   "t_ext": 0.00147,
+   "source": "sim/out/pv_control/control_spec.json (firmware_second_layer system row, sampling, current_loop, hardware_trips), sim/out/pv_design/cell_spec.json (inductor, ov_trip_costfirst), hardware/PV-CTL design check (external stop), REQUIREMENTS PV-01"
+  }
+ },
+ "vf_envelope_basis": {
+  "declared": "the ITIC (CBEMA) curve style points FROM MEMORY - a standard-style curve, not set to the simulation (review R3-05); the standard texts (ITIC, IEC 62040-3) are not on file and are the gate",
+  "margins_worst_corner": {
+   "declared (ITIC-style, FROM MEMORY)": {
+    "over": [
+     {
+      "t_from_ms": 0.0,
+      "t_to_ms": 1.0,
+      "limit_pu": 2.0,
+      "worst_pu": 1.77154,
+      "margin_pu": 0.228464
+     },
+     {
+      "t_from_ms": 1.0,
+      "t_to_ms": 3.0,
+      "limit_pu": 1.4,
+      "worst_pu": 1.21622,
+      "margin_pu": 0.18378
+     },
+     {
+      "t_from_ms": 3.0,
+      "t_to_ms": 500.0,
+      "limit_pu": 1.2,
+      "worst_pu": 1.14611,
+      "margin_pu": 0.053891
+     },
+     {
+      "t_from_ms": 500.0,
+      "t_to_ms": null,
+      "limit_pu": 1.1,
+      "worst_pu": 1.00004,
+      "margin_pu": 0.099964
+     }
+    ],
+    "under": [
+     {
+      "t_from_ms": 0.0,
+      "t_to_ms": 20.0,
+      "limit_pu": 0.0,
+      "worst_pu": 0.430436,
+      "margin_pu": 0.430436
+     },
+     {
+      "t_from_ms": 20.0,
+      "t_to_ms": 500.0,
+      "limit_pu": 0.7,
+      "worst_pu": 0.988254,
+      "margin_pu": 0.288254
+     },
+     {
+      "t_from_ms": 500.0,
+      "t_to_ms": 10000.0,
+      "limit_pu": 0.8,
+      "worst_pu": 0.999851,
+      "margin_pu": 0.199851
+     },
+     {
+      "t_from_ms": 10000.0,
+      "t_to_ms": null,
+      "limit_pu": 0.9,
+      "worst_pu": null,
+      "margin_pu": null
+     }
+    ],
+    "min_margin_pu": 0.053891,
+    "met": true
+   },
+   "IEC 62040-3 class 1 (FROM MEMORY)": {
+    "over": [
+     {
+      "t_from_ms": 0.0,
+      "t_to_ms": 5.0,
+      "limit_pu": 1.3,
+      "worst_pu": 1.77154,
+      "margin_pu": -0.471536
+     },
+     {
+      "t_from_ms": 5.0,
+      "t_to_ms": 100.0,
+      "limit_pu": 1.2,
+      "worst_pu": 1.02102,
+      "margin_pu": 0.178979
+     },
+     {
+      "t_from_ms": 100.0,
+      "t_to_ms": null,
+      "limit_pu": 1.1,
+      "worst_pu": 1.00004,
+      "margin_pu": 0.099964
+     }
+    ],
+    "under": [
+     {
+      "t_from_ms": 0.0,
+      "t_to_ms": 5.0,
+      "limit_pu": 0.7,
+      "worst_pu": 0.430436,
+      "margin_pu": -0.269564
+     },
+     {
+      "t_from_ms": 5.0,
+      "t_to_ms": 100.0,
+      "limit_pu": 0.8,
+      "worst_pu": 0.927854,
+      "margin_pu": 0.127854
+     },
+     {
+      "t_from_ms": 100.0,
+      "t_to_ms": null,
+      "limit_pu": 0.9,
+      "worst_pu": 0.999604,
+      "margin_pu": 0.0996038
+     }
+    ],
+    "min_margin_pu": -0.471536,
+    "met": false
+   },
+   "IEC 62040-3 class 2 (FROM MEMORY)": {
+    "over": [
+     {
+      "t_from_ms": 0.0,
+      "t_to_ms": 5.0,
+      "limit_pu": 1.3,
+      "worst_pu": 1.77154,
+      "margin_pu": -0.471536
+     },
+     {
+      "t_from_ms": 5.0,
+      "t_to_ms": 100.0,
+      "limit_pu": 1.2,
+      "worst_pu": 1.02102,
+      "margin_pu": 0.178979
+     },
+     {
+      "t_from_ms": 100.0,
+      "t_to_ms": null,
+      "limit_pu": 1.1,
+      "worst_pu": 1.00004,
+      "margin_pu": 0.099964
+     }
+    ],
+    "under": [
+     {
+      "t_from_ms": 0.0,
+      "t_to_ms": 1.0,
+      "limit_pu": 0.0,
+      "worst_pu": 0.430436,
+      "margin_pu": 0.430436
+     },
+     {
+      "t_from_ms": 1.0,
+      "t_to_ms": 5.0,
+      "limit_pu": 0.7,
+      "worst_pu": 0.924641,
+      "margin_pu": 0.224641
+     },
+     {
+      "t_from_ms": 5.0,
+      "t_to_ms": 100.0,
+      "limit_pu": 0.8,
+      "worst_pu": 0.927854,
+      "margin_pu": 0.127854
+     },
+     {
+      "t_from_ms": 100.0,
+      "t_to_ms": null,
+      "limit_pu": 0.9,
+      "worst_pu": 0.999604,
+      "margin_pu": 0.0996038
+     }
+    ],
+    "min_margin_pu": -0.471536,
+    "met": false
+   },
+   "IEC 62040-3 class 3 (FROM MEMORY)": {
+    "over": [
+     {
+      "t_from_ms": 0.0,
+      "t_to_ms": 5.0,
+      "limit_pu": 1.3,
+      "worst_pu": 1.77154,
+      "margin_pu": -0.471536
+     },
+     {
+      "t_from_ms": 5.0,
+      "t_to_ms": 100.0,
+      "limit_pu": 1.2,
+      "worst_pu": 1.02102,
+      "margin_pu": 0.178979
+     },
+     {
+      "t_from_ms": 100.0,
+      "t_to_ms": null,
+      "limit_pu": 1.1,
+      "worst_pu": 1.00004,
+      "margin_pu": 0.099964
+     }
+    ],
+    "under": [
+     {
+      "t_from_ms": 0.0,
+      "t_to_ms": 10.0,
+      "limit_pu": 0.0,
+      "worst_pu": 0.430436,
+      "margin_pu": 0.430436
+     },
+     {
+      "t_from_ms": 10.0,
+      "t_to_ms": 100.0,
+      "limit_pu": 0.8,
+      "worst_pu": 0.988254,
+      "margin_pu": 0.188254
+     },
+     {
+      "t_from_ms": 100.0,
+      "t_to_ms": null,
+      "limit_pu": 0.9,
+      "worst_pu": 0.999604,
+      "margin_pu": 0.0996038
+     }
+    ],
+    "min_margin_pu": -0.471536,
+    "met": false
+   },
+   "D-079 envelope (set to contain the simulation; SUPERSEDED)": {
+    "over": [
+     {
+      "t_from_ms": 0.0,
+      "t_to_ms": 0.5,
+      "limit_pu": 1.9,
+      "worst_pu": 1.77154,
+      "margin_pu": 0.128464
+     },
+     {
+      "t_from_ms": 0.5,
+      "t_to_ms": 3.0,
+      "limit_pu": 1.3,
+      "worst_pu": 1.21897,
+      "margin_pu": 0.0810334
+     },
+     {
+      "t_from_ms": 3.0,
+      "t_to_ms": 5.0,
+      "limit_pu": 1.2,
+      "worst_pu": 1.14611,
+      "margin_pu": 0.053891
+     },
+     {
+      "t_from_ms": 5.0,
+      "t_to_ms": 20.0,
+      "limit_pu": 1.1,
+      "worst_pu": 1.02102,
+      "margin_pu": 0.0789787
+     },
+     {
+      "t_from_ms": 20.0,
+      "t_to_ms": 50.0,
+      "limit_pu": 1.05,
+      "worst_pu": 1.00389,
+      "margin_pu": 0.0461069
+     },
+     {
+      "t_from_ms": 50.0,
+      "t_to_ms": null,
+      "limit_pu": 1.03,
+      "worst_pu": 1.00007,
+      "margin_pu": 0.0299263
+     }
+    ],
+    "under": [
+     {
+      "t_from_ms": 0.0,
+      "t_to_ms": 0.5,
+      "limit_pu": 0.35,
+      "worst_pu": 0.430436,
+      "margin_pu": 0.0804361
+     },
+     {
+      "t_from_ms": 0.5,
+      "t_to_ms": 3.0,
+      "limit_pu": 0.75,
+      "worst_pu": 0.816039,
+      "margin_pu": 0.0660392
+     },
+     {
+      "t_from_ms": 3.0,
+      "t_to_ms": 20.0,
+      "limit_pu": 0.88,
+      "worst_pu": 0.924641,
+      "margin_pu": 0.0446408
+     },
+     {
+      "t_from_ms": 20.0,
+      "t_to_ms": 50.0,
+      "limit_pu": 0.95,
+      "worst_pu": 0.988254,
+      "margin_pu": 0.0382545
+     },
+     {
+      "t_from_ms": 50.0,
+      "t_to_ms": null,
+      "limit_pu": 0.97,
+      "worst_pu": 0.999522,
+      "margin_pu": 0.029522
+     }
+    ],
+    "min_margin_pu": 0.029522,
+    "met": true
+   }
+  },
+  "horizon_s": {
+   "nom": 2.0,
+   "corners": 0.3
+  },
+  "classes_iec62040_3": {
+   "class 1": {
+    "over": [
+     [
+      5.0,
+      1.3
+     ],
+     [
+      100.0,
+      1.2
+     ],
+     [
+      null,
+      1.1
+     ]
+    ],
+    "under": [
+     [
+      5.0,
+      0.7
+     ],
+     [
+      100.0,
+      0.8
+     ],
+     [
+      null,
+      0.9
+     ]
+    ]
+   },
+   "class 2": {
+    "over": [
+     [
+      5.0,
+      1.3
+     ],
+     [
+      100.0,
+      1.2
+     ],
+     [
+      null,
+      1.1
+     ]
+    ],
+    "under": [
+     [
+      1.0,
+      0.0
+     ],
+     [
+      5.0,
+      0.7
+     ],
+     [
+      100.0,
+      0.8
+     ],
+     [
+      null,
+      0.9
+     ]
+    ]
+   },
+   "class 3": {
+    "over": [
+     [
+      5.0,
+      1.3
+     ],
+     [
+      100.0,
+      1.2
+     ],
+     [
+      null,
+      1.1
+     ]
+    ],
+    "under": [
+     [
+      10.0,
+      0.0
+     ],
+     [
+      100.0,
+      0.8
+     ],
+     [
+      null,
+      0.9
+     ]
+    ]
+   }
+  },
+  "superseded_d079": {
+   "over": [
+    [
+     0.5,
+     1.9
+    ],
+    [
+     3.0,
+     1.3
+    ],
+    [
+     5.0,
+     1.2
+    ],
+    [
+     20.0,
+     1.1
+    ],
+    [
+     50.0,
+     1.05
+    ],
+    [
+     null,
+     1.03
+    ]
+   ],
+   "under": [
+    [
+     0.5,
+     0.35
+    ],
+    [
+     3.0,
+     0.75
+    ],
+    [
+     20.0,
+     0.88
+    ],
+    [
+     50.0,
+     0.95
+    ],
+    [
+     null,
+     0.97
+    ]
+   ]
+  },
+  "superseded_d077_pu": {
+   "sag": 0.38,
+   "overshoot": 2.17,
+   "basis": "the unbounded averaged model without the VF measures (D-077) - SUPERSEDED"
+  },
+  "adoption": "adopting a dynamic output-voltage envelope as a requirement is adopted as REQUIREMENTS AC-04 (D-080) (a REQUIREMENTS.md entry); bench validation of the first milliseconds at every corner is the gate"
+ },
+ "review_r3": [
+  {
+   "id": "R3-01",
+   "classification": "Confirmed (a command-table / checker gap)",
+   "reviewer": "561 state-event pairs, 2 counterexamples (SYNC -> GFL / GFM close both coils); 54.9 / 58.2 W against 48 W",
+   "ours": "the same two transitions in the D-079 table (SYNC --synced_grid--> GFL; SYNC --dead_bus--> GFM); executed as first specified: peak 54.9 / 58.2 W, breaches S5; S6; S8; repaired (SYNC_CLOSE_K2 -> SYNC_CLOSE_K1): 646 pairs, every invariant incl. the unconditional I12 holds, 24 fault cases on both starts, no breach, peak 38.9 / 42.2 W (the budget's 38.9 / 42.2 W)",
+   "change": "SM_STATES / SM_OUT6 / SM_T: SYNC_CLOSE_K2, SYNC_CLOSE_K1; I3, I5 updated, I12 unconditional, I14, I15 added; sync_exec / study_sync (section 9e); firmware row",
+   "keys": [
+    "sync_close_state_machine",
+    "firmware.state_machine"
+   ]
+  },
+  {
+   "id": "R3-02",
+   "classification": "Confirmed (a coverage gap) - closed by a firmware measure; the hardware-trip outcome declared",
+   "reviewer": "first peak 425 A screened against 426.0 A only, the backup's low edge 423.9 A",
+   "ours": "both layers replayed on their own signals: with the D-079 firmware the smallest margin is -0.4 A and the CMPSS backup trips at the low plant / threshold corner with the window-top ripple (low: both low, sensor typ, ripple max), gates off at 419 A (<= the 534 A ceiling); the D-079 ride-through clamp held for the whole state: first peak well under (margin 87 A) but the fault is held at the clamp for the whole ride (271 A instead of 379 A for a downstream protection) and half-wave loads are clipped (peak 300 A against 318 A) - rejected; adopted: the clamp for a 5 ms onset window - first-ms peaks <= 351 A, no layer trips at any studied corner (smallest margin 13.3 A, the hold), firmware trip at 200 ms, healthy phases >= 0.986 pu; ride-through onset margin net of the noise term 20.5 A (window) / 18.4 A (CMPSS low edge)",
+   "change": "trip_replay (both layers, threshold / sensor / ripple / plant corners); ph4_run: the onset clamp option, recorded leg commands; rt4_onset_s; the noise term in section 4c; every 'may a layer trip' screen and the per-sample clamp on the lower edge of the two layers (423.9 A: clamp 378.0 A, coordinator decision); the backup band unchanged",
+   "keys": [
+    "four_wire_short_protection",
+    "ride_through_rule.noise",
+    "ride_through_rule.clamp_A",
+    "ride_through_rule.clamp_basis"
+   ]
+  },
+  {
+   "id": "R3-03",
+   "classification": "Confirmed (an untied interface) - replaced by the coupled PCS / PV trajectory; firmware / installation rules, no hardware",
+   "reviewer": "ASSUMED 50 us stop after the PCS trip vs the PV external stop 1.47 ms; the 0.51 ms figure has a different reference",
+   "ours": "the PV module's own protections read from its specs: at 750, 782 V every corner rides through (bus <= 853 V against the 975 V soft limit; PV cut 0.20-0.28 ms after the rejection); at 950 V the PCS trips (bus 994-1016 V, dark); set-point limit 1 x 82.5 kW 921 V, 2 x 75 kW 909 V; without the coordination row the bus ends at 1063-1069 V (aux running), with the PV firmware dead 1126-1130 V (aux locked out); halves <= 571 V against U_N 600 V, device <= 1445 V; the external stop never acts first; a hardwired line only above the validity (1 x 82.5 kW 116 us, 2 x 75 kW 56 us at 950 V)",
+   "change": "ASSUME dcdc_stop_us removed; PVBus / dc_coupled / study_dc_coupled (section 7d); gates_off_tail takes a stateful source; vf_bounded 'uncoordinated' recomputed on the coupled model",
+   "keys": [
+    "dc_bus_coupled_pv",
+    "vf_bounded.uncoordinated"
+   ]
+  },
+  {
+   "id": "R3-05",
+   "classification": "Improvement Recommended (an acceptance decision) - reframed",
+   "reviewer": "the envelope chosen to contain the simulated 0.43 / 1.77 pu",
+   "ours": "declared envelope = the ITIC-style points FROM MEMORY; the simulated worst corner meets it with a smallest margin of +0.054 pu; the IEC 62040-3 class points FROM MEMORY: class 1 -0.472 pu, class 2 -0.472 pu, class 3 -0.472 pu (not met: the first-millisecond over-voltage); adopting it is adopted as REQUIREMENTS AC-04 (D-080) (REQUIREMENTS.md), the bench is the gate; the 2.17 pu figure stays superseded",
+   "change": "ASSUME vf_envelope (declared = ITIC-style), vf_classes_iec62040_3, VF_ENV_D079 (superseded), env_margins",
+   "keys": [
+    "vf_envelope_basis",
+    "vf_bounded.envelope_basis"
    ]
   }
  ]
